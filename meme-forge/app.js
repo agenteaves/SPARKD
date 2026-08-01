@@ -1,15 +1,46 @@
 // ==========================================
 // SPARKD MEME FORGE
-// WORKING IMAGE LOADER
+// CORE CANVAS + IMAGE UPLOAD
 // ==========================================
 
 
 window.addEventListener("load", function(){
 
 
-const canvas = window.sparkdCanvas;
+if(typeof fabric === "undefined"){
+
+    alert("Fabric.js did not load");
+
+    return;
+
+}
 
 
+// CREATE CANVAS
+
+const canvas = new fabric.Canvas(
+    "memeCanvas",
+    {
+        backgroundColor:"#ffffff",
+        preserveObjectStacking:true
+    }
+);
+
+
+// MAKE GLOBAL
+
+window.sparkdCanvas = canvas;
+
+
+
+canvas.setWidth(1080);
+canvas.setHeight(1080);
+
+canvas.renderAll();
+
+
+
+// IMAGE UPLOAD
 
 const uploadButton =
 document.getElementById("uploadImageButton");
@@ -20,25 +51,40 @@ document.getElementById("imageUpload");
 
 
 
-uploadButton.onclick = function(){
+if(!uploadButton || !imageUpload){
+
+    alert("Upload controls missing");
+
+    return;
+
+}
+
+
+
+uploadButton.addEventListener(
+"click",
+function(){
 
     imageUpload.click();
 
-};
+});
 
 
 
 
-imageUpload.onchange = function(event){
+
+imageUpload.addEventListener(
+"change",
+function(e){
 
 
 const file =
-event.target.files[0];
+e.target.files[0];
 
 
 if(!file){
 
-return;
+    return;
 
 }
 
@@ -49,47 +95,34 @@ new FileReader();
 
 
 
-reader.onload = function(e){
+reader.onload =
+function(event){
 
 
 
-const imgElement =
-new Image();
+fabric.Image.fromURL(
 
+event.target.result,
 
-
-imgElement.onload = function(){
-
-
-
-const img =
-new fabric.Image(imgElement);
+function(img){
 
 
 
 img.set({
 
-    left:100,
+left:100,
 
-    top:100,
-
-    originX:"left",
-
-    originY:"top"
+top:100
 
 });
 
 
 
-img.scaleToWidth(600);
+img.scaleToWidth(700);
 
 
 
 canvas.add(img);
-
-
-
-canvas.bringToFront(img);
 
 
 
@@ -101,12 +134,14 @@ canvas.requestRenderAll();
 
 
 
-};
+alert("IMAGE IS ON CANVAS");
+
+
+}
 
 
 
-imgElement.src =
-e.target.result;
+);
 
 
 
@@ -118,7 +153,7 @@ reader.readAsDataURL(file);
 
 
 
-};
+});
 
 
 
