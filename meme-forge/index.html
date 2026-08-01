@@ -5,400 +5,86 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>SPARKD Meme Forge</title>
 
-<meta name="description"
-content="The ultimate meme generator for the SPARKD community.">
+<meta name="description" content="Create, customize and share SPARKD community memes.">
 
-<link rel="preconnect"
-href="https://fonts.googleapis.com">
 
-<link rel="preconnect"
-href="https://fonts.gstatic.com"
-crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Bangers&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Roboto:wght@300;400;500;700&family=Bangers&display=swap"
-rel="stylesheet">
 
-<link rel="stylesheet"
-href="style.css">
+<link rel="stylesheet" href="style.css">
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
+
 </head>
+
 
 <body>
 
-<div id="backgroundGlow"></div>
-
-<div id="particleLayer"></div>
 
 <div id="app">
 
-<header id="topBar">
 
-<div class="logoArea">
-
-<div class="logoIcon">
-🔥
-</div>
-
-<div>
+<header>
 
 <h1>
-
-SPARKD
+🔥 SPARKD
 <span>MEME FORGE</span>
-
 </h1>
 
-<p>
-
-Create.
-Laugh.
-Share.
-Moon.
-
-</p>
-
-</div>
-
-</div>
-
-<div class="toolbar">
-
-<button id="undoBtn">
-↶ Undo
-</button>
-
-<button id="redoBtn">
-↷ Redo
-</button>
-
-<button id="saveProjectBtn">
-💾 Save
-</button>
-
-<button id="loadProjectBtn">
-📂 Load
-</button>
-
-<button id="randomBtn">
-🎲 SPARK IT!
-</button>
-
-<button id="downloadBtn">
-⬇ Download
-</button>
-
-<button id="shareBtn">
-🚀 Share
-</button>
-
-<button id="fullscreenBtn">
-⛶ Fullscreen
-</button>
-
-</div>
+<p>Create • Customize • Share • SPARK</p>
 
 </header>
 
-<div id="workspace">
 
-<!-- ====================================== -->
-<!-- LEFT SIDEBAR -->
-<!-- ====================================== -->
 
-<aside id="leftSidebar">
+<div id="toolbar">
 
-<div class="panelTitle">
 
-TOOLS
-
-</div>
-
-<button class="toolButton"
-id="uploadImageButton">
-
+<button id="uploadBtn">
 🖼 Upload Image
-
 </button>
 
-<input
+
+<input 
 type="file"
-id="imageUpload"
+id="imageInput"
 accept="image/*"
 hidden>
 
-<button class="toolButton">
 
-😂 Meme Templates
-
+<button id="addTextBtn">
+🔤 Add Text
 </button>
 
-<button class="toolButton">
 
-⭐ Stickers
-
+<button id="downloadBtn">
+⬇ Export Meme
 </button>
 
-<button class="toolButton">
-
-😀 Emoji
-
-</button>
-
-<button class="toolButton">
-
-🔤 Text
-
-</button>
-
-<button class="toolButton">
-
-📐 Shapes
-
-</button>
-
-<button class="toolButton">
-
-🌈 Background
-
-</button>
-
-<button class="toolButton">
-
-⚡ Effects
-
-</button>
-
-<button class="toolButton">
-
-🤖 AI Caption
-
-</button>
-
-<hr>
-
-<div class="panelTitle">
-
-TEXT
 
 </div>
 
-<label>
 
-Top Text
 
-</label>
 
-<input
-type="text"
-id="topText"
-placeholder="Enter top text">
+<div id="editor">
 
-<label>
 
-Bottom Text
+<div id="canvasBox">
 
-</label>
 
-<input
-type="text"
-id="bottomText"
-placeholder="Enter bottom text">
-
-<label>
-
-Font
-
-</label>
-
-<select id="fontFamily">
-
-<option>Bangers</option>
-
-<option>Impact</option>
-
-<option>Orbitron</option>
-
-<option>Roboto</option>
-
-</select>
-
-<label>
-
-Font Size
-
-</label>
-
-<input
-type="range"
-id="fontSize"
-min="20"
-max="140"
-value="60">
-
-<label>
-
-Text Color
-
-</label>
-
-<input
-type="color"
-id="fontColor"
-value="#ffffff">
-
-<button
-class="primaryButton"
-id="addTextButton">
-
-➕ Add Text Layer
-
-</button>
-
-<hr>
-
-<div class="panelTitle">
-
-CANVAS
-
-</div>
-
-<label>
-
-Zoom
-
-</label>
-
-<input
-type="range"
-id="zoomSlider"
-min="25"
-max="300"
-value="100">
-
-<label>
-
-Canvas Size
-
-</label>
-
-<select id="canvasSize">
-
-<option value="1080">
-
-1080 x 1080
-
-</option>
-
-<option value="1920">
-
-1920 x 1080
-
-</option>
-
-<option value="1350">
-
-1350 x 1080
-
-</option>
-
-<option value="1080x1920">
-
-1080 x 1920
-
-</option>
-
-</select>
-
-<button
-class="dangerButton"
-id="clearCanvas">
-
-🗑 Clear Canvas
-
-</button>
-
-</aside>
-
-<!-- ====================================== -->
-<!-- CENTER STARTS HERE -->
-<!-- ====================================== -->
-
-<section id="centerArea">
-
-<div id="canvasToolbar">
-
-<button>📏 Grid</button>
-
-<button>🧲 Snap</button>
-
-<button>🎯 Center Guides</button>
-
-<button>🔲 Safe Zone</button>
-
-<button>📦 Layers</button>
-
-<button>👁 Preview</button>
-
-</div>
-
-<div id="canvasWrapper">
-
-<canvas
+<canvas 
 id="memeCanvas"
 width="1080"
-height="1080"
-style="background:white;">
+height="1080">
 </canvas>
 
-</div>
-
-  <!-- ====================================== -->
-<!-- RIGHT SIDEBAR -->
-<!-- ====================================== -->
-
-<aside id="rightSidebar">
-
-
-<div class="panelTitle">
-
-LAYERS
-
-</div>
-
-
-<div id="layerPanel">
-
-<div class="layerItem active">
-
-🖼 Background
-
-</div>
-
-
-<div class="layerItem">
-
-🔤 Text Layer
-
-</div>
-
-
-<div class="layerItem">
-
-⭐ Sticker
-
-</div>
-
-
-<div class="layerItem">
-
-🔥 SPARKD Watermark
 
 </div>
 
@@ -406,456 +92,43 @@ LAYERS
 </div>
 
 
-<hr>
 
 
-<div class="panelTitle">
-
-OBJECT PROPERTIES
-
-</div>
+<div id="controls">
 
 
 <label>
+Text:
+</label>
 
-Position X
+<input 
+id="textInput"
+placeholder="SPARKD TO THE MOON">
 
+
+<label>
+Contract Watermark:
 </label>
 
 <input
-type="number"
-id="objectX"
-value="0">
+id="contractInput"
+value="YOUR_TOKEN_CONTRACT_ADDRESS">
 
 
-<label>
 
-Position Y
-
-</label>
-
-<input
-type="number"
-id="objectY"
-value="0">
-
-
-<label>
-
-Width
-
-</label>
-
-<input
-type="number"
-id="objectWidth"
-value="0">
-
-
-<label>
-
-Height
-
-</label>
-
-<input
-type="number"
-id="objectHeight"
-value="0">
-
-
-<label>
-
-Rotation
-
-</label>
-
-<input
-type="range"
-id="rotation"
-min="0"
-max="360"
-value="0">
-
-
-<label>
-
-Opacity
-
-</label>
-
-<input
-type="range"
-id="opacity"
-min="0"
-max="100"
-value="100">
-
-
-<div class="propertyButtons">
-
-<button>
-
-🔒 Lock
-
-</button>
-
-
-<button>
-
-👁 Hide
-
-</button>
-
-
-<button>
-
-🗑 Delete
-
-</button>
-
-</div>
-
-
-<hr>
-
-
-<div class="panelTitle">
-
-STICKERS
-
-</div>
-
-
-<div id="stickerGallery">
-
-
-<div class="stickerCard">
-
-🚀
-
-</div>
-
-
-<div class="stickerCard">
-
-🔥
-
-</div>
-
-
-<div class="stickerCard">
-
-⚡
-
-</div>
-
-
-<div class="stickerCard">
-
-💎
-
-</div>
-
-
-<div class="stickerCard">
-
-🌙
-
-</div>
-
-
-<div class="stickerCard">
-
-👀
-
-</div>
-
-
-<div class="stickerCard">
-
-😂
-
-</div>
-
-
-<div class="stickerCard">
-
-🐸
-
-</div>
-
-
-</div>
-
-
-<hr>
-
-
-<div class="panelTitle">
-
-MEME TEMPLATES
-
-</div>
-
-
-<div id="templateGallery">
-
-
-<div class="templateCard">
-
-Template 1
-
-</div>
-
-
-<div class="templateCard">
-
-Template 2
-
-</div>
-
-
-<div class="templateCard">
-
-Template 3
-
-</div>
-
-
-<div class="templateCard">
-
-Template 4
-
-</div>
-
-
-</div>
-
-
-<hr>
-
-
-<div class="panelTitle">
-
-EXPORT SETTINGS
-
-</div>
-
-
-<label>
-
-Format
-
-</label>
-
-
-<select id="exportFormat">
-
-<option>
-
-PNG
-
-</option>
-
-<option>
-
-JPG
-
-</option>
-
-<option>
-
-WEBP
-
-</option>
-
-
-</select>
-
-
-<label>
-
-Resolution
-
-</label>
-
-
-<select id="exportResolution">
-
-<option value="1">
-
-Standard
-
-</option>
-
-
-<option value="2">
-
-2X HD
-
-</option>
-
-
-<option value="4">
-
-4X Ultra
-
-</option>
-
-
-</select>
-
-
-<div class="watermarkBox">
-
-
-<h3>
-
-🔥 SPARKD Branding
-
-</h3>
-
-
-<label>
-
-<input
-type="checkbox"
-id="enableLogo"
-checked>
-
-SPARKD Logo
-
-</label>
-
-
-<label>
-
-<input
-type="checkbox"
-id="enableContract"
-checked>
-
-Contract Address
-
-</label>
-
-
-<label>
-
-<input
-type="checkbox"
-id="enableWebsite"
-checked>
-
-sparkdcoin.com
-
-</label>
-
-
-</div>
-
-
-
-<div class="contractDisplay">
-
-
-<p>
-
-Contract Address:
-
-</p>
-
-
-<code id="contractAddress">
-
-YOUR_TOKEN_CONTRACT_ADDRESS
-
-</code>
-
-
-<button id="copyContract">
-
-📋 Copy
-
+<button id="watermarkBtn">
+🔥 Add Watermark
 </button>
 
 
 </div>
 
 
-</aside>
 
 
-</div>
-
-
-<!-- ====================================== -->
-<!-- STATUS BAR -->
-<!-- ====================================== -->
-
-
-<footer id="statusBar">
-
-
-<div>
-
-Status:
-
-<span id="statusText">
-
-Ready
-
-</span>
-
-</div>
-
-
-<div>
-
-Canvas:
-
-<span id="canvasStatus">
-
-1080x1080
-
-</span>
-
-</div>
-
-
-<div>
-
-Zoom:
-
-<span id="zoomStatus">
-
-100%
-
-</span>
-
-</div>
-
-
-<div>
-
-Objects:
-
-<span id="objectCount">
-
-0
-
-</span>
-
-</div>
-
-
-<div>
+<footer>
 
 SPARKD MEME FORGE v1.0
-
-</div>
-
 
 </footer>
 
@@ -863,9 +136,10 @@ SPARKD MEME FORGE v1.0
 </div>
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
-<script src="app.js?v=16"></script>
+<script src="app.js?v=1"></script>
+
 
 </body>
+
 </html>
