@@ -64,7 +64,7 @@ function containsUnsafeContent(text){
 // ================================
 
 const SPARKD_CONTRACT =
-"PASTE_REAL_SPARKD_SOLANA_ADDRESS_HERE";
+"BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
 
 // ================================
 // CREATE CANVAS
