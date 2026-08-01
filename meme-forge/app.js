@@ -321,7 +321,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - RAW IMAGE ONLY + WATERMARK
+// EXPORT PNG - FULL MEME + TEXT + WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -333,9 +333,16 @@ if(downloadBtn){
     downloadBtn.onclick = function(){
 
 
+        canvas.discardActiveObject();
+
+        canvas.renderAll();
+
+
+
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
         );
+
 
 
         if(!image){
@@ -348,78 +355,38 @@ if(downloadBtn){
 
 
 
-        const imgElement = image.getElement();
+        const bounds = image.getBoundingRect(true, true);
 
 
 
-        const width = image.getScaledWidth();
-
-        const height = image.getScaledHeight();
+        const padding = 5;
 
 
 
-        const exportCanvas = document.createElement("canvas");
+        const exportData = canvas.toDataURL({
 
+            format: "png",
 
-        exportCanvas.width = width;
+            left: bounds.left - padding,
 
-        exportCanvas.height = height;
+            top: bounds.top - padding,
 
+            width: bounds.width + (padding * 2),
 
+            height: bounds.height + (padding * 2),
 
-        const ctx = exportCanvas.getContext("2d");
+            multiplier: 1,
 
+            enableRetinaScaling: false
 
-
-        // Draw ONLY the image
-        ctx.drawImage(
-            imgElement,
-            0,
-            0,
-            width,
-            height
-        );
-
-
-
-        // Add SPARKD watermark
-      const contract = SPARKD_CONTRACT;
-
-
-
-        ctx.font = "14px Arial";
-
-        ctx.textAlign = "right";
-        
-        ctx.textBaseline = "bottom";
-        
-        ctx.lineWidth = 1;
-        
-        ctx.strokeStyle = "#000000";
-        
-        ctx.fillStyle = "#ffffff";
-
-
-
-        ctx.strokeText(
-            contract,
-            width - 5,
-            height - 5
-        );
-
-
-        ctx.fillText(
-            contract,
-            width - 5,
-            height - 5
-        );
+        });
 
 
 
         const link = document.createElement("a");
 
 
-        link.href = exportCanvas.toDataURL("image/png");
+        link.href = exportData;
 
 
         link.download = "SPARKD-meme.png";
@@ -429,6 +396,8 @@ if(downloadBtn){
 
 
     };
+
+
 }
 
 
