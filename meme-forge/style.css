@@ -331,11 +331,15 @@ box-shadow:
 
 canvas{
 
+display:block !important;
+
+width:600px !important;
+
+height:600px !important;
+
 background:white !important;
 
 border:5px solid red !important;
-
-display:block !important;
 
 visibility:visible !important;
 
