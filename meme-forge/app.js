@@ -248,7 +248,7 @@ if(watermarkBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - SQUARE MEME ONLY
+// EXPORT PNG - EXACT EDITED AREA
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -279,42 +279,15 @@ if(downloadBtn){
 
 
 
-        // Find total meme area
-        let bounds = {
+        // Get all object bounds
+        let group = new fabric.Group(objects);
 
-            left: Infinity,
-            top: Infinity,
-            right: -Infinity,
-            bottom: -Infinity
 
-        };
+        const bounds = group.getBoundingRect(true, true);
 
 
 
-        objects.forEach(obj => {
-
-
-            const rect = obj.getBoundingRect(true,true);
-
-
-            bounds.left = Math.min(bounds.left, rect.left);
-
-            bounds.top = Math.min(bounds.top, rect.top);
-
-
-            bounds.right = Math.max(
-                bounds.right,
-                rect.left + rect.width
-            );
-
-
-            bounds.bottom = Math.max(
-                bounds.bottom,
-                rect.top + rect.height
-            );
-
-
-        });
+        group.destroy();
 
 
 
@@ -322,56 +295,21 @@ if(downloadBtn){
 
 
 
-        let width =
-            (bounds.right - bounds.left) + padding * 2;
+        const exportData = canvas.toDataURL({
 
+            format: "png",
 
-        let height =
-            (bounds.bottom - bounds.top) + padding * 2;
+            left: bounds.left - padding,
 
+            top: bounds.top - padding,
 
+            width: bounds.width + (padding * 2),
 
-        // Force square dimensions
-        const size = Math.max(width, height);
+            height: bounds.height + (padding * 2),
 
+            multiplier: 1,
 
-
-        const centerX =
-            bounds.left + (width / 2);
-
-
-        const centerY =
-            bounds.top + (height / 2);
-
-
-
-        const crop = {
-
-            left: centerX - (size / 2),
-
-            top: centerY - (size / 2),
-
-            width: size,
-
-            height: size
-
-        };
-
-
-
-        const data = canvas.toDataURL({
-
-            format:"png",
-
-            left:crop.left,
-
-            top:crop.top,
-
-            width:crop.width,
-
-            height:crop.height,
-
-            multiplier:1
+            enableRetinaScaling: false
 
         });
 
@@ -379,12 +317,9 @@ if(downloadBtn){
 
         const link = document.createElement("a");
 
-
-        link.href = data;
-
+        link.href = exportData;
 
         link.download = "SPARKD-meme.png";
-
 
         link.click();
 
