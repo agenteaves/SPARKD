@@ -102,16 +102,25 @@ imageUpload.onchange = function(e){
 
                 canvas.add(img);
 
-                canvas.setActiveObject(img);
+canvas.setActiveObject(img);
 
-                canvas.renderAll();
+canvas.bringToFront(img);
+
+
+alert(
+    "IMAGE POSITION: X="
+    + img.left
+    + " Y="
+    + img.top
+    + " WIDTH="
+    + img.width
+    + " HEIGHT="
+    + img.height
+);
 
 
 
-                alert(
-                    "IMAGE ADDED OBJECTS: "
-                    + canvas.getObjects().length
-                );
+canvas.renderAll();
 
 
             }
