@@ -194,6 +194,27 @@ EDITOR
 }
 
 
+/* Responsive Fabric Canvas Display */
+
+.canvas-container {
+
+    max-width:90vw !important;
+
+    max-height:70vh !important;
+
+}
+
+
+
+.canvas-container canvas {
+
+    max-width:90vw !important;
+
+    max-height:70vh !important;
+
+}
+
+
 
 
 /* =========================
