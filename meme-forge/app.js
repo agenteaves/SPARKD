@@ -348,8 +348,46 @@ if(downloadBtn){
 downloadBtn.onclick=function(){
 
 
-
 canvas.discardActiveObject();
+
+canvas.renderAll();
+
+
+
+const contract =
+document.getElementById("contractInput").value;
+
+
+
+const watermark =
+new fabric.Text(
+
+"SPARKD | " + contract + " | sparkdcoin.com",
+
+{
+
+left:10,
+
+top:1055,
+
+fontSize:14,
+
+fill:"#777777",
+
+opacity:0.8,
+
+selectable:false,
+
+evented:false
+
+}
+
+);
+
+
+
+canvas.add(watermark);
+
 
 
 canvas.renderAll();
@@ -367,6 +405,14 @@ quality:1
 
 
 
+canvas.remove(watermark);
+
+
+
+canvas.renderAll();
+
+
+
 const link =
 document.createElement("a");
 
@@ -374,7 +420,7 @@ document.createElement("a");
 link.href=image;
 
 
-link.download="sparkd-meme.png";
+link.download="SPARKD-meme.png";
 
 
 link.click();
