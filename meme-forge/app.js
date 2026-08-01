@@ -247,9 +247,9 @@ if(watermarkBtn){
 
 
 
-// ================================
-// EXPORT PNG
-// ================================
+////////////////////////////////////////////////////
+// EXPORT PNG - CROPPED MEME ONLY
+////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
 
@@ -261,20 +261,17 @@ if(downloadBtn){
 
 
         canvas.discardActiveObject();
-
         canvas.renderAll();
 
 
 
-        const imageObject = canvas
-            .getObjects()
-            .find(obj => obj.type === "image");
+        const objects = canvas.getObjects();
 
 
 
-        if(!imageObject){
+        if(objects.length === 0){
 
-            alert("Please upload an image first.");
+            alert("Please create a meme first.");
 
             return;
 
@@ -282,51 +279,56 @@ if(downloadBtn){
 
 
 
-        const bounds = imageObject.getBoundingRect(true,true);
+        // Get the bounds of all meme objects
+        const groupBounds = objects.reduce((bounds, obj) => {
+
+            const rect = obj.getBoundingRect(true, true);
+
+            bounds.left = Math.min(bounds.left, rect.left);
+            bounds.top = Math.min(bounds.top, rect.top);
+
+            bounds.right = Math.max(
+                bounds.right,
+                rect.left + rect.width
+            );
+
+            bounds.bottom = Math.max(
+                bounds.bottom,
+                rect.top + rect.height
+            );
+
+            return bounds;
+
+        }, {
+
+            left: Infinity,
+            top: Infinity,
+            right: -Infinity,
+            bottom: -Infinity
+
+        });
+
 
 
         const padding = 20;
 
 
 
-        const watermark = new fabric.Text(
+        const crop = {
 
-            contractInput.value,
+            left: groupBounds.left - padding,
 
-            {
+            top: groupBounds.top - padding,
 
-                left: bounds.left + bounds.width - 8,
+            width:
+                (groupBounds.right - groupBounds.left)
+                + padding * 2,
 
-                top: bounds.top + bounds.height - 8,
+            height:
+                (groupBounds.bottom - groupBounds.top)
+                + padding * 2
 
-                originX:"right",
-
-                originY:"bottom",
-
-                fontSize:12,
-
-                fill:"#ffffff",
-
-                stroke:"#000000",
-
-                strokeWidth:0.5,
-
-                opacity:0.75,
-
-                selectable:false,
-
-                evented:false
-
-            }
-
-        );
-
-
-
-        canvas.add(watermark);
-
-
-        canvas.renderAll();
+        };
 
 
 
@@ -334,13 +336,13 @@ if(downloadBtn){
 
             format:"png",
 
-            left:bounds.left - padding,
+            left: crop.left,
 
-            top:bounds.top - padding,
+            top: crop.top,
 
-            width:bounds.width + padding * 2,
+            width: crop.width,
 
-            height:bounds.height + padding * 2,
+            height: crop.height,
 
             multiplier:1
 
@@ -348,21 +350,11 @@ if(downloadBtn){
 
 
 
-        canvas.remove(watermark);
-
-
-        canvas.renderAll();
-
-
-
         const link = document.createElement("a");
-
 
         link.href = data;
 
-
         link.download = "SPARKD-meme.png";
-
 
         link.click();
 
