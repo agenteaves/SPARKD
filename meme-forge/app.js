@@ -82,30 +82,136 @@ function updateObjectCount(){
 
 
 // ================================
-// IMAGE UPLOAD
+// IMAGE UPLOAD FIXED
 // ================================
 
 
 const uploadButton =
-document.getElementById(
-"uploadImageButton"
-);
+document.getElementById("uploadImageButton");
 
 
 const imageUpload =
-document.getElementById(
-"imageUpload"
-);
+document.getElementById("imageUpload");
 
 
 
 if(uploadButton){
 
-uploadButton.onclick = ()=>{
+    uploadButton.addEventListener("click", function(){
 
-    imageUpload.click();
+        imageUpload.click();
 
-};
+    });
+
+}
+
+
+
+if(imageUpload){
+
+imageUpload.addEventListener("change", function(e){
+
+
+    const file = e.target.files[0];
+
+
+    if(!file){
+
+        return;
+
+    }
+
+
+
+    const reader = new FileReader();
+
+
+
+    reader.onload = function(event){
+
+
+
+        fabric.Image.fromURL(
+
+            event.target.result,
+
+            function(img){
+
+
+
+                // Scale image to fit canvas
+
+                const maxSize = 900;
+
+
+                if(img.width > maxSize || img.height > maxSize){
+
+                    img.scaleToWidth(maxSize);
+
+                }
+
+
+
+                img.set({
+
+                    left:100,
+
+                    top:100,
+
+                    selectable:true,
+
+                    hasControls:true,
+
+                    hasBorders:true
+
+                });
+
+
+
+                canvas.add(img);
+
+
+
+                canvas.centerObject(img);
+
+
+
+                canvas.setActiveObject(img);
+
+
+
+                canvas.renderAll();
+
+
+
+                updateStatus(
+                    "Image Loaded Successfully"
+                );
+
+
+                updateObjectCount();
+
+
+
+            },
+
+            {
+                crossOrigin:"anonymous"
+            }
+
+        );
+
+
+
+    };
+
+
+
+    reader.readAsDataURL(file);
+
+
+
+});
 
 }
 
