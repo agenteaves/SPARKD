@@ -1,3 +1,5 @@
+alert("SPARKD app.js loaded");
+
 /* =====================================================
    SPARKD MEME FORGE
    app.js
