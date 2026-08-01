@@ -1,15 +1,16 @@
 // Proof of Deeds System
-// SPARKD Version 1.0
+// SPARKD Version 2.0
+// Connected to live backend
 
 
-fetch("proof-data.json")
+fetch("http://localhost:3000/api/deeds")
 
 .then(response => response.json())
 
 .then(data => {
 
 
-    let deeds = data.deeds;
+    let deeds = data;
 
 
     let verifiedCount = 0;
@@ -21,96 +22,100 @@ fetch("proof-data.json")
 
 
 
-    if (deeds.length > 0) {
-
-
-        deedList.innerHTML = "";
-
-
-        deeds.forEach(deed => {
-
-
-            if (deed.status === "Verified") {
-
-
-                verifiedCount++;
-
-
-                if (deed.type === "Meals") {
-
-                    meals += deed.amount;
-
-                }
-
-
-                if (deed.type === "Volunteer") {
-
-                    hours += deed.amount;
-
-                }
+    deedList.innerHTML = "";
 
 
 
-                let card = document.createElement("div");
+    deeds.forEach(deed => {
 
 
-                card.className = "card";
+        if (deed.status === "Verified") {
 
 
-                card.innerHTML = `
-
-                <h3>
-                ${deed.id}
-                </h3>
-
-                <p>
-                <strong>Action:</strong>
-                ${deed.description}
-                </p>
-
-                <p>
-                <strong>Status:</strong>
-                ✓ Verified
-                </p>
-
-                <p>
-                <strong>Identity:</strong>
-                ${deed.identity}
-                </p>
-
-                `;
-
-
-                deedList.appendChild(card);
-
-
-            }
-
-
-        });
-
-
-    }
+            verifiedCount++;
 
 
 
-    document.getElementById("verified-count").innerText = verifiedCount;
+            let card = document.createElement("div");
 
-    document.getElementById("meal-count").innerText = meals;
 
-    document.getElementById("hours-count").innerText = hours;
+            card.className = "card";
+
+
+
+            card.innerHTML = `
+
+            <h3>
+            Deed #${deed.id}
+            </h3>
+
+
+            <p>
+            <strong>Category:</strong>
+            ${deed.category}
+            </p>
+
+
+            <p>
+            <strong>Description:</strong>
+            ${deed.description}
+            </p>
+
+
+            <p>
+            <strong>Status:</strong>
+            ✓ Verified
+            </p>
+
+
+            <p>
+            <a href="history.html?id=${deed.id}">
+            View Verification History
+            </a>
+            </p>
+
+
+            `;
+
+
+
+            deedList.appendChild(card);
+
+
+
+        }
+
+
+    });
+
+
+
+    document.getElementById("verified-count").innerText =
+        verifiedCount;
+
+
+    document.getElementById("meal-count").innerText =
+        meals;
+
+
+    document.getElementById("hours-count").innerText =
+        hours;
 
 
 
 })
 
 
-
 .catch(error => {
 
+
     console.error(
-        "Proof of Deeds data loading error:",
+
+        "Proof of Deeds live data error:",
+
         error
+
     );
+
 
 });
