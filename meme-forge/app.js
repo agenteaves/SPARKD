@@ -337,5 +337,3 @@ window.addEventListener("resize", function(){
     canvas.renderAll();
 
 });
-
-});
