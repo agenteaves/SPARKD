@@ -668,4 +668,53 @@ overflow:auto;
 
 }
 
+  /* ==========================================
+   FABRIC.JS CANVAS FIX
+========================================== */
+
+
+.canvas-container {
+
+    position: relative !important;
+
+    width: 600px !important;
+
+    height: 600px !important;
+
+    margin:auto !important;
+
+}
+
+
+
+.canvas-container canvas {
+
+    display:block !important;
+
+}
+
+
+
+#canvasWrapper {
+
+    display:flex !important;
+
+    justify-content:center !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    height:100% !important;
+
+}
+
+
+
+#memeCanvas {
+
+    background:white !important;
+
+} 
+
 }
