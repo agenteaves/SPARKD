@@ -389,8 +389,7 @@ if(downloadBtn){
 
 
         // Add SPARKD watermark
-        const contract =
-            document.getElementById("contractInput").value;
+      const contract = SPARKD_CONTRACT;
 
 
 
