@@ -1,82 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>SPARKD Meme Forge</title>
 
-<meta name="description" content="Create viral SPARKD memes with our interactive Meme Forge.">
+<meta name="description"
+content="The ultimate meme generator for the SPARKD community.">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Bangers&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
 
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Roboto:wght@300;400;500;700&family=Bangers&display=swap"
+rel="stylesheet">
+
+<link rel="stylesheet"
+href="style.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
 </head>
 
 <body>
 
-<div id="particles"></div>
+<div id="backgroundGlow"></div>
 
-<header>
+<div id="particleLayer"></div>
 
-<div class="logo">
+<div id="app">
 
-🔥 SPARKD MEME FORGE
+<header id="topBar">
+
+<div class="logoArea">
+
+<div class="logoIcon">
+🔥
+</div>
+
+<div>
+
+<h1>
+
+SPARKD
+<span>MEME FORGE</span>
+
+</h1>
+
+<p>
+
+Create.
+Laugh.
+Share.
+Moon.
+
+</p>
 
 </div>
 
-<nav>
+</div>
 
-<button id="randomBtn">🎲 Random Meme</button>
+<div class="toolbar">
 
-<button id="downloadBtn">⬇ Download</button>
+<button id="undoBtn">
+↶ Undo
+</button>
 
-<button id="shareBtn">🚀 Share</button>
+<button id="redoBtn">
+↷ Redo
+</button>
 
-</nav>
+<button id="saveProjectBtn">
+💾 Save
+</button>
+
+<button id="loadProjectBtn">
+📂 Load
+</button>
+
+<button id="randomBtn">
+🎲 SPARK IT!
+</button>
+
+<button id="downloadBtn">
+⬇ Download
+</button>
+
+<button id="shareBtn">
+🚀 Share
+</button>
+
+<button id="fullscreenBtn">
+⛶ Fullscreen
+</button>
+
+</div>
 
 </header>
 
-<main>
+<div id="workspace">
 
-<section class="leftPanel">
+<!-- ====================================== -->
+<!-- LEFT SIDEBAR -->
+<!-- ====================================== -->
 
-<h2>Create</h2>
+<aside id="leftSidebar">
 
-<div class="toolGroup">
+<div class="panelTitle">
 
-<label>Upload Image</label>
-
-<input type="file" id="uploadImage" accept="image/*">
-
-</div>
-
-<div class="toolGroup">
-
-<label>Top Text</label>
-
-<input type="text" id="topText" placeholder="Type something...">
+TOOLS
 
 </div>
 
-<div class="toolGroup">
+<button class="toolButton"
+id="uploadImageButton">
 
-<label>Bottom Text</label>
+🖼 Upload Image
 
-<input type="text" id="bottomText" placeholder="Type something...">
+</button>
+
+<input
+type="file"
+id="imageUpload"
+accept="image/*"
+hidden>
+
+<button class="toolButton">
+
+😂 Meme Templates
+
+</button>
+
+<button class="toolButton">
+
+⭐ Stickers
+
+</button>
+
+<button class="toolButton">
+
+😀 Emoji
+
+</button>
+
+<button class="toolButton">
+
+🔤 Text
+
+</button>
+
+<button class="toolButton">
+
+📐 Shapes
+
+</button>
+
+<button class="toolButton">
+
+🌈 Background
+
+</button>
+
+<button class="toolButton">
+
+⚡ Effects
+
+</button>
+
+<button class="toolButton">
+
+🤖 AI Caption
+
+</button>
+
+<hr>
+
+<div class="panelTitle">
+
+TEXT
 
 </div>
 
-<div class="toolGroup">
+<label>
 
-<label>Font</label>
+Top Text
 
-<select id="fontSelect">
+</label>
+
+<input
+type="text"
+id="topText"
+placeholder="Enter top text">
+
+<label>
+
+Bottom Text
+
+</label>
+
+<input
+type="text"
+id="bottomText"
+placeholder="Enter bottom text">
+
+<label>
+
+Font
+
+</label>
+
+<select id="fontFamily">
 
 <option>Bangers</option>
 
@@ -88,123 +229,131 @@
 
 </select>
 
-</div>
+<label>
 
-<div class="toolGroup">
+Font Size
 
-<label>Text Size</label>
+</label>
 
-<input type="range" min="20" max="120" value="52" id="fontSize">
+<input
+type="range"
+id="fontSize"
+min="20"
+max="140"
+value="60">
 
-</div>
+<label>
 
-<div class="toolGroup">
+Text Color
 
-<label>Text Color</label>
+</label>
 
-<input type="color" id="fontColor" value="#ffffff">
+<input
+type="color"
+id="fontColor"
+value="#ffffff">
 
-</div>
+<button
+class="primaryButton"
+id="addTextButton">
 
-<div class="toolGroup">
+➕ Add Text Layer
 
-<button id="addTextBtn">
-➕ Add Text Box
 </button>
 
-<button id="addStickerBtn">
-⭐ Add Sticker
+<hr>
+
+<div class="panelTitle">
+
+CANVAS
+
+</div>
+
+<label>
+
+Zoom
+
+</label>
+
+<input
+type="range"
+id="zoomSlider"
+min="25"
+max="300"
+value="100">
+
+<label>
+
+Canvas Size
+
+</label>
+
+<select id="canvasSize">
+
+<option value="1080">
+
+1080 x 1080
+
+</option>
+
+<option value="1920">
+
+1920 x 1080
+
+</option>
+
+<option value="1350">
+
+1350 x 1080
+
+</option>
+
+<option value="1080x1920">
+
+1080 x 1920
+
+</option>
+
+</select>
+
+<button
+class="dangerButton"
+id="clearCanvas">
+
+🗑 Clear Canvas
+
 </button>
 
-</div>
+</aside>
 
-</section>
+<!-- ====================================== -->
+<!-- CENTER STARTS HERE -->
+<!-- ====================================== -->
 
-<section class="canvasArea">
+<section id="centerArea">
 
-<div id="canvasContainer">
+<div id="canvasToolbar">
 
-<canvas id="memeCanvas" width="1080" height="1080"></canvas>
+<button>📏 Grid</button>
 
-</div>
+<button>🧲 Snap</button>
 
-</section>
+<button>🎯 Center Guides</button>
 
-<section class="rightPanel">
+<button>🔲 Safe Zone</button>
 
-<h2>Templates</h2>
+<button>📦 Layers</button>
 
-<div id="templateGrid"></div>
-
-<h2>Stickers</h2>
-
-<div id="stickerGrid"></div>
-
-<h2>Effects</h2>
-
-<div class="effects">
-
-<button>🔥 Glow</button>
-
-<button>⚡ Sparks</button>
-
-<button>💎 Neon</button>
-
-<button>🌈 RGB</button>
-
-<button>🌀 Blur</button>
-
-<button>✨ Shine</button>
+<button>👁 Preview</button>
 
 </div>
 
-<div class="exportInfo">
+<div id="canvasWrapper">
 
-<h3>Export</h3>
-
-<p>
-
-Every exported meme automatically includes:
-
-</p>
-
-<ul>
-
-<li>✔ SPARKD Watermark</li>
-
-<li>✔ Contract Address</li>
-
-<li>✔ sparkdcoin.com</li>
-
-<li>✔ High Resolution PNG</li>
-
-</ul>
+<canvas
+id="memeCanvas"
+width="1080"
+height="1080">
+</canvas>
 
 </div>
-
-</section>
-
-</main>
-
-<footer>
-
-<div>
-
-SPARKD Meme Forge © 2026
-
-</div>
-
-<div>
-
-Made for the SPARKD Community
-
-</div>
-
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-
-<script src="app.js"></script>
-
-</body>
-</html>
