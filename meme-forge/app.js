@@ -321,7 +321,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - FULL MEME + TEXT + WATERMARK
+// EXPORT PNG - IMAGE + TEXT + WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -359,34 +359,51 @@ if(downloadBtn){
 
 
 
-        const padding = 5;
+        const objects = canvas.getObjects().filter(obj => {
 
 
+            const objBounds = obj.getBoundingRect(true, true);
 
-        const exportData = canvas.toDataURL({
 
-            format: "png",
+            return (
 
-            left: bounds.left - padding,
+                objBounds.left >= bounds.left - 5 &&
 
-            top: bounds.top - padding,
+                objBounds.top >= bounds.top - 5 &&
 
-            width: bounds.width + (padding * 2),
+                objBounds.left + objBounds.width <= bounds.left + bounds.width + 5 &&
 
-            height: bounds.height + (padding * 2),
+                objBounds.top + objBounds.height <= bounds.top + bounds.height + 5
 
-            multiplier: 1,
+            );
 
-            enableRetinaScaling: false
 
         });
+
+
+
+        const group = new fabric.Group(objects);
+
+
+
+        const data = group.toDataURL({
+
+            format:"png",
+
+            multiplier:1
+
+        });
+
+
+
+        group.destroy();
 
 
 
         const link = document.createElement("a");
 
 
-        link.href = exportData;
+        link.href = data;
 
 
         link.download = "SPARKD-meme.png";
