@@ -199,7 +199,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - SQUARE IMAGE ONLY + WATERMARK
+// EXPORT PNG - IMAGE ONLY + WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -231,15 +231,16 @@ if(downloadBtn){
 
 
 
-        // Get image bounds only
-        const imgBounds = image.getBoundingRect(true,true);
+        // Get exact image bounds
+        const bounds = image.getBoundingRect(true, true);
 
 
 
-        // Create watermark inside image area
         const contract = document.getElementById("contractInput").value;
 
 
+
+        // Add watermark temporarily
         const watermark = new fabric.Text(
 
             contract,
@@ -270,9 +271,9 @@ if(downloadBtn){
 
         watermark.set({
 
-            left: imgBounds.left + imgBounds.width - 25,
+            left: bounds.left + bounds.width - 25,
 
-            top: imgBounds.top + imgBounds.height - 25,
+            top: bounds.top + bounds.height - 25,
 
             originX:"right",
 
@@ -289,19 +290,17 @@ if(downloadBtn){
 
 
 
-        // Make export square based on image only
-        const size = Math.max(
-            imgBounds.width,
-            imgBounds.height
+        // Create temporary group of ONLY image + watermark
+        const exportGroup = new fabric.Group(
+            [
+                image,
+                watermark
+            ]
         );
 
 
-        const centerX =
-            imgBounds.left + imgBounds.width / 2;
 
-
-        const centerY =
-            imgBounds.top + imgBounds.height / 2;
+        const exportBounds = exportGroup.getBoundingRect(true,true);
 
 
 
@@ -313,13 +312,13 @@ if(downloadBtn){
 
             format:"png",
 
-            left:centerX - size / 2 - padding,
+            left:exportBounds.left - padding,
 
-            top:centerY - size / 2 - padding,
+            top:exportBounds.top - padding,
 
-            width:size + padding * 2,
+            width:exportBounds.width + padding * 2,
 
-            height:size + padding * 2,
+            height:exportBounds.height + padding * 2,
 
             multiplier:1
 
@@ -327,7 +326,10 @@ if(downloadBtn){
 
 
 
-        // Remove temporary watermark
+        exportGroup.destroy();
+
+
+
         canvas.remove(watermark);
 
         canvas.renderAll();
@@ -346,5 +348,4 @@ if(downloadBtn){
     };
 
 
-}
-});
+}});
