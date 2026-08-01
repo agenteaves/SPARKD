@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD MEME FORGE v1.0
-// CORE ENGINE
+// SPARKD MEME FORGE v1.1
+// COMPLETE APP ENGINE
 ////////////////////////////////////////////////////
 
 
@@ -30,16 +30,43 @@ canvas.setWidth(1080);
 
 canvas.setHeight(1080);
 
-  canvas.setZoom(
+
+
+
+
+function resizeCanvasView(){
+
+
+    const zoom =
     Math.min(
-        window.innerWidth,
-        window.innerHeight
-    ) / 1300
+        window.innerWidth * 0.65,
+        window.innerHeight * 0.65
+    ) / 1080;
+
+
+
+    canvas.setZoom(zoom);
+
+
+    canvas.calcOffset();
+
+
+    canvas.renderAll();
+
+
+}
+
+
+
+resizeCanvasView();
+
+
+
+window.addEventListener(
+"resize",
+resizeCanvasView
 );
 
-canvas.calcOffset();  
-
-canvas.renderAll();
 
 
 
@@ -59,22 +86,31 @@ document.getElementById("imageInput");
 
 
 
+if(uploadBtn && imageInput){
 
-uploadBtn.onclick = function(){
+
+
+uploadBtn.addEventListener(
+"click",
+function(){
 
     imageInput.click();
 
-};
+});
 
 
 
 
 
-imageInput.onchange = function(e){
+imageInput.addEventListener(
+"change",
+function(e){
+
 
 
 const file =
 e.target.files[0];
+
 
 
 if(!file){
@@ -90,7 +126,8 @@ new FileReader();
 
 
 
-reader.onload = function(event){
+reader.onload =
+function(event){
 
 
 
@@ -102,31 +139,33 @@ function(img){
 
 
 
-    img.scaleToWidth(800);
+img.scaleToWidth(800);
 
 
 
-    img.set({
+img.set({
 
-        left:140,
+    left:140,
 
-        top:140,
+    top:140,
 
-        cornerColor:"#ff6600",
+    cornerColor:"#ff6600",
 
-        transparentCorners:false
+    transparentCorners:false
 
-    });
-
-
-
-    canvas.add(img);
+});
 
 
-    canvas.setActiveObject(img);
+
+canvas.add(img);
 
 
-    canvas.renderAll();
+
+canvas.setActiveObject(img);
+
+
+
+canvas.renderAll();
 
 
 
@@ -146,7 +185,11 @@ reader.readAsDataURL(file);
 
 
 
-};
+});
+
+
+
+}
 
 
 
@@ -154,7 +197,7 @@ reader.readAsDataURL(file);
 
 
 // ================================
-// ADD TEXT
+// TEXT
 // ================================
 
 
@@ -167,11 +210,15 @@ document.getElementById("textInput");
 
 
 
+if(addTextBtn){
+
+
+
 addTextBtn.onclick=function(){
 
 
 
-const text =
+const memeText =
 new fabric.IText(
 
 textInput.value || "SPARKD",
@@ -186,13 +233,11 @@ fill:"#ffffff",
 
 stroke:"#000000",
 
-strokeWidth:3,
+strokeWidth:4,
 
 fontFamily:"Bangers",
 
-fontSize:80,
-
-shadow:"4px 4px 4px #000"
+fontSize:80
 
 }
 
@@ -200,10 +245,10 @@ shadow:"4px 4px 4px #000"
 
 
 
-canvas.add(text);
+canvas.add(memeText);
 
 
-canvas.setActiveObject(text);
+canvas.setActiveObject(memeText);
 
 
 canvas.renderAll();
@@ -214,11 +259,15 @@ canvas.renderAll();
 
 
 
+}
+
+
+
 
 
 
 // ================================
-// WATERMARK
+// CONTRACT WATERMARK
 // ================================
 
 
@@ -228,6 +277,10 @@ document.getElementById("watermarkBtn");
 
 const contractInput =
 document.getElementById("contractInput");
+
+
+
+if(watermarkBtn){
 
 
 
@@ -244,15 +297,13 @@ contractInput.value,
 
 left:10,
 
-top:1050,
-
-fill:"#888888",
+top:1045,
 
 fontSize:18,
 
-opacity:.7,
+fill:"#777777",
 
-fontFamily:"Arial"
+opacity:.8
 
 }
 
@@ -263,6 +314,7 @@ fontFamily:"Arial"
 canvas.add(watermark);
 
 
+
 canvas.renderAll();
 
 
@@ -271,17 +323,25 @@ canvas.renderAll();
 
 
 
+}
+
+
+
 
 
 
 
 // ================================
-// EXPORT
+// EXPORT PNG
 // ================================
 
 
 const downloadBtn =
 document.getElementById("downloadBtn");
+
+
+
+if(downloadBtn){
 
 
 
@@ -291,11 +351,12 @@ downloadBtn.onclick=function(){
 
 canvas.discardActiveObject();
 
+
 canvas.renderAll();
 
 
 
-const data =
+const image =
 canvas.toDataURL({
 
 format:"png",
@@ -310,10 +371,10 @@ const link =
 document.createElement("a");
 
 
-link.href=data;
+link.href=image;
 
 
-link.download="SPARKD-meme.png";
+link.download="sparkd-meme.png";
 
 
 link.click();
@@ -323,17 +384,11 @@ link.click();
 };
 
 
-window.addEventListener("resize", function(){
 
-    canvas.setZoom(
-        Math.min(
-            window.innerWidth,
-            window.innerHeight
-        ) / 1300
-    );
+}
 
-    canvas.calcOffset();
 
-    canvas.renderAll();
+
+
 
 });
