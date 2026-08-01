@@ -74,53 +74,42 @@ const url = URL.createObjectURL(file);
 
 fabric.Image.fromURL(
 
-url,
+    event.target.result,
 
-function(img){
+    function(img){
 
+        img.set({
 
+            left:200,
 
-    // FORCE KNOWN SIZE/POSITION
+            top:200
 
-    img.set({
-
-        left:100,
-
-        top:100,
-
-        opacity:1,
-
-        visible:true
-
-    });
+        });
 
 
 
-    img.scale(0.5);
+        img.scaleToWidth(300);
 
 
 
-    canvas.add(img);
+        canvas.add(img);
 
 
 
-    canvas.setActiveObject(img);
+        canvas.setActiveObject(img);
 
 
 
-    canvas.bringToFront(img);
+        canvas.renderAll();
 
 
 
-    canvas.renderAll();
+        alert("IMAGE ADDED");
 
 
+    }
 
-    alert(
-    "IMAGE ADDED - OBJECTS: "
-    + canvas.getObjects().length
-    );
-
+);
 
 },
 
