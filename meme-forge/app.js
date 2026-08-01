@@ -248,7 +248,7 @@ if(watermarkBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - WITH TEMPORARY WATERMARK
+// EXPORT PNG - ALWAYS INCLUDES CONTRACT WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -265,34 +265,16 @@ if(downloadBtn){
 
 
 
-        const objects = canvas.getObjects();
+        const contract = document.getElementById("contractInput").value;
 
 
 
-        if(objects.length === 0){
-
-            alert("Please create a meme first.");
-
-            return;
-
-        }
-
-
-
-        // Create temporary watermark
+        // Add required watermark temporarily
         const watermark = new fabric.Text(
 
-            document.getElementById("contractInput").value,
+            contract,
 
             {
-
-                left: canvas.width - 20,
-
-                top: canvas.height - 20,
-
-                originX:"right",
-
-                originY:"bottom",
 
                 fontSize:12,
 
@@ -314,6 +296,34 @@ if(downloadBtn){
 
 
 
+        // Place watermark over bottom-right of image area
+        const image = canvas.getObjects().find(
+            obj => obj.type === "image"
+        );
+
+
+
+        if(image){
+
+            const imgBounds = image.getBoundingRect(true,true);
+
+
+            watermark.set({
+
+                left: imgBounds.left + imgBounds.width - 10,
+
+                top: imgBounds.top + imgBounds.height - 10,
+
+                originX:"right",
+
+                originY:"bottom"
+
+            });
+
+        }
+
+
+
         canvas.add(watermark);
 
         canvas.renderAll();
@@ -321,18 +331,18 @@ if(downloadBtn){
 
 
 
-        // Find full meme bounds
+        // Calculate export area AFTER watermark exists
         let minX = Infinity;
         let minY = Infinity;
-        let maxX = 0;
-        let maxY = 0;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
 
 
 
         canvas.getObjects().forEach(function(obj){
 
 
-            const rect = obj.getBoundingRect();
+            const rect = obj.getBoundingRect(true,true);
 
 
             minX = Math.min(minX, rect.left);
@@ -350,6 +360,7 @@ if(downloadBtn){
 
 
         const padding = 20;
+
 
 
         const data = canvas.toDataURL({
@@ -390,6 +401,5 @@ if(downloadBtn){
 
 
 }
-
 
 });
