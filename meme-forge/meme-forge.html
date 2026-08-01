@@ -357,3 +357,514 @@ height="1080">
 </canvas>
 
 </div>
+
+  <!-- ====================================== -->
+<!-- RIGHT SIDEBAR -->
+<!-- ====================================== -->
+
+<aside id="rightSidebar">
+
+
+<div class="panelTitle">
+
+LAYERS
+
+</div>
+
+
+<div id="layerPanel">
+
+<div class="layerItem active">
+
+🖼 Background
+
+</div>
+
+
+<div class="layerItem">
+
+🔤 Text Layer
+
+</div>
+
+
+<div class="layerItem">
+
+⭐ Sticker
+
+</div>
+
+
+<div class="layerItem">
+
+🔥 SPARKD Watermark
+
+</div>
+
+
+</div>
+
+
+<hr>
+
+
+<div class="panelTitle">
+
+OBJECT PROPERTIES
+
+</div>
+
+
+<label>
+
+Position X
+
+</label>
+
+<input
+type="number"
+id="objectX"
+value="0">
+
+
+<label>
+
+Position Y
+
+</label>
+
+<input
+type="number"
+id="objectY"
+value="0">
+
+
+<label>
+
+Width
+
+</label>
+
+<input
+type="number"
+id="objectWidth"
+value="0">
+
+
+<label>
+
+Height
+
+</label>
+
+<input
+type="number"
+id="objectHeight"
+value="0">
+
+
+<label>
+
+Rotation
+
+</label>
+
+<input
+type="range"
+id="rotation"
+min="0"
+max="360"
+value="0">
+
+
+<label>
+
+Opacity
+
+</label>
+
+<input
+type="range"
+id="opacity"
+min="0"
+max="100"
+value="100">
+
+
+<div class="propertyButtons">
+
+<button>
+
+🔒 Lock
+
+</button>
+
+
+<button>
+
+👁 Hide
+
+</button>
+
+
+<button>
+
+🗑 Delete
+
+</button>
+
+</div>
+
+
+<hr>
+
+
+<div class="panelTitle">
+
+STICKERS
+
+</div>
+
+
+<div id="stickerGallery">
+
+
+<div class="stickerCard">
+
+🚀
+
+</div>
+
+
+<div class="stickerCard">
+
+🔥
+
+</div>
+
+
+<div class="stickerCard">
+
+⚡
+
+</div>
+
+
+<div class="stickerCard">
+
+💎
+
+</div>
+
+
+<div class="stickerCard">
+
+🌙
+
+</div>
+
+
+<div class="stickerCard">
+
+👀
+
+</div>
+
+
+<div class="stickerCard">
+
+😂
+
+</div>
+
+
+<div class="stickerCard">
+
+🐸
+
+</div>
+
+
+</div>
+
+
+<hr>
+
+
+<div class="panelTitle">
+
+MEME TEMPLATES
+
+</div>
+
+
+<div id="templateGallery">
+
+
+<div class="templateCard">
+
+Template 1
+
+</div>
+
+
+<div class="templateCard">
+
+Template 2
+
+</div>
+
+
+<div class="templateCard">
+
+Template 3
+
+</div>
+
+
+<div class="templateCard">
+
+Template 4
+
+</div>
+
+
+</div>
+
+
+<hr>
+
+
+<div class="panelTitle">
+
+EXPORT SETTINGS
+
+</div>
+
+
+<label>
+
+Format
+
+</label>
+
+
+<select id="exportFormat">
+
+<option>
+
+PNG
+
+</option>
+
+<option>
+
+JPG
+
+</option>
+
+<option>
+
+WEBP
+
+</option>
+
+
+</select>
+
+
+<label>
+
+Resolution
+
+</label>
+
+
+<select id="exportResolution">
+
+<option value="1">
+
+Standard
+
+</option>
+
+
+<option value="2">
+
+2X HD
+
+</option>
+
+
+<option value="4">
+
+4X Ultra
+
+</option>
+
+
+</select>
+
+
+<div class="watermarkBox">
+
+
+<h3>
+
+🔥 SPARKD Branding
+
+</h3>
+
+
+<label>
+
+<input
+type="checkbox"
+id="enableLogo"
+checked>
+
+SPARKD Logo
+
+</label>
+
+
+<label>
+
+<input
+type="checkbox"
+id="enableContract"
+checked>
+
+Contract Address
+
+</label>
+
+
+<label>
+
+<input
+type="checkbox"
+id="enableWebsite"
+checked>
+
+sparkdcoin.com
+
+</label>
+
+
+</div>
+
+
+
+<div class="contractDisplay">
+
+
+<p>
+
+Contract Address:
+
+</p>
+
+
+<code id="contractAddress">
+
+YOUR_TOKEN_CONTRACT_ADDRESS
+
+</code>
+
+
+<button id="copyContract">
+
+📋 Copy
+
+</button>
+
+
+</div>
+
+
+</aside>
+
+
+</div>
+
+
+<!-- ====================================== -->
+<!-- STATUS BAR -->
+<!-- ====================================== -->
+
+
+<footer id="statusBar">
+
+
+<div>
+
+Status:
+
+<span id="statusText">
+
+Ready
+
+</span>
+
+</div>
+
+
+<div>
+
+Canvas:
+
+<span id="canvasStatus">
+
+1080x1080
+
+</span>
+
+</div>
+
+
+<div>
+
+Zoom:
+
+<span id="zoomStatus">
+
+100%
+
+</span>
+
+</div>
+
+
+<div>
+
+Objects:
+
+<span id="objectCount">
+
+0
+
+</span>
+
+</div>
+
+
+<div>
+
+SPARKD MEME FORGE v1.0
+
+</div>
+
+
+</footer>
+
+
+</div>
+
+
+<script src="app.js"></script>
+
+
+</body>
+
+</html>
