@@ -218,15 +218,17 @@ if(uploadBtn && imageInput){
 
 
 
-                    canvas.add(img);
+                   canvas.add(img);
 
 
-
-                    canvas.setActiveObject(img);
-
-
-
-                    canvas.renderAll();
+                   // Keep uploaded images behind text
+                   canvas.sendToBack(img);
+                    
+                    
+                   canvas.setActiveObject(img);
+                    
+                    
+                   canvas.renderAll();
 
 
 
