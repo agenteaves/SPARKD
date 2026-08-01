@@ -82,136 +82,87 @@ function updateObjectCount(){
 
 
 // ================================
-// IMAGE UPLOAD FIXED
+// IMAGE UPLOAD DEBUG TEST
 // ================================
 
+const uploadButton = document.getElementById("uploadImageButton");
+const imageUpload = document.getElementById("imageUpload");
 
-const uploadButton =
-document.getElementById("uploadImageButton");
 
-
-const imageUpload =
-document.getElementById("imageUpload");
-
+console.log("Upload button:", uploadButton);
+console.log("File input:", imageUpload);
 
 
 if(uploadButton){
 
-    uploadButton.addEventListener("click", function(){
+    uploadButton.onclick = function(){
+
+        console.log("Upload button clicked");
 
         imageUpload.click();
 
-    });
+    };
 
 }
 
 
-
 if(imageUpload){
 
-imageUpload.addEventListener("change", function(e){
+    imageUpload.onchange = function(event){
+
+        console.log("File selected:", event.target.files[0]);
 
 
-    const file = e.target.files[0];
+        const file = event.target.files[0];
 
 
-    if(!file){
-
-        return;
-
-    }
+        if(!file){
+            return;
+        }
 
 
-
-    const reader = new FileReader();
-
+        const reader = new FileReader();
 
 
-    reader.onload = function(event){
+        reader.onload = function(e){
+
+            console.log("Image converted");
 
 
+            fabric.Image.fromURL(
+                e.target.result,
+                function(img){
 
-        fabric.Image.fromURL(
-
-            event.target.result,
-
-            function(img){
-
+                    console.log("Fabric image created");
 
 
-                // Scale image to fit canvas
+                    img.set({
 
-                const maxSize = 900;
+                        left:100,
+                        top:100
+
+                    });
 
 
-                if(img.width > maxSize || img.height > maxSize){
+                    canvas.add(img);
 
-                    img.scaleToWidth(maxSize);
+                    canvas.renderAll();
+
+
+                    console.log("Image added to canvas");
+
 
                 }
+            );
 
 
-
-                img.set({
-
-                    left:100,
-
-                    top:100,
-
-                    selectable:true,
-
-                    hasControls:true,
-
-                    hasBorders:true
-
-                });
+        };
 
 
-
-                canvas.add(img);
-
-
-
-                canvas.centerObject(img);
-
-
-
-                canvas.setActiveObject(img);
-
-
-
-                canvas.renderAll();
-
-
-
-                updateStatus(
-                    "Image Loaded Successfully"
-                );
-
-
-                updateObjectCount();
-
-
-
-            },
-
-            {
-                crossOrigin:"anonymous"
-            }
-
-        );
-
+        reader.readAsDataURL(file);
 
 
     };
-
-
-
-    reader.readAsDataURL(file);
-
-
-
-});
 
 }
 
