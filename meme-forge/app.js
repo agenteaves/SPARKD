@@ -1,6 +1,6 @@
 // ==========================================
 // SPARKD MEME FORGE
-// IMAGE UPLOAD TEST
+// IMAGE DEBUG VERSION
 // ==========================================
 
 
@@ -10,58 +10,15 @@ window.addEventListener("load", function(){
 const canvas = window.sparkdCanvas;
 
 
+const uploadButton = document.getElementById("uploadImageButton");
 
-const uploadButton =
-document.getElementById("uploadImageButton");
-
-
-const imageUpload =
-document.getElementById("imageUpload");
+const imageUpload = document.getElementById("imageUpload");
 
 
 
-if(!uploadButton || !imageUpload){
+if(!uploadButton){
 
-    document.body.innerHTML += `
-    <div style="
-    position:fixed;
-    top:20px;
-    left:20px;
-    background:red;
-    color:white;
-    padding:20px;
-    z-index:99999;">
-    Upload button or file input missing
-    </div>
-    `;
-
-    return;
-
-}
-
-
-
-
-uploadButton.onclick = function(){
-
-    imageUpload.click();
-
-};
-
-
-
-
-
-imageUpload.onchange = function(event){
-
-
-
-const file =
-event.target.files[0];
-
-
-
-if(!file){
+alert("Upload button not found");
 
 return;
 
@@ -69,72 +26,98 @@ return;
 
 
 
-const reader =
-new FileReader();
+if(!imageUpload){
 
+alert("File input not found");
+
+return;
+
+}
+
+
+
+uploadButton.onclick = function(){
+
+alert("Upload button works");
+
+imageUpload.click();
+
+};
+
+
+
+
+imageUpload.onchange = function(event){
+
+
+alert("File selected");
+
+
+const file = event.target.files[0];
+
+
+if(!file){
+
+alert("No file detected");
+
+return;
+
+}
+
+
+
+const reader = new FileReader();
 
 
 
 reader.onload = function(e){
 
 
+alert("File converted");
 
-fabric.Image.fromURL(
 
-e.target.result,
-
-function(img){
+const imgElement = new Image();
 
 
 
-    img.scaleToWidth(700);
+imgElement.onload = function(){
 
 
-    img.set({
-
-        left:190,
-
-        top:190
-
-    });
+alert("Browser image loaded");
 
 
 
-    canvas.add(img);
+const img = new fabric.Image(imgElement);
 
 
 
-    canvas.centerObject(img);
+img.scaleToWidth(700);
 
 
-    canvas.setActiveObject(img);
+img.set({
+
+left:190,
+
+top:190
+
+});
 
 
-
-    canvas.renderAll();
-
+canvas.add(img);
 
 
-    document.body.innerHTML += `
-    <div style="
-    position:fixed;
-    bottom:20px;
-    right:20px;
-    background:#00aa00;
-    color:white;
-    padding:15px;
-    z-index:99999;">
-    IMAGE LOADED
-    </div>
-    `;
+canvas.renderAll();
 
 
 
-}
+alert("Image added to canvas");
+
+
+};
 
 
 
-);
+imgElement.src = e.target.result;
 
 
 
