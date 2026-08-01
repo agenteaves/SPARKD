@@ -323,7 +323,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - IMAGE + TEXT + WATERMARK
+// EXPORT PNG - IMAGE + TEXT + SPARKD WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -331,91 +331,85 @@ const downloadBtn = document.getElementById("downloadBtn");
 
 if(downloadBtn){
 
-
     downloadBtn.onclick = function(){
 
-
         canvas.discardActiveObject();
-
         canvas.renderAll();
 
-
-
+        // Find uploaded image
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
         );
 
-
-
         if(!image){
 
             alert("Please upload an image first.");
-
             return;
 
         }
 
-
-
+        // Image bounds
         const bounds = image.getBoundingRect(true, true);
 
+        // Temporary watermark
+        const watermark = new fabric.Text(
+            SPARKD_CONTRACT,
+            {
 
+                left: bounds.left + bounds.width - 5,
+                top: bounds.top + bounds.height - 5,
 
-        const objects = canvas.getObjects().filter(obj => {
+                originX: "right",
+                originY: "bottom",
 
+                fontSize: 14,
+                fontFamily: "Arial",
 
-            const objBounds = obj.getBoundingRect(true, true);
+                fill: "#ffffff",
 
+                stroke: "#000000",
+                strokeWidth: 1,
 
-            return (
+                selectable: false,
+                evented: false
 
-                objBounds.left >= bounds.left - 5 &&
+            }
+        );
 
-                objBounds.top >= bounds.top - 5 &&
+        canvas.add(watermark);
+        canvas.bringToFront(watermark);
 
-                objBounds.left + objBounds.width <= bounds.left + bounds.width + 5 &&
+        canvas.renderAll();
 
-                objBounds.top + objBounds.height <= bounds.top + bounds.height + 5
+        // Export only the edited image area
+        const exportData = canvas.toDataURL({
 
-            );
+            format: "png",
 
+            left: bounds.left,
+            top: bounds.top,
+
+            width: bounds.width,
+            height: bounds.height,
+
+            multiplier: 1,
+            enableRetinaScaling: false
 
         });
 
+        // Remove temporary watermark
+        canvas.remove(watermark);
+        canvas.renderAll();
 
-
-        const group = new fabric.Group(objects);
-
-
-
-        const data = group.toDataURL({
-
-            format:"png",
-
-            multiplier:1
-
-        });
-
-
-
-        group.destroy();
-
-
-
+        // Download
         const link = document.createElement("a");
 
-
-        link.href = data;
-
-
+        link.href = exportData;
         link.download = "SPARKD-meme.png";
-
 
         link.click();
 
-
     };
-
 
 }
 
