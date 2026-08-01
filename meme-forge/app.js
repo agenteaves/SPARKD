@@ -1,6 +1,6 @@
 // ==========================================
 // SPARKD MEME FORGE
-// IMAGE DEBUG VERSION
+// WORKING IMAGE LOADER
 // ==========================================
 
 
@@ -10,37 +10,19 @@ window.addEventListener("load", function(){
 const canvas = window.sparkdCanvas;
 
 
-const uploadButton = document.getElementById("uploadImageButton");
 
-const imageUpload = document.getElementById("imageUpload");
-
-
-
-if(!uploadButton){
-
-alert("Upload button not found");
-
-return;
-
-}
+const uploadButton =
+document.getElementById("uploadImageButton");
 
 
-
-if(!imageUpload){
-
-alert("File input not found");
-
-return;
-
-}
+const imageUpload =
+document.getElementById("imageUpload");
 
 
 
 uploadButton.onclick = function(){
 
-alert("Upload button works");
-
-imageUpload.click();
+    imageUpload.click();
 
 };
 
@@ -50,15 +32,11 @@ imageUpload.click();
 imageUpload.onchange = function(event){
 
 
-alert("File selected");
-
-
-const file = event.target.files[0];
+const file =
+event.target.files[0];
 
 
 if(!file){
-
-alert("No file detected");
 
 return;
 
@@ -66,58 +44,69 @@ return;
 
 
 
-const reader = new FileReader();
+const reader =
+new FileReader();
 
 
 
 reader.onload = function(e){
 
 
-alert("File converted");
 
-
-const imgElement = new Image();
+const imgElement =
+new Image();
 
 
 
 imgElement.onload = function(){
 
 
-alert("Browser image loaded");
 
+const img =
+new fabric.Image(imgElement);
 
-
-const img = new fabric.Image(imgElement);
-
-
-
-img.scaleToWidth(700);
 
 
 img.set({
 
-left:190,
+    left:100,
 
-top:190
+    top:100,
+
+    originX:"left",
+
+    originY:"top"
 
 });
+
+
+
+img.scaleToWidth(600);
+
 
 
 canvas.add(img);
 
 
-canvas.renderAll();
+
+canvas.bringToFront(img);
 
 
 
-alert("Image added to canvas");
+canvas.setActiveObject(img);
+
+
+
+canvas.requestRenderAll();
+
 
 
 };
 
 
 
-imgElement.src = e.target.result;
+imgElement.src =
+e.target.result;
 
 
 
