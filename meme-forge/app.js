@@ -248,7 +248,7 @@ if(watermarkBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - ALWAYS INCLUDES CONTRACT WATERMARK
+// EXPORT PNG - SPARKD WATERMARK INCLUDED
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -269,22 +269,46 @@ if(downloadBtn){
 
 
 
-        // Add required watermark temporarily
+        // Find uploaded image
+        const image = canvas.getObjects().find(
+            obj => obj.type === "image"
+        );
+
+
+
+        if(!image){
+
+            alert("Please upload an image first.");
+
+            return;
+
+        }
+
+
+
+        // Get image position and size
+        const imgBounds = image.getBoundingRect(true,true);
+
+
+
+        // Create permanent export watermark
         const watermark = new fabric.Text(
 
             contract,
 
             {
 
-                fontSize:12,
+                fontSize:32,
+
+                fontFamily:"Arial",
 
                 fill:"#ffffff",
 
                 stroke:"#000000",
 
-                strokeWidth:0.5,
+                strokeWidth:1.5,
 
-                opacity:0.75,
+                opacity:0.9,
 
                 selectable:false,
 
@@ -296,31 +320,17 @@ if(downloadBtn){
 
 
 
-        // Place watermark over bottom-right of image area
-        const image = canvas.getObjects().find(
-            obj => obj.type === "image"
-        );
+        watermark.set({
 
+            left: imgBounds.left + imgBounds.width - 25,
 
+            top: imgBounds.top + imgBounds.height - 25,
 
-        if(image){
+            originX:"right",
 
-            const imgBounds = image.getBoundingRect(true,true);
+            originY:"bottom"
 
-
-            watermark.set({
-
-                left: imgBounds.left + imgBounds.width - 10,
-
-                top: imgBounds.top + imgBounds.height - 10,
-
-                originX:"right",
-
-                originY:"bottom"
-
-            });
-
-        }
+        });
 
 
 
@@ -331,7 +341,7 @@ if(downloadBtn){
 
 
 
-        // Calculate export area AFTER watermark exists
+        // Calculate export area including watermark
         let minX = Infinity;
         let minY = Infinity;
         let maxX = -Infinity;
@@ -345,21 +355,29 @@ if(downloadBtn){
             const rect = obj.getBoundingRect(true,true);
 
 
+
             minX = Math.min(minX, rect.left);
 
             minY = Math.min(minY, rect.top);
 
 
-            maxX = Math.max(maxX, rect.left + rect.width);
+            maxX = Math.max(
+                maxX,
+                rect.left + rect.width
+            );
 
-            maxY = Math.max(maxY, rect.top + rect.height);
+
+            maxY = Math.max(
+                maxY,
+                rect.top + rect.height
+            );
 
 
         });
 
 
 
-        const padding = 20;
+        const padding = 30;
 
 
 
@@ -371,9 +389,9 @@ if(downloadBtn){
 
             top:minY - padding,
 
-            width:(maxX - minX) + padding * 2,
+            width:(maxX - minX) + (padding * 2),
 
-            height:(maxY - minY) + padding * 2,
+            height:(maxY - minY) + (padding * 2),
 
             multiplier:1
 
@@ -388,6 +406,7 @@ if(downloadBtn){
 
 
 
+        // Download
         const link = document.createElement("a");
 
         link.href = data;
@@ -401,5 +420,4 @@ if(downloadBtn){
 
 
 }
-
 });
