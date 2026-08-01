@@ -393,43 +393,13 @@ downloadBtn.onclick = function () {
         multiplier: 1
     });
 
+    // Remove temporary watermark
     canvas.remove(watermark);
     canvas.renderAll();
 
+    // Download image
     const link = document.createElement("a");
     link.href = data;
     link.download = "SPARKD-meme.png";
     link.click();
 };
-
-
-
-canvas.remove(watermark);
-
-
-
-canvas.renderAll();
-
-
-
-const link =
-document.createElement("a");
-
-
-link.href=image;
-
-
-link.download="SPARKD-meme.png";
-
-
-link.click();
-
-
-
-};
-
-
-}
-
-
-});
