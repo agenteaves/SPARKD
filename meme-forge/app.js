@@ -322,8 +322,6 @@ if(addTextBtn){
 // SPARKD OFFICIAL SOLANA CONTRACT
 // ================================
 
-const SPARKD_CONTRACT =
-"PASTE_REAL_SPARKD_SOLANA_ADDRESS_HERE";
 
 
 ////////////////////////////////////////////////////
