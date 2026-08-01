@@ -199,7 +199,8 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - IMAGE ONLY + WATERMARK
+// EXPORT PNG - IMAGE ONLY (NO CANVAS SPACE)
+// WITH SPARKD WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -209,11 +210,6 @@ if(downloadBtn){
 
 
     downloadBtn.onclick = function(){
-
-
-        canvas.discardActiveObject();
-        canvas.renderAll();
-
 
 
         const image = canvas.getObjects().find(
@@ -231,121 +227,109 @@ if(downloadBtn){
 
 
 
-        // Get exact image bounds
-        const bounds = image.getBoundingRect(true, true);
+        // Create temporary canvas
+        const tempCanvas = document.createElement("canvas");
+
+
+        const imgWidth = image.getScaledWidth();
+
+        const imgHeight = image.getScaledHeight();
 
 
 
-        const contract = document.getElementById("contractInput").value;
+        tempCanvas.width = imgWidth;
+
+        tempCanvas.height = imgHeight;
 
 
 
-        // Add watermark temporarily
-        const watermark = new fabric.Text(
-
-            contract,
-
-            {
-
-                fontSize:32,
-
-                fontFamily:"Arial",
-
-                fill:"#ffffff",
-
-                stroke:"#000000",
-
-                strokeWidth:1.5,
-
-                opacity:0.9,
-
-                selectable:false,
-
-                evented:false
-
-            }
-
-        );
+        const ctx = tempCanvas.getContext("2d");
 
 
 
-        watermark.set({
-
-            left: bounds.left + bounds.width - 25,
-
-            top: bounds.top + bounds.height - 25,
-
-            originX:"right",
-
-            originY:"bottom"
-
-        });
+        // Create image element
+        const imgElement = image.toDataURL();
 
 
 
-        canvas.add(watermark);
-
-        canvas.renderAll();
+        const tempImage = new Image();
 
 
 
-
-        // Create temporary group of ONLY image + watermark
-        const exportGroup = new fabric.Group(
-            [
-                image,
-                watermark
-            ]
-        );
+        tempImage.onload = function(){
 
 
 
-        const exportBounds = exportGroup.getBoundingRect(true,true);
+            // Draw image only
+            ctx.drawImage(
+                tempImage,
+                0,
+                0,
+                imgWidth,
+                imgHeight
+            );
 
 
 
-        const padding = 20;
+            // Add watermark
+            ctx.font = "32px Arial";
+
+            ctx.textAlign = "right";
+
+            ctx.textBaseline = "bottom";
+
+            ctx.lineWidth = 2;
+
+            ctx.strokeStyle = "black";
+
+            ctx.fillStyle = "white";
 
 
 
-        const data = canvas.toDataURL({
-
-            format:"png",
-
-            left:exportBounds.left - padding,
-
-            top:exportBounds.top - padding,
-
-            width:exportBounds.width + padding * 2,
-
-            height:exportBounds.height + padding * 2,
-
-            multiplier:1
-
-        });
+            const watermark =
+                document.getElementById("contractInput").value;
 
 
 
-        exportGroup.destroy();
+            ctx.strokeText(
+                watermark,
+                imgWidth - 20,
+                imgHeight - 20
+            );
+
+
+            ctx.fillText(
+                watermark,
+                imgWidth - 20,
+                imgHeight - 20
+            );
 
 
 
-        canvas.remove(watermark);
-
-        canvas.renderAll();
-
+            // Download
+            const link = document.createElement("a");
 
 
-        const link = document.createElement("a");
+            link.href = tempCanvas.toDataURL("image/png");
 
-        link.href = data;
 
-        link.download = "SPARKD-meme.png";
+            link.download = "SPARKD-meme.png";
 
-        link.click();
+
+            link.click();
+
+
+        };
+
+
+
+        tempImage.src = imgElement;
 
 
     };
+
+
+}
 
 
 }});
