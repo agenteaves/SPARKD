@@ -130,11 +130,30 @@ if(uploadBtn && imageInput){
 
 
 
-    imageInput.onchange = function(e){
+        imageInput.onchange = function(e){
+    
+    
+            const file = e.target.files[0];
+    
+    
+            if(!file){
+    
+                return;
+
+            }
 
 
-        const file = e.target.files[0];
 
+            if(containsUnsafeContent(file.name)){
+
+
+                alert("This image name is not allowed.");
+
+                imageInput.value = "";
+
+                return;
+
+            }
 
         if(!file){
 
