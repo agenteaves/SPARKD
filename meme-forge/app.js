@@ -1,19 +1,9 @@
 // ==========================================
 // SPARKD MEME FORGE
-// CANVAS + IMAGE UPLOAD
+// BASIC CANVAS + UPLOAD CHECK
 // ==========================================
 
 window.addEventListener("load", function(){
-
-
-if(typeof fabric === "undefined"){
-
-    alert("Fabric.js missing");
-
-    return;
-
-}
-
 
 
 const canvas = new fabric.Canvas("memeCanvas", {
@@ -27,40 +17,27 @@ const canvas = new fabric.Canvas("memeCanvas", {
 
 canvas.setWidth(1080);
 canvas.setHeight(1080);
-
 canvas.renderAll();
 
 
 
-
-
-const uploadButton =
-document.getElementById("uploadImageButton");
-
-
-const imageUpload =
-document.getElementById("imageUpload");
+const uploadButton = document.getElementById("uploadImageButton");
+const imageUpload = document.getElementById("imageUpload");
 
 
 
+if (!uploadButton) {
 
-uploadButton.onclick = function(){
+    alert("NO UPLOAD BUTTON FOUND");
 
-    imageUpload.click();
+    return;
 
-};
-
-
-
+}
 
 
-imageUpload.onchange = function(e){
+if (!imageUpload) {
 
-
-const file = e.target.files[0];
-
-
-if(!file){
+    alert("NO FILE INPUT FOUND");
 
     return;
 
@@ -68,77 +45,84 @@ if(!file){
 
 
 
-const url = URL.createObjectURL(file);
+uploadButton.onclick = function(){
+
+    alert("UPLOAD CLICKED");
+
+    imageUpload.click();
+
+};
 
 
 
-fabric.Image.fromURL(
-
-    event.target.result,
-
-    function(img){
+imageUpload.onchange = function(e){
 
 
-        alert(
-        "IMAGE SIZE: "
-        + img.width
-        + " x "
-        + img.height
-        );
+    alert("FILE SELECTED");
 
 
-        img.set({
-
-            left:100,
-
-            top:100,
-
-            opacity:1,
-
-            visible:true
-
-        });
+    const file = e.target.files[0];
 
 
+    if(!file){
 
-        img.scaleToWidth(500);
-
-
-
-        canvas.add(img);
-
-
-        canvas.bringToFront(img);
-
-
-        canvas.setActiveObject(img);
-
-
-
-        canvas.renderAll();
-
-
-        alert(
-        "VISIBLE OBJECTS: "
-        + canvas.getObjects().length
-        );
-
+        return;
 
     }
 
-);
-
-},
-
-{
-
-    crossOrigin:"anonymous"
-
-}
 
 
-);
+    const reader = new FileReader();
 
+
+
+    reader.onload = function(event){
+
+
+        fabric.Image.fromURL(
+
+            event.target.result,
+
+            function(img){
+
+
+                img.set({
+
+                    left:100,
+
+                    top:100
+
+                });
+
+
+
+                img.scaleToWidth(400);
+
+
+
+                canvas.add(img);
+
+                canvas.setActiveObject(img);
+
+                canvas.renderAll();
+
+
+
+                alert(
+                    "IMAGE ADDED OBJECTS: "
+                    + canvas.getObjects().length
+                );
+
+
+            }
+
+        );
+
+
+    };
+
+
+    reader.readAsDataURL(file);
 
 
 };
