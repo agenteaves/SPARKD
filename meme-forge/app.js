@@ -100,7 +100,7 @@ if(uploadBtn && imageInput){
                 function(img){
 
 
-                    img.scaleToWidth(800);
+                    img.scaleToWidth(1080);
 
 
                     img.set({
