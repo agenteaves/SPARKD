@@ -57,7 +57,7 @@ window.addEventListener(
 
 
 // ================================
-// IMAGE UPLOAD
+// IMAGE UPLOAD - AUTO FIT & CENTER
 // ================================
 
 const uploadBtn = document.getElementById("uploadBtn");
@@ -83,7 +83,9 @@ if(uploadBtn && imageInput){
 
 
         if(!file){
+
             return;
+
         }
 
 
@@ -95,18 +97,45 @@ if(uploadBtn && imageInput){
         reader.onload = function(event){
 
 
+
             fabric.Image.fromURL(
+
                 event.target.result,
+
                 function(img){
 
 
-                    img.scaleToWidth(1000);
+
+                    // Canvas size
+                    const canvasSize = 1080;
+
+
+
+                    // Scale image to fit canvas
+                    const scale = Math.min(
+
+                        canvasSize / img.width,
+
+                        canvasSize / img.height
+
+                    );
+
+
+
+                    img.scale(scale);
+
+
+
+                    // Center image
                     img.set({
 
+                        left:
+                        (canvasSize - img.getScaledWidth()) / 2,
 
 
-                        left:140,
-                        top:140,
+                        top:
+                        (canvasSize - img.getScaledHeight()) / 2,
+
 
                         cornerColor:"#ff6600",
 
@@ -119,17 +148,22 @@ if(uploadBtn && imageInput){
                     canvas.add(img);
 
 
+
                     canvas.setActiveObject(img);
+
 
 
                     canvas.renderAll();
 
 
+
                 }
+
             );
 
 
         };
+
 
 
         reader.readAsDataURL(file);
@@ -139,7 +173,6 @@ if(uploadBtn && imageInput){
 
 
 }
-
 
 
 // ================================
