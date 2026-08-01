@@ -323,7 +323,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - IMAGE + TEXT + SPARKD WATERMARK
+// EXPORT PNG - SHARP IMAGE + TEXT + WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -336,10 +336,12 @@ if(downloadBtn){
         canvas.discardActiveObject();
         canvas.renderAll();
 
+
         // Find uploaded image
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
         );
+
 
         if(!image){
 
@@ -348,66 +350,96 @@ if(downloadBtn){
 
         }
 
-        // Image bounds
-        const bounds = image.getBoundingRect(true, true);
 
-        // Temporary watermark
-        const watermark = new fabric.Text(
-            SPARKD_CONTRACT,
-            {
+        // Original image size
+        const exportWidth = Math.round(image.getScaledWidth());
+        const exportHeight = Math.round(image.getScaledHeight());
 
-                left: bounds.left + bounds.width - 5,
-                top: bounds.top + bounds.height - 5,
 
-                originX: "right",
-                originY: "bottom",
+        // Create hidden export canvas
+        const exportCanvas = new fabric.StaticCanvas(null,{
 
-                fontSize: 28,
-                fontFamily: "Arial",
-
-                fill: "#ffffff",
-
-                stroke: "#000000",
-                strokeWidth: 1,
-
-                selectable: false,
-                evented: false
-
-            }
-        );
-
-        canvas.add(watermark);
-        canvas.bringToFront(watermark);
-
-        canvas.renderAll();
-
-        // Export only the edited image area
-        const exportData = canvas.toDataURL({
-
-            format: "png",
-
-            left: bounds.left,
-            top: bounds.top,
-
-            width: bounds.width,
-            height: bounds.height,
-
-            multiplier: 2,
-            enableRetinaScaling: false
+            width: exportWidth,
+            height: exportHeight,
+            backgroundColor: null
 
         });
 
-        // Remove temporary watermark
-        canvas.remove(watermark);
-        canvas.renderAll();
 
-        // Download
-        const link = document.createElement("a");
+        // Clone every object that belongs on the meme
+        const objects = canvas.getObjects();
 
-        link.href = exportData;
-        link.download = "SPARKD-meme.png";
 
-        link.click();
+        let remaining = objects.length;
+
+
+        objects.forEach(function(obj){
+
+            obj.clone(function(clone){
+
+                // Position relative to the image
+                clone.left -= image.left;
+                clone.top -= image.top;
+
+                clone.setCoords();
+
+                exportCanvas.add(clone);
+
+                remaining--;
+
+                if(remaining === 0){
+
+                    // Add sharp watermark LAST
+                    const watermark = new fabric.Text(
+                        SPARKD_CONTRACT,
+                        {
+
+                            left: exportWidth - 5,
+                            top: exportHeight - 5,
+
+                            originX: "right",
+                            originY: "bottom",
+
+                            fontFamily: "Arial",
+                            fontSize: 14,
+
+                            fill: "#ffffff",
+
+                            stroke: "#000000",
+                            strokeWidth: 1,
+
+                            selectable: false,
+                            evented: false
+
+                        }
+                    );
+
+
+                    exportCanvas.add(watermark);
+
+
+                    const data = exportCanvas.toDataURL({
+
+                        format: "png",
+                        multiplier: 2
+
+                    });
+
+
+                    const link = document.createElement("a");
+
+                    link.href = data;
+                    link.download = "SPARKD-meme.png";
+
+                    link.click();
+
+                    exportCanvas.dispose();
+
+                }
+
+            });
+
+        });
 
     };
 
