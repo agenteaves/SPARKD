@@ -323,6 +323,19 @@ link.click();
 };
 
 
+window.addEventListener("resize", function(){
 
+    canvas.setZoom(
+        Math.min(
+            window.innerWidth,
+            window.innerHeight
+        ) / 1300
+    );
+
+    canvas.calcOffset();
+
+    canvas.renderAll();
+
+});
 
 });
