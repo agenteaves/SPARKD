@@ -288,3 +288,19 @@ footer {
     font-size:13px;
 
 }
+
+#canvasBox {
+
+    width:min(75vh, 800px);
+
+    height:min(75vh, 800px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    overflow:hidden;
+
+}
