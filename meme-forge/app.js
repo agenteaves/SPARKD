@@ -30,6 +30,15 @@ canvas.setWidth(1080);
 
 canvas.setHeight(1080);
 
+  canvas.setZoom(
+    Math.min(
+        window.innerWidth,
+        window.innerHeight
+    ) / 1300
+);
+
+canvas.calcOffset();  
+
 canvas.renderAll();
 
 
