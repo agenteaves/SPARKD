@@ -362,7 +362,7 @@ if(downloadBtn){
                 originX: "right",
                 originY: "bottom",
 
-                fontSize: 14,
+                fontSize: 28,
                 fontFamily: "Arial",
 
                 fill: "#ffffff",
@@ -392,7 +392,7 @@ if(downloadBtn){
             width: bounds.width,
             height: bounds.height,
 
-            multiplier: 1,
+            multiplier: 2,
             enableRetinaScaling: false
 
         });
