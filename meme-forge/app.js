@@ -248,7 +248,7 @@ if(watermarkBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - EXACT EDITED AREA
+// EXPORT PNG - FIXED CROPPED MEME EXPORT
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -279,37 +279,55 @@ if(downloadBtn){
 
 
 
-        // Get all object bounds
-        let group = new fabric.Group(objects);
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = 0;
+        let maxY = 0;
 
 
-        const bounds = group.getBoundingRect(true, true);
+
+        objects.forEach(function(obj){
 
 
+            const rect = obj.getBoundingRect();
 
-        group.destroy();
+
+            minX = Math.min(minX, rect.left);
+
+            minY = Math.min(minY, rect.top);
+
+
+            maxX = Math.max(maxX, rect.left + rect.width);
+
+            maxY = Math.max(maxY, rect.top + rect.height);
+
+
+        });
 
 
 
         const padding = 20;
 
 
+        const width = maxX - minX + padding * 2;
 
-        const exportData = canvas.toDataURL({
+        const height = maxY - minY + padding * 2;
 
-            format: "png",
 
-            left: bounds.left - padding,
 
-            top: bounds.top - padding,
+        const data = canvas.toDataURL({
 
-            width: bounds.width + (padding * 2),
+            format:"png",
 
-            height: bounds.height + (padding * 2),
+            left:minX - padding,
 
-            multiplier: 1,
+            top:minY - padding,
 
-            enableRetinaScaling: false
+            width:width,
+
+            height:height,
+
+            multiplier:1
 
         });
 
@@ -317,7 +335,7 @@ if(downloadBtn){
 
         const link = document.createElement("a");
 
-        link.href = exportData;
+        link.href = data;
 
         link.download = "SPARKD-meme.png";
 
