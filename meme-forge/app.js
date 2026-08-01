@@ -266,16 +266,16 @@ if(downloadBtn){
 
 
 
-        ctx.font = "32px Arial";
+        ctx.font = "18px Arial";
 
         ctx.textAlign = "right";
-
+        
         ctx.textBaseline = "bottom";
-
-        ctx.lineWidth = 2;
-
+        
+        ctx.lineWidth = 1;
+        
         ctx.strokeStyle = "#000000";
-
+        
         ctx.fillStyle = "#ffffff";
 
 
