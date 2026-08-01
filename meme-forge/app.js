@@ -78,22 +78,37 @@ fabric.Image.fromURL(
 
     function(img){
 
+
+        alert(
+        "IMAGE SIZE: "
+        + img.width
+        + " x "
+        + img.height
+        );
+
+
         img.set({
 
-            left:200,
+            left:100,
 
-            top:200
+            top:100,
+
+            opacity:1,
+
+            visible:true
 
         });
 
 
 
-        img.scaleToWidth(300);
+        img.scaleToWidth(500);
 
 
 
         canvas.add(img);
 
+
+        canvas.bringToFront(img);
 
 
         canvas.setActiveObject(img);
@@ -103,8 +118,10 @@ fabric.Image.fromURL(
         canvas.renderAll();
 
 
-
-        alert("IMAGE ADDED");
+        alert(
+        "VISIBLE OBJECTS: "
+        + canvas.getObjects().length
+        );
 
 
     }
