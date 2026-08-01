@@ -313,11 +313,25 @@ if(addTextBtn){
 }
 
 // ================================
-// CONTRACT ADDRESS
+// CONTRACT ADDRESS (SOLANA)
 // ================================
 
 const contractInput = document.getElementById("contractInput");
 const saveContractBtn = document.getElementById("saveContractBtn");
+
+
+// Solana address checker
+function isValidSolanaAddress(address){
+
+
+    const solanaRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+
+    return solanaRegex.test(address);
+
+
+}
+
 
 
 if(saveContractBtn){
@@ -329,23 +343,42 @@ if(saveContractBtn){
         const contract = contractInput.value.trim();
 
 
+
         if(!contract){
 
-            alert("Please enter a contract address.");
+
+            alert("Please enter a Solana contract address.");
 
             return;
+
+
+        }
+
+
+
+        if(!isValidSolanaAddress(contract)){
+
+
+            alert("Invalid Solana contract address.");
+
+            return;
+
 
         }
 
 
 
         localStorage.setItem(
+
             "sparkdContract",
+
             contract
+
         );
 
 
-        alert("Contract address saved.");
+
+        alert("Solana contract saved.");
 
 
     };
@@ -356,13 +389,14 @@ if(saveContractBtn){
 
 
 // Load saved contract
-const savedContract =
-localStorage.getItem("sparkdContract");
+const savedContract = localStorage.getItem("sparkdContract");
 
 
 if(savedContract && contractInput){
 
+
     contractInput.value = savedContract;
+
 
 }
 
