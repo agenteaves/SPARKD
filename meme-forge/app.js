@@ -248,7 +248,7 @@ if(watermarkBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - FIXED CROPPED MEME EXPORT
+// EXPORT PNG - WITH TEMPORARY WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -279,6 +279,49 @@ if(downloadBtn){
 
 
 
+        // Create temporary watermark
+        const watermark = new fabric.Text(
+
+            document.getElementById("contractInput").value,
+
+            {
+
+                left: canvas.width - 20,
+
+                top: canvas.height - 20,
+
+                originX:"right",
+
+                originY:"bottom",
+
+                fontSize:12,
+
+                fill:"#ffffff",
+
+                stroke:"#000000",
+
+                strokeWidth:0.5,
+
+                opacity:0.75,
+
+                selectable:false,
+
+                evented:false
+
+            }
+
+        );
+
+
+
+        canvas.add(watermark);
+
+        canvas.renderAll();
+
+
+
+
+        // Find full meme bounds
         let minX = Infinity;
         let minY = Infinity;
         let maxX = 0;
@@ -286,7 +329,7 @@ if(downloadBtn){
 
 
 
-        objects.forEach(function(obj){
+        canvas.getObjects().forEach(function(obj){
 
 
             const rect = obj.getBoundingRect();
@@ -309,12 +352,6 @@ if(downloadBtn){
         const padding = 20;
 
 
-        const width = maxX - minX + padding * 2;
-
-        const height = maxY - minY + padding * 2;
-
-
-
         const data = canvas.toDataURL({
 
             format:"png",
@@ -323,13 +360,20 @@ if(downloadBtn){
 
             top:minY - padding,
 
-            width:width,
+            width:(maxX - minX) + padding * 2,
 
-            height:height,
+            height:(maxY - minY) + padding * 2,
 
             multiplier:1
 
         });
+
+
+
+        // Remove temporary watermark
+        canvas.remove(watermark);
+
+        canvas.renderAll();
 
 
 
