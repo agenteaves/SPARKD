@@ -248,7 +248,7 @@ if(watermarkBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - CROPPED MEME ONLY
+// EXPORT PNG - SQUARE MEME ONLY
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -279,32 +279,40 @@ if(downloadBtn){
 
 
 
-        // Get the bounds of all meme objects
-        const groupBounds = objects.reduce((bounds, obj) => {
+        // Find total meme area
+        let bounds = {
 
-            const rect = obj.getBoundingRect(true, true);
+            left: Infinity,
+            top: Infinity,
+            right: -Infinity,
+            bottom: -Infinity
+
+        };
+
+
+
+        objects.forEach(obj => {
+
+
+            const rect = obj.getBoundingRect(true,true);
+
 
             bounds.left = Math.min(bounds.left, rect.left);
+
             bounds.top = Math.min(bounds.top, rect.top);
+
 
             bounds.right = Math.max(
                 bounds.right,
                 rect.left + rect.width
             );
 
+
             bounds.bottom = Math.max(
                 bounds.bottom,
                 rect.top + rect.height
             );
 
-            return bounds;
-
-        }, {
-
-            left: Infinity,
-            top: Infinity,
-            right: -Infinity,
-            bottom: -Infinity
 
         });
 
@@ -314,19 +322,38 @@ if(downloadBtn){
 
 
 
+        let width =
+            (bounds.right - bounds.left) + padding * 2;
+
+
+        let height =
+            (bounds.bottom - bounds.top) + padding * 2;
+
+
+
+        // Force square dimensions
+        const size = Math.max(width, height);
+
+
+
+        const centerX =
+            bounds.left + (width / 2);
+
+
+        const centerY =
+            bounds.top + (height / 2);
+
+
+
         const crop = {
 
-            left: groupBounds.left - padding,
+            left: centerX - (size / 2),
 
-            top: groupBounds.top - padding,
+            top: centerY - (size / 2),
 
-            width:
-                (groupBounds.right - groupBounds.left)
-                + padding * 2,
+            width: size,
 
-            height:
-                (groupBounds.bottom - groupBounds.top)
-                + padding * 2
+            height: size
 
         };
 
@@ -336,13 +363,13 @@ if(downloadBtn){
 
             format:"png",
 
-            left: crop.left,
+            left:crop.left,
 
-            top: crop.top,
+            top:crop.top,
 
-            width: crop.width,
+            width:crop.width,
 
-            height: crop.height,
+            height:crop.height,
 
             multiplier:1
 
@@ -352,9 +379,12 @@ if(downloadBtn){
 
         const link = document.createElement("a");
 
+
         link.href = data;
 
+
         link.download = "SPARKD-meme.png";
+
 
         link.click();
 
