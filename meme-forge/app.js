@@ -198,55 +198,6 @@ if(addTextBtn){
 
 
 
-// ================================
-// WATERMARK
-// ================================
-
-const watermarkBtn = document.getElementById("watermarkBtn");
-const contractInput = document.getElementById("contractInput");
-
-
-if(watermarkBtn){
-
-
-    watermarkBtn.onclick = function(){
-
-
-        const watermark = new fabric.Text(
-
-            contractInput.value,
-
-            {
-
-                left:10,
-
-                top:1045,
-
-                fontSize:18,
-
-                fill:"#777777",
-
-                opacity:0.8
-
-            }
-
-        );
-
-
-
-        canvas.add(watermark);
-
-
-        canvas.renderAll();
-
-
-    };
-
-
-}
-
-
-
 ////////////////////////////////////////////////////
 // EXPORT PNG - SPARKD WATERMARK INCLUDED
 ////////////////////////////////////////////////////
