@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SPARKD | Verified Impact</title>
+
+<meta name="description" content="View verified Proof of Deeds impact from the SPARKD community.">
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="stars"></div>
+
+
+<header class="navbar">
+
+<div class="nav-logo">
+SPARKD
+</div>
+
+
+<nav>
+
+<a href="index.html">Home</a>
+<a href="proof.html">Proof of Deeds</a>
+<a href="impact.html">Impact</a>
+<a href="rules.html">Rules</a>
+
+</nav>
+
+</header>
+
+
+
+<section class="section">
+
+
+<h1>
+SPARKD Verified Impact
+</h1>
+
+
+<p>
+Every verified deed represents a real-world action recorded through the Proof of Deeds system.
+</p>
+
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<h3>
+Total Verified Deeds
+</h3>
+
+<p id="totalDeeds">
+Loading...
+</p>
+
+</div>
+
+
+</div>
+
+
+
+<h2>
+Impact Categories
+</h2>
+
+
+
+<div id="categories" class="cards">
+
+</div>
+
+
+
+</section>
+
+
+
+<footer>
+
+<p>
+© 2026 SPARKD. All rights reserved.
+</p>
+
+
+<a href="https://x.com/deedsparks" target="_blank">
+X @deedsparks
+</a>
+
+
+</footer>
+
+
+
+
+<script>
+
+
+async function loadImpact() {
+
+
+    try {
+
+
+        const response = await fetch(
+            "http://localhost:3000/api/impact"
+        );
+
+
+        const data = await response.json();
+
+
+
+        document.getElementById("totalDeeds").innerHTML =
+            data.total_verified_deeds;
+
+
+
+        const container =
+            document.getElementById("categories");
+
+
+
+        container.innerHTML = "";
+
+
+
+        data.categories.forEach(item => {
+
+
+
+            const card =
+            document.createElement("div");
+
+
+            card.className = "card";
+
+
+            card.innerHTML = `
+
+                <h3>
+                ${item.category}
+                </h3>
+
+                <p>
+                ${item.count} Verified Deeds
+                </p>
+
+            `;
+
+
+            container.appendChild(card);
+
+
+
+        });
+
+
+
+    }
+
+
+    catch(error) {
+
+
+        document.getElementById("categories").innerHTML =
+
+        "<p>Unable to load impact data.</p>";
+
+
+        console.error(error);
+
+
+    }
+
+
+
+}
+
+
+
+loadImpact();
+
+
+</script>
+
+
+
+</body>
+
+</html>
