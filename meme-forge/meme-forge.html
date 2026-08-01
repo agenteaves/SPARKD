@@ -1,1 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SPARKD Meme Forge</title>
+
+<meta name="description" content="Create viral SPARKD memes with our interactive Meme Forge.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Bangers&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div id="particles"></div>
+
+<header>
+
+<div class="logo">
+
+🔥 SPARKD MEME FORGE
+
+</div>
+
+<nav>
+
+<button id="randomBtn">🎲 Random Meme</button>
+
+<button id="downloadBtn">⬇ Download</button>
+
+<button id="shareBtn">🚀 Share</button>
+
+</nav>
+
+</header>
+
+<main>
+
+<section class="leftPanel">
+
+<h2>Create</h2>
+
+<div class="toolGroup">
+
+<label>Upload Image</label>
+
+<input type="file" id="uploadImage" accept="image/*">
+
+</div>
+
+<div class="toolGroup">
+
+<label>Top Text</label>
+
+<input type="text" id="topText" placeholder="Type something...">
+
+</div>
+
+<div class="toolGroup">
+
+<label>Bottom Text</label>
+
+<input type="text" id="bottomText" placeholder="Type something...">
+
+</div>
+
+<div class="toolGroup">
+
+<label>Font</label>
+
+<select id="fontSelect">
+
+<option>Bangers</option>
+
+<option>Impact</option>
+
+<option>Orbitron</option>
+
+<option>Roboto</option>
+
+</select>
+
+</div>
+
+<div class="toolGroup">
+
+<label>Text Size</label>
+
+<input type="range" min="20" max="120" value="52" id="fontSize">
+
+</div>
+
+<div class="toolGroup">
+
+<label>Text Color</label>
+
+<input type="color" id="fontColor" value="#ffffff">
+
+</div>
+
+<div class="toolGroup">
+
+<button id="addTextBtn">
+➕ Add Text Box
+</button>
+
+<button id="addStickerBtn">
+⭐ Add Sticker
+</button>
+
+</div>
+
+</section>
+
+<section class="canvasArea">
+
+<div id="canvasContainer">
+
+<canvas id="memeCanvas" width="1080" height="1080"></canvas>
+
+</div>
+
+</section>
+
+<section class="rightPanel">
+
+<h2>Templates</h2>
+
+<div id="templateGrid"></div>
+
+<h2>Stickers</h2>
+
+<div id="stickerGrid"></div>
+
+<h2>Effects</h2>
+
+<div class="effects">
+
+<button>🔥 Glow</button>
+
+<button>⚡ Sparks</button>
+
+<button>💎 Neon</button>
+
+<button>🌈 RGB</button>
+
+<button>🌀 Blur</button>
+
+<button>✨ Shine</button>
+
+</div>
+
+<div class="exportInfo">
+
+<h3>Export</h3>
+
+<p>
+
+Every exported meme automatically includes:
+
+</p>
+
+<ul>
+
+<li>✔ SPARKD Watermark</li>
+
+<li>✔ Contract Address</li>
+
+<li>✔ sparkdcoin.com</li>
+
+<li>✔ High Resolution PNG</li>
+
+</ul>
+
+</div>
+
+</section>
+
+</main>
+
+<footer>
+
+<div>
+
+SPARKD Meme Forge © 2026
+
+</div>
+
+<div>
+
+Made for the SPARKD Community
+
+</div>
+
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
