@@ -337,7 +337,6 @@ if(downloadBtn){
         canvas.renderAll();
 
 
-        // Find uploaded image
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
         );
@@ -351,13 +350,16 @@ if(downloadBtn){
         }
 
 
-        // Original image size
-        const exportWidth = Math.round(image.getScaledWidth());
-        const exportHeight = Math.round(image.getScaledHeight());
+
+        const bounds = image.getBoundingRect(true, true);
 
 
-        // Create hidden export canvas
-        const exportCanvas = new fabric.StaticCanvas(null,{
+        const exportWidth = Math.round(bounds.width);
+        const exportHeight = Math.round(bounds.height);
+
+
+
+        const exportCanvas = new fabric.StaticCanvas(null, {
 
             width: exportWidth,
             height: exportHeight,
@@ -366,84 +368,119 @@ if(downloadBtn){
         });
 
 
-        // Clone every object that belongs on the meme
+
         const objects = canvas.getObjects();
 
 
-        let remaining = objects.length;
+        let loaded = 0;
+
 
 
         objects.forEach(function(obj){
 
+
             obj.clone(function(clone){
 
-                // Position relative to the image
-                clone.left -= image.left;
-                clone.top -= image.top;
+
+                // Convert canvas position into export position
+                clone.set({
+
+                    left: obj.left - bounds.left,
+                    top: obj.top - bounds.top
+
+                });
+
 
                 clone.setCoords();
 
+
                 exportCanvas.add(clone);
 
-                remaining--;
 
-                if(remaining === 0){
 
-                    // Add sharp watermark LAST
+                loaded++;
+
+
+
+                if(loaded === objects.length){
+
+
                     const watermark = new fabric.Text(
+
                         SPARKD_CONTRACT,
+
                         {
 
                             left: exportWidth - 5,
+
                             top: exportHeight - 5,
 
-                            originX: "right",
-                            originY: "bottom",
+                            originX:"right",
 
-                            fontFamily: "Arial",
-                            fontSize: 14,
+                            originY:"bottom",
 
-                            fill: "#ffffff",
+                            fontFamily:"Arial",
 
-                            stroke: "#000000",
-                            strokeWidth: 1,
+                            fontSize:14,
 
-                            selectable: false,
-                            evented: false
+                            fill:"#ffffff",
+
+                            stroke:"#000000",
+
+                            strokeWidth:1,
+
+                            selectable:false,
+
+                            evented:false
 
                         }
+
                     );
+
 
 
                     exportCanvas.add(watermark);
 
 
+
+                    exportCanvas.renderAll();
+
+
+
                     const data = exportCanvas.toDataURL({
 
-                        format: "png",
-                        multiplier: 2
+                        format:"png",
+
+                        multiplier:2
 
                     });
+
 
 
                     const link = document.createElement("a");
 
                     link.href = data;
-                    link.download = "SPARKD-meme.png";
+
+                    link.download="SPARKD-meme.png";
 
                     link.click();
 
+
+
                     exportCanvas.dispose();
+
 
                 }
 
+
             });
 
+
         });
+
 
     };
 
 }
-
 
 });
