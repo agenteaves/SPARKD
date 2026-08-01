@@ -385,7 +385,7 @@ if(downloadBtn){
 
 
 
-        ctx.font = "18px Arial";
+        ctx.font = "14px Arial";
 
         ctx.textAlign = "right";
         
@@ -401,15 +401,15 @@ if(downloadBtn){
 
         ctx.strokeText(
             contract,
-            width - 10,
-            height - 10
+            width - 5,
+            height - 5
         );
 
 
         ctx.fillText(
             contract,
-            width - 10,
-            height - 10
+            width - 5,
+            height - 5
         );
 
 
