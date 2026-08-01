@@ -312,6 +312,60 @@ if(addTextBtn){
 
 }
 
+// ================================
+// CONTRACT ADDRESS
+// ================================
+
+const contractInput = document.getElementById("contractInput");
+const saveContractBtn = document.getElementById("saveContractBtn");
+
+
+if(saveContractBtn){
+
+
+    saveContractBtn.onclick = function(){
+
+
+        const contract = contractInput.value.trim();
+
+
+        if(!contract){
+
+            alert("Please enter a contract address.");
+
+            return;
+
+        }
+
+
+
+        localStorage.setItem(
+            "sparkdContract",
+            contract
+        );
+
+
+        alert("Contract address saved.");
+
+
+    };
+
+
+}
+
+
+
+// Load saved contract
+const savedContract =
+localStorage.getItem("sparkdContract");
+
+
+if(savedContract && contractInput){
+
+    contractInput.value = savedContract;
+
+}
+
 
 
 ////////////////////////////////////////////////////
