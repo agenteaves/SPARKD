@@ -345,63 +345,62 @@ if(downloadBtn){
 
 
 
-downloadBtn.onclick=function(){
+downloadBtn.onclick = function () {
 
+    canvas.discardActiveObject();
+    canvas.renderAll();
 
-canvas.discardActiveObject();
+    // Find the first uploaded image
+    const imageObject = canvas.getObjects().find(obj => obj.type === "image");
 
-canvas.renderAll();
+    if (!imageObject) {
+        alert("Please upload an image first.");
+        return;
+    }
 
+    // Get the image bounds (includes scaling/rotation)
+    const bounds = imageObject.getBoundingRect(true, true);
 
+    const padding = 20;
 
-const contract =
-document.getElementById("contractInput").value;
+    // Create watermark temporarily
+    const watermark = new fabric.Text(
+        document.getElementById("contractInput").value,
+        {
+            left: bounds.left + bounds.width - 8,
+            top: bounds.top + bounds.height - 8,
+            originX: "right",
+            originY: "bottom",
+            fontSize: 12,
+            fill: "#ffffff",
+            stroke: "#000000",
+            strokeWidth: 0.5,
+            opacity: 0.75,
+            selectable: false,
+            evented: false
+        }
+    );
 
+    canvas.add(watermark);
+    canvas.renderAll();
 
+    const data = canvas.toDataURL({
+        format: "png",
+        left: bounds.left - padding,
+        top: bounds.top - padding,
+        width: bounds.width + padding * 2,
+        height: bounds.height + padding * 2,
+        multiplier: 1
+    });
 
-const watermark =
-new fabric.Text(
+    canvas.remove(watermark);
+    canvas.renderAll();
 
-"SPARKD | " + contract + " | sparkdcoin.com",
-
-{
-
-left:10,
-
-top:1055,
-
-fontSize:14,
-
-fill:"#777777",
-
-opacity:0.8,
-
-selectable:false,
-
-evented:false
-
-}
-
-);
-
-
-
-canvas.add(watermark);
-
-
-
-canvas.renderAll();
-
-
-
-const image =
-canvas.toDataURL({
-
-format:"png",
-
-quality:1
-
-});
+    const link = document.createElement("a");
+    link.href = data;
+    link.download = "SPARKD-meme.png";
+    link.click();
+};
 
 
 
