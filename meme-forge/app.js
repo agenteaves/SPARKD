@@ -5,6 +5,60 @@
 
 window.addEventListener("load", function(){
 
+// ================================
+// CONTENT SAFETY FILTER
+// ================================
+
+const blockedWords = [
+
+    // Sexual content
+    "porn",
+    "nude",
+    "nudes",
+    "sex",
+    "sexual",
+    "xxx",
+
+    // Harassment / threats
+    "kill",
+    "murder",
+    "die",
+    "hurt",
+    "attack",
+    "threat",
+
+    // Animal harm
+    "torture",
+    "abuse",
+    "animal abuse",
+    "animal cruelty"
+
+];
+
+
+function containsUnsafeContent(text){
+
+
+    if(!text){
+
+        return false;
+
+    }
+
+
+    const cleanText = text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g,"");
+
+
+    return blockedWords.some(word =>
+
+        cleanText.includes(word)
+
+    );
+
+}
+
 
 // ================================
 // CREATE CANVAS
