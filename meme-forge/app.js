@@ -241,7 +241,17 @@ if(addTextBtn){
 
 
     addTextBtn.onclick = function(){
+        
+        if(containsUnsafeContent(textInput.value)){
 
+
+            alert("This content is not allowed.");
+
+            textInput.value = "";
+
+            return;
+
+       }
 
         const memeText = new fabric.IText(
 
