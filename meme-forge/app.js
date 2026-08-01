@@ -1,159 +1,171 @@
 // ==========================================
 // SPARKD MEME FORGE
-// CORE CANVAS + IMAGE UPLOAD
+// CANVAS + IMAGE UPLOAD ENGINE
 // ==========================================
 
 
 window.addEventListener("load", function(){
 
 
-if(typeof fabric === "undefined"){
+    if(typeof fabric === "undefined"){
 
-    alert("Fabric.js did not load");
+        alert("Fabric.js failed to load");
 
-    return;
+        return;
 
-}
-
-
-// CREATE CANVAS
-
-const canvas = new fabric.Canvas(
-    "memeCanvas",
-    {
-        backgroundColor:"#ffffff",
-        preserveObjectStacking:true
     }
-);
 
 
-// MAKE GLOBAL
 
-window.sparkdCanvas = canvas;
+    const canvas = new fabric.Canvas(
+        "memeCanvas",
+        {
+            backgroundColor:"#ffffff",
+            preserveObjectStacking:true
+        }
+    );
 
 
 
-canvas.setWidth(1080);
-canvas.setHeight(1080);
+    canvas.setWidth(1080);
+    canvas.setHeight(1080);
 
-canvas.renderAll();
 
 
+    canvas.calcOffset();
 
-// IMAGE UPLOAD
+    canvas.requestRenderAll();
 
-const uploadButton =
-document.getElementById("uploadImageButton");
 
 
-const imageUpload =
-document.getElementById("imageUpload");
+    const uploadButton =
+    document.getElementById("uploadImageButton");
 
 
 
-if(!uploadButton || !imageUpload){
+    const imageUpload =
+    document.getElementById("imageUpload");
 
-    alert("Upload controls missing");
 
-    return;
 
-}
+    if(!uploadButton || !imageUpload){
 
+        alert("Upload controls missing");
 
+        return;
 
-uploadButton.addEventListener(
-"click",
-function(){
+    }
 
-    imageUpload.click();
 
-});
 
 
+    uploadButton.onclick = function(){
 
+        imageUpload.click();
 
+    };
 
-imageUpload.addEventListener(
-"change",
-function(e){
 
 
-const file =
-e.target.files[0];
 
 
-if(!file){
+    imageUpload.onchange = function(e){
 
-    return;
 
-}
+        const file =
+        e.target.files[0];
 
 
 
-const reader =
-new FileReader();
+        if(!file){
 
+            return;
 
+        }
 
-reader.onload =
-function(event){
 
 
 
-fabric.Image.fromURL(
+        const reader =
+        new FileReader();
 
-event.target.result,
 
-function(img){
 
 
+        reader.onload = function(event){
 
-img.set({
 
-left:100,
 
-top:100
+            const imgElement =
+            new Image();
 
-});
 
 
+            imgElement.onload = function(){
 
-img.scaleToWidth(700);
 
 
+                const img =
+                new fabric.Image(imgElement);
 
-canvas.add(img);
 
 
+                img.set({
 
-canvas.setActiveObject(img);
+                    left:200,
 
+                    top:200,
 
+                    originX:"left",
 
-canvas.requestRenderAll();
+                    originY:"top"
 
+                });
 
 
-alert("IMAGE IS ON CANVAS");
 
+                img.scaleToWidth(300);
 
-}
 
 
+                canvas.add(img);
 
-);
 
 
+                canvas.setActiveObject(img);
 
-};
 
 
+                canvas.bringToFront(img);
 
-reader.readAsDataURL(file);
 
 
+                canvas.calcOffset();
 
-});
+
+
+                canvas.requestRenderAll();
+
+
+
+            };
+
+
+
+            imgElement.src =
+            event.target.result;
+
+
+
+        };
+
+
+
+        reader.readAsDataURL(file);
+
+
+
+    };
 
 
 
