@@ -199,7 +199,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - SPARKD WATERMARK INCLUDED
+// EXPORT PNG - SQUARE IMAGE ONLY + WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -216,15 +216,9 @@ if(downloadBtn){
 
 
 
-        const contract = document.getElementById("contractInput").value;
-
-
-
-        // Find uploaded image
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
         );
-
 
 
         if(!image){
@@ -237,12 +231,15 @@ if(downloadBtn){
 
 
 
-        // Get image position and size
+        // Get image bounds only
         const imgBounds = image.getBoundingRect(true,true);
 
 
 
-        // Create permanent export watermark
+        // Create watermark inside image area
+        const contract = document.getElementById("contractInput").value;
+
+
         const watermark = new fabric.Text(
 
             contract,
@@ -292,43 +289,23 @@ if(downloadBtn){
 
 
 
-        // Calculate export area including watermark
-        let minX = Infinity;
-        let minY = Infinity;
-        let maxX = -Infinity;
-        let maxY = -Infinity;
+        // Make export square based on image only
+        const size = Math.max(
+            imgBounds.width,
+            imgBounds.height
+        );
+
+
+        const centerX =
+            imgBounds.left + imgBounds.width / 2;
+
+
+        const centerY =
+            imgBounds.top + imgBounds.height / 2;
 
 
 
-        canvas.getObjects().forEach(function(obj){
-
-
-            const rect = obj.getBoundingRect(true,true);
-
-
-
-            minX = Math.min(minX, rect.left);
-
-            minY = Math.min(minY, rect.top);
-
-
-            maxX = Math.max(
-                maxX,
-                rect.left + rect.width
-            );
-
-
-            maxY = Math.max(
-                maxY,
-                rect.top + rect.height
-            );
-
-
-        });
-
-
-
-        const padding = 30;
+        const padding = 20;
 
 
 
@@ -336,13 +313,13 @@ if(downloadBtn){
 
             format:"png",
 
-            left:minX - padding,
+            left:centerX - size / 2 - padding,
 
-            top:minY - padding,
+            top:centerY - size / 2 - padding,
 
-            width:(maxX - minX) + (padding * 2),
+            width:size + padding * 2,
 
-            height:(maxY - minY) + (padding * 2),
+            height:size + padding * 2,
 
             multiplier:1
 
@@ -357,7 +334,6 @@ if(downloadBtn){
 
 
 
-        // Download
         const link = document.createElement("a");
 
         link.href = data;
