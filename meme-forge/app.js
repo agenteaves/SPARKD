@@ -308,8 +308,7 @@ if(downloadBtn){
 
 
     };
-
-
 }
+
 
 });
