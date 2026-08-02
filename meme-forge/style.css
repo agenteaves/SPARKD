@@ -237,7 +237,25 @@ EDITOR
 
 }
 
+/* ================================
+   WORKSPACE LAYOUT
+================================ */
 
+#workspace{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    gap:30px;
+
+    width:100%;
+
+    margin-top:20px;
+
+}
 
 /* =========================
 CONTROLS
@@ -510,26 +528,7 @@ MOBILE
 
 }
 
-    /* ================================
-   WORKSPACE LAYOUT
-================================ */
-
-#workspace{
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:flex-start;
-
-    gap:30px;
-
-    width:100%;
-
-    margin-top:20px;
-
-}
-
+    
 /* ================================
    MISSION CONTROL
 ================================ */
