@@ -18,9 +18,9 @@ body {
 
     font-family:Orbitron, sans-serif;
 
+    }
+
 }
-
-
 
 /* =========================
 APP
@@ -38,9 +38,9 @@ APP
 
     align-items:center;
 
+    }
+
 }
-
-
 
 /* =========================
 HEADER
@@ -81,9 +81,9 @@ header p {
 
     margin-top:8px;
 
+    }
+
 }
-
-
 
 /* =========================
 TOP TEXT TOOLBAR
@@ -101,9 +101,9 @@ TOP TEXT TOOLBAR
 
     margin-bottom:15px;
 
+    }
+
 }
-
-
 
 /* =========================
 LEFT TOOLBAR
@@ -136,9 +136,9 @@ LEFT TOOLBAR
 
     padding:12px;
 
+    }
+
 }
-
-
 
 /* =========================
 BUTTONS
@@ -173,9 +173,9 @@ button:hover {
 
     box-shadow:0 0 15px #ff6a00;
 
+    }
+
 }
-
-
 
 /* =========================
 EDITOR
@@ -251,9 +251,9 @@ EDITOR
 
     border-radius:5px;
 
+    }
+
 }
-
-
 
 /* =========================
 CONTROLS
@@ -305,9 +305,9 @@ input {
 
     font-size:16px;
 
+    }
+
 }
-
-
 
 /* =========================
 FOOTER
@@ -321,9 +321,9 @@ footer {
 
     font-size:13px;
 
+    }
+
 }
-
-
 
 /* =========================
 MOBILE
