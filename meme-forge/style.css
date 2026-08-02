@@ -18,6 +18,86 @@ body {
 
 }
 
+/* ================================
+   SPARKD DEVELOPER PANEL
+================================ */
+
+
+#sparkdDevPanel{
+
+    position:fixed;
+
+    right:20px;
+
+    top:20px;
+
+    width:320px;
+
+    max-height:90vh;
+
+    overflow-y:auto;
+
+    background:#111;
+
+    color:white;
+
+    border:2px solid #ff6a00;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    z-index:99999;
+
+    box-shadow:
+    0 0 30px rgba(255,106,0,.5);
+
+}
+
+
+
+.devHeader{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    color:#ff6a00;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+}
+
+
+
+.devSection{
+
+    margin-top:20px;
+
+    padding:10px;
+
+    border:1px solid #333;
+
+    border-radius:10px;
+
+}
+
+
+
+#sparkdDevPanel button{
+
+    width:100%;
+
+    margin-top:8px;
+
+    padding:8px;
+
+    cursor:pointer;
+
+}
+
 /* =================================
    PREVENT TEXT HIGHLIGHTING
 ================================= */
