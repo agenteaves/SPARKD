@@ -5,13 +5,14 @@
 
 window.addEventListener("load", function () {
 
-    // CHANGE THIS IF YOUR LOGO HAS A DIFFERENT ID
-    const logo = document.getElementById("logo");
+    const logo = document.getElementById("sparkdLogo");
 
     if (!logo) return;
 
     let clicks = 0;
     let timer = null;
+
+    logo.style.cursor = "pointer";
 
     logo.addEventListener("click", function () {
 
@@ -40,6 +41,6 @@ window.addEventListener("load", function () {
 
 function openDeveloperPanel() {
 
-    alert("🛠 Developer Mode Activated!");
+    alert("🛠 SPARKD Developer Mode Activated!");
 
 }
