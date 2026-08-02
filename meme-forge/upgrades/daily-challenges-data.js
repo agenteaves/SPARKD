@@ -6,20 +6,69 @@
 
 window.sparkdChallenges = [
 
-"🚀 Create a meme about SPARKD going to the moon",
 
-"💎 Create the ultimate diamond hands meme",
+{
+    text: "🚀 Create a meme about SPARKD going to the moon",
+    category: "Moon Mission",
+    difficulty: "⭐⭐",
+    reward: 100
+},
 
-"🔥 Create a meme showing SPARKD energy",
 
-"😂 Make the funniest SPARKD community meme",
+{
+    text: "💎 Create the ultimate diamond hands meme",
+    category: "Crypto Culture",
+    difficulty: "⭐⭐⭐",
+    reward: 150
+},
 
-"🌙 Create a meme about future SPARKD success",
 
-"👑 Create a meme worthy of a SPARKD Legend",
+{
+    text: "🔥 Create a meme showing SPARKD energy",
+    category: "Community Energy",
+    difficulty: "⭐⭐",
+    reward: 100
+},
 
-"⚡ Create a high-energy viral SPARKD meme",
 
-"📈 Make a meme about growth and success"
+{
+    text: "😂 Make the funniest SPARKD community meme",
+    category: "Comedy",
+    difficulty: "⭐⭐⭐",
+    reward: 150
+},
+
+
+{
+    text: "🌙 Create a meme about future SPARKD success",
+    category: "Future Vision",
+    difficulty: "⭐⭐",
+    reward: 100
+},
+
+
+{
+    text: "👑 Create a meme worthy of a SPARKD Legend",
+    category: "Legend Challenge",
+    difficulty: "⭐⭐⭐⭐",
+    reward: 250
+},
+
+
+{
+    text: "⚡ Create a high-energy viral SPARKD meme",
+    category: "Viral Challenge",
+    difficulty: "⭐⭐⭐",
+    reward: 150
+},
+
+
+{
+    text: "📈 Make a meme about growth and success",
+    category: "Growth",
+    difficulty: "⭐⭐",
+    reward: 100
+}
+
 
 ];
