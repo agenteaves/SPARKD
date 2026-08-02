@@ -328,11 +328,13 @@ footer {
 
 #sideToolbar{
 
-    position:fixed;
+    position:absolute;
 
-    left:130px;
+    left:10px;
 
-    top:180px;
+    top:50%;
+
+    transform:translateY(-50%);
 
     display:flex;
 
@@ -343,7 +345,6 @@ footer {
     z-index:1000;
 
 }
-
 
 #sideToolbar button{
 
