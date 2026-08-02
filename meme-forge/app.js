@@ -394,6 +394,81 @@ if(emojiBtn){
 
 }
 
+    // ================================
+// EMOJI PICKER
+// ================================
+
+const emojiBtn = document.getElementById("emojiBtn");
+const emojiPicker = document.getElementById("emojiPicker");
+const emojiOptions = document.querySelectorAll(".emojiOption");
+
+
+if(emojiBtn && emojiPicker){
+
+
+    emojiBtn.onclick = function(){
+
+        if(emojiPicker.style.display === "flex"){
+
+            emojiPicker.style.display="none";
+
+        } else {
+
+            emojiPicker.style.display="flex";
+
+        }
+
+    };
+
+
+}
+
+
+
+emojiOptions.forEach(function(button){
+
+
+    button.onclick=function(){
+
+
+        const emoji = new fabric.Text(
+
+            button.innerHTML,
+
+            {
+
+                left:250,
+
+                top:250,
+
+                fontSize:100,
+
+                selectable:true,
+
+                evented:true
+
+            }
+
+        );
+
+
+        canvas.add(emoji);
+
+
+        canvas.setActiveObject(emoji);
+
+
+        canvas.renderAll();
+
+
+        emojiPicker.style.display="none";
+
+
+    };
+
+
+});
+
 ////////////////////////////////////////////////////
 // EXPORT PNG - IMAGE + TEXT + SHARP CONTRACT
 ////////////////////////////////////////////////////
