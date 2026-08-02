@@ -3,8 +3,6 @@
 // SPARK POINT SYSTEM
 ////////////////////////////////////////////////////
 
-console.log("SPARK POINTS LOADED");
-
 window.addEventListener("load", function(){
 
 
