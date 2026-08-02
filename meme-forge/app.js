@@ -348,6 +348,52 @@ if(deleteBtn){
 
 }
 
+// ================================
+// EMOJI BUTTON
+// ================================
+
+const emojiBtn = document.getElementById("emojiBtn");
+
+
+if(emojiBtn){
+
+    emojiBtn.onclick = function(){
+
+
+        const emoji = new fabric.Text(
+
+            "🔥",
+
+            {
+
+                left:200,
+
+                top:200,
+
+                fontSize:100,
+
+                selectable:true,
+
+                evented:true
+
+            }
+
+        );
+
+
+        canvas.add(emoji);
+
+
+        canvas.setActiveObject(emoji);
+
+
+        canvas.renderAll();
+
+
+    };
+
+}
+
 ////////////////////////////////////////////////////
 // EXPORT PNG - IMAGE + TEXT + SHARP CONTRACT
 ////////////////////////////////////////////////////
