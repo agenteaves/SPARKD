@@ -267,6 +267,8 @@ EDITOR
 
     width:280px;
 
+    min-height:300px;
+
     background:#111;
 
     border:2px solid #ff6a00;
