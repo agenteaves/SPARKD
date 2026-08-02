@@ -398,23 +398,22 @@ if(downloadBtn){
 
 
         // Export the visible edited area
-        const data = canvas.toDataURL({
+        const exportCanvas = canvas.toCanvasElement({
+    
+        left: bounds.left,
+    
+        top: bounds.top,
+    
+        width: bounds.width,
+    
+        height: bounds.height,
+    
+        multiplier:2
 
-            format:"png",
+});
 
-            left:bounds.left,
 
-            top:bounds.top,
-
-            width:bounds.width,
-
-            height:bounds.height,
-
-            multiplier:2,
-
-            enableRetinaScaling:false
-
-        });
+const data = exportCanvas.toDataURL("image/png");
 
 
 
