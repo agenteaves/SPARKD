@@ -21,7 +21,7 @@ window.addEventListener("load", function(){
         lockBtn.onclick = function(){
 
 
-            const activeObject = canvas.getActiveObject();
+            const activeObject = window.canvas.getActiveObject();
 
 
             if(!activeObject){
@@ -50,7 +50,7 @@ window.addEventListener("load", function(){
             });
 
 
-            canvas.renderAll();
+            window.renderAll();
 
 
             if(locked){
@@ -97,13 +97,13 @@ window.addEventListener("load", function(){
             }
 
 
-            canvas.clear();
+            window.clear();
 
 
-            canvas.backgroundColor = "#ffffff";
+            window.backgroundColor = "#ffffff";
 
 
-            canvas.renderAll();
+            window.renderAll();
 
 
         };
