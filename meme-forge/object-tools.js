@@ -7,6 +7,13 @@
 
 window.addEventListener("load", function(){
 
+    if(typeof canvas === "undefined"){
+
+        console.log("SPARKD Object Tools: Canvas not found");
+        return;
+
+    }
+
 
     // ================================
     // LOCK / UNLOCK OBJECT
