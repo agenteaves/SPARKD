@@ -97,13 +97,13 @@ window.addEventListener("load", function(){
             }
 
 
-            window.clear();
+            window.canvas.clear();
 
 
-            window.backgroundColor = "#ffffff";
+            window.canvas.backgroundColor = "#ffffff";
 
 
-            window.renderAll();
+            window.window.renderAll();
 
 
         };
