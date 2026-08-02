@@ -360,11 +360,35 @@ MOBILE
 
 }
 
-
-
 #emojiPicker{
 
+    display:none;
 
+    position:absolute;
+
+    left:145px;
+
+    top:0;
+
+    width:190px;
+
+    background:#111;
+
+    border:2px solid #ff6a00;
+
+    border-radius:10px;
+
+    padding:8px;
+
+    box-shadow:0 0 20px rgba(255,106,0,.5);
+
+    z-index:9999;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:6px;
+
+}
 
 .emojiOption{
 
@@ -389,8 +413,6 @@ MOBILE
     user-select:none;
 
 }
-
-
 
 .emojiOption:hover{
 
