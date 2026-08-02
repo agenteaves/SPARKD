@@ -8,42 +8,58 @@ window.sparkdChallenges = [
 
 
 {
-    text: "🚀 Create a meme about SPARKD going to the moon",
-    category: "Moon Mission",
-    difficulty: "⭐⭐",
+    text: "🚀 Create your first SPARKD meme about going to the moon",
+    category: "Getting Started",
+    difficulty: "⭐",
     reward: 100
+},
+
+
+{
+    text: "🔥 Create a simple SPARKD community meme",
+    category: "Getting Started",
+    difficulty: "⭐",
+    reward: 100
+},
+
+
+{
+    text: "😂 Make a funny SPARKD meme",
+    category: "Comedy Basics",
+    difficulty: "⭐",
+    reward: 100
+},
+
+
+{
+    text: "📈 Create a meme about SPARKD growth and success",
+    category: "Growth Basics",
+    difficulty: "⭐",
+    reward: 100
+},
+
+
+{
+    text: "🌙 Create a meme about the future of SPARKD",
+    category: "Future Vision",
+    difficulty: "⭐⭐",
+    reward: 125
 },
 
 
 {
     text: "💎 Create the ultimate diamond hands meme",
     category: "Crypto Culture",
-    difficulty: "⭐⭐⭐",
+    difficulty: "⭐⭐",
     reward: 150
 },
 
 
 {
-    text: "🔥 Create a meme showing SPARKD energy",
-    category: "Community Energy",
-    difficulty: "⭐⭐",
-    reward: 100
-},
-
-
-{
-    text: "😂 Make the funniest SPARKD community meme",
-    category: "Comedy",
+    text: "⚡ Create a high-energy viral SPARKD meme",
+    category: "Viral Challenge",
     difficulty: "⭐⭐⭐",
-    reward: 150
-},
-
-
-{
-    text: "🌙 Create a meme about future SPARKD success",
-    category: "Future Vision",
-    difficulty: "⭐⭐",
-    reward: 100
+    reward: 175
 },
 
 
@@ -52,22 +68,6 @@ window.sparkdChallenges = [
     category: "Legend Challenge",
     difficulty: "⭐⭐⭐⭐",
     reward: 250
-},
-
-
-{
-    text: "⚡ Create a high-energy viral SPARKD meme",
-    category: "Viral Challenge",
-    difficulty: "⭐⭐⭐",
-    reward: 150
-},
-
-
-{
-    text: "📈 Make a meme about growth and success",
-    category: "Growth",
-    difficulty: "⭐⭐",
-    reward: 100
 }
 
 
