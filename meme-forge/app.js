@@ -143,7 +143,7 @@ if (emojiBtn && emojiPicker) {
 // CREATE CANVAS
 // ================================
 
-const canvas = new fabric.Canvas(
+window.canvas = new fabric.Canvas(
     "memeCanvas",
     {
         backgroundColor:"#ffffff",
