@@ -30,10 +30,6 @@ window.addEventListener("load", function () {
 
 
 
-    logo.style.cursor = "pointer";
-
-
-
     logo.addEventListener("click", function () {
 
 
