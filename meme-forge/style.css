@@ -354,7 +354,10 @@ MOBILE
 
     position:relative;
 
+    width:140px;
+
 }
+
 
 
 #emojiPicker{
@@ -363,11 +366,11 @@ MOBILE
 
     position:absolute;
 
-    left:150px;
+    left:145px;
 
     top:0;
 
-    width:160px;
+    width:190px;
 
     background:#111;
 
@@ -375,36 +378,60 @@ MOBILE
 
     border-radius:10px;
 
-    padding:10px;
+    padding:8px;
 
     box-shadow:0 0 20px rgba(255,106,0,.5);
 
-    z-index:5000;
+    z-index:9999;
 
 }
+
+
+
+/* 4-column grid */
+
+#emojiPicker{
+
+    display:none;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:6px;
+
+}
+
 
 
 .emojiOption{
 
-    display:block;
+    display:flex;
 
-    width:100%;
+    justify-content:center;
 
-    padding:8px;
+    align-items:center;
+
+    width:40px;
+
+    height:40px;
 
     font-size:28px;
 
-    text-align:center;
-
     cursor:pointer;
 
-    border-radius:6px;
+    border-radius:8px;
+
+    transition:.15s;
+
+    user-select:none;
 
 }
+
 
 
 .emojiOption:hover{
 
     background:#333;
+
+    transform:scale(1.15);
 
 }
