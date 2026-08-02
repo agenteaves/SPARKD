@@ -510,7 +510,7 @@ if(downloadBtn){
 
 
             // Add SPARKD address
-            ctx.font = "5px Arial";
+            ctx.font = "8px Arial";
 
             ctx.textAlign = "right";
 
