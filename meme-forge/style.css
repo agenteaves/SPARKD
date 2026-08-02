@@ -330,7 +330,7 @@ footer {
 
     position:absolute;
 
-    left:160px;
+    left:20px;
 
     top:50%;
 
@@ -345,6 +345,7 @@ footer {
     z-index:1000;
 
 }
+
 
 #sideToolbar button{
 
