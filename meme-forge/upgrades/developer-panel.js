@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////
 
 
-    window.showSparkdDeveloperPanel = function(){
+    function openDeveloperPanel(){
 
 
     // Prevent duplicates
