@@ -506,6 +506,56 @@ MOBILE
 
     color:#00ff99;
 
-}    
+}
+
+    /* ================================
+   WORKSPACE LAYOUT
+================================ */
+
+#workspace{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    gap:30px;
+
+    width:100%;
+
+    margin-top:20px;
+
+}
+
+/* ================================
+   MISSION CONTROL
+================================ */
+
+#dailyChallenge{
+
+    width:280px;
+
+    background:#111;
+
+    border:2px solid #ff6a00;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    box-shadow:0 0 20px rgba(255,106,0,.35);
+
+}
+
+#dailyChallenge h2{
+
+    margin-top:0;
+
+    color:#ff6a00;
+
+    text-align:center;
+
+}
 
 }
