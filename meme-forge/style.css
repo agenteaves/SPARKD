@@ -1,7 +1,5 @@
 * {
-
     box-sizing:border-box;
-
 }
 
 
@@ -18,9 +16,9 @@ body {
 
     font-family:Orbitron, sans-serif;
 
-    }
-
 }
+
+
 
 /* =========================
 APP
@@ -38,9 +36,9 @@ APP
 
     align-items:center;
 
-    }
-
 }
+
+
 
 /* =========================
 HEADER
@@ -81,9 +79,9 @@ header p {
 
     margin-top:8px;
 
-    }
-
 }
+
+
 
 /* =========================
 TOP TEXT TOOLBAR
@@ -101,9 +99,9 @@ TOP TEXT TOOLBAR
 
     margin-bottom:15px;
 
-    }
-
 }
+
+
 
 /* =========================
 LEFT TOOLBAR
@@ -113,7 +111,7 @@ LEFT TOOLBAR
 
     position:absolute;
 
-    left:calc(50% - 500px);
+    left:calc(50% - 520px);
 
     top:50%;
 
@@ -130,15 +128,14 @@ LEFT TOOLBAR
 }
 
 
+
 #sideToolbar button {
 
     width:140px;
 
-    padding:12px;
-
-    }
-
 }
+
+
 
 /* =========================
 BUTTONS
@@ -173,9 +170,9 @@ button:hover {
 
     box-shadow:0 0 15px #ff6a00;
 
-    }
-
 }
+
+
 
 /* =========================
 EDITOR
@@ -223,37 +220,23 @@ EDITOR
 
 
 
-.canvas-container {
-
-    margin:auto !important;
-
-    max-width:90vw !important;
-
-    max-height:70vh !important;
-
-}
-
-
-
-.canvas-container canvas {
-
-    max-width:90vw !important;
-
-    max-height:70vh !important;
-
-}
-
-
-
 #memeCanvas {
 
     background:white;
 
     border-radius:5px;
 
-    }
+}
+
+
+
+.canvas-container {
+
+    margin:auto !important;
 
 }
+
+
 
 /* =========================
 CONTROLS
@@ -305,9 +288,87 @@ input {
 
     font-size:16px;
 
-    }
+}
+
+
+
+/* =========================
+EMOJI PICKER
+========================= */
+
+.emojiContainer {
+
+    position:relative;
 
 }
+
+
+
+#emojiPicker {
+
+    display:none;
+
+    position:absolute;
+
+    left:150px;
+
+    top:0;
+
+    width:190px;
+
+    padding:10px;
+
+    background:#111;
+
+    border:2px solid #ff6a00;
+
+    border-radius:10px;
+
+    box-shadow:0 0 20px rgba(255,106,0,.5);
+
+    z-index:9999;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:6px;
+
+}
+
+
+
+.emojiOption {
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    width:38px;
+
+    height:38px;
+
+    font-size:26px;
+
+    cursor:pointer;
+
+    border-radius:6px;
+
+    user-select:none;
+
+}
+
+
+
+.emojiOption:hover {
+
+    background:#333;
+
+    transform:scale(1.15);
+
+}
+
+
 
 /* =========================
 FOOTER
@@ -321,16 +382,15 @@ footer {
 
     font-size:13px;
 
-    }
-
 }
+
+
 
 /* =========================
 MOBILE
 ========================= */
 
 @media(max-width:900px){
-
 
     #sideToolbar {
 
@@ -345,79 +405,14 @@ MOBILE
         margin-bottom:15px;
 
     }
-    
-}
 
-/* ================================
-   EMOJI PICKER
-================================ */
 
-.emojiContainer{
+    #emojiPicker {
 
-    position:relative;
+        left:0;
 
-    width:140px;
+        top:50px;
 
-}
-
-#emojiPicker{
-
-    display:none;
-
-    position:absolute;
-
-    left:145px;
-
-    top:0;
-
-    width:190px;
-
-    background:#111;
-
-    border:2px solid #ff6a00;
-
-    border-radius:10px;
-
-    padding:8px;
-
-    box-shadow:0 0 20px rgba(255,106,0,.5);
-
-    z-index:9999;
-
-    grid-template-columns:repeat(4,1fr);
-
-    gap:6px;
-
-}
-
-.emojiOption{
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    width:40px;
-
-    height:40px;
-
-    font-size:28px;
-
-    cursor:pointer;
-
-    border-radius:8px;
-
-    transition:.15s;
-
-    user-select:none;
-
-}
-
-.emojiOption:hover{
-
-    background:#333;
-
-    transform:scale(1.15);
+    }
 
 }
