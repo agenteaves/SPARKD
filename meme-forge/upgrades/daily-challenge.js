@@ -35,7 +35,70 @@ window.addEventListener("load", function(){
 
 
 
-    // Create a daily number based on date
+    // =================================
+    // GET CREATOR LEVEL
+    // =================================
+
+
+    const creatorLevel =
+    Number(localStorage.getItem("creatorLevel")) || 1;
+
+
+
+    let maxDifficulty = 1;
+
+
+
+    if(creatorLevel >= 2){
+
+        maxDifficulty = 2;
+
+    }
+
+
+    if(creatorLevel >= 3){
+
+        maxDifficulty = 3;
+
+    }
+
+
+    if(creatorLevel >= 5){
+
+        maxDifficulty = 4;
+
+    }
+
+
+
+    // =================================
+    // FILTER CHALLENGES
+    // =================================
+
+
+    const availableChallenges =
+    challenges.filter(function(challenge){
+
+
+        return challenge.difficulty.length <= maxDifficulty;
+
+
+    });
+
+
+
+    if(availableChallenges.length === 0){
+
+        return;
+
+    }
+
+
+
+    // =================================
+    // DAILY CHALLENGE SELECTION
+    // =================================
+
 
     const today = new Date();
 
@@ -48,11 +111,15 @@ window.addEventListener("load", function(){
 
 
     const challenge =
-        challenges[dayNumber % challenges.length];
+    availableChallenges[dayNumber % availableChallenges.length];
 
 
 
-    // Display challenge information
+
+    // =================================
+    // DISPLAY CHALLENGE
+    // =================================
+
 
     challengeText.innerHTML =
         challenge.text;
