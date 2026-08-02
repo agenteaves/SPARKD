@@ -62,12 +62,12 @@
 
 
 <!-- LEFT SIDE TOOLBAR -->
+<!-- LEFT SIDE TOOLBAR -->
 <div id="sideToolbar">
 
     <button id="uploadBtn">
-    🖼 Upload Image
+        🖼 Upload Image
     </button>
-
 
     <input 
     type="file"
@@ -77,42 +77,73 @@
 
 
     <button id="deleteBtn">
-    🗑 Delete
+        🗑 Delete
     </button>
 
 
-<div class="emojiContainer">
+    <div class="emojiContainer">
 
-    <button id="emojiBtn">
-        😀 Emojis
-    </button>
+        <button id="emojiBtn">
+            😀 Emojis
+        </button>
 
-    <div id="emojiPicker">
 
-        <span class="emojiOption">😀</span>
-        <span class="emojiOption">😂</span>
-        <span class="emojiOption">🤣</span>
-        <span class="emojiOption">😎</span>
+        <div id="emojiPicker">
 
-        <span class="emojiOption">😍</span>
-        <span class="emojiOption">🔥</span>
-        <span class="emojiOption">🚀</span>
-        <span class="emojiOption">💎</span>
+            <span class="emojiOption">😀</span>
+            <span class="emojiOption">😂</span>
+            <span class="emojiOption">🤣</span>
+            <span class="emojiOption">😎</span>
 
-        <span class="emojiOption">❤️</span>
-        <span class="emojiOption">⚡</span>
-        <span class="emojiOption">🐸</span>
-        <span class="emojiOption">👑</span>
+            <span class="emojiOption">😍</span>
+            <span class="emojiOption">🔥</span>
+            <span class="emojiOption">🚀</span>
+            <span class="emojiOption">💎</span>
 
-        <span class="emojiOption">💰</span>
-        <span class="emojiOption">🤑</span>
-        <span class="emojiOption">💯</span>
-        <span class="emojiOption">👍</span>
+            <span class="emojiOption">❤️</span>
+            <span class="emojiOption">⚡</span>
+            <span class="emojiOption">🐸</span>
+            <span class="emojiOption">👑</span>
+
+            <span class="emojiOption">💰</span>
+            <span class="emojiOption">🤑</span>
+            <span class="emojiOption">💯</span>
+            <span class="emojiOption">👍</span>
+
+        </div>
 
     </div>
 
-</div>
 
+    <button id="downloadBtn">
+        ⬇ Export
+    </button>
+
+
+</div>
+<!-- END SIDE TOOLBAR -->
+
+
+
+<!-- MEME EDITOR -->
+<div id="editor">
+
+
+    <div id="canvasBox">
+
+
+        <canvas
+        id="memeCanvas"
+        width="1080"
+        height="1080">
+        </canvas>
+
+
+    </div>
+
+
+</div>
+<!-- END EDITOR -->
 
 <div id="editor">
 
