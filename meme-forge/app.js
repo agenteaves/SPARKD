@@ -413,7 +413,7 @@ if(downloadBtn){
 });
 
 
-const data = exportCanvas.toDataURL("image/png");
+        const data = exportCanvas.toDataURL("image/png");
 
 
 
