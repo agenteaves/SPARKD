@@ -22,6 +22,10 @@ body {
 
 
 
+/* =========================
+APP
+========================= */
+
 #app {
 
     width:100%;
@@ -42,7 +46,6 @@ body {
 HEADER
 ========================= */
 
-
 header {
 
     text-align:center;
@@ -50,7 +53,6 @@ header {
     padding:20px;
 
 }
-
 
 
 header h1 {
@@ -66,13 +68,11 @@ header h1 {
 }
 
 
-
 header h1 span {
 
     color:#ff6a00;
 
 }
-
 
 
 header p {
@@ -85,27 +85,64 @@ header p {
 
 
 
-
 /* =========================
-TOOLBAR
+TOP TEXT TOOLBAR
 ========================= */
 
-
-#toolbar {
+#textToolbar {
 
     display:flex;
 
-    gap:12px;
-
-    flex-wrap:wrap;
-
     justify-content:center;
 
-    padding:15px;
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:15px;
 
 }
 
 
+
+/* =========================
+LEFT TOOLBAR
+========================= */
+
+#sideToolbar {
+
+    position:absolute;
+
+    left:calc(50% - 500px);
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+    z-index:1000;
+
+}
+
+
+#sideToolbar button {
+
+    width:140px;
+
+    padding:12px;
+
+}
+
+
+
+/* =========================
+BUTTONS
+========================= */
 
 button {
 
@@ -130,7 +167,6 @@ button {
 }
 
 
-
 button:hover {
 
     transform:scale(1.05);
@@ -141,12 +177,9 @@ button:hover {
 
 
 
-
-
 /* =========================
 EDITOR
 ========================= */
-
 
 #editor {
 
@@ -156,11 +189,25 @@ EDITOR
 
     justify-content:center;
 
+    position:relative;
+
 }
 
 
 
 #canvasBox {
+
+    width:min(75vh,800px);
+
+    height:min(75vh,800px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    overflow:hidden;
 
     background:#111;
 
@@ -176,27 +223,9 @@ EDITOR
 
 
 
-
 .canvas-container {
 
     margin:auto !important;
-
-}
-
-
-
-#memeCanvas {
-
-    background:white;
-
-    border-radius:5px;
-
-}
-
-
-/* Responsive Fabric Canvas Display */
-
-.canvas-container {
 
     max-width:90vw !important;
 
@@ -216,11 +245,19 @@ EDITOR
 
 
 
+#memeCanvas {
+
+    background:white;
+
+    border-radius:5px;
+
+}
+
+
 
 /* =========================
 CONTROLS
 ========================= */
-
 
 #controls {
 
@@ -272,12 +309,9 @@ input {
 
 
 
-
-
 /* =========================
 FOOTER
 ========================= */
-
 
 footer {
 
@@ -289,79 +323,28 @@ footer {
 
 }
 
-#canvasBox {
-
-    width:min(75vh, 800px);
-
-    height:min(75vh, 800px);
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    overflow:hidden;
-
-}
-
-/* ================================
-   TOP TEXT TOOLBAR
-================================ */
-
-#textToolbar{
-
-    display:flex;
-
-    justify-content:center;
-
-    gap:10px;
-
-    margin-bottom:15px;
-
-}
 
 
-/* ================================
-   LEFT SIDE TOOLBAR
-================================ */
+/* =========================
+MOBILE
+========================= */
 
-#sideToolbar{
-
-    position:absolute;
-
-    left:10px;
-
-    top:50%;
-
-    transform:translateY(-50%);
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:12px;
-
-    z-index:1000;
-
-}
+@media(max-width:900px){
 
 
-#sideToolbar button{
+    #sideToolbar {
 
-    width:140px;
+        position:static;
 
-    padding:12px;
+        transform:none;
 
-    cursor:pointer;
+        flex-direction:row;
 
-}
+        justify-content:center;
 
+        margin-bottom:15px;
 
-/* Bring editor closer */
+    }
 
-#editor{
-
-    margin-left:150px;
 
 }
