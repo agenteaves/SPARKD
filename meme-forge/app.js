@@ -364,9 +364,9 @@ if(downloadBtn){
 
             {
 
-                left: bounds.left + bounds.width - 8,
+                left: bounds.left + bounds.width - 12,
 
-                top: bounds.top + bounds.height - 8,
+                top: bounds.top + bounds.height - 18,
 
                 originX:"right",
 
