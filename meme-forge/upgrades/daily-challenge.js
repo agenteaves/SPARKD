@@ -111,7 +111,7 @@ window.addEventListener("load", function(){
 
 
     const challenge =
-    availableChallenges[dayNumber % availableChallenges.length];
+    availableChallenges[1];
 
 
 
