@@ -323,7 +323,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - IMAGE + TEXT + SPARKD WATERMARK
+// EXPORT PNG - IMAGE + TEXT + SHARP CONTRACT
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -355,60 +355,18 @@ if(downloadBtn){
 
 
 
-        // Create watermark INSIDE image area
-        const watermark = new fabric.Text(
-
-            SPARKD_CONTRACT,
-
-            {
-
-                left: bounds.left + bounds.width - 10,
-
-                top: bounds.top + bounds.height - 10,
-
-                originX:"right",
-
-                originY:"bottom",
-
-                fontFamily:"Arial",
-
-                fontSize:16,
-
-                fill:"#ffffff",
-
-                stroke:"#000000",
-
-                strokeWidth:1,
-
-                selectable:false,
-
-                evented:false
-
-            }
-
-        );
-
-
-        canvas.add(watermark);
-
-        canvas.bringToFront(watermark);
-
-        canvas.renderAll();
-
-
-
-        // Export image area only
-        const data = canvas.toDataURL({
+        // Export image + text first
+        const dataURL = canvas.toDataURL({
 
             format:"png",
 
-            left:bounds.left,
+            left: bounds.left,
 
-            top:bounds.top,
+            top: bounds.top,
 
-            width:bounds.width,
+            width: bounds.width,
 
-            height:bounds.height,
+            height: bounds.height,
 
             multiplier:2,
 
@@ -418,20 +376,90 @@ if(downloadBtn){
 
 
 
-        // Remove watermark
-        canvas.remove(watermark);
+        // Create final image canvas
+        const finalCanvas = document.createElement("canvas");
 
-        canvas.renderAll();
+        finalCanvas.width = bounds.width * 2;
+
+        finalCanvas.height = bounds.height * 2;
+
+
+        const ctx = finalCanvas.getContext("2d");
+
+
+        const img = new Image();
+
+
+        img.onload = function(){
+
+
+            ctx.drawImage(
+
+                img,
+
+                0,
+
+                0,
+
+                finalCanvas.width,
+
+                finalCanvas.height
+
+            );
 
 
 
-        const link = document.createElement("a");
+            // Add SPARKD address
+            ctx.font = "32px Arial";
 
-        link.href=data;
+            ctx.textAlign = "right";
 
-        link.download="SPARKD-meme.png";
+            ctx.textBaseline = "bottom";
 
-        link.click();
+
+            ctx.lineWidth = 2;
+
+            ctx.strokeStyle = "#000000";
+
+            ctx.fillStyle = "#ffffff";
+
+
+            ctx.strokeText(
+
+                SPARKD_CONTRACT,
+
+                finalCanvas.width - 10,
+
+                finalCanvas.height - 10
+
+            );
+
+
+            ctx.fillText(
+
+                SPARKD_CONTRACT,
+
+                finalCanvas.width - 10,
+
+                finalCanvas.height - 10
+
+            );
+
+
+
+            const link = document.createElement("a");
+
+            link.href = finalCanvas.toDataURL("image/png");
+
+            link.download = "SPARKD-meme.png";
+
+            link.click();
+
+
+        };
+
+
+        img.src = dataURL;
 
 
     };
