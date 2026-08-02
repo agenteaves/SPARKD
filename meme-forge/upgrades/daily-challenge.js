@@ -10,9 +10,29 @@ window.addEventListener("load", function(){
     const challenges = window.sparkdChallenges;
 
 
-    if(!challengeText){
+    const challengeText =
+    document.getElementById("challengeText");
+
+
+    const challengeCategory =
+    document.getElementById("challengeCategory");
+
+
+    const challengeDifficulty =
+    document.getElementById("challengeDifficulty");
+
+
+    const challengeReward =
+    document.getElementById("challengeReward");
+
+
+
+    if(!challenges || !challengeText){
+
         return;
+
     }
+
 
 
     // Create a daily number based on date
@@ -32,7 +52,37 @@ window.addEventListener("load", function(){
 
 
 
-    challengeText.innerHTML = challenge;
+    // Display challenge information
+
+    challengeText.innerHTML =
+        challenge.text;
+
+
+
+    if(challengeCategory){
+
+        challengeCategory.innerHTML =
+        "Category: " + challenge.category;
+
+    }
+
+
+
+    if(challengeDifficulty){
+
+        challengeDifficulty.innerHTML =
+        "Difficulty: " + challenge.difficulty;
+
+    }
+
+
+
+    if(challengeReward){
+
+        challengeReward.innerHTML =
+        "Reward: +" + challenge.reward + " SPARK Points";
+
+    }
 
 
 
