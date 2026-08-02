@@ -50,7 +50,7 @@ window.addEventListener("load", function(){
 
 
             button.innerHTML =
-            "✅ Complete Mission";
+            "🔥 Complete Mission";
 
 
             button.disabled = false;
@@ -87,7 +87,6 @@ window.addEventListener("load", function(){
 
             return;
 
-
         }
 
 
@@ -108,15 +107,52 @@ window.addEventListener("load", function(){
 
             return;
 
-
         }
 
 
 
 
-        window.addSparkPoints(100);
+        // ================================
+        // GET TODAY'S CHALLENGE REWARD
+        // ================================
 
 
+        const challenges =
+        window.sparkdChallenges;
+
+
+
+        const today =
+        new Date();
+
+
+
+        const dayNumber =
+            today.getFullYear() +
+            today.getMonth() +
+            today.getDate();
+
+
+
+        const currentChallenge =
+        challenges[dayNumber % challenges.length];
+
+
+
+        const reward =
+        currentChallenge?.reward || 100;
+
+
+
+
+        // Award SPARK Points
+
+        window.addSparkPoints(reward);
+
+
+
+
+        // Save today's completion
 
         localStorage.setItem(
             "missionCompleteDate",
@@ -125,16 +161,14 @@ window.addEventListener("load", function(){
 
 
 
+
         button.innerHTML =
         "✅ Mission Completed Today";
 
 
-        button.disabled = true;
-
-
 
         alert(
-            "🔥 Mission Complete! +100 SPARK Points"
+            "🔥 Mission Complete! +" + reward + " SPARK Points"
         );
 
 
