@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD MEME FORGE
-// MISSION COMPLETION SYSTEM
+// DAILY MISSION COMPLETION SYSTEM
 ////////////////////////////////////////////////////
 
 
@@ -17,7 +17,59 @@ window.addEventListener("load", function(){
 
 
 
+    function getToday(){
+
+        const today = new Date();
+
+        return today.toISOString().split("T")[0];
+
+    }
+
+
+
+    function checkMissionStatus(){
+
+
+        const completedDate =
+        localStorage.getItem("missionCompleteDate");
+
+
+
+        if(completedDate === getToday()){
+
+
+            button.innerHTML =
+            "✅ Mission Completed Today";
+
+
+            button.disabled = true;
+
+
+        }
+        else{
+
+
+            button.innerHTML =
+            "✅ Complete Mission";
+
+
+            button.disabled = false;
+
+
+        }
+
+
+    }
+
+
+
+    checkMissionStatus();
+
+
+
+
     button.onclick = function(){
+
 
 
         const objects =
@@ -35,26 +87,30 @@ window.addEventListener("load", function(){
 
             return;
 
+
         }
 
 
 
-        const completed =
-        localStorage.getItem("missionComplete");
+
+        const completedDate =
+        localStorage.getItem("missionCompleteDate");
 
 
 
-        if(completed){
+        if(completedDate === getToday()){
 
 
             alert(
-                "✅ Today's mission is already complete!"
+                "✅ You already completed today's mission!"
             );
 
 
             return;
 
+
         }
+
 
 
 
@@ -63,15 +119,14 @@ window.addEventListener("load", function(){
 
 
         localStorage.setItem(
-            "missionComplete",
-            "true"
+            "missionCompleteDate",
+            getToday()
         );
 
 
 
         button.innerHTML =
-        "✅ Mission Completed";
-
+        "✅ Mission Completed Today";
 
 
         button.disabled = true;
