@@ -323,7 +323,7 @@ if(addTextBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - SHARP IMAGE + TEXT + WATERMARK
+// EXPORT PNG - IMAGE + TEXT + SPARKD WATERMARK
 ////////////////////////////////////////////////////
 
 const downloadBtn = document.getElementById("downloadBtn");
@@ -345,161 +345,94 @@ if(downloadBtn){
         if(!image){
 
             alert("Please upload an image first.");
+
             return;
 
         }
 
 
-
+        // Get image area
         const bounds = image.getBoundingRect(true, true);
 
 
-        const exportWidth = Math.round(bounds.width);
-        const exportHeight = Math.round(bounds.height);
+        // Temporary watermark
+        const watermark = new fabric.Text(
+
+            SPARKD_CONTRACT,
+
+            {
+
+                left: bounds.left + bounds.width - 5,
+
+                top: bounds.top + bounds.height - 5,
+
+                originX:"right",
+
+                originY:"bottom",
+
+                fontFamily:"Arial",
+
+                fontSize:14,
+
+                fill:"#ffffff",
+
+                stroke:"#000000",
+
+                strokeWidth:1,
+
+                selectable:false,
+
+                evented:false
+
+            }
+
+        );
+
+
+        canvas.add(watermark);
+
+        canvas.bringToFront(watermark);
+
+        canvas.renderAll();
 
 
 
-        const exportCanvas = new fabric.StaticCanvas(null, {
+        // Export the visible edited area
+        const data = canvas.toDataURL({
 
-            width: exportWidth,
-            height: exportHeight,
-            backgroundColor: null
+            format:"png",
+
+            left:bounds.left,
+
+            top:bounds.top,
+
+            width:bounds.width,
+
+            height:bounds.height,
+
+            multiplier:2,
+
+            enableRetinaScaling:false
 
         });
 
 
 
-                        // Collect all meme objects
-                const objects = canvas.getObjects();
-                
-                
-                // Temporarily group everything
-                const group = new fabric.Group(objects, {
-                
-                    left:0,
-                    top:0
-                
-                });
-                
-                
-                const exportData = group.toDataURL({
-                
-                    format:"png",
-                
-                    multiplier:2
-                
-                });
-                
-                
-                // Remove temporary group
-                group.destroy();
-                
-                
-                // Download
-                const link = document.createElement("a");
-                
-                link.href = exportData;
-                
-                link.download = "SPARKD-meme.png";
-                
-                link.click();
+        // Remove watermark after export
+        canvas.remove(watermark);
 
-
-                // Convert canvas position into export position
-                clone.set({
-
-                    left: obj.left - bounds.left,
-                    top: obj.top - bounds.top
-
-                });
-
-
-                clone.setCoords();
-
-
-                exportCanvas.add(clone);
+        canvas.renderAll();
 
 
 
-                loaded++;
+        // Download
+        const link = document.createElement("a");
 
+        link.href=data;
 
+        link.download="SPARKD-meme.png";
 
-                if(loaded === objects.length){
-
-
-                    const watermark = new fabric.Text(
-
-                        SPARKD_CONTRACT,
-
-                        {
-
-                            left: exportWidth - 5,
-
-                            top: exportHeight - 5,
-
-                            originX:"right",
-
-                            originY:"bottom",
-
-                            fontFamily:"Arial",
-
-                            fontSize:14,
-
-                            fill:"#ffffff",
-
-                            stroke:"#000000",
-
-                            strokeWidth:1,
-
-                            selectable:false,
-
-                            evented:false
-
-                        }
-
-                    );
-
-
-
-                    exportCanvas.add(watermark);
-
-
-
-                    exportCanvas.renderAll();
-
-
-
-                    const data = exportCanvas.toDataURL({
-
-                        format:"png",
-
-                        multiplier:2
-
-                    });
-
-
-
-                    const link = document.createElement("a");
-
-                    link.href = data;
-
-                    link.download="SPARKD-meme.png";
-
-                    link.click();
-
-
-
-                    exportCanvas.dispose();
-
-
-                }
-
-
-            });
-
-
-        });
+        link.click();
 
 
     };
