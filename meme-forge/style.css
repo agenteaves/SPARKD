@@ -327,11 +327,10 @@ footer {
 ================================ */
 
 #sideToolbar{
-    background:red;
 
     position:absolute;
 
-    left:20px;
+    left:10px;
 
     top:50%;
 
@@ -359,11 +358,10 @@ footer {
 }
 
 
-
-/* Keep editor away from toolbar */
+/* Bring editor closer */
 
 #editor{
 
-    margin-left:120px;
+    margin-left:150px;
 
 }
