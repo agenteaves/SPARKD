@@ -109,9 +109,9 @@ LEFT TOOLBAR
 
 #sideToolbar {
 
-    position:absolute;
+    position:fixed;
 
-    left:calc(50% - 520px);
+    left:20px;
 
     top:50%;
 
@@ -123,10 +123,9 @@ LEFT TOOLBAR
 
     gap:12px;
 
-    z-index:1000;
+    z-index:5000;
 
 }
-
 
 
 #sideToolbar button {
