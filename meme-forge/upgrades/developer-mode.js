@@ -41,6 +41,19 @@ window.addEventListener("load", function () {
 
 function openDeveloperPanel() {
 
-    alert("🛠 SPARKD Developer Mode Activated!");
+    if(typeof window.showSparkdDeveloperPanel === "function"){
+
+        window.showSparkdDeveloperPanel();
+
+    }
+    else{
+
+        console.log(
+            "SPARKD Developer Panel not loaded"
+        );
+
+    }
+
+}
 
 }
