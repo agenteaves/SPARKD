@@ -257,6 +257,38 @@ EDITOR
 
 }
 
+/* ================================
+   MISSION CONTROL
+================================ */
+
+#dailyChallenge{
+
+    flex:0 0 280px;
+
+    width:280px;
+
+    background:#111;
+
+    border:2px solid #ff6a00;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    box-shadow:0 0 20px rgba(255,106,0,.35);
+
+}
+
+#dailyChallenge h2{
+
+    margin-top:0;
+
+    color:#ff6a00;
+
+    text-align:center;
+
+}
+
 /* =========================
 CONTROLS
 ========================= */
@@ -525,39 +557,6 @@ MOBILE
 #challengeReward{
 
     color:#00ff99;
-
-}
-
-    
-/* ================================
-   MISSION CONTROL
-================================ */
-
-#dailyChallenge{
-
-    flex:0 0 280px;
-
-    width:280px;
-
-    background:#111;
-
-    border:2px solid #ff6a00;
-
-    border-radius:15px;
-
-    padding:20px;
-
-    box-shadow:0 0 20px rgba(255,106,0,.35);
-
-}
-
-#dailyChallenge h2{
-
-    margin-top:0;
-
-    color:#ff6a00;
-
-    text-align:center;
 
 }
 
