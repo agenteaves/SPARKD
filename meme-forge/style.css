@@ -356,38 +356,42 @@ MOBILE
 
     position:absolute;
 
-    left:160px;
+    left:150px;
+
+    top:95px;
+
+    width:190px;
 
     background:#111;
 
-    padding:10px;
+    border:2px solid #ff6a00;
 
     border-radius:10px;
 
-    display:flex;
+    padding:10px;
 
-    flex-wrap:wrap;
-
-    width:180px;
-
-    gap:5px;
-
-    z-index:2000;
+    z-index:5000;
 
 }
 
 
 #emojiPicker button{
 
-    width:35px;
+    width:40px;
 
-    height:35px;
+    height:40px;
 
-    padding:0;
+    margin:4px;
 
     font-size:22px;
 
     background:#222;
+
+    border:none;
+
+    border-radius:6px;
+
+    cursor:pointer;
 
 }
 
