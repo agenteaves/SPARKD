@@ -488,4 +488,24 @@ MOBILE
 
 } 
 
+#challengeCategory,
+#challengeDifficulty,
+#challengeReward{
+
+    margin-top:10px;
+
+    color:#ffb347;
+
+    font-size:14px;
+
+    font-weight:bold;
+
+}
+
+#challengeReward{
+
+    color:#00ff99;
+
+}    
+
 }
