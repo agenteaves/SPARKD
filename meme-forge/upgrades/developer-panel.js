@@ -4,10 +4,8 @@
 ////////////////////////////////////////////////////
 
 
-    function openDeveloperPanel(){
+function openDeveloperPanel(){
 
-
-    // Prevent duplicates
 
     if(document.getElementById("sparkdDevPanel")){
 
@@ -25,6 +23,7 @@
     panel.innerHTML = `
 
     <div class="devHeader">
+
         🛠 SPARKD Developer Console
 
         <button id="closeDevPanel">
@@ -34,24 +33,27 @@
     </div>
 
 
+
     <div class="devSection">
 
         <h3>Player Data</h3>
 
+
         <p>
         🪙 Points:
-        <strong id="devPoints">
-        </strong>
+        <strong id="devPoints"></strong>
         </p>
 
 
         <p>
         ⭐ Level:
-        <strong id="devLevel">
-        </strong>
+        <strong id="devLevel"></strong>
         </p>
 
+
     </div>
+
+
 
 
 
@@ -59,19 +61,25 @@
 
         <h3>Points</h3>
 
+
         <button id="add100">
         +100 SPARK
         </button>
+
 
         <button id="add1000">
         +1000 SPARK
         </button>
 
+
         <button id="resetPoints">
         Reset Points
         </button>
 
+
     </div>
+
+
 
 
 
@@ -79,27 +87,35 @@
 
         <h3>Levels</h3>
 
+
         <button class="levelBtn" data-level="1">
         Level 1
         </button>
+
 
         <button class="levelBtn" data-level="2">
         Level 2
         </button>
 
+
         <button class="levelBtn" data-level="3">
         Level 3
         </button>
+
 
         <button class="levelBtn" data-level="4">
         Level 4
         </button>
 
+
         <button class="levelBtn" data-level="5">
         Level 5
         </button>
 
+
     </div>
+
+
 
 
 
@@ -138,12 +154,16 @@
 
 
 
+
+
     document.getElementById("closeDevPanel").onclick =
     function(){
 
         panel.remove();
 
     };
+
+
 
 
 
@@ -158,6 +178,8 @@
 
 
 
+
+
     document.getElementById("add1000").onclick =
     function(){
 
@@ -169,17 +191,35 @@
 
 
 
+
+
     document.getElementById("resetPoints").onclick =
     function(){
 
+
         localStorage.setItem(
             "sparkPoints",
-            0
+            "0"
         );
+
 
         updateDevPanel();
 
+
+        const display =
+        document.getElementById("sparkPointAmount");
+
+
+        if(display){
+
+            display.innerHTML = "0";
+
+        }
+
+
     };
+
+
 
 
 
@@ -191,19 +231,45 @@
         button.onclick=function(){
 
 
+            const level =
+            button.getAttribute("data-level");
+
+
+
             localStorage.setItem(
                 "creatorLevel",
-                button.dataset.level
+                level
             );
 
 
+
             updateDevPanel();
+
+
+
+            const levelDisplay =
+            document.getElementById(
+                "creatorLevelName"
+            );
+
+
+
+            if(levelDisplay){
+
+
+                levelDisplay.innerHTML =
+                "Level " + level;
+
+
+            }
+
 
 
         };
 
 
     });
+
 
 
 
@@ -216,11 +282,14 @@
             "missionCompleteDate"
         );
 
+
         alert(
             "Mission reset"
         );
 
+
     };
+
 
 
 
@@ -233,11 +302,14 @@
             "starterPackClaimed"
         );
 
+
         alert(
             "Starter Pack reset"
         );
 
+
     };
+
 
 
 
@@ -267,6 +339,8 @@
 
 
 
+
+
 function updateDevPanel(){
 
 
@@ -282,16 +356,17 @@ function updateDevPanel(){
     if(points){
 
         points.innerHTML =
-        localStorage.getItem("sparkPoints") || 0;
+        localStorage.getItem("sparkPoints") || "0";
 
     }
+
 
 
 
     if(level){
 
         level.innerHTML =
-        localStorage.getItem("creatorLevel") || 1;
+        localStorage.getItem("creatorLevel") || "1";
 
     }
 
