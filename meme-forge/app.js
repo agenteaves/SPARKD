@@ -374,7 +374,7 @@ if(downloadBtn){
 
                 fontFamily:"Arial",
 
-                fontSize:14,
+                fontSize:16,
 
                 fill:"#ffffff",
 
