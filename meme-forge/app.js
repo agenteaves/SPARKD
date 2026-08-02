@@ -320,7 +320,33 @@ if(addTextBtn){
 // SPARKD OFFICIAL SOLANA CONTRACT
 // ================================
 
+// ================================
+// DELETE SELECTED OBJECT
+// ================================
 
+const deleteBtn = document.getElementById("deleteBtn");
+
+
+if(deleteBtn){
+
+    deleteBtn.onclick = function(){
+
+        const activeObject = canvas.getActiveObject();
+
+
+        if(activeObject){
+
+            canvas.remove(activeObject);
+
+            canvas.discardActiveObject();
+
+            canvas.renderAll();
+
+        }
+
+    };
+
+}
 
 ////////////////////////////////////////////////////
 // EXPORT PNG - IMAGE + TEXT + SHARP CONTRACT
