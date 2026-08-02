@@ -428,9 +428,9 @@ if(downloadBtn){
 
                 SPARKD_CONTRACT,
 
-                finalCanvas.width - 5,
+                finalCanvas.width - 10,
 
-                finalCanvas.height - 5
+                finalCanvas.height - 10
 
             );
 
