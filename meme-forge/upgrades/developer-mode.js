@@ -24,7 +24,7 @@ window.addEventListener("load", function () {
 
             clicks = 0;
 
-        }, 2000);
+        }, 4000);
 
         if (clicks >= 5) {
 
