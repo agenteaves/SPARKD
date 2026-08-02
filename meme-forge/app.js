@@ -66,6 +66,70 @@ function containsUnsafeContent(text){
 const SPARKD_CONTRACT =
 "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
 
+    
+////////////////////////////////////////////////////
+// EMOJI PICKER
+////////////////////////////////////////////////////
+
+const emojiBtn = document.getElementById("emojiBtn");
+const emojiPicker = document.getElementById("emojiPicker");
+
+if(emojiBtn){
+
+    emojiBtn.onclick = function(){
+
+        if(emojiPicker.style.display === "block"){
+
+            emojiPicker.style.display = "none";
+
+        }else{
+
+            emojiPicker.style.display = "block";
+
+        }
+
+    };
+
+}
+
+
+
+document.querySelectorAll(".emojiOption").forEach(function(item){
+
+    item.onclick = function(){
+
+        const emoji = new fabric.Text(
+
+            item.textContent,
+
+            {
+
+                left:220,
+
+                top:220,
+
+                fontSize:100,
+
+                selectable:true,
+
+                evented:true
+
+            }
+
+        );
+
+        canvas.add(emoji);
+
+        canvas.setActiveObject(emoji);
+
+        canvas.renderAll();
+
+        emojiPicker.style.display = "none";
+
+    };
+
+});
+
 // ================================
 // CREATE CANVAS
 // ================================
