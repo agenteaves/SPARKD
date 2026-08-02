@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////
 
 
-window.addEventListener("load", function(){
+function updateCreatorLevel(){
 
 
     const levelDisplay =
@@ -12,82 +12,68 @@ window.addEventListener("load", function(){
 
 
 
-    function updateCreatorLevel(){
-
-
-        const points =
-        Number(localStorage.getItem("sparkPoints")) || 0;
+    const points =
+    Number(localStorage.getItem("sparkPoints")) || 0;
 
 
 
-        let level = 1;
-        let title = "Meme Rookie";
+    let level = 1;
+    let title = "Meme Rookie";
 
 
 
-        if(points >= 500){
+    if(points >= 500){
 
-            level = 2;
-            title = "Rising Creator";
+        level = 2;
+        title = "Rising Creator";
 
-        }
-
-
-        if(points >= 1500){
-
-            level = 3;
-            title = "Meme Master";
-
-        }
+    }
 
 
-        if(points >= 5000){
+    if(points >= 1500){
 
-            level = 4;
-            title = "Viral Architect";
+        level = 3;
+        title = "Meme Master";
 
-        }
-
-
-        if(points >= 10000){
-
-            level = 5;
-            title = "SPARKD Legend";
-
-        }
+    }
 
 
+    if(points >= 5000){
 
-        localStorage.setItem(
-            "creatorLevel",
-            level
-        );
+        level = 4;
+        title = "Viral Architect";
+
+    }
 
 
+    if(points >= 10000){
 
-        if(levelDisplay){
-
-            levelDisplay.innerHTML =
-            "Level " + level + " - " + title;
-
-        }
-
+        level = 5;
+        title = "SPARKD Legend";
 
     }
 
 
 
-    // Run when page loads
-
-    updateCreatorLevel();
-
-
-
-    // Make available globally
-
-    window.updateCreatorLevel =
-    updateCreatorLevel;
+    localStorage.setItem(
+        "creatorLevel",
+        level
+    );
 
 
 
-});
+    if(levelDisplay){
+
+        levelDisplay.innerHTML =
+        "Level " + level + " - " + title;
+
+    }
+
+
+}
+
+
+
+// Run immediately
+
+updateCreatorLevel();
