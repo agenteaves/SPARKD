@@ -42,7 +42,7 @@ window.addEventListener("load", function(){
             "✅ Mission Completed Today";
 
 
-            button.disabled = true;
+            button.disabled = false;
 
 
         }
