@@ -534,6 +534,8 @@ MOBILE
 
 #dailyChallenge{
 
+    flex:0 0 280px;
+
     width:280px;
 
     background:#111;
