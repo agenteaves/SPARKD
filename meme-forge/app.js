@@ -394,32 +394,50 @@ if(emojiBtn){
 
 }
 
-// ================================
-// EMOJI PICKER
-// ================================
+/* ================================
+   EMOJI DROPDOWN
+================================ */
 
-const emojiBtn = document.getElementById("emojiBtn");
-const emojiPicker = document.getElementById("emojiPicker");
-const emojiOptions = document.querySelectorAll(".emojiOption");
+#emojiPicker{
+
+    display:none;
+
+    position:absolute;
+
+    left:150px;
+
+    top:0;
+
+    width:180px;
+
+    padding:10px;
+
+    background:#111;
+
+    border-radius:10px;
+
+    box-shadow:0 0 15px #ff6a00;
+
+    z-index:2000;
+
+    flex-wrap:wrap;
+
+    gap:5px;
+
+}
 
 
-if(emojiBtn && emojiPicker){
+#emojiPicker button{
 
+    width:40px;
 
-    emojiBtn.onclick = function(){
+    height:40px;
 
-        if(emojiPicker.style.display === "flex"){
+    padding:0;
 
-            emojiPicker.style.display="none";
+    font-size:24px;
 
-        } else {
-
-            emojiPicker.style.display="flex";
-
-        }
-
-    };
-
+    background:#222;
 
 }
 
