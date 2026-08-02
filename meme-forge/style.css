@@ -177,15 +177,15 @@ button:hover {
 EDITOR
 ========================= */
 
-#editor {
-
-    width:100%;
+#editor{
 
     display:flex;
 
     justify-content:center;
 
     align-items:center;
+
+    flex:0 0 auto;
 
 }
 
