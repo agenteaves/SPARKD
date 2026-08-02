@@ -351,22 +351,20 @@ if(downloadBtn){
         }
 
 
-
-        // Get actual image bounds
         const bounds = image.getBoundingRect(false, true);
 
 
 
-        // Temporary SPARKD watermark
+        // Create watermark INSIDE image area
         const watermark = new fabric.Text(
 
             SPARKD_CONTRACT,
 
             {
 
-                left: bounds.left + bounds.width - 12,
+                left: bounds.left + bounds.width - 10,
 
-                top: bounds.top + bounds.height - 18,
+                top: bounds.top + bounds.height - 10,
 
                 originX:"right",
 
@@ -399,18 +397,18 @@ if(downloadBtn){
 
 
 
-        // Export cropped image area
+        // Export image area only
         const data = canvas.toDataURL({
 
             format:"png",
 
-            left: bounds.left,
+            left:bounds.left,
 
-            top: bounds.top,
+            top:bounds.top,
 
-            width: bounds.width,
+            width:bounds.width,
 
-            height: bounds.height,
+            height:bounds.height,
 
             multiplier:2,
 
@@ -420,19 +418,18 @@ if(downloadBtn){
 
 
 
-        // Remove temporary watermark
+        // Remove watermark
         canvas.remove(watermark);
 
         canvas.renderAll();
 
 
 
-        // Download
         const link = document.createElement("a");
 
-        link.href = data;
+        link.href=data;
 
-        link.download = "SPARKD-meme.png";
+        link.download="SPARKD-meme.png";
 
         link.click();
 
@@ -440,5 +437,5 @@ if(downloadBtn){
     };
 
 }
-
+    
 });
