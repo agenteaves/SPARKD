@@ -74,61 +74,70 @@ const SPARKD_CONTRACT =
 const emojiBtn = document.getElementById("emojiBtn");
 const emojiPicker = document.getElementById("emojiPicker");
 
-if(emojiBtn){
+if (emojiBtn && emojiPicker) {
 
-    emojiBtn.onclick = function(){
+    emojiBtn.onclick = function () {
 
-        if(emojiPicker.style.display === "block"){
+        if (emojiPicker.style.display === "grid") {
 
             emojiPicker.style.display = "none";
 
-        }else{
+        } else {
 
-            emojiPicker.style.display = "block";
+            emojiPicker.style.display = "grid";
 
         }
 
     };
 
+    document.querySelectorAll(".emojiOption").forEach(function(item){
+
+        item.onclick = function(){
+
+            const emoji = new fabric.Text(
+
+                item.textContent,
+
+                {
+
+                    left:220,
+
+                    top:220,
+
+                    fontSize:100,
+
+                    selectable:true,
+
+                    evented:true
+
+                }
+
+            );
+
+            canvas.add(emoji);
+
+            canvas.setActiveObject(emoji);
+
+            canvas.renderAll();
+
+            emojiPicker.style.display = "none";
+
+        };
+
+    });
+
+    // Close picker if user clicks elsewhere
+    document.addEventListener("click", function(e){
+
+        if(!e.target.closest(".emojiContainer")){
+
+            emojiPicker.style.display = "none";
+
+        }
+
+    });
+
 }
-
-
-
-document.querySelectorAll(".emojiOption").forEach(function(item){
-
-    item.onclick = function(){
-
-        const emoji = new fabric.Text(
-
-            item.textContent,
-
-            {
-
-                left:220,
-
-                top:220,
-
-                fontSize:100,
-
-                selectable:true,
-
-                evented:true
-
-            }
-
-        );
-
-        canvas.add(emoji);
-
-        canvas.setActiveObject(emoji);
-
-        canvas.renderAll();
-
-        emojiPicker.style.display = "none";
-
-    };
-
-});
 
 // ================================
 // CREATE CANVAS
