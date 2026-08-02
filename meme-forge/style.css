@@ -414,4 +414,39 @@ MOBILE
 
     }
 
+    /* ================================
+   FABRIC CANVAS LAYER FIX
+================================ */
+
+.canvas-container {
+
+    position:relative !important;
+
+    z-index:10;
+
+}
+
+
+.canvas-container canvas {
+
+    z-index:10 !important;
+
+}
+
+
+#sideToolbar {
+
+    z-index:9999 !important;
+
+}
+
+
+#textToolbar {
+
+    position:relative;
+
+    z-index:9999;
+
+}
+
 }
