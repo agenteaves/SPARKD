@@ -7,7 +7,7 @@
 window.addEventListener("load", function(){
 
 
-    const challengeText = document.getElementById("challengeText");
+    const challenges = window.sparkdChallenges;
 
 
     if(!challengeText){
