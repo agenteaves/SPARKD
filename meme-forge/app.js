@@ -369,17 +369,40 @@ if(downloadBtn){
 
 
 
-        const objects = canvas.getObjects();
-
-
-        let loaded = 0;
-
-
-
-        objects.forEach(function(obj){
-
-
-            obj.clone(function(clone){
+                        // Collect all meme objects
+                const objects = canvas.getObjects();
+                
+                
+                // Temporarily group everything
+                const group = new fabric.Group(objects, {
+                
+                    left:0,
+                    top:0
+                
+                });
+                
+                
+                const exportData = group.toDataURL({
+                
+                    format:"png",
+                
+                    multiplier:2
+                
+                });
+                
+                
+                // Remove temporary group
+                group.destroy();
+                
+                
+                // Download
+                const link = document.createElement("a");
+                
+                link.href = exportData;
+                
+                link.download = "SPARKD-meme.png";
+                
+                link.click();
 
 
                 // Convert canvas position into export position
