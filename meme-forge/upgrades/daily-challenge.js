@@ -9,22 +9,17 @@ window.addEventListener("load", function(){
 
     const challenges = window.sparkdChallenges;
 
-
     const challengeText =
     document.getElementById("challengeText");
-
 
     const challengeCategory =
     document.getElementById("challengeCategory");
 
-
     const challengeDifficulty =
     document.getElementById("challengeDifficulty");
 
-
     const challengeReward =
     document.getElementById("challengeReward");
-
 
 
     if(!challenges || !challengeText){
@@ -35,10 +30,9 @@ window.addEventListener("load", function(){
 
 
 
-    // =================================
-    // GET CREATOR LEVEL
-    // =================================
-
+    ////////////////////////////////////////
+    // CREATOR LEVEL
+    ////////////////////////////////////////
 
     const creatorLevel =
     Number(localStorage.getItem("creatorLevel")) || 1;
@@ -55,13 +49,11 @@ window.addEventListener("load", function(){
 
     }
 
-
     if(creatorLevel >= 3){
 
         maxDifficulty = 3;
 
     }
-
 
     if(creatorLevel >= 5){
 
@@ -71,58 +63,45 @@ window.addEventListener("load", function(){
 
 
 
-    // =================================
-    // FILTER CHALLENGES
-    // =================================
-
+    ////////////////////////////////////////
+    // AVAILABLE CHALLENGES
+    ////////////////////////////////////////
 
     const availableChallenges =
     challenges.filter(function(challenge){
 
-
-        return challenge.difficulty.length <= maxDifficulty;
-
+        return challenge.difficultyLevel <= maxDifficulty;
 
     });
 
 
 
-    if(availableChallenges.length === 0){
-
-        return;
-
-    }
-
-
-
-    // =================================
-    // DAILY CHALLENGE SELECTION
-    // =================================
-
+    ////////////////////////////////////////
+    // DAILY CHALLENGE
+    ////////////////////////////////////////
 
     const today = new Date();
 
-
     const dayNumber =
-        today.getFullYear() +
-        today.getMonth() +
+        today.getFullYear() * 10000 +
+        (today.getMonth() + 1) * 100 +
         today.getDate();
 
 
 
     const challenge =
-    availableChallenges[dayNumber % availableChallenges.length];
+    availableChallenges[
+        dayNumber % availableChallenges.length
+    ];
 
 
 
-
-    // =================================
-    // DISPLAY CHALLENGE
-    // =================================
-
+    ////////////////////////////////////////
+    // DISPLAY
+    ////////////////////////////////////////
 
     challengeText.innerHTML =
-        challenge.text;
+    challenge.text;
 
 
 
@@ -150,7 +129,5 @@ window.addEventListener("load", function(){
         "Reward: +" + challenge.reward + " SPARK Points";
 
     }
-
-
 
 });
