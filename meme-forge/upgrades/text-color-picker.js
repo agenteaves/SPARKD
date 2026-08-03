@@ -7,12 +7,15 @@
 window.addEventListener("load", function(){
 
 
+
     const colorMenu =
     document.createElement("div");
 
 
+
     colorMenu.id =
     "textColorMenu";
+
 
 
     colorMenu.innerHTML = `
@@ -21,25 +24,31 @@ window.addEventListener("load", function(){
             Text Color
         </div>
 
+
         <button data-color="#ffffff">
             White
         </button>
+
 
         <button data-color="#000000">
             Black
         </button>
 
+
         <button data-color="#ff0000">
             Red
         </button>
+
 
         <button data-color="#00ff00">
             Green
         </button>
 
+
         <button data-color="#008cff">
             Blue
         </button>
+
 
         <button data-color="#ffff00">
             Yellow
@@ -62,14 +71,20 @@ window.addEventListener("load", function(){
 
     canvas.on("selection:created", showColorMenu);
 
+
     canvas.on("selection:updated", showColorMenu);
 
+
+
     canvas.on("selection:cleared", function(){
+
 
         colorMenu.style.display =
         "none";
 
+
     });
+
 
 
 
@@ -79,28 +94,32 @@ window.addEventListener("load", function(){
     function showColorMenu(e){
 
 
+
         const obj =
         e.selected[0];
 
 
 
         if(
-            obj.type === "text" ||
-            obj.type === "textbox" ||
-            obj.type === "i-text"
+            obj &&
+            obj.isMemeText === true
         ){
+
 
 
             colorMenu.style.display =
             "block";
 
 
+
             colorMenu.style.left =
             "20px";
 
 
+
             colorMenu.style.top =
             "120px";
+
 
 
         }
@@ -122,6 +141,8 @@ window.addEventListener("load", function(){
 
 
 
+
+
     colorMenu.querySelectorAll("button")
     .forEach(function(button){
 
@@ -136,11 +157,15 @@ window.addEventListener("load", function(){
 
 
 
-            if(!obj){
+            if(
+                !obj ||
+                obj.isMemeText !== true
+            ){
 
                 return;
 
             }
+
 
 
 
