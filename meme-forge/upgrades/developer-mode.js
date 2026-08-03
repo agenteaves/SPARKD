@@ -48,12 +48,12 @@ window.addEventListener("load", function () {
             clicks = 0;
 
 
-        },4000);
+        },2000);
 
 
 
 
-        if(clicks >= 3){
+        if(clicks >= 8){
 
 
 
