@@ -351,27 +351,31 @@ if(addTextBtn){
 
         const memeText = new fabric.IText(
 
-            textInput.value || "SPARKD",
+    textInput.value || "SPARKD",
 
-            {
+    {
 
-                left:150,
+        left:150,
 
-                top:50,
+        top:50,
 
-                fill:"#ffffff",
+        fill:"#ffffff",
 
-                stroke:"#000000",
+        stroke:"#000000",
 
-                strokeWidth:4,
+        strokeWidth:4,
 
-                fontFamily:"Bangers",
+        fontFamily:"Bangers",
 
-                fontSize:80
+        fontSize:80
 
-            }
+    }
 
-        );
+);
+
+
+// Mark as SPARKD meme text
+memeText.isMemeText = true;
 
 
 
