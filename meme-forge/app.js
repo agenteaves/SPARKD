@@ -591,6 +591,89 @@ logoImage.onload = function(){
 
 
 
+   ////////////////////////////////////////////////////
+// SPARKD LOGO SIGNATURE + ORIGINAL CONTRACT EXPORT
+////////////////////////////////////////////////////
+
+const logoImage = new Image();
+
+
+logoImage.onload = function(){
+
+
+    ////////////////////////////////////////////////////
+    // ADD SPARKD LOGO
+    ////////////////////////////////////////////////////
+
+    ctx.save();
+
+
+    ctx.globalAlpha = 0.12;
+
+
+    const logoSize = 80;
+
+
+    ctx.drawImage(
+
+        logoImage,
+
+        finalCanvas.width - logoSize - 40,
+
+        finalCanvas.height - logoSize - 50,
+
+        logoSize,
+
+        logoSize
+
+    );
+
+
+    ctx.restore();
+
+
+
+    ////////////////////////////////////////////////////
+    // ORIGINAL BOTTOM CONTRACT
+    ////////////////////////////////////////////////////
+
+    ctx.font = "8px Arial";
+
+    ctx.textAlign = "right";
+
+    ctx.textBaseline = "bottom";
+
+
+    ctx.lineWidth = 2;
+
+    ctx.strokeStyle = "#000000";
+
+    ctx.fillStyle = "#ffffff";
+
+
+    ctx.strokeText(
+
+        SPARKD_CONTRACT,
+
+        finalCanvas.width - 10,
+
+        finalCanvas.height - 10
+
+    );
+
+
+    ctx.fillText(
+
+        SPARKD_CONTRACT,
+
+        finalCanvas.width - 10,
+
+        finalCanvas.height - 10
+
+    );
+
+
+
     ////////////////////////////////////////////////////
     // DOWNLOAD
     ////////////////////////////////////////////////////
@@ -612,15 +695,3 @@ logoImage.onload = function(){
 
 
 logoImage.src = "images/logo.png";
-
-
-
-        img.src = dataURL;
-
-
-    };
-
-
-}
-    
-});
