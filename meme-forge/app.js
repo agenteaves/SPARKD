@@ -512,49 +512,6 @@ if(downloadBtn){
     );
 
 
-
-    ////////////////////////////////////////////////////
-    // DIAGONAL SPARKD WATERMARK
-    ////////////////////////////////////////////////////
-
-    ctx.save();
-
-    ctx.translate(
-        finalCanvas.width / 2,
-        finalCanvas.height / 2
-    );
-
-    ctx.rotate(-35 * Math.PI / 180);
-
-    ctx.globalAlpha = 0.12;
-
-    ctx.fillStyle = "#ffffff";
-
-    ctx.font = "32px Arial";
-
-    ctx.textAlign = "center";
-
-    const watermark =
-    "⚡ SPARKD MEME FORGE • " + SPARKD_CONTRACT;
-
-    for(let y = -finalCanvas.height;
-        y <= finalCanvas.height;
-        y += 180){
-
-        ctx.fillText(
-
-            watermark,
-
-            0,
-
-            y
-
-        );
-
-    }
-
-    ctx.restore();
-
 ////////////////////////////////////////////////////
 // SPARKD LOGO SIGNATURE
 ////////////////////////////////////////////////////
