@@ -578,21 +578,39 @@ img.onload = function(){
 
 
 
-    const link = document.createElement("a");
+   const link = document.createElement("a");
 
-    link.href = finalCanvas.toDataURL("image/png");
 
-    link.download = "SPARKD-meme.png";
+if(window.SPARKD_PNG && forgeRecord){
 
-    link.click();
+    link.href =
+    SPARKD_PNG.attach(
+        finalCanvas,
+        forgeRecord
+    );
+
+}
+else{
+
+    link.href =
+    finalCanvas.toDataURL("image/png");
+
+}
+
+
+link.download = "SPARKD-meme.png";
+
+link.click();
 
 
 };
 
 
-img.src = dataURL;   
+img.src = dataURL;
+
 
 };
+
 
 }
 
