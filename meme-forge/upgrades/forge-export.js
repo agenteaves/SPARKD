@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE EXPORT v0.1
-// Hidden PNG Origin Data
+// SPARKD FORGE EXPORT v0.2
+// Hidden Origin Payload Generator
 ////////////////////////////////////////////////////
 
 
@@ -10,24 +10,53 @@ window.SPARKD_EXPORT = {
     attachForgeData:function(canvas, forgeRecord){
 
 
-        const data = {
+        const payload = {
+
 
             SPARKD:
             "Meme Forge",
 
-            Forge:
-            forgeRecord
+
+            VERSION:
+            forgeRecord.version,
+
+
+            ID:
+            forgeRecord.memeID,
+
+
+            DNA:
+            forgeRecord.DNA,
+
+
+            IMAGE:
+            forgeRecord.imageFingerprint,
+
+
+            CREATED:
+            forgeRecord.created,
+
+
+            CONTRACT:
+            forgeRecord.contract
+
 
         };
 
 
-        console.log(
-            "🔥 Hidden Forge Layer:",
-            data
+        const encoded =
+        btoa(
+            JSON.stringify(payload)
         );
 
 
-        return data;
+        console.log(
+            "🔥 SPARKD Hidden Payload:",
+            encoded
+        );
+
+
+        return encoded;
 
 
     }
