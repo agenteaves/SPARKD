@@ -593,3 +593,7 @@ img.onload = function(){
 img.src = dataURL;   
 
 };
+
+}
+
+});
