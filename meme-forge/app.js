@@ -440,6 +440,7 @@ if(downloadBtn){
 ////////////////////////////////////////////////////
 
 let forgeRecord = null;
+let hiddenForgeData = null;
 
 
 if(window.SPARKD_FORGE){
@@ -453,10 +454,13 @@ if(window.SPARKD_FORGE){
         forgeRecord
     );
 
-    let hiddenForgeData = null;
+
+}
+
 
 
 if(window.SPARKD_EXPORT && forgeRecord){
+
 
     hiddenForgeData =
     SPARKD_EXPORT.attachForgeData(
@@ -464,136 +468,23 @@ if(window.SPARKD_EXPORT && forgeRecord){
         forgeRecord
     );
 
+
 }
 
 
-        const image = canvas.getObjects().find(
-            obj => obj.type === "image"
-        );
 
+const image = canvas.getObjects().find(
+    obj => obj.type === "image"
+);
 
-        if(!image){
 
-            alert("Please upload an image first.");
+if(!image){
 
-            return;
+    alert("Please upload an image first.");
 
-        }
-
-
-        const bounds = image.getBoundingRect(false, true);
-
-
-
-        // Export image + text first
-        const dataURL = canvas.toDataURL({
-
-            format:"png",
-
-            left: bounds.left,
-
-            top: bounds.top,
-
-            width: bounds.width,
-
-            height: bounds.height,
-
-            multiplier:2,
-
-            enableRetinaScaling:true
-
-        });
-
-
-
-        // Create final image canvas
-        const finalCanvas = document.createElement("canvas");
-
-        finalCanvas.width = bounds.width * 2;
-
-        finalCanvas.height = bounds.height * 2;
-
-
-        const ctx = finalCanvas.getContext("2d");
-
-
-        const img = new Image();
-
-
-        img.onload = function(){
-
-
-            ctx.drawImage(
-
-                img,
-
-                0,
-
-                0,
-
-                finalCanvas.width,
-
-                finalCanvas.height
-
-            );
-
-
-
-            // Add SPARKD address
-            ctx.font = "8px Arial";
-
-            ctx.textAlign = "right";
-
-            ctx.textBaseline = "bottom";
-
-
-            ctx.lineWidth = 2;
-
-            ctx.strokeStyle = "#000000";
-
-            ctx.fillStyle = "#ffffff";
-
-
-            ctx.strokeText(
-
-                SPARKD_CONTRACT,
-
-                finalCanvas.width - 10,
-
-                finalCanvas.height - 10
-
-            );
-
-
-            ctx.fillText(
-
-                SPARKD_CONTRACT,
-
-                finalCanvas.width - 10,
-
-                finalCanvas.height - 10
-
-            );
-
-
-
-            const link = document.createElement("a");
-
-            link.href = finalCanvas.toDataURL("image/png");
-
-            link.download = "SPARKD-meme.png";
-
-            link.click();
-
-
-        };
-
-
-        img.src = dataURL;
-
-
-    };
+    return;
 
 }
-    
-});
+
+
+const bounds = image.getBoundingRect(false, true);
