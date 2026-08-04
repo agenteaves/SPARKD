@@ -518,6 +518,7 @@ if(downloadBtn){
 
 const logoImage = new Image();
 
+
 logoImage.onload = function(){
 
 
@@ -549,8 +550,6 @@ logoImage.onload = function(){
 
 
 
-logoImage.src = "images/logo.png";
-
     ////////////////////////////////////////////////////
     // ORIGINAL BOTTOM CONTRACT
     ////////////////////////////////////////////////////
@@ -560,6 +559,7 @@ logoImage.src = "images/logo.png";
     ctx.textAlign = "right";
 
     ctx.textBaseline = "bottom";
+
 
     ctx.lineWidth = 2;
 
@@ -597,19 +597,29 @@ logoImage.src = "images/logo.png";
 
     const link = document.createElement("a");
 
+
     link.href = finalCanvas.toDataURL("image/png");
+
 
     link.download = "SPARKD-meme.png";
 
+
     link.click();
 
+
 };
+
+
+
+logoImage.src = "images/logo.png";
+
 
 
         img.src = dataURL;
 
 
     };
+
 
 }
     
