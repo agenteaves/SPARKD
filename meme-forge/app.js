@@ -293,8 +293,6 @@ if(uploadBtn && imageInput){
 
                    canvas.add(img);
 
-                   canvas.sendToBack(img);
-
 
                    // Keep uploaded images behind text
                    canvas.sendToBack(img);
