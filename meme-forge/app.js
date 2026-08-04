@@ -466,8 +466,6 @@ if(window.SPARKD_EXPORT && forgeRecord){
 
 }
 
-}
-
 
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
