@@ -453,6 +453,19 @@ if(window.SPARKD_FORGE){
         forgeRecord
     );
 
+    let hiddenForgeData = null;
+
+
+if(window.SPARKD_EXPORT && forgeRecord){
+
+    hiddenForgeData =
+    SPARKD_EXPORT.attachForgeData(
+        canvas,
+        forgeRecord
+    );
+
+}
+
 }
 
 
