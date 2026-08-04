@@ -349,29 +349,28 @@ if(addTextBtn){
 
        }
 
-        const memeText = new fabric.IText(
+       const memeText = new fabric.IText(
 
-            textInput.value || "SPARKD",
+    textInput.value || "SPARKD",
 
-            {
+    {
 
-                left:150,
+        left:150,
 
-                top:50,
+        top:50,
 
-                fill:"#ffffff",
+        fill:"#ffffff",
+        stroke:"#000000",
+        strokeWidth:4,
+        fontFamily:"Bangers",
+        fontSize:80
 
-                stroke:"#000000",
+    }
 
-                strokeWidth:4,
+);
 
-                fontFamily:"Bangers",
-
-                fontSize:80
-
-            }
-
-        );
+// Mark as meme text so the color picker only affects text
+memeText.isMemeText = true;
 
 
 
