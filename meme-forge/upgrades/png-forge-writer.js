@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD PNG FORGE WRITER v0.1
-// Metadata Container Prototype
+// SPARKD PNG FORGE WRITER v0.2
+// Hidden Metadata Injection Prototype
 ////////////////////////////////////////////////////
 
 
@@ -11,11 +11,11 @@ window.SPARKD_PNG = {
 
 
         console.log(
-            "🔥 SPARKD PNG Forge preparing file"
+            "🔥 SPARKD PNG Forge injecting identity"
         );
 
 
-        const payload = {
+        const forgeData = {
 
 
             forge:
@@ -49,25 +49,35 @@ window.SPARKD_PNG = {
         };
 
 
+        const metadata =
+        JSON.stringify(forgeData);
+
+
+
         console.log(
-            "🔥 PNG Metadata Payload:",
-            payload
+            "🔥 SPARKD PNG Metadata:",
+            forgeData
         );
+
 
 
         /*
-            Temporary version:
+            Prototype stage:
 
-            Returns normal PNG.
+            Create PNG normally.
 
-            Next version will inject
-            this payload into PNG chunks.
+            Next stage will insert
+            custom PNG chunk data.
         */
 
 
-        return canvas.toDataURL(
+        const png =
+        canvas.toDataURL(
             "image/png"
         );
+
+
+        return png;
 
 
     }
