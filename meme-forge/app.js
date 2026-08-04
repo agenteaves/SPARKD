@@ -293,6 +293,8 @@ if(uploadBtn && imageInput){
 
                    canvas.add(img);
 
+                   canvas.sendToBack(img);
+
 
                    // Keep uploaded images behind text
                    canvas.sendToBack(img);
@@ -349,31 +351,27 @@ if(addTextBtn){
 
         const memeText = new fabric.IText(
 
-    textInput.value || "SPARKD",
+            textInput.value || "SPARKD",
 
-    {
+            {
 
-        left:150,
+                left:150,
 
-        top:50,
+                top:50,
 
-        fill:"#ffffff",
+                fill:"#ffffff",
 
-        stroke:"#000000",
+                stroke:"#000000",
 
-        strokeWidth:4,
+                strokeWidth:4,
 
-        fontFamily:"Bangers",
+                fontFamily:"Bangers",
 
-        fontSize:80
+                fontSize:80
 
-    }
+            }
 
-);
-
-
-// Mark as SPARKD meme text
-memeText.isMemeText = true;
+        );
 
 
 
@@ -435,19 +433,13 @@ if(downloadBtn){
 
     downloadBtn.onclick = function(){
 
-
         canvas.discardActiveObject();
-
         canvas.renderAll();
 
 
-
         const image = canvas.getObjects().find(
-
             obj => obj.type === "image"
-
         );
-
 
 
         if(!image){
@@ -459,22 +451,22 @@ if(downloadBtn){
         }
 
 
-
         const bounds = image.getBoundingRect(false, true);
 
 
 
+        // Export image + text first
         const dataURL = canvas.toDataURL({
 
             format:"png",
 
-            left:bounds.left,
+            left: bounds.left,
 
-            top:bounds.top,
+            top: bounds.top,
 
-            width:bounds.width,
+            width: bounds.width,
 
-            height:bounds.height,
+            height: bounds.height,
 
             multiplier:2,
 
@@ -484,20 +476,18 @@ if(downloadBtn){
 
 
 
+        // Create final image canvas
         const finalCanvas = document.createElement("canvas");
-
 
         finalCanvas.width = bounds.width * 2;
 
         finalCanvas.height = bounds.height * 2;
 
 
-
         const ctx = finalCanvas.getContext("2d");
 
 
         const img = new Image();
-
 
 
         img.onload = function(){
@@ -519,133 +509,54 @@ if(downloadBtn){
 
 
 
-            const addContractAndDownload = function(){
+            // Add SPARKD address
+            ctx.font = "8px Arial";
 
+            ctx.textAlign = "right";
 
-                ////////////////////////////////////////////////////
-                // ORIGINAL BOTTOM CONTRACT
-                ////////////////////////////////////////////////////
+            ctx.textBaseline = "bottom";
 
-                ctx.font = "8px Arial";
 
-                ctx.textAlign = "right";
+            ctx.lineWidth = 2;
 
-                ctx.textBaseline = "bottom";
+            ctx.strokeStyle = "#000000";
 
+            ctx.fillStyle = "#ffffff";
 
-                ctx.lineWidth = 2;
 
-                ctx.strokeStyle = "#000000";
+            ctx.strokeText(
 
-                ctx.fillStyle = "#ffffff";
+                SPARKD_CONTRACT,
 
+                finalCanvas.width - 10,
 
-                ctx.strokeText(
+                finalCanvas.height - 10
 
-                    SPARKD_CONTRACT,
+            );
 
-                    finalCanvas.width - 10,
 
-                    finalCanvas.height - 10
+            ctx.fillText(
 
-                );
+                SPARKD_CONTRACT,
 
+                finalCanvas.width - 10,
 
-                ctx.fillText(
+                finalCanvas.height - 10
 
-                    SPARKD_CONTRACT,
+            );
 
-                    finalCanvas.width - 10,
 
-                    finalCanvas.height - 10
 
-                );
+            const link = document.createElement("a");
 
+            link.href = finalCanvas.toDataURL("image/png");
 
+            link.download = "SPARKD-meme.png";
 
-                const link = document.createElement("a");
-
-
-                link.href = finalCanvas.toDataURL("image/png");
-
-
-                link.download = "SPARKD-meme.png";
-
-
-                link.click();
-
-
-            };
-
-
-
-            ////////////////////////////////////////////////////
-            // SPARKD LOGO SIGNATURE
-            ////////////////////////////////////////////////////
-
-            const logoImage = new Image();
-
-
-
-            logoImage.onload = function(){
-
-
-                ctx.save();
-
-
-                ctx.globalAlpha = 0.12;
-
-
-                const logoSize = 80;
-
-
-                ctx.drawImage(
-
-                    logoImage,
-
-                    finalCanvas.width - logoSize - 40,
-
-                    finalCanvas.height - logoSize - 50,
-
-                    logoSize,
-
-                    logoSize
-
-                );
-
-
-                ctx.restore();
-
-
-
-                addContractAndDownload();
-
-
-            };
-
-
-
-            logoImage.onerror = function(){
-
-
-                console.log(
-                    "SPARKD logo failed to load, exporting without logo"
-                );
-
-
-                addContractAndDownload();
-
-
-            };
-
-
-
-            logoImage.src = "images/logo.png";
-
+            link.click();
 
 
         };
-
 
 
         img.src = dataURL;
@@ -653,5 +564,6 @@ if(downloadBtn){
 
     };
 
-
 }
+    
+});
