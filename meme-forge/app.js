@@ -435,6 +435,26 @@ if(downloadBtn){
         canvas.discardActiveObject();
         canvas.renderAll();
 
+        ////////////////////////////////////////////////////
+// CREATE SPARKD FORGE BIRTH RECORD
+////////////////////////////////////////////////////
+
+let forgeRecord = null;
+
+
+if(window.SPARKD_FORGE){
+
+    forgeRecord =
+    SPARKD_FORGE.createRecord(canvas);
+
+
+    console.log(
+        "🔥 SPARKD Forge Birth:",
+        forgeRecord
+    );
+
+}
+
 
         const image = canvas.getObjects().find(
             obj => obj.type === "image"
