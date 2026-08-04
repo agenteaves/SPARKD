@@ -494,73 +494,122 @@ if(downloadBtn){
         const img = new Image();
 
 
-        img.onload = function(){
+       img.onload = function(){
 
 
-            ctx.drawImage(
+    ctx.drawImage(
 
-                img,
+        img,
 
-                0,
+        0,
 
-                0,
+        0,
 
-                finalCanvas.width,
+        finalCanvas.width,
 
-                finalCanvas.height
+        finalCanvas.height
 
-            );
-
-
-
-            // Add SPARKD address
-            ctx.font = "8px Arial";
-
-            ctx.textAlign = "right";
-
-            ctx.textBaseline = "bottom";
-
-
-            ctx.lineWidth = 2;
-
-            ctx.strokeStyle = "#000000";
-
-            ctx.fillStyle = "#ffffff";
-
-
-            ctx.strokeText(
-
-                SPARKD_CONTRACT,
-
-                finalCanvas.width - 10,
-
-                finalCanvas.height - 10
-
-            );
-
-
-            ctx.fillText(
-
-                SPARKD_CONTRACT,
-
-                finalCanvas.width - 10,
-
-                finalCanvas.height - 10
-
-            );
+    );
 
 
 
-            const link = document.createElement("a");
+    ////////////////////////////////////////////////////
+    // DIAGONAL SPARKD WATERMARK
+    ////////////////////////////////////////////////////
 
-            link.href = finalCanvas.toDataURL("image/png");
+    ctx.save();
 
-            link.download = "SPARKD-meme.png";
+    ctx.translate(
+        finalCanvas.width / 2,
+        finalCanvas.height / 2
+    );
 
-            link.click();
+    ctx.rotate(-35 * Math.PI / 180);
+
+    ctx.globalAlpha = 0.12;
+
+    ctx.fillStyle = "#ffffff";
+
+    ctx.font = "32px Arial";
+
+    ctx.textAlign = "center";
+
+    const watermark =
+    "⚡ SPARKD MEME FORGE • " + SPARKD_CONTRACT;
+
+    for(let y = -finalCanvas.height;
+        y <= finalCanvas.height;
+        y += 180){
+
+        ctx.fillText(
+
+            watermark,
+
+            0,
+
+            y
+
+        );
+
+    }
+
+    ctx.restore();
 
 
-        };
+
+    ////////////////////////////////////////////////////
+    // ORIGINAL BOTTOM CONTRACT
+    ////////////////////////////////////////////////////
+
+    ctx.font = "8px Arial";
+
+    ctx.textAlign = "right";
+
+    ctx.textBaseline = "bottom";
+
+    ctx.lineWidth = 2;
+
+    ctx.strokeStyle = "#000000";
+
+    ctx.fillStyle = "#ffffff";
+
+
+    ctx.strokeText(
+
+        SPARKD_CONTRACT,
+
+        finalCanvas.width - 10,
+
+        finalCanvas.height - 10
+
+    );
+
+
+    ctx.fillText(
+
+        SPARKD_CONTRACT,
+
+        finalCanvas.width - 10,
+
+        finalCanvas.height - 10
+
+    );
+
+
+
+    ////////////////////////////////////////////////////
+    // DOWNLOAD
+    ////////////////////////////////////////////////////
+
+    const link = document.createElement("a");
+
+    link.href = finalCanvas.toDataURL("image/png");
+
+    link.download = "SPARKD-meme.png";
+
+    link.click();
+
+};
 
 
         img.src = dataURL;
