@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE LAYER v0.1
-// Hidden Origin Identity System
+// SPARKD FORGE LAYER v0.2
+// Meme Identity + Image DNA System
 ////////////////////////////////////////////////////
 
 
@@ -8,6 +8,11 @@ window.SPARKD_FORGE = {
 
 
     version:"1.1",
+
+
+    contract:
+    "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
+
 
 
     createID:function(){
@@ -69,7 +74,69 @@ window.SPARKD_FORGE = {
 
 
 
-    createRecord:function(){
+    ////////////////////////////////////////////////////
+    // CREATE IMAGE FINGERPRINT
+    ////////////////////////////////////////////////////
+
+    createImageFingerprint:function(canvas){
+
+
+        try{
+
+
+            const data =
+            canvas.toDataURL("image/png");
+
+
+            let hash = 0;
+
+
+            for(let i=0;i<data.length;i++){
+
+
+                hash =
+                ((hash<<5)-hash)
+                +data.charCodeAt(i);
+
+
+                hash =
+                hash & hash;
+
+            }
+
+
+
+            return (
+
+                "IMG-" +
+                Math.abs(hash)
+                .toString(16)
+                .toUpperCase()
+
+            );
+
+
+        }
+
+        catch(error){
+
+
+            return "IMG-UNKNOWN";
+
+
+        }
+
+
+    },
+
+
+
+
+    ////////////////////////////////////////////////////
+    // CREATE FULL FORGE RECORD
+    ////////////////////////////////////////////////////
+
+    createRecord:function(canvas){
 
 
         return {
@@ -96,8 +163,12 @@ window.SPARKD_FORGE = {
             this.createDNA(),
 
 
+            imageFingerprint:
+            this.createImageFingerprint(canvas),
+
+
             contract:
-            "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+            this.contract
 
 
         };
