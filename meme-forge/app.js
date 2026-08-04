@@ -549,59 +549,6 @@ logoImage.onload = function(){
 
 
 
-    ////////////////////////////////////////////////////
-    // ORIGINAL BOTTOM CONTRACT
-    ////////////////////////////////////////////////////
-
-    ctx.font = "8px Arial";
-
-    ctx.textAlign = "right";
-
-    ctx.textBaseline = "bottom";
-
-
-    ctx.lineWidth = 2;
-
-    ctx.strokeStyle = "#000000";
-
-    ctx.fillStyle = "#ffffff";
-
-
-    ctx.strokeText(
-
-        SPARKD_CONTRACT,
-
-        finalCanvas.width - 10,
-
-        finalCanvas.height - 10
-
-    );
-
-
-    ctx.fillText(
-
-        SPARKD_CONTRACT,
-
-        finalCanvas.width - 10,
-
-        finalCanvas.height - 10
-
-    );
-
-
-
-    const link = document.createElement("a");
-
-    link.href = finalCanvas.toDataURL("image/png");
-
-    link.download = "SPARKD-meme.png";
-
-    link.click();
-
-
-};
-
-
 logoImage.src = "images/logo.png";
 
     ////////////////////////////////////////////////////
