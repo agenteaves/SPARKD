@@ -55,8 +55,6 @@ function openDeveloperPanel(){
 
 
 
-
-
     <div class="devSection">
 
         <h3>Points</h3>
@@ -70,10 +68,12 @@ function openDeveloperPanel(){
         <button id="add1000">
         +1000 SPARK
         </button>
-        
+
+
         <button id="scanForgeBtn">
         🔍 Scan Forge PNG
         </button>
+
 
         <button id="resetPoints">
         Reset Points
@@ -81,7 +81,6 @@ function openDeveloperPanel(){
 
 
     </div>
-
 
 
 
@@ -121,7 +120,6 @@ function openDeveloperPanel(){
 
 
 
-
     <div class="devSection">
 
         <h3>Reset Tools</h3>
@@ -157,16 +155,12 @@ function openDeveloperPanel(){
 
 
 
-
-
     document.getElementById("closeDevPanel").onclick =
     function(){
 
         panel.remove();
 
     };
-
-
 
 
 
@@ -181,8 +175,6 @@ function openDeveloperPanel(){
 
 
 
-
-
     document.getElementById("add1000").onclick =
     function(){
 
@@ -194,7 +186,67 @@ function openDeveloperPanel(){
 
 
 
+////////////////////////////////////////////////////
+// SCAN SPARKD FORGE PNG
+////////////////////////////////////////////////////
 
+    document.getElementById("scanForgeBtn").onclick =
+    function(){
+
+
+        const input =
+        document.createElement("input");
+
+
+        input.type = "file";
+
+
+        input.accept =
+        ".png,image/png";
+
+
+
+        input.onchange =
+        function(e){
+
+
+            const file =
+            e.target.files[0];
+
+
+
+            if(file && window.SPARKD_SCANNER){
+
+
+                SPARKD_SCANNER.scan(file);
+
+
+            }
+            else{
+
+
+                alert(
+                "SPARKD Scanner not loaded."
+                );
+
+
+            }
+
+
+        };
+
+
+
+        input.click();
+
+
+    };
+
+
+
+////////////////////////////////////////////////////
+// RESET POINTS
+////////////////////////////////////////////////////
 
     document.getElementById("resetPoints").onclick =
     function(){
@@ -215,7 +267,7 @@ function openDeveloperPanel(){
 
         if(display){
 
-            display.innerHTML = "0";
+            display.innerHTML="0";
 
         }
 
@@ -224,8 +276,9 @@ function openDeveloperPanel(){
 
 
 
-
-
+////////////////////////////////////////////////////
+// LEVEL BUTTONS
+////////////////////////////////////////////////////
 
     document.querySelectorAll(".levelBtn")
     .forEach(function(button){
@@ -245,26 +298,7 @@ function openDeveloperPanel(){
             );
 
 
-
             updateDevPanel();
-
-
-
-            const levelDisplay =
-            document.getElementById(
-                "creatorLevelName"
-            );
-
-
-
-            if(levelDisplay){
-
-
-                levelDisplay.innerHTML =
-                "Level " + level;
-
-
-            }
 
 
 
@@ -276,10 +310,13 @@ function openDeveloperPanel(){
 
 
 
-
+////////////////////////////////////////////////////
+// RESET MISSION
+////////////////////////////////////////////////////
 
     document.getElementById("resetMission").onclick =
     function(){
+
 
         localStorage.removeItem(
             "missionCompleteDate"
@@ -287,7 +324,7 @@ function openDeveloperPanel(){
 
 
         alert(
-            "Mission reset"
+        "Mission reset"
         );
 
 
@@ -296,10 +333,13 @@ function openDeveloperPanel(){
 
 
 
-
+////////////////////////////////////////////////////
+// RESET STARTER
+////////////////////////////////////////////////////
 
     document.getElementById("resetStarter").onclick =
     function(){
+
 
         localStorage.removeItem(
             "starterPackClaimed"
@@ -307,7 +347,7 @@ function openDeveloperPanel(){
 
 
         alert(
-            "Starter Pack reset"
+        "Starter Pack reset"
         );
 
 
@@ -316,7 +356,9 @@ function openDeveloperPanel(){
 
 
 
-
+////////////////////////////////////////////////////
+// FULL RESET
+////////////////////////////////////////////////////
 
     document.getElementById("fullReset").onclick =
     function(){
@@ -326,7 +368,7 @@ function openDeveloperPanel(){
 
 
         alert(
-            "SPARKD reset complete"
+        "SPARKD reset complete"
         );
 
 
@@ -336,9 +378,7 @@ function openDeveloperPanel(){
     };
 
 
-
 }
-
 
 
 
@@ -362,7 +402,6 @@ function updateDevPanel(){
         localStorage.getItem("sparkPoints") || "0";
 
     }
-
 
 
 
