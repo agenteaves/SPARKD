@@ -146,15 +146,17 @@ scan:function(file){
 
 
 ////////////////////////////////////////////////////
-// VERIFICATION DISPLAY
+// SPARKD FORGE CERTIFICATE DISPLAY
 ////////////////////////////////////////////////////
 
 function showForgeVerification(data){
 
     removeForgeNotice();
 
+
     const box =
     document.createElement("div");
+
 
     box.id =
     "forgeVerificationBox";
@@ -171,11 +173,11 @@ function showForgeVerification(data){
     color:white;
     border:2px solid #00ff88;
     border-radius:15px;
-    padding:20px;
+    padding:25px;
     z-index:999999;
     font-family:Orbitron;
-    box-shadow:0 0 30px #00ff88;
-    min-width:340px;
+    box-shadow:0 0 35px #00ff88;
+    min-width:380px;
     text-align:center;
     ">
 
@@ -186,15 +188,17 @@ function showForgeVerification(data){
     right:10px;
     top:10px;
     background:#ff6a00;
-    border:none;
     color:white;
+    border:none;
     border-radius:50%;
-    width:30px;
-    height:30px;
+    width:32px;
+    height:32px;
     cursor:pointer;
+    font-weight:bold;
     ">
     X
     </button>
+
 
 
     <h2 style="color:#00ff88;">
@@ -202,39 +206,74 @@ function showForgeVerification(data){
     </h2>
 
 
-    <p>
-    ✓ Authentic SPARKD Meme
-    </p>
+
+    <h3>
+    ✓ Original Forge Export
+    </h3>
 
 
-    <p>
-    Forge:
-    <b>${data.forge || "SPARKD Meme Forge"}</b>
-    </p>
 
+    <hr>
 
-    <p>
-    Version:
-    <b>${data.version || "Unknown"}</b>
-    </p>
 
 
     <p>
-    Meme ID:
-    <b>${data.memeID || data.ID || "Unknown"}</b>
+    <b>Forge:</b><br>
+    ${data.forge || "SPARKD Meme Forge"}
     </p>
+
 
 
     <p>
-    DNA:
-    <b>${data.DNA || "Unknown"}</b>
+    <b>Version:</b><br>
+    ${data.version || "Unknown"}
     </p>
+
 
 
     <p>
-    Image:
-    <b>${data.imageFingerprint || data.IMAGE || "Unknown"}</b>
+    <b>Meme ID:</b><br>
+    ${data.memeID || data.ID || "Unknown"}
     </p>
+
+
+
+    <p>
+    <b>DNA:</b><br>
+    ${data.DNA || "Unknown"}
+    </p>
+
+
+
+    <p>
+    <b>Image Fingerprint:</b><br>
+    ${data.imageFingerprint || data.IMAGE || "Unknown"}
+    </p>
+
+
+
+    <p>
+    <b>Created:</b><br>
+    ${data.created || data.CREATED || "Unknown"}
+    </p>
+
+
+
+    <p>
+    <b>Contract:</b><br>
+    ${data.contract || data.CONTRACT || "Unknown"}
+    </p>
+
+
+
+    <hr>
+
+
+
+    <p style="color:#00ff88;font-weight:bold;">
+    ✓ Metadata Signature Intact
+    </p>
+
 
 
     </div>
