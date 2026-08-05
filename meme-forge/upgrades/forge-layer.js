@@ -163,85 +163,90 @@ window.SPARKD_FORGE = {
 
 
 
-////////////////////////////////////////////////////
-// CREATE FULL FORGE RECORD
-////////////////////////////////////////////////////
-
-createRecord:function(canvas){
 
 
-    let creatorID =
-    localStorage.getItem("sparkdCreatorID");
+    ////////////////////////////////////////////////////
+    // CREATE FULL FORGE RECORD
+    ////////////////////////////////////////////////////
+
+    createRecord:function(canvas){
 
 
-    if(!creatorID){
-
-        creatorID =
-        this.createCreatorID();
+        let creatorID =
+        localStorage.getItem("sparkdCreatorID");
 
 
-        localStorage.setItem(
-            "sparkdCreatorID",
-            creatorID
-        );
-
-    }
+        if(!creatorID){
 
 
-
-    return {
-
-
-        forge:
-        "SPARKD Meme Forge",
+            creatorID =
+            this.createCreatorID();
 
 
-        version:
-        this.version,
+            localStorage.setItem(
+                "sparkdCreatorID",
+                creatorID
+            );
 
-
-        created:
-        new Date()
-        .toISOString(),
-
-
-
-        ////////////////////////////////////////////////////
-        // CREATOR IDENTITY LAYER
-        ////////////////////////////////////////////////////
-
-        creatorID:
-        creatorID,
-
-
-        wallet:
-        "NOT_CONNECTED",
-
-
-        reputation:
-        100,
-
-
-
-        memeID:
-        this.createID(),
-
-
-        DNA:
-        this.createDNA(),
-
-
-        imageFingerprint:
-        this.createImageFingerprint(canvas),
-
-
-        contract:
-        this.contract
 
         }
 
 
-    };
+
+        return {
 
 
-}
+            forge:
+            "SPARKD Meme Forge",
+
+
+            version:
+            this.version,
+
+
+            created:
+            new Date()
+            .toISOString(),
+
+
+
+            ////////////////////////////////////////////////////
+            // CREATOR IDENTITY LAYER
+            ////////////////////////////////////////////////////
+
+            creatorID:
+            creatorID,
+
+
+            wallet:
+            "NOT_CONNECTED",
+
+
+            reputation:
+            100,
+
+
+
+            memeID:
+            this.createID(),
+
+
+            DNA:
+            this.createDNA(),
+
+
+            imageFingerprint:
+            this.createImageFingerprint(canvas),
+
+
+            contract:
+            this.contract
+
+
+        };
+
+
+    }
+
+
+};
