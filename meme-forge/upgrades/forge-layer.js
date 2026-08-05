@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD FORGE LAYER v0.3
-// Meme Identity + Image DNA + Signature System
+// Meme Identity + Creator Identity System
 ////////////////////////////////////////////////////
 
 
@@ -41,6 +41,36 @@ window.SPARKD_FORGE = {
 
 
 
+
+
+    createCreatorID:function(){
+
+        const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+
+        let id="CREATOR-";
+
+
+        for(let i=0;i<8;i++){
+
+            id += chars.charAt(
+                Math.floor(
+                    Math.random()*chars.length
+                )
+            );
+
+        }
+
+
+        return id;
+
+    },
+
+
+
+
+
     createDNA:function(){
 
         const time =
@@ -71,6 +101,8 @@ window.SPARKD_FORGE = {
         );
 
     },
+
+
 
 
 
@@ -131,157 +163,69 @@ window.SPARKD_FORGE = {
 
 
 
+
+
     ////////////////////////////////////////////////////
-    // CREATE FORGE SIGNATURE
+    // CREATE FULL FORGE RECORD
     ////////////////////////////////////////////////////
 
-    createSignature:function(data){
+    createRecord:function(canvas){
 
 
-        const source =
+        return {
 
-            data.forge +
-            data.version +
-            data.memeID +
-            data.DNA +
-            data.imageFingerprint +
-            data.contract;
 
+            forge:
+            "SPARKD Meme Forge",
 
 
-        let hash = 0;
+            version:
+            this.version,
 
 
+            created:
+            new Date()
+            .toISOString(),
 
-        for(let i=0;i<source.length;i++){
 
 
-            hash =
+            ////////////////////////////////////////////////////
+            // CREATOR IDENTITY LAYER
+            ////////////////////////////////////////////////////
 
-            ((hash<<5)-hash)
-            +source.charCodeAt(i);
+            creatorID:
+            this.createCreatorID(),
 
 
+            wallet:
+            "NOT_CONNECTED",
 
-            hash =
-            hash & hash;
 
+            reputation:
+            100,
 
-        }
 
 
+            memeID:
+            this.createID(),
 
-        return (
 
-            "SIG-" +
+            DNA:
+            this.createDNA(),
 
-            Math.abs(hash)
-            .toString(16)
-            .toUpperCase()
 
-        );
+            imageFingerprint:
+            this.createImageFingerprint(canvas),
 
 
-    },
+            contract:
+            this.contract
 
 
-
-
-
-   ////////////////////////////////////////////////////
-// CREATE FULL FORGE RECORD
-////////////////////////////////////////////////////
-
-createRecord:function(canvas){
-
-
-    return {
-
-
-        forge:
-        "SPARKD Meme Forge",
-
-
-        version:
-        this.version,
-
-
-        created:
-        new Date()
-        .toISOString(),
-
-
-
-        ////////////////////////////////////////////////////
-        // CREATOR IDENTITY LAYER
-        ////////////////////////////////////////////////////
-
-        creatorID:
-        this.createCreatorID(),
-
-
-        wallet:
-        "NOT_CONNECTED",
-
-
-        reputation:
-        100,
-
-
-
-        memeID:
-        this.createID(),
-
-
-        DNA:
-        this.createDNA(),
-
-
-        imageFingerprint:
-        this.createImageFingerprint(canvas),
-
-
-        contract:
-        this.contract
-
-
-    };
-
-
-},
-
-
-
-////////////////////////////////////////////////////
-// CREATE CREATOR ID
-////////////////////////////////////////////////////
-
-createCreatorID:function(){
-
-
-    const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-
-    let id =
-    "CREATOR-";
-
-
-    for(let i=0;i<8;i++){
-
-
-        id +=
-        chars.charAt(
-            Math.floor(
-                Math.random()*chars.length
-            )
-        );
+        };
 
 
     }
 
 
-    return id;
-
-
-},
+};
