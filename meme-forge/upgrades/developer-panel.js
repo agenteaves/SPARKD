@@ -66,6 +66,9 @@ function openDeveloperPanel(){
         +100 SPARK
         </button>
 
+        <button id="scanForgeBtn">
+        🔍 Scan Forge PNG
+        </button>
 
         <button id="add1000">
         +1000 SPARK
