@@ -238,6 +238,8 @@ createRecord:function(canvas){
         contract:
         this.contract
 
+        }
+
 
     };
 
