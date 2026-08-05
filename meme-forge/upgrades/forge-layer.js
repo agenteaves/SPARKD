@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE LAYER v0.2
-// Meme Identity + Image DNA System
+// SPARKD FORGE LAYER v0.3
+// Meme Identity + Image DNA + Signature System
 ////////////////////////////////////////////////////
 
 
@@ -131,6 +131,62 @@ window.SPARKD_FORGE = {
 
 
 
+    ////////////////////////////////////////////////////
+    // CREATE FORGE SIGNATURE
+    ////////////////////////////////////////////////////
+
+    createSignature:function(data){
+
+
+        const source =
+
+            data.forge +
+            data.version +
+            data.memeID +
+            data.DNA +
+            data.imageFingerprint +
+            data.contract;
+
+
+
+        let hash = 0;
+
+
+
+        for(let i=0;i<source.length;i++){
+
+
+            hash =
+
+            ((hash<<5)-hash)
+            +source.charCodeAt(i);
+
+
+
+            hash =
+            hash & hash;
+
+
+        }
+
+
+
+        return (
+
+            "SIG-" +
+
+            Math.abs(hash)
+            .toString(16)
+            .toUpperCase()
+
+        );
+
+
+    },
+
+
+
+
 
     ////////////////////////////////////////////////////
     // CREATE FULL FORGE RECORD
@@ -139,7 +195,7 @@ window.SPARKD_FORGE = {
     createRecord:function(canvas){
 
 
-        return {
+        let record = {
 
 
             forge:
@@ -172,6 +228,17 @@ window.SPARKD_FORGE = {
 
 
         };
+
+
+
+        // Add Forge Signature
+
+        record.signature =
+        this.createSignature(record);
+
+
+
+        return record;
 
 
     }
