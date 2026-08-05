@@ -20,6 +20,9 @@ window.SPARKD_EXPORT = {
     created: forgeRecord.created,
     contract: forgeRecord.contract,
     signature: forgeRecord.signature
+    creatorID: forgeRecord.creatorID,
+    wallet: forgeRecord.wallet,
+    reputation: forgeRecord.reputation      
 
 };
 
