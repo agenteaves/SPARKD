@@ -10,21 +10,55 @@ window.SPARKD_EXPORT = {
     attachForgeData:function(canvas, forgeRecord){
 
 
-       const payload = {
+        const payload = {
 
-    forge: forgeRecord.forge,
-    version: forgeRecord.version,
-    memeID: forgeRecord.memeID,
-    DNA: forgeRecord.DNA,
-    imageFingerprint: forgeRecord.imageFingerprint,
-    created: forgeRecord.created,
-    contract: forgeRecord.contract,
-    signature: forgeRecord.signature
-    creatorID: forgeRecord.creatorID,
-    wallet: forgeRecord.wallet,
-    reputation: forgeRecord.reputation      
 
-};
+            forge:
+            forgeRecord.forge,
+
+
+            version:
+            forgeRecord.version,
+
+
+            memeID:
+            forgeRecord.memeID,
+
+
+            DNA:
+            forgeRecord.DNA,
+
+
+            imageFingerprint:
+            forgeRecord.imageFingerprint,
+
+
+            created:
+            forgeRecord.created,
+
+
+            contract:
+            forgeRecord.contract,
+
+
+            signature:
+            forgeRecord.signature,
+
+
+            creatorID:
+            forgeRecord.creatorID,
+
+
+            wallet:
+            forgeRecord.wallet,
+
+
+            reputation:
+            forgeRecord.reputation
+
+
+        };
+
 
 
         const encoded =
@@ -33,10 +67,12 @@ window.SPARKD_EXPORT = {
         );
 
 
+
         console.log(
             "🔥 SPARKD Hidden Payload:",
             encoded
         );
+
 
 
         return encoded;
