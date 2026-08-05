@@ -260,15 +260,12 @@ function showForgeVerification(data){
 
 
 ////////////////////////////////////////////////////
-// FAILED MESSAGE
+// FAILED VERIFICATION DISPLAY
 ////////////////////////////////////////////////////
-
 
 function showForgeFailed(){
 
-
     removeForgeNotice();
-
 
 
     const box =
@@ -277,7 +274,6 @@ function showForgeFailed(){
 
     box.id =
     "forgeVerificationBox";
-
 
 
     box.innerHTML = `
@@ -289,16 +285,53 @@ function showForgeFailed(){
     transform:translateX(-50%);
     background:#111;
     color:white;
-    border:2px solid red;
+    border:2px solid #ff3333;
     border-radius:15px;
     padding:20px;
     z-index:999999;
     font-family:Orbitron;
     box-shadow:0 0 30px red;
+    min-width:350px;
+    text-align:center;
     ">
 
 
-    ❌ NO SPARKD FORGE DNA FOUND
+    <button id="closeForgeVerify"
+    style="
+    position:absolute;
+    right:10px;
+    top:10px;
+    background:#ff3333;
+    color:white;
+    border:none;
+    border-radius:50%;
+    width:30px;
+    height:30px;
+    cursor:pointer;
+    font-weight:bold;
+    ">
+    X
+    </button>
+
+
+
+    <h2 style="color:#ff3333;">
+    ❌ UNVERIFIED IMAGE
+    </h2>
+
+
+
+    <p>
+    No SPARKD Forge DNA signature detected.
+    </p>
+
+
+
+    <p style="color:#aaa;">
+    This file was not created or exported through
+    SPARKD Meme Forge.
+    </p>
+
 
 
     </div>
@@ -310,8 +343,17 @@ function showForgeFailed(){
     document.body.appendChild(box);
 
 
-}
 
+    document.getElementById(
+        "closeForgeVerify"
+    ).onclick=function(){
+
+        box.remove();
+
+    };
+
+
+}
 
 
 ////////////////////////////////////////////////////
