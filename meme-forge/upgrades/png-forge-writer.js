@@ -15,44 +15,42 @@ window.SPARKD_PNG = {
         );
 
 
-        const forgeData = {
+       const forgeData = {
 
 
-            forge:
-            "SPARKD Meme Forge",
+    forge:
+    "SPARKD Meme Forge",
 
 
-            version:
-            forgeRecord.version,
+    version:
+    forgeRecord.version,
 
 
-            memeID:
-            forgeRecord.memeID,
+    memeID:
+    forgeRecord.memeID,
 
 
-            DNA:
-            forgeRecord.DNA,
+    DNA:
+    forgeRecord.DNA,
 
 
-            imageFingerprint:
-            forgeRecord.imageFingerprint,
+    imageFingerprint:
+    forgeRecord.imageFingerprint,
 
 
-            created:
-            forgeRecord.created,
+    created:
+    forgeRecord.created,
 
 
-            contract:
-            forgeRecord.contract,
+    contract:
+    forgeRecord.contract,
 
 
-            // NEW: Forge Signature
-
-            signature:
-            forgeRecord.signature
+    signature:
+    forgeRecord.signature
 
 
-        };
+};
 
 
 
