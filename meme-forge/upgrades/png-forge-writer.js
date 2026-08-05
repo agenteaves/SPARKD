@@ -1,6 +1,6 @@
-here, make the change and give me a drop in> ////////////////////////////////////////////////////
-// SPARKD PNG FORGE WRITER v0.3
-// PNG Metadata Chunk Injector Prototype
+////////////////////////////////////////////////////
+// SPARKD PNG FORGE WRITER v0.4
+// PNG Metadata Chunk Injector + Signature Support
 ////////////////////////////////////////////////////
 
 
@@ -43,7 +43,13 @@ window.SPARKD_PNG = {
 
 
             contract:
-            forgeRecord.contract
+            forgeRecord.contract,
+
+
+            // NEW: Forge Signature
+
+            signature:
+            forgeRecord.signature
 
 
         };
