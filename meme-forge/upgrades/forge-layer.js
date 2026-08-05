@@ -163,67 +163,83 @@ window.SPARKD_FORGE = {
 
 
 
-    ////////////////////////////////////////////////////
-    // CREATE FULL FORGE RECORD
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// CREATE FULL FORGE RECORD
+////////////////////////////////////////////////////
 
-    createRecord:function(canvas){
-
-
-        return {
+createRecord:function(canvas){
 
 
-            forge:
-            "SPARKD Meme Forge",
+    let creatorID =
+    localStorage.getItem("sparkdCreatorID");
 
 
-            version:
-            this.version,
+    if(!creatorID){
+
+        creatorID =
+        this.createCreatorID();
 
 
-            created:
-            new Date()
-            .toISOString(),
-
-
-
-            ////////////////////////////////////////////////////
-            // CREATOR IDENTITY LAYER
-            ////////////////////////////////////////////////////
-
-            creatorID:
-            this.createCreatorID(),
-
-
-            wallet:
-            "NOT_CONNECTED",
-
-
-            reputation:
-            100,
-
-
-
-            memeID:
-            this.createID(),
-
-
-            DNA:
-            this.createDNA(),
-
-
-            imageFingerprint:
-            this.createImageFingerprint(canvas),
-
-
-            contract:
-            this.contract
-
-
-        };
-
+        localStorage.setItem(
+            "sparkdCreatorID",
+            creatorID
+        );
 
     }
 
 
-};
+
+    return {
+
+
+        forge:
+        "SPARKD Meme Forge",
+
+
+        version:
+        this.version,
+
+
+        created:
+        new Date()
+        .toISOString(),
+
+
+
+        ////////////////////////////////////////////////////
+        // CREATOR IDENTITY LAYER
+        ////////////////////////////////////////////////////
+
+        creatorID:
+        creatorID,
+
+
+        wallet:
+        "NOT_CONNECTED",
+
+
+        reputation:
+        100,
+
+
+
+        memeID:
+        this.createID(),
+
+
+        DNA:
+        this.createDNA(),
+
+
+        imageFingerprint:
+        this.createImageFingerprint(canvas),
+
+
+        contract:
+        this.contract
+
+
+    };
+
+
+}
