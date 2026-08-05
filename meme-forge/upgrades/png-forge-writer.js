@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////
-// SPARKD PNG FORGE WRITER v0.4
-// PNG Metadata Chunk Injector + Signature Support
+here, make the change and give me a drop in> ////////////////////////////////////////////////////
+// SPARKD PNG FORGE WRITER v0.3
+// PNG Metadata Chunk Injector Prototype
 ////////////////////////////////////////////////////
 
 
@@ -43,13 +43,7 @@ window.SPARKD_PNG = {
 
 
             contract:
-            forgeRecord.contract,
-
-
-            // NEW: Forge Signature
-
-            signature:
-            forgeRecord.signature
+            forgeRecord.contract
 
 
         };
@@ -135,3 +129,264 @@ window.SPARKD_PNG = {
 
 
 };
+
+
+
+
+////////////////////////////////////////////////////
+// PNG TEXT CHUNK CREATOR
+////////////////////////////////////////////////////
+
+
+function injectPNGTextChunk(
+    pngBytes,
+    keyword,
+    text
+){
+
+
+    console.log(
+        "🔥 Injecting PNG chunk:",
+        keyword
+    );
+
+
+
+    // PNG signature
+    const signature =
+    pngBytes.slice(
+        0,
+        8
+    );
+
+
+
+    // Put chunk before IEND
+    let position =
+    pngBytes.length - 12;
+
+
+
+    const encoder =
+    new TextEncoder();
+
+
+
+    const chunkData =
+    encoder.encode(
+        keyword +
+        "\0" +
+        text
+    );
+
+
+
+    const chunk =
+    createPNGChunk(
+        "tEXt",
+        chunkData
+    );
+
+
+
+    const output =
+    new Uint8Array(
+        pngBytes.length +
+        chunk.length
+    );
+
+
+
+    output.set(
+        pngBytes.slice(
+            0,
+            position
+        ),
+        0
+    );
+
+
+    output.set(
+        chunk,
+        position
+    );
+
+
+    output.set(
+        pngBytes.slice(
+            position
+        ),
+        position +
+        chunk.length
+    );
+
+
+
+    return output;
+
+
+}
+
+
+
+
+
+////////////////////////////////////////////////////
+// PNG CHUNK BUILDER
+////////////////////////////////////////////////////
+
+
+function createPNGChunk(
+    type,
+    data
+){
+
+
+    const encoder =
+    new TextEncoder();
+
+
+    const typeBytes =
+    encoder.encode(
+        type
+    );
+
+
+
+    const chunk =
+    new Uint8Array(
+        12 +
+        data.length
+    );
+
+
+
+    const view =
+    new DataView(
+        chunk.buffer
+    );
+
+
+
+    view.setUint32(
+        0,
+        data.length
+    );
+
+
+
+    chunk.set(
+        typeBytes,
+        4
+    );
+
+
+
+    chunk.set(
+        data,
+        8
+    );
+
+
+
+    const crc =
+    crc32(
+        chunk.slice(
+            4,
+            8 + data.length
+        )
+    );
+
+
+
+    view.setUint32(
+        8 + data.length,
+        crc
+    );
+
+
+
+    return chunk;
+
+
+}
+
+
+
+
+////////////////////////////////////////////////////
+// CRC32 FOR PNG CHUNKS
+////////////////////////////////////////////////////
+
+
+function crc32(bytes){
+
+
+    let table =
+    [];
+
+
+
+    for(
+        let n=0;
+        n<256;
+        n++
+    ){
+
+        let c=n;
+
+
+        for(
+            let k=0;
+            k<8;
+            k++
+        ){
+
+            c =
+            (
+                c & 1
+            )
+            ?
+            0xEDB88320 ^
+            (c >>> 1)
+            :
+            c >>> 1;
+
+        }
+
+
+        table[n]=c;
+
+    }
+
+
+
+    let crc =
+    0xffffffff;
+
+
+
+    for(
+        let i=0;
+        i<bytes.length;
+        i++
+    ){
+
+        crc =
+        table[
+            (crc ^ bytes[i]) & 0xff
+        ]
+        ^
+        (crc >>> 8);
+
+    }
+
+
+
+    return (
+        crc ^
+        0xffffffff
+    ) >>> 0;
+
+
+}
