@@ -188,60 +188,100 @@ window.SPARKD_FORGE = {
 
 
 
-    ////////////////////////////////////////////////////
-    // CREATE FULL FORGE RECORD
-    ////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
+// CREATE FULL FORGE RECORD
+////////////////////////////////////////////////////
 
-    createRecord:function(canvas){
-
-
-        let record = {
+createRecord:function(canvas){
 
 
-            forge:
-            "SPARKD Meme Forge",
+    return {
 
 
-            version:
-            this.version,
+        forge:
+        "SPARKD Meme Forge",
 
 
-            created:
-            new Date()
-            .toISOString(),
+        version:
+        this.version,
 
 
-            memeID:
-            this.createID(),
-
-
-            DNA:
-            this.createDNA(),
-
-
-            imageFingerprint:
-            this.createImageFingerprint(canvas),
-
-
-            contract:
-            this.contract
-
-
-        };
+        created:
+        new Date()
+        .toISOString(),
 
 
 
-        // Add Forge Signature
+        ////////////////////////////////////////////////////
+        // CREATOR IDENTITY LAYER
+        ////////////////////////////////////////////////////
 
-        record.signature =
-        this.createSignature(record);
+        creatorID:
+        this.createCreatorID(),
+
+
+        wallet:
+        "NOT_CONNECTED",
+
+
+        reputation:
+        100,
 
 
 
-        return record;
+        memeID:
+        this.createID(),
+
+
+        DNA:
+        this.createDNA(),
+
+
+        imageFingerprint:
+        this.createImageFingerprint(canvas),
+
+
+        contract:
+        this.contract
+
+
+    };
+
+
+},
+
+
+
+////////////////////////////////////////////////////
+// CREATE CREATOR ID
+////////////////////////////////////////////////////
+
+createCreatorID:function(){
+
+
+    const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+
+    let id =
+    "CREATOR-";
+
+
+    for(let i=0;i<8;i++){
+
+
+        id +=
+        chars.charAt(
+            Math.floor(
+                Math.random()*chars.length
+            )
+        );
 
 
     }
 
 
-};
+    return id;
+
+
+},
