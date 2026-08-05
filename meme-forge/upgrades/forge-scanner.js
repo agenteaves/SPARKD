@@ -1,70 +1,85 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE SCANNER v0.1
-// Reads PNG Forge DNA
+// SPARKD FORGE SCANNER v1.0
 ////////////////////////////////////////////////////
-
 
 window.SPARKD_SCANNER = {
 
+    scan:function(file){
 
-scan:function(file){
+        const reader = new FileReader();
 
+        reader.onload = function(e){
 
-    const reader = new FileReader();
+            const bytes =
+            new Uint8Array(e.target.result);
 
+            const text =
+            new TextDecoder().decode(bytes);
 
-    reader.onload = function(e){
+            const marker = "SPARKD-FORGE";
 
+            if(text.includes(marker)){
 
-        const bytes =
-        new Uint8Array(e.target.result);
+                console.log("🔥 SPARKD FORGE DETECTED");
 
+                const start =
+                text.indexOf(marker);
 
-        const text =
-        new TextDecoder()
-        .decode(bytes);
+                console.log(
+                    text.substring(
+                        start,
+                        start + 500
+                    )
+                );
 
+            }
+            else{
 
+                console.log(
+                    "❌ No SPARKD Forge DNA found"
+                );
 
-        if(text.includes("SPARKD-FORGE")){
+            }
 
+        };
 
-            console.log(
-                "🔥 SPARKD FORGE DETECTED"
-            );
+        reader.readAsArrayBuffer(file);
 
+    }
 
-            const start =
-            text.indexOf("SPARKD-FORGE");
-
-
-            console.log(
-                text.substring(
-                    start,
-                    start + 500
-                )
-            );
-
-
-        }
-        else{
-
-
-            console.log(
-                "❌ No SPARKD Forge DNA found"
-            );
+};
 
 
-        }
+window.addEventListener("load",function(){
 
+    const btn =
+    document.getElementById("scanForgeBtn");
+
+    if(!btn) return;
+
+    btn.onclick=function(){
+
+        const picker =
+        document.createElement("input");
+
+        picker.type = "file";
+        picker.accept = ".png,image/png";
+
+        picker.onchange = function(e){
+
+            const file =
+            e.target.files[0];
+
+            if(file){
+
+                SPARKD_SCANNER.scan(file);
+
+            }
+
+        };
+
+        picker.click();
 
     };
 
-
-    reader.readAsArrayBuffer(file);
-
-
-}
-
-
-};
+});
