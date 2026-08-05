@@ -149,21 +149,15 @@ scan:function(file){
 // VERIFICATION DISPLAY
 ////////////////////////////////////////////////////
 
-
 function showForgeVerification(data){
 
-
     removeForgeNotice();
-
-
 
     const box =
     document.createElement("div");
 
-
     box.id =
     "forgeVerificationBox";
-
 
 
     box.innerHTML = `
@@ -181,9 +175,26 @@ function showForgeVerification(data){
     z-index:999999;
     font-family:Orbitron;
     box-shadow:0 0 30px #00ff88;
-    min-width:320px;
+    min-width:340px;
     text-align:center;
     ">
+
+
+    <button id="closeForgeVerify"
+    style="
+    position:absolute;
+    right:10px;
+    top:10px;
+    background:#ff6a00;
+    border:none;
+    color:white;
+    border-radius:50%;
+    width:30px;
+    height:30px;
+    cursor:pointer;
+    ">
+    X
+    </button>
 
 
     <h2 style="color:#00ff88;">
@@ -231,9 +242,17 @@ function showForgeVerification(data){
     `;
 
 
-
     document.body.appendChild(box);
 
+
+
+    document.getElementById(
+        "closeForgeVerify"
+    ).onclick=function(){
+
+        box.remove();
+
+    };
 
 
 }
