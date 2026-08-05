@@ -10,38 +10,18 @@ window.SPARKD_EXPORT = {
     attachForgeData:function(canvas, forgeRecord){
 
 
-        const payload = {
+       const payload = {
 
+    forge: forgeRecord.forge,
+    version: forgeRecord.version,
+    memeID: forgeRecord.memeID,
+    DNA: forgeRecord.DNA,
+    imageFingerprint: forgeRecord.imageFingerprint,
+    created: forgeRecord.created,
+    contract: forgeRecord.contract,
+    signature: forgeRecord.signature
 
-            SPARKD:
-            "Meme Forge",
-
-
-            VERSION:
-            forgeRecord.version,
-
-
-            ID:
-            forgeRecord.memeID,
-
-
-            DNA:
-            forgeRecord.DNA,
-
-
-            IMAGE:
-            forgeRecord.imageFingerprint,
-
-
-            CREATED:
-            forgeRecord.created,
-
-
-            CONTRACT:
-            forgeRecord.contract
-
-
-        };
+};
 
 
         const encoded =
