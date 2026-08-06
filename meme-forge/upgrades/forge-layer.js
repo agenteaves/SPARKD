@@ -285,6 +285,8 @@ window.SPARKD_FORGE = {
             imageFingerprint:
             this.createImageFingerprint(canvas),
 
+            imageLock:
+            this.createImageFingerprint(canvas),
 
             contract:
             this.contract
