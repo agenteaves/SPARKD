@@ -165,41 +165,116 @@ catch(error){
 
 
 
-            ////////////////////////////////////////////////////
-            // VERIFY SIGNATURE
-            ////////////////////////////////////////////////////
+           ////////////////////////////////////////////////////
+// VERIFY IMAGE LOCK + SIGNATURE
+////////////////////////////////////////////////////
 
 
-            const originalSignature =
-            forgeData.signature;
-
-
-
-            delete forgeData.signature;
+const originalSignature =
+forgeData.signature;
 
 
 
-            const calculatedSignature =
-            createVerificationSignature(
-                forgeData
-            );
+const originalImageLock =
+forgeData.imageLock;
 
 
 
-            if(
-                originalSignature &&
-                originalSignature === calculatedSignature
-            ){
+delete forgeData.signature;
 
 
-                console.log(
-                    "🔥 SIGNATURE VERIFIED"
-                );
+
+////////////////////////////////////////////////////
+// VERIFY METADATA SIGNATURE
+////////////////////////////////////////////////////
+
+const calculatedSignature =
+createVerificationSignature(
+    forgeData
+);
 
 
-                showForgeResult(
-                    true,
-                    `
+
+if(
+    !originalSignature ||
+    originalSignature !== calculatedSignature
+){
+
+    console.log(
+        "⚠️ SIGNATURE FAILED"
+    );
+
+
+    showForgeResult(
+        false,
+        `
+⚠️ SPARKD FORGE ALTERED
+
+Signature mismatch.
+
+Metadata was changed.
+        `
+    );
+
+
+    return;
+
+}
+
+
+
+////////////////////////////////////////////////////
+// VERIFY IMAGE CONTENT LOCK
+////////////////////////////////////////////////////
+
+const currentImageHash =
+await createScannerImageFingerprint(
+    file
+);
+
+
+
+if(
+    originalImageLock &&
+    originalImageLock !== currentImageHash
+){
+
+    console.log(
+        "⚠️ IMAGE LOCK FAILED"
+    );
+
+
+    showForgeResult(
+        false,
+        `
+⚠️ SPARKD FORGE ALTERED
+
+Image content changed.
+
+Original:
+${originalImageLock}
+
+Current:
+${currentImageHash}
+        `
+    );
+
+
+    return;
+
+}
+
+
+
+console.log(
+    "🔥 SIGNATURE VERIFIED"
+);
+
+
+
+showForgeResult(
+    true,
+    `
 🔥 SPARKD FORGE VERIFIED
 
 Creator:
@@ -214,52 +289,13 @@ ${forgeData.DNA}
 Signature:
 ${originalSignature}
 
+Image Lock:
+PASS
+
 Integrity:
 PASS
-                    `
-                );
-
-
-            }
-            else{
-
-
-                console.log(
-                    "⚠️ SIGNATURE FAILED"
-                );
-
-
-                showForgeResult(
-                    false,
-                    `
-⚠️ SPARKD FORGE ALTERED
-
-DNA Found
-
-Signature mismatch.
-
-Image or metadata may have been modified.
-                    `
-                );
-
-
-            }
-
-
-
-        };
-
-
-
-        reader.readAsArrayBuffer(
-            file
-        );
-
-
-    }
-
-
-};
+    `
+);
 
 
 
