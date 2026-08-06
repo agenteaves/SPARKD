@@ -16,7 +16,7 @@ window.SPARKD_SCANNER = {
 
 
         reader.onload =
-        function(e){
+        async function(e){
 
 
             const bytes =
