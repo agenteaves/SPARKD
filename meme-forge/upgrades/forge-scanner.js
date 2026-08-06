@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE SCANNER v1.1
-// DNA Detection + Signature Verification
+// SPARKD FORGE SCANNER v1.2
+// DNA Detection + Signature Verification + Image Lock
 ////////////////////////////////////////////////////
 
 
@@ -52,9 +52,7 @@ window.SPARKD_SCANNER = {
 
                 return;
 
-
             }
-
 
 
 
@@ -65,94 +63,85 @@ window.SPARKD_SCANNER = {
 
 
 
-            const end =
+            const jsonStart =
             text.indexOf(
-                "\0",
+                "{",
                 start
             );
 
 
 
-            ////////////////////////////////////////////////////
-// EXTRACT JSON PAYLOAD FROM PNG TEXT CHUNK
-////////////////////////////////////////////////////
-
-const jsonStart =
-text.indexOf(
-    "{",
-    start
-);
-
-
-const jsonEnd =
-text.indexOf(
-    "}",
-    jsonStart
-);
-
-
-if(
-    jsonStart === -1 ||
-    jsonEnd === -1
-){
-
-    console.log(
-        "❌ Forge JSON not found"
-    );
-
-
-    showForgeResult(
-        false,
-        "❌ FORGE DATA CORRUPTED"
-    );
-
-
-    return;
-
-}
+            const jsonEnd =
+            text.indexOf(
+                "}",
+                jsonStart
+            );
 
 
 
-let jsonText =
-text.substring(
-    jsonStart,
-    jsonEnd + 1
-);
+            if(
+                jsonStart === -1 ||
+                jsonEnd === -1
+            ){
+
+
+                console.log(
+                    "❌ Forge JSON not found"
+                );
+
+
+                showForgeResult(
+                    false,
+                    "❌ FORGE DATA CORRUPTED"
+                );
+
+
+                return;
+
+            }
 
 
 
-let forgeData;
+            let jsonText =
+            text.substring(
+                jsonStart,
+                jsonEnd + 1
+            );
 
 
-try{
+
+            let forgeData;
 
 
-    forgeData =
-    JSON.parse(
-        jsonText
-    );
+
+            try{
 
 
-}
-catch(error){
+                forgeData =
+                JSON.parse(
+                    jsonText
+                );
 
 
-    console.log(
-        "❌ JSON parse failed",
-        jsonText
-    );
+            }
+            catch(error){
 
 
-    showForgeResult(
-        false,
-        "❌ FORGE DATA CORRUPTED"
-    );
+                console.log(
+                    "❌ JSON parse failed",
+                    jsonText
+                );
 
 
-    return;
+                showForgeResult(
+                    false,
+                    "❌ FORGE DATA CORRUPTED"
+                );
 
 
-}
+                return;
+
+            }
 
 
 
@@ -163,90 +152,88 @@ catch(error){
 
 
 
+            ////////////////////////////////////////////////////
+            // SAVE ORIGINAL VALUES
+            ////////////////////////////////////////////////////
+
+            const originalSignature =
+            forgeData.signature;
 
 
-           ////////////////////////////////////////////////////
-// VERIFY IMAGE LOCK + SIGNATURE
-////////////////////////////////////////////////////
-
-
-const originalSignature =
-forgeData.signature;
-
-
-
-const originalImageLock =
-forgeData.imageLock;
+            const originalImageLock =
+            forgeData.imageLock;
 
 
 
-delete forgeData.signature;
+            delete forgeData.signature;
 
 
 
-////////////////////////////////////////////////////
-// VERIFY METADATA SIGNATURE
-////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////
+            // VERIFY SIGNATURE
+            ////////////////////////////////////////////////////
 
-const calculatedSignature =
-createVerificationSignature(
-    forgeData
-);
-
-
-
-if(
-    !originalSignature ||
-    originalSignature !== calculatedSignature
-){
-
-    console.log(
-        "⚠️ SIGNATURE FAILED"
-    );
+            const calculatedSignature =
+            createVerificationSignature(
+                forgeData
+            );
 
 
-    showForgeResult(
-        false,
-        `
+
+            if(
+                !originalSignature ||
+                originalSignature !== calculatedSignature
+            ){
+
+
+                console.log(
+                    "⚠️ SIGNATURE FAILED"
+                );
+
+
+                showForgeResult(
+                    false,
+`
 ⚠️ SPARKD FORGE ALTERED
 
 Signature mismatch.
 
 Metadata was changed.
-        `
-    );
+`
+                );
 
 
-    return;
+                return;
 
-}
-
-
-
-////////////////////////////////////////////////////
-// VERIFY IMAGE CONTENT LOCK
-////////////////////////////////////////////////////
-
-const currentImageHash =
-await createScannerImageFingerprint(
-    file
-);
+            }
 
 
 
-if(
-    originalImageLock &&
-    originalImageLock !== currentImageHash
-){
+            ////////////////////////////////////////////////////
+            // VERIFY IMAGE LOCK
+            ////////////////////////////////////////////////////
 
-    console.log(
-        "⚠️ IMAGE LOCK FAILED"
-    );
+            const currentImageHash =
+            await createScannerImageFingerprint(
+                file
+            );
 
 
-    showForgeResult(
-        false,
-        `
+
+            if(
+                originalImageLock &&
+                originalImageLock !== currentImageHash
+            ){
+
+
+                console.log(
+                    "⚠️ IMAGE LOCK FAILED"
+                );
+
+
+                showForgeResult(
+                    false,
+`
 ⚠️ SPARKD FORGE ALTERED
 
 Image content changed.
@@ -256,25 +243,25 @@ ${originalImageLock}
 
 Current:
 ${currentImageHash}
-        `
-    );
+`
+                );
 
 
-    return;
+                return;
 
-}
-
-
-
-console.log(
-    "🔥 SIGNATURE VERIFIED"
-);
+            }
 
 
 
-showForgeResult(
-    true,
-    `
+            console.log(
+                "🔥 SIGNATURE VERIFIED"
+            );
+
+
+
+            showForgeResult(
+                true,
+`
 🔥 SPARKD FORGE VERIFIED
 
 Creator:
@@ -294,8 +281,24 @@ PASS
 
 Integrity:
 PASS
-    `
-);
+`
+            );
+
+
+
+        };
+
+
+
+        reader.readAsArrayBuffer(
+            file
+        );
+
+
+    }
+
+
+};
 
 
 
@@ -309,6 +312,7 @@ function createVerificationSignature(data){
 
 
     const sorted = {};
+
 
 
     Object.keys(data)
@@ -369,10 +373,10 @@ function createVerificationSignature(data){
 
 
 
+
 ////////////////////////////////////////////////////
 // RESULT DISPLAY
 ////////////////////////////////////////////////////
-
 
 function showForgeResult(
     success,
@@ -399,6 +403,7 @@ function showForgeResult(
     document.createElement(
         "div"
     );
+
 
 
     box.id =
@@ -465,17 +470,23 @@ function showForgeResult(
 
 }
 
+
+
+
+
 ////////////////////////////////////////////////////
 // SCANNER IMAGE FINGERPRINT
 ////////////////////////////////////////////////////
 
 function createScannerImageFingerprint(file){
 
+
     return new Promise(function(resolve){
 
 
         const reader =
         new FileReader();
+
 
 
         reader.onload =
@@ -486,7 +497,9 @@ function createScannerImageFingerprint(file){
             e.target.result;
 
 
+
             let hash = 0;
+
 
 
             for(
@@ -495,31 +508,41 @@ function createScannerImageFingerprint(file){
                 i++
             ){
 
+
                 hash =
                 ((hash<<5)-hash)
                 +data.charCodeAt(i);
 
 
+
                 hash =
                 hash & hash;
+
 
             }
 
 
+
             resolve(
+
                 "IMG-" +
                 Math.abs(hash)
                 .toString(16)
                 .toUpperCase()
+
             );
 
 
         };
 
 
-        reader.readAsDataURL(file);
+
+        reader.readAsDataURL(
+            file
+        );
 
 
     });
 
-}            
+
+}
