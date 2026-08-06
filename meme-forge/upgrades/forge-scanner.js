@@ -266,15 +266,31 @@ Image or metadata may have been modified.
 
 
 ////////////////////////////////////////////////////
-// SIGNATURE MATCH FUNCTION
+// STABLE SIGNATURE VERIFICATION
 ////////////////////////////////////////////////////
-
 
 function createVerificationSignature(data){
 
 
+    const sorted = {};
+
+
+    Object.keys(data)
+    .sort()
+    .forEach(function(key){
+
+
+        sorted[key] =
+        data[key];
+
+
+    });
+
+
+
     const text =
-    JSON.stringify(data);
+    JSON.stringify(sorted);
+
 
 
     let hash = 0;
@@ -282,8 +298,8 @@ function createVerificationSignature(data){
 
 
     for(
-        let i=0;
-        i<text.length;
+        let i = 0;
+        i < text.length;
         i++
     ){
 
@@ -313,7 +329,6 @@ function createVerificationSignature(data){
 
 
 }
-
 
 
 
