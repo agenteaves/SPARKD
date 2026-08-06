@@ -36,7 +36,9 @@ window.SPARKD_PNG = {
 
             imageFingerprint:
             forgeRecord.imageFingerprint,
-
+            
+            imageLock:
+            forgeRecord.imageLock,
 
             created:
             forgeRecord.created,
