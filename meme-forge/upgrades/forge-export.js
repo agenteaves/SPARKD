@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE EXPORT v0.2
-// Hidden Origin Payload Generator
+// SPARKD FORGE EXPORT v0.3
+// Hidden Origin Payload Generator + Stable Signature
 ////////////////////////////////////////////////////
 
 
@@ -8,6 +8,7 @@ window.SPARKD_EXPORT = {
 
 
     attachForgeData:function(canvas, forgeRecord){
+
 
 
         const payload = {
@@ -41,10 +42,6 @@ window.SPARKD_EXPORT = {
             forgeRecord.contract,
 
 
-            signature:
-            forgeRecord.signature,
-
-
             creatorID:
             forgeRecord.creatorID,
 
@@ -57,7 +54,16 @@ window.SPARKD_EXPORT = {
             forgeRecord.reputation
 
 
+
         };
+
+
+
+        // CREATE SIGNATURE AFTER DATA IS READY
+
+        payload.signature =
+        createForgeSignature(payload);
+
 
 
 
@@ -82,3 +88,83 @@ window.SPARKD_EXPORT = {
 
 
 };
+
+
+
+
+
+////////////////////////////////////////////////////
+// SPARKD STABLE SIGNATURE CREATOR
+////////////////////////////////////////////////////
+
+
+function createForgeSignature(data){
+
+
+
+    const copy = {};
+
+
+
+    Object.keys(data)
+    .sort()
+    .forEach(function(key){
+
+
+        if(
+            key !== "signature"
+        ){
+
+
+            copy[key] =
+            data[key];
+
+
+        }
+
+
+    });
+
+
+
+    const text =
+    JSON.stringify(copy);
+
+
+
+    let hash = 0;
+
+
+
+    for(
+        let i = 0;
+        i < text.length;
+        i++
+    ){
+
+
+        hash =
+        ((hash<<5)-hash)
+        +text.charCodeAt(i);
+
+
+
+        hash =
+        hash & hash;
+
+
+    }
+
+
+
+    return (
+
+        "SIG-" +
+        Math.abs(hash)
+        .toString(16)
+        .toUpperCase()
+
+    );
+
+
+}
