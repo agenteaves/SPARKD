@@ -63,6 +63,10 @@ window.SPARKD_EXPORT = {
 
         payload.signature =
         createForgeSignature(payload);
+        
+        
+        forgeRecord.signature =
+        payload.signature;
 
 
 
