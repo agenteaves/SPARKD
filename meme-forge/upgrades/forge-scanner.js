@@ -476,6 +476,7 @@ function showForgeResult(
 
 ////////////////////////////////////////////////////
 // SCANNER IMAGE FINGERPRINT
+// Pixel hash - ignores PNG metadata
 ////////////////////////////////////////////////////
 
 function createScannerImageFingerprint(file){
@@ -484,17 +485,56 @@ function createScannerImageFingerprint(file){
     return new Promise(function(resolve){
 
 
-        const reader =
-        new FileReader();
+        const img =
+        new Image();
 
 
 
-        reader.onload =
-        function(e){
+        img.onload =
+        function(){
+
+
+            const tempCanvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+            tempCanvas.width =
+            img.width;
+
+
+            tempCanvas.height =
+            img.height;
+
+
+
+            const ctx =
+            tempCanvas.getContext(
+                "2d"
+            );
+
+
+            ctx.drawImage(
+                img,
+                0,
+                0
+            );
+
+
+
+            const imageData =
+            ctx.getImageData(
+                0,
+                0,
+                tempCanvas.width,
+                tempCanvas.height
+            );
+
 
 
             const data =
-            e.target.result;
+            imageData.data;
 
 
 
@@ -510,9 +550,8 @@ function createScannerImageFingerprint(file){
 
 
                 hash =
-                ((hash<<5)-hash)
-                +data.charCodeAt(i);
-
+                ((hash << 5) - hash)
+                + data[i];
 
 
                 hash =
@@ -537,7 +576,8 @@ function createScannerImageFingerprint(file){
 
 
 
-        reader.readAsDataURL(
+        img.src =
+        URL.createObjectURL(
             file
         );
 
