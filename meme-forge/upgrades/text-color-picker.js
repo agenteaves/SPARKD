@@ -1,26 +1,23 @@
 ////////////////////////////////////////////////////
 // SPARKD MEME FORGE
-// TEXT COLOR PICKER
+// TEXT COLOR PICKER - MOVABLE VERSION
 ////////////////////////////////////////////////////
 
 
 window.addEventListener("load", function(){
 
 
-
     const colorMenu =
     document.createElement("div");
-
 
 
     colorMenu.id =
     "textColorMenu";
 
 
-
     colorMenu.innerHTML = `
 
-        <div class="colorTitle">
+        <div class="colorTitle" id="colorDragHandle">
             Text Color
         </div>
 
@@ -57,7 +54,6 @@ window.addEventListener("load", function(){
     `;
 
 
-
     document.body.appendChild(colorMenu);
 
 
@@ -66,24 +62,115 @@ window.addEventListener("load", function(){
     "none";
 
 
+    colorMenu.style.position =
+    "fixed";
 
 
 
-    canvas.on("selection:created", showColorMenu);
+    ////////////////////////////////////////////////////
+    // MAKE COLOR MENU DRAGGABLE
+    ////////////////////////////////////////////////////
+
+    const dragHandle =
+    document.getElementById(
+        "colorDragHandle"
+    );
 
 
-    canvas.on("selection:updated", showColorMenu);
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
 
 
 
-    canvas.on("selection:cleared", function(){
+    dragHandle.style.cursor =
+    "move";
 
 
-        colorMenu.style.display =
-        "none";
+
+    dragHandle.onmousedown =
+    function(e){
 
 
-    });
+        dragging = true;
+
+
+        offsetX =
+        e.clientX -
+        colorMenu.offsetLeft;
+
+
+        offsetY =
+        e.clientY -
+        colorMenu.offsetTop;
+
+
+        e.preventDefault();
+
+    };
+
+
+
+    document.onmousemove =
+    function(e){
+
+
+        if(!dragging){
+            return;
+        }
+
+
+        colorMenu.style.left =
+        (e.clientX - offsetX) + "px";
+
+
+        colorMenu.style.top =
+        (e.clientY - offsetY) + "px";
+
+
+    };
+
+
+
+    document.onmouseup =
+    function(){
+
+        dragging = false;
+
+    };
+
+
+
+
+
+
+    ////////////////////////////////////////////////////
+    // SHOW / HIDE MENU
+    ////////////////////////////////////////////////////
+
+
+    canvas.on(
+        "selection:created",
+        showColorMenu
+    );
+
+
+    canvas.on(
+        "selection:updated",
+        showColorMenu
+    );
+
+
+
+    canvas.on(
+        "selection:cleared",
+        function(){
+
+            colorMenu.style.display =
+            "none";
+
+        }
+    );
 
 
 
@@ -92,7 +179,6 @@ window.addEventListener("load", function(){
 
 
     function showColorMenu(e){
-
 
 
         const obj =
@@ -106,20 +192,25 @@ window.addEventListener("load", function(){
         ){
 
 
-
             colorMenu.style.display =
             "block";
 
 
+            // Only set starting position once
+            if(!colorMenu.dataset.positioned){
 
-            colorMenu.style.left =
-            "20px";
+                colorMenu.style.left =
+                "20px";
 
 
+                colorMenu.style.top =
+                "120px";
 
-            colorMenu.style.top =
-            "120px";
 
+                colorMenu.dataset.positioned =
+                "true";
+
+            }
 
 
         }
@@ -133,7 +224,6 @@ window.addEventListener("load", function(){
         }
 
 
-
     }
 
 
@@ -143,12 +233,18 @@ window.addEventListener("load", function(){
 
 
 
+    ////////////////////////////////////////////////////
+    // COLOR BUTTONS
+    ////////////////////////////////////////////////////
+
+
     colorMenu.querySelectorAll("button")
     .forEach(function(button){
 
 
 
-        button.onclick=function(){
+        button.onclick =
+        function(){
 
 
 
@@ -168,8 +264,6 @@ window.addEventListener("load", function(){
 
 
 
-
-
             obj.set({
 
                 fill:
@@ -182,9 +276,7 @@ window.addEventListener("load", function(){
             canvas.renderAll();
 
 
-
         };
-
 
 
     });
