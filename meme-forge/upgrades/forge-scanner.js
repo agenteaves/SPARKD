@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE SCANNER v2.0
-// PNG Forge DNA Certificate Reader
+// SPARKD FORGE SCANNER v1.1
+// DNA Detection + Signature Verification
 ////////////////////////////////////////////////////
 
 
@@ -10,14 +10,19 @@ window.SPARKD_SCANNER = {
     scan:function(file){
 
 
-        const reader = new FileReader();
+        const reader =
+        new FileReader();
 
 
-        reader.onload = function(e){
+
+        reader.onload =
+        function(e){
 
 
             const bytes =
-            new Uint8Array(e.target.result);
+            new Uint8Array(
+                e.target.result
+            );
 
 
             const text =
@@ -31,10 +36,6 @@ window.SPARKD_SCANNER = {
 
 
 
-            ////////////////////////////////////////////////////
-            // NO FORGE DNA FOUND
-            ////////////////////////////////////////////////////
-
             if(!text.includes(marker)){
 
 
@@ -43,7 +44,10 @@ window.SPARKD_SCANNER = {
                 );
 
 
-                showForgeResult(false);
+                showForgeResult(
+                    false,
+                    "❌ UNVERIFIED IMAGE\n\nNo SPARKD Forge DNA signature detected."
+                );
 
 
                 return;
@@ -54,66 +58,74 @@ window.SPARKD_SCANNER = {
 
 
 
-            ////////////////////////////////////////////////////
-            // EXTRACT PAYLOAD
-            ////////////////////////////////////////////////////
-
-            console.log(
-                "🔥 SPARKD FORGE DETECTED"
-            );
-
-
-
             const start =
-            text.indexOf(marker);
+            text.indexOf(marker)
+            + marker.length
+            + 1;
 
 
 
-            const raw =
-            text.substring(
-                start + marker.length
+            const end =
+            text.indexOf(
+                "\0",
+                start
             );
 
 
 
-            let jsonStart =
-            raw.indexOf("{");
+            let jsonText;
 
 
 
-            let jsonEnd =
-            raw.indexOf("}");
+            if(end !== -1){
+
+                jsonText =
+                text.substring(
+                    start,
+                    end
+                );
+
+            }
+            else{
+
+                jsonText =
+                text.substring(
+                    start,
+                    start + 1000
+                );
+
+            }
 
 
 
-            let payload = null;
+
+
+            let forgeData;
 
 
 
             try{
 
 
-                payload =
+                forgeData =
                 JSON.parse(
-                    raw.substring(
-                        jsonStart,
-                        jsonEnd + 1
-                    )
+                    jsonText
                 );
 
 
             }
-
             catch(error){
 
 
                 console.log(
-                    "Forge data parse failed",
-                    error
+                    "❌ Forge data corrupted"
                 );
 
 
-                showForgeResult(false);
+                showForgeResult(
+                    false,
+                    "❌ FORGE DATA CORRUPTED"
+                );
 
 
                 return;
@@ -125,36 +137,91 @@ window.SPARKD_SCANNER = {
 
 
 
+            console.log(
+                "🔥 SPARKD FORGE DATA:",
+                forgeData
+            );
+
+
+
+
+
             ////////////////////////////////////////////////////
-            // VERIFY FORGE CERTIFICATE
+            // VERIFY SIGNATURE
             ////////////////////////////////////////////////////
+
+
+            const originalSignature =
+            forgeData.signature;
+
+
+
+            delete forgeData.signature;
+
+
+
+            const calculatedSignature =
+            createVerificationSignature(
+                forgeData
+            );
+
 
 
             if(
-                payload.forge === "SPARKD Meme Forge" &&
-                payload.signature
+                originalSignature &&
+                originalSignature === calculatedSignature
             ){
 
 
                 console.log(
-                    "🔥 SPARKD FORGE VERIFIED",
-                    payload
+                    "🔥 SIGNATURE VERIFIED"
                 );
-
 
 
                 showForgeResult(
                     true,
-                    payload
+                    `
+🔥 SPARKD FORGE VERIFIED
+
+Creator:
+${forgeData.creatorID}
+
+Meme ID:
+${forgeData.memeID}
+
+DNA:
+${forgeData.DNA}
+
+Signature:
+${originalSignature}
+
+Integrity:
+PASS
+                    `
                 );
 
 
             }
-
             else{
 
 
-                showForgeResult(false);
+                console.log(
+                    "⚠️ SIGNATURE FAILED"
+                );
+
+
+                showForgeResult(
+                    false,
+                    `
+⚠️ SPARKD FORGE ALTERED
+
+DNA Found
+
+Signature mismatch.
+
+Image or metadata may have been modified.
+                    `
+                );
 
 
             }
@@ -165,7 +232,9 @@ window.SPARKD_SCANNER = {
 
 
 
-        reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(
+            file
+        );
 
 
     }
@@ -178,38 +247,92 @@ window.SPARKD_SCANNER = {
 
 
 ////////////////////////////////////////////////////
-// RESULT DISPLAY
+// SIGNATURE MATCH FUNCTION
 ////////////////////////////////////////////////////
 
 
-function showForgeResult(
-    verified,
-    data
-){
+function createVerificationSignature(data){
+
+
+    const text =
+    JSON.stringify(data);
+
+
+    let hash = 0;
 
 
 
-    const old =
-    document.getElementById(
-        "forgeCertificateBox"
-    );
+    for(
+        let i=0;
+        i<text.length;
+        i++
+    ){
 
 
-    if(old){
+        hash =
+        ((hash<<5)-hash)
+        +text.charCodeAt(i);
 
-        old.remove();
+
+
+        hash =
+        hash & hash;
+
 
     }
 
 
 
+    return (
 
-    const box =
-    document.createElement("div");
+        "SIG-" +
+        Math.abs(hash)
+        .toString(16)
+        .toUpperCase()
+
+    );
+
+
+}
+
+
+
+
+
+////////////////////////////////////////////////////
+// RESULT DISPLAY
+////////////////////////////////////////////////////
+
+
+function showForgeResult(
+    success,
+    message
+){
+
+
+    let box =
+    document.getElementById(
+        "sparkdForgeResult"
+    );
+
+
+
+    if(box){
+
+        box.remove();
+
+    }
+
+
+
+    box =
+    document.createElement(
+        "div"
+    );
 
 
     box.id =
-    "forgeCertificateBox";
+    "sparkdForgeResult";
 
 
 
@@ -229,14 +352,10 @@ function showForgeResult(
     "translateX(-50%)";
 
 
-
-    box.style.zIndex =
-    "99999";
-
-
-
     box.style.background =
-    "#111";
+    success
+    ? "#0b6623"
+    : "#8b0000";
 
 
     box.style.color =
@@ -248,133 +367,30 @@ function showForgeResult(
 
 
     box.style.borderRadius =
-    "12px";
+    "10px";
 
 
-    box.style.fontFamily =
-    "Arial";
+    box.style.zIndex =
+    "99999";
 
 
-
-    box.style.boxShadow =
-    "0 0 20px black";
-
-
-
-    if(verified){
+    box.style.whiteSpace =
+    "pre-line";
 
 
 
-        box.innerHTML = `
-
-
-        <h2>
-        ✅ SPARKD FORGE VERIFIED
-        </h2>
-
-
-        <p>
-        <b>Forge:</b>
-        ${data.forge}
-        </p>
-
-
-        <p>
-        <b>Version:</b>
-        ${data.version}
-        </p>
-
-
-        <p>
-        <b>Meme ID:</b>
-        ${data.memeID}
-        </p>
-
-
-        <p>
-        <b>DNA:</b>
-        ${data.DNA}
-        </p>
-
-
-        <p>
-        <b>Image:</b>
-        ${data.imageFingerprint}
-        </p>
-
-
-        <p>
-        <b>Signature:</b>
-        ${data.signature}
-        </p>
-
-
-        <p>
-        ✔ Authentic SPARKD Forge Export
-        </p>
-
-
-        <button id="closeForgeCertificate">
-        Close
-        </button>
-
-
-        `;
-
-
-    }
-
-    else{
+    box.innerHTML =
+    message +
+    `<br><br>
+    <button onclick="this.parentElement.remove()">
+    ✖ Close
+    </button>`;
 
 
 
-        box.innerHTML = `
-
-
-        <h2>
-        ❌ UNVERIFIED IMAGE
-        </h2>
-
-
-        <p>
-        No SPARKD Forge DNA signature detected.
-        </p>
-
-
-        <p>
-        This file was not created or exported through SPARKD Meme Forge.
-        </p>
-
-
-        <button id="closeForgeCertificate">
-        Close
-        </button>
-
-
-        `;
-
-
-    }
-
-
-
-
-    document.body.appendChild(box);
-
-
-
-
-    document.getElementById(
-        "closeForgeCertificate"
-    ).onclick =
-    function(){
-
-
-        box.remove();
-
-
-    };
-
+    document.body.appendChild(
+        box
+    );
 
 
 }
