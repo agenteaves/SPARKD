@@ -138,6 +138,11 @@ window.SPARKD_PNG = {
         );
 
 
+        console.log(
+            "🔥 FINAL PNG SIZE:",
+            blob.size
+        );
+
 
         return URL.createObjectURL(
             blob
