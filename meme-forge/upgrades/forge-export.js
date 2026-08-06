@@ -33,6 +33,9 @@ window.SPARKD_EXPORT = {
             imageFingerprint:
             forgeRecord.imageFingerprint,
 
+            imageLock:
+            forgeRecord.imageLock,
+
 
             created:
             forgeRecord.created,
