@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE LAYER v0.3
-// Meme Identity + Creator Identity System
+// SPARKD FORGE LAYER v0.4
+// Meme Identity + Creator Identity + Signature System
 ////////////////////////////////////////////////////
 
 
@@ -107,6 +107,53 @@ window.SPARKD_FORGE = {
 
 
     ////////////////////////////////////////////////////
+    // CREATE SIGNATURE
+    ////////////////////////////////////////////////////
+
+    createSignature:function(data){
+
+
+        const text =
+        JSON.stringify(data);
+
+
+        let hash = 0;
+
+
+        for(
+            let i=0;
+            i<text.length;
+            i++
+        ){
+
+            hash =
+            ((hash<<5)-hash)
+            +text.charCodeAt(i);
+
+
+            hash =
+            hash & hash;
+
+        }
+
+
+        return (
+
+            "SIG-" +
+            Math.abs(hash)
+            .toString(16)
+            .toUpperCase()
+
+        );
+
+
+    },
+
+
+
+
+
+    ////////////////////////////////////////////////////
     // CREATE IMAGE FINGERPRINT
     ////////////////////////////////////////////////////
 
@@ -193,7 +240,7 @@ window.SPARKD_FORGE = {
 
 
 
-        return {
+        let record = {
 
 
             forge:
@@ -244,6 +291,19 @@ window.SPARKD_FORGE = {
 
 
         };
+
+
+
+        ////////////////////////////////////////////////////
+        // ANTI-TAMPER SIGNATURE
+        ////////////////////////////////////////////////////
+
+        record.signature =
+        this.createSignature(record);
+
+
+
+        return record;
 
 
     }
