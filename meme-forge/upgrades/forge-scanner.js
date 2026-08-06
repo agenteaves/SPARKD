@@ -73,67 +73,86 @@ window.SPARKD_SCANNER = {
 
 
 
-            let jsonText;
+            ////////////////////////////////////////////////////
+// EXTRACT JSON PAYLOAD FROM PNG TEXT CHUNK
+////////////////////////////////////////////////////
+
+const jsonStart =
+text.indexOf(
+    "{",
+    start
+);
+
+
+const jsonEnd =
+text.indexOf(
+    "}",
+    jsonStart
+);
+
+
+if(
+    jsonStart === -1 ||
+    jsonEnd === -1
+){
+
+    console.log(
+        "❌ Forge JSON not found"
+    );
+
+
+    showForgeResult(
+        false,
+        "❌ FORGE DATA CORRUPTED"
+    );
+
+
+    return;
+
+}
 
 
 
-            if(end !== -1){
-
-                jsonText =
-                text.substring(
-                    start,
-                    end
-                );
-
-            }
-            else{
-
-                jsonText =
-                text.substring(
-                    start,
-                    start + 1000
-                );
-
-            }
+let jsonText =
+text.substring(
+    jsonStart,
+    jsonEnd + 1
+);
 
 
 
+let forgeData;
 
 
-            let forgeData;
+try{
 
 
-
-            try{
-
-
-                forgeData =
-                JSON.parse(
-                    jsonText
-                );
+    forgeData =
+    JSON.parse(
+        jsonText
+    );
 
 
-            }
-            catch(error){
+}
+catch(error){
 
 
-                console.log(
-                    "❌ Forge data corrupted"
-                );
+    console.log(
+        "❌ JSON parse failed",
+        jsonText
+    );
 
 
-                showForgeResult(
-                    false,
-                    "❌ FORGE DATA CORRUPTED"
-                );
+    showForgeResult(
+        false,
+        "❌ FORGE DATA CORRUPTED"
+    );
 
 
-                return;
+    return;
 
 
-            }
-
-
+}
 
 
 
