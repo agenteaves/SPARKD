@@ -561,6 +561,40 @@ img.onload = function(){
 
     );
 
+    ////////////////////////////////////////////////////
+// CREATE FORGE RECORD FROM FINAL PNG
+////////////////////////////////////////////////////
+
+if(window.SPARKD_FORGE){
+
+    forgeRecord =
+    SPARKD_FORGE.createRecord(
+        finalCanvas
+    );
+
+
+    console.log(
+        "🔥 SPARKD Forge Birth:",
+        forgeRecord
+    );
+
+
+}
+
+
+
+if(window.SPARKD_EXPORT && forgeRecord){
+
+
+    hiddenForgeData =
+    SPARKD_EXPORT.attachForgeData(
+        finalCanvas,
+        forgeRecord
+    );
+
+
+}
+
 
 
    const link = document.createElement("a");
