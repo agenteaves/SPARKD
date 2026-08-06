@@ -154,59 +154,85 @@ window.SPARKD_FORGE = {
 
 
     ////////////////////////////////////////////////////
-    // CREATE IMAGE FINGERPRINT
-    ////////////////////////////////////////////////////
+// CREATE IMAGE FINGERPRINT (PIXEL BASED)
+// Ignores PNG metadata
+////////////////////////////////////////////////////
 
-    createImageFingerprint:function(canvas){
-
-
-        try{
+createImageFingerprint:function(canvas){
 
 
-            const data =
-            canvas.toDataURL("image/png");
+    try{
 
 
-            let hash = 0;
+        const ctx =
+        canvas.getContext("2d");
 
 
-            for(let i=0;i<data.length;i++){
+        const imageData =
+        ctx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
 
 
-                hash =
-                ((hash<<5)-hash)
-                +data.charCodeAt(i);
+        const data =
+        imageData.data;
 
 
-                hash =
-                hash & hash;
-
-            }
+        let hash = 0;
 
 
 
-            return (
-
-                "IMG-" +
-                Math.abs(hash)
-                .toString(16)
-                .toUpperCase()
-
-            );
+        for(
+            let i = 0;
+            i < data.length;
+            i++
+        ){
 
 
-        }
+            hash =
+            ((hash << 5) - hash)
+            + data[i];
 
-        catch(error){
 
-
-            return "IMG-UNKNOWN";
+            hash =
+            hash & hash;
 
 
         }
 
 
-    },
+
+        return (
+
+            "IMG-" +
+            Math.abs(hash)
+            .toString(16)
+            .toUpperCase()
+
+        );
+
+
+    }
+
+    catch(error){
+
+
+        console.log(
+            "❌ Image fingerprint failed",
+            error
+        );
+
+
+        return "IMG-UNKNOWN";
+
+
+    }
+
+
+},
 
 
 
