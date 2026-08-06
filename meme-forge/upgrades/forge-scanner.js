@@ -464,3 +464,62 @@ function showForgeResult(
 
 
 }
+
+////////////////////////////////////////////////////
+// SCANNER IMAGE FINGERPRINT
+////////////////////////////////////////////////////
+
+function createScannerImageFingerprint(file){
+
+    return new Promise(function(resolve){
+
+
+        const reader =
+        new FileReader();
+
+
+        reader.onload =
+        function(e){
+
+
+            const data =
+            e.target.result;
+
+
+            let hash = 0;
+
+
+            for(
+                let i = 0;
+                i < data.length;
+                i++
+            ){
+
+                hash =
+                ((hash<<5)-hash)
+                +data.charCodeAt(i);
+
+
+                hash =
+                hash & hash;
+
+            }
+
+
+            resolve(
+                "IMG-" +
+                Math.abs(hash)
+                .toString(16)
+                .toUpperCase()
+            );
+
+
+        };
+
+
+        reader.readAsDataURL(file);
+
+
+    });
+
+}            
