@@ -436,26 +436,11 @@ if(downloadBtn){
         canvas.renderAll();
 
 ////////////////////////////////////////////////////
-// CREATE SPARKD FORGE BIRTH RECORD
+// SPARKD FORGE RECORD CREATED AFTER FINAL IMAGE
 ////////////////////////////////////////////////////
 
 let forgeRecord = null;
 let hiddenForgeData = null;
-
-
-if(window.SPARKD_FORGE){
-
-    forgeRecord =
-    SPARKD_FORGE.createRecord(canvas);
-
-
-    console.log(
-        "🔥 SPARKD Forge Birth:",
-        forgeRecord
-    );
-
-
-}
 
 
 
