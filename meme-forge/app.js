@@ -223,16 +223,17 @@ if(uploadBtn && imageInput){
 
 
 
-            if(containsUnsafeContent(file.name)){
-
-
-                alert("This image name is not allowed.");
-
+            const allowed =
+            await SPARKD_GUARD.check(file);
+            
+            
+            if(!allowed){
+            
                 imageInput.value = "";
-
+            
                 return;
 
-            }
+}
 
 
 
