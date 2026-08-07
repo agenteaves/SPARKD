@@ -1,3 +1,4 @@
+```javascript
 ////////////////////////////////////////////////////
 // SPARKD MEME FORGE v1.1
 // COMPLETE APP ENGINE
@@ -5,9 +6,10 @@
 
 window.addEventListener("load", function(){
 
-// ================================
+
+////////////////////////////////////////////////////
 // CONTENT SAFETY FILTER
-// ================================
+////////////////////////////////////////////////////
 
 const blockedWords = [
 
@@ -38,7 +40,6 @@ const blockedWords = [
 
 function containsUnsafeContent(text){
 
-
     if(!text){
 
         return false;
@@ -51,38 +52,46 @@ function containsUnsafeContent(text){
         .replace(/[^a-z0-9\s]/g,"");
 
 
-    return blockedWords.some(word =>
+    return blockedWords.some(function(word){
 
-        cleanText.includes(word)
+        return cleanText.includes(word);
 
-    );
+    });
 
 }
-    
-// ================================
+
+
+////////////////////////////////////////////////////
 // SPARKD OFFICIAL CONTRACT
-// ================================
+////////////////////////////////////////////////////
 
 const SPARKD_CONTRACT =
 "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
 
-    
+
 ////////////////////////////////////////////////////
 // EMOJI PICKER
 ////////////////////////////////////////////////////
 
-const emojiBtn = document.getElementById("emojiBtn");
-const emojiPicker = document.getElementById("emojiPicker");
+const emojiBtn =
+document.getElementById("emojiBtn");
 
-if (emojiBtn && emojiPicker) {
+const emojiPicker =
+document.getElementById("emojiPicker");
 
-    emojiBtn.onclick = function () {
 
-        if (emojiPicker.style.display === "grid") {
+if(emojiBtn && emojiPicker){
+
+    emojiBtn.onclick = function(){
+
+        if(
+            emojiPicker.style.display === "grid"
+        ){
 
             emojiPicker.style.display = "none";
 
-        } else {
+        }
+        else{
 
             emojiPicker.style.display = "grid";
 
@@ -90,11 +99,15 @@ if (emojiBtn && emojiPicker) {
 
     };
 
-    document.querySelectorAll(".emojiOption").forEach(function(item){
+
+    document
+    .querySelectorAll(".emojiOption")
+    .forEach(function(item){
 
         item.onclick = function(){
 
-            const emoji = new fabric.Text(
+            const emoji =
+            new fabric.Text(
 
                 item.textContent,
 
@@ -114,6 +127,7 @@ if (emojiBtn && emojiPicker) {
 
             );
 
+
             canvas.add(emoji);
 
             canvas.setActiveObject(emoji);
@@ -126,47 +140,66 @@ if (emojiBtn && emojiPicker) {
 
     });
 
-    // Close picker if user clicks elsewhere
-    document.addEventListener("click", function(e){
 
-        if(!e.target.closest(".emojiContainer")){
+    document.addEventListener(
+        "click",
+        function(e){
 
-            emojiPicker.style.display = "none";
+            if(
+                !e.target.closest(
+                    ".emojiContainer"
+                )
+            ){
+
+                emojiPicker.style.display =
+                "none";
+
+            }
 
         }
-
-    });
+    );
 
 }
 
-// ================================
-// CREATE CANVAS
-// ================================
 
-window.canvas = new fabric.Canvas(
+////////////////////////////////////////////////////
+// CREATE CANVAS
+////////////////////////////////////////////////////
+
+window.canvas =
+new fabric.Canvas(
+
     "memeCanvas",
+
     {
+
         backgroundColor:"#ffffff",
+
         preserveObjectStacking:true
+
     }
+
 );
 
 
 canvas.setWidth(1080);
+
 canvas.setHeight(1080);
 
 
-
-// ================================
+////////////////////////////////////////////////////
 // RESIZE CANVAS VIEW
-// ================================
+////////////////////////////////////////////////////
 
 function resizeCanvasView(){
 
     const zoom =
     Math.min(
+
         window.innerWidth * 0.65,
+
         window.innerHeight * 0.65
+
     ) / 1080;
 
 
@@ -188,28 +221,35 @@ window.addEventListener(
 );
 
 
-
-```javascript
-// ================================
+////////////////////////////////////////////////////
 // IMAGE UPLOAD - AUTO FIT & CENTER
-// ================================
+////////////////////////////////////////////////////
 
-const uploadBtn = document.getElementById("uploadBtn");
-const imageInput = document.getElementById("imageInput");
+const uploadBtn =
+document.getElementById("uploadBtn");
+
+const imageInput =
+document.getElementById("imageInput");
+
 
 if(uploadBtn && imageInput){
 
-    uploadBtn.onclick = function(){
+    uploadBtn.onclick =
+    function(){
 
         imageInput.value = "";
+
         imageInput.click();
 
     };
 
 
-    imageInput.onchange = async function(e){
+    imageInput.onchange =
+    async function(e){
 
-        const file = e.target.files[0];
+        const file =
+        e.target.files[0];
+
 
         if(!file){
 
@@ -218,15 +258,19 @@ if(uploadBtn && imageInput){
         }
 
 
-        // ================================
-        // SPARKD CONTENT GUARD
-        // ================================
+        ////////////////////////////////////////////////////
+        // BASIC FILENAME SAFETY CHECK
+        ////////////////////////////////////////////////////
 
-        const allowed =
-            await SPARKD_GUARD.check(file);
+        if(
+            containsUnsafeContent(
+                file.name
+            )
+        ){
 
-
-        if(!allowed){
+            alert(
+                "🚫 This image name is not allowed."
+            );
 
             imageInput.value = "";
 
@@ -235,15 +279,64 @@ if(uploadBtn && imageInput){
         }
 
 
-        // ================================
+        ////////////////////////////////////////////////////
+        // SPARKD CONTENT GUARD
+        ////////////////////////////////////////////////////
+
+        if(
+            window.SPARKD_GUARD &&
+            typeof window.SPARKD_GUARD.check === "function"
+        ){
+
+            try{
+
+                const allowed =
+                await window.SPARKD_GUARD.check(
+                    file
+                );
+
+
+                if(!allowed){
+
+                    imageInput.value = "";
+
+                    return;
+
+                }
+
+            }
+            catch(error){
+
+                console.error(
+                    "SPARKD Content Guard error:",
+                    error
+                );
+
+
+                alert(
+                    "⚠️ Content Guard could not check this image."
+                );
+
+
+                imageInput.value = "";
+
+                return;
+
+            }
+
+        }
+
+
+        ////////////////////////////////////////////////////
         // LOAD IMAGE
-        // ================================
+        ////////////////////////////////////////////////////
 
         const reader =
-            new FileReader();
+        new FileReader();
 
 
-        reader.onload = function(event){
+        reader.onload =
+        function(event){
 
             fabric.Image.fromURL(
 
@@ -251,12 +344,19 @@ if(uploadBtn && imageInput){
 
                 function(img){
 
-                    // Canvas size
+                    ////////////////////////////////////////////////////
+                    // CANVAS SIZE
+                    ////////////////////////////////////////////////////
+
                     const canvasSize = 1080;
 
 
-                    // Scale image to fit canvas
-                    const scale = Math.min(
+                    ////////////////////////////////////////////////////
+                    // SCALE IMAGE TO FIT
+                    ////////////////////////////////////////////////////
+
+                    const scale =
+                    Math.min(
 
                         canvasSize / img.width,
 
@@ -268,14 +368,25 @@ if(uploadBtn && imageInput){
                     img.scale(scale);
 
 
-                    // Center image
+                    ////////////////////////////////////////////////////
+                    // CENTER IMAGE
+                    ////////////////////////////////////////////////////
+
                     img.set({
 
                         left:
-                            (canvasSize - img.getScaledWidth()) / 2,
+                        (
+                            canvasSize -
+                            img.getScaledWidth()
+                        ) / 2,
+
 
                         top:
-                            (canvasSize - img.getScaledHeight()) / 2,
+                        (
+                            canvasSize -
+                            img.getScaledHeight()
+                        ) / 2,
+
 
                         cornerColor:"#ff6600",
 
@@ -284,11 +395,17 @@ if(uploadBtn && imageInput){
                     });
 
 
-                    // Add image
+                    ////////////////////////////////////////////////////
+                    // ADD IMAGE
+                    ////////////////////////////////////////////////////
+
                     canvas.add(img);
 
 
-                    // Keep uploaded image behind text
+                    ////////////////////////////////////////////////////
+                    // KEEP IMAGE BEHIND TEXT
+                    ////////////////////////////////////////////////////
+
                     canvas.sendToBack(img);
 
 
@@ -309,100 +426,108 @@ if(uploadBtn && imageInput){
     };
 
 }
-```
 
 
-// ================================
+////////////////////////////////////////////////////
 // ADD TEXT
-// ================================
+////////////////////////////////////////////////////
 
-const addTextBtn = document.getElementById("addTextBtn");
-const textInput = document.getElementById("textInput");
+const addTextBtn =
+document.getElementById("addTextBtn");
+
+const textInput =
+document.getElementById("textInput");
 
 
 if(addTextBtn){
 
+    addTextBtn.onclick =
+    function(){
 
-    addTextBtn.onclick = function(){
-        
-       if(window.SPARKD_GUARD){
+        ////////////////////////////////////////////////////
+        // CREATE MEME TEXT
+        ////////////////////////////////////////////////////
 
-        const allowed =
-        await SPARKD_GUARD.check(file);
-    
-    
-        if(!allowed){
-    
-            imageInput.value = "";
-    
-            return;
+        const memeText =
+        new fabric.IText(
 
-    }
+            textInput
+            ? textInput.value || "SPARKD"
+            : "SPARKD",
 
-}
+            {
 
-       const memeText = new fabric.IText(
+                left:150,
 
-    textInput.value || "SPARKD",
+                top:50,
 
-    {
+                fill:"#ffffff",
 
-        left:150,
+                stroke:"#000000",
 
-        top:50,
+                strokeWidth:4,
 
-        fill:"#ffffff",
-        stroke:"#000000",
-        strokeWidth:4,
-        fontFamily:"Bangers",
-        fontSize:80
+                fontFamily:"Bangers",
 
-    }
+                fontSize:80
 
-);
+            }
 
-// Mark as meme text so the color picker only affects text
-memeText.isMemeText = true;
+        );
 
 
+        ////////////////////////////////////////////////////
+        // MARK AS MEME TEXT
+        ////////////////////////////////////////////////////
+
+        memeText.isMemeText = true;
+
+
+        ////////////////////////////////////////////////////
+        // ADD TEXT
+        ////////////////////////////////////////////////////
 
         canvas.add(memeText);
 
 
-        canvas.setActiveObject(memeText);
+        canvas.setActiveObject(
+            memeText
+        );
 
 
         canvas.renderAll();
 
-
     };
-
 
 }
 
-// ================================
-// SPARKD OFFICIAL SOLANA CONTRACT
-// ================================
 
-// ================================
+////////////////////////////////////////////////////
 // DELETE SELECTED OBJECT
-// ================================
+////////////////////////////////////////////////////
 
-const deleteBtn = document.getElementById("deleteBtn");
+const deleteBtn =
+document.getElementById("deleteBtn");
 
 
 if(deleteBtn){
 
-    deleteBtn.onclick = function(){
+    deleteBtn.onclick =
+    function(){
 
-        const activeObject = canvas.getActiveObject();
+        const activeObject =
+        canvas.getActiveObject();
 
 
         if(activeObject){
 
-            canvas.remove(activeObject);
+            canvas.remove(
+                activeObject
+            );
+
 
             canvas.discardActiveObject();
+
 
             canvas.renderAll();
 
@@ -414,215 +539,300 @@ if(deleteBtn){
 
 
 ////////////////////////////////////////////////////
-// EXPORT PNG - IMAGE + TEXT + SHARP CONTRACT
+// EXPORT PNG
+// IMAGE + TEXT + SHARP CONTRACT
 ////////////////////////////////////////////////////
 
-const downloadBtn = document.getElementById("downloadBtn");
+const downloadBtn =
+document.getElementById("downloadBtn");
 
 
 if(downloadBtn){
 
-    downloadBtn.onclick = function(){
+    downloadBtn.onclick =
+    function(){
+
+        ////////////////////////////////////////////////////
+        // CLEAR ACTIVE SELECTION
+        ////////////////////////////////////////////////////
 
         canvas.discardActiveObject();
+
         canvas.renderAll();
 
-////////////////////////////////////////////////////
-// SPARKD FORGE RECORD CREATED AFTER FINAL IMAGE
-////////////////////////////////////////////////////
 
-let forgeRecord = null;
-let hiddenForgeData = null;
+        ////////////////////////////////////////////////////
+        // FIND UPLOADED IMAGE
+        ////////////////////////////////////////////////////
+
+        const image =
+        canvas
+        .getObjects()
+        .find(
+            obj => obj.type === "image"
+        );
 
 
+        if(!image){
 
-if(window.SPARKD_EXPORT && forgeRecord){
+            alert(
+                "Please upload an image first."
+            );
+
+            return;
+
+        }
 
 
-    hiddenForgeData =
-    SPARKD_EXPORT.attachForgeData(
-        canvas,
-        forgeRecord
-    );
+        ////////////////////////////////////////////////////
+        // GET IMAGE BOUNDS
+        ////////////////////////////////////////////////////
 
+        const bounds =
+        image.getBoundingRect(
+            false,
+            true
+        );
+
+
+        ////////////////////////////////////////////////////
+        // EXPORT IMAGE + TEXT FIRST
+        ////////////////////////////////////////////////////
+
+        const dataURL =
+        canvas.toDataURL({
+
+            format:"png",
+
+            left:bounds.left,
+
+            top:bounds.top,
+
+            width:bounds.width,
+
+            height:bounds.height,
+
+            multiplier:2,
+
+            enableRetinaScaling:true
+
+        });
+
+
+        ////////////////////////////////////////////////////
+        // CREATE FINAL IMAGE CANVAS
+        ////////////////////////////////////////////////////
+
+        const finalCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+
+        finalCanvas.width =
+        bounds.width * 2;
+
+
+        finalCanvas.height =
+        bounds.height * 2;
+
+
+        const ctx =
+        finalCanvas.getContext(
+            "2d"
+        );
+
+
+        const img =
+        new Image();
+
+
+        img.onload =
+        function(){
+
+
+            ////////////////////////////////////////////////////
+            // DRAW EXPORTED MEME
+            ////////////////////////////////////////////////////
+
+            ctx.drawImage(
+
+                img,
+
+                0,
+
+                0,
+
+                finalCanvas.width,
+
+                finalCanvas.height
+
+            );
+
+
+            ////////////////////////////////////////////////////
+            // ADD SPARKD CONTRACT
+            ////////////////////////////////////////////////////
+
+            ctx.font =
+            "8px Arial";
+
+
+            ctx.textAlign =
+            "right";
+
+
+            ctx.textBaseline =
+            "bottom";
+
+
+            ctx.lineWidth =
+            2;
+
+
+            ctx.strokeStyle =
+            "#000000";
+
+
+            ctx.fillStyle =
+            "#ffffff";
+
+
+            ctx.strokeText(
+
+                SPARKD_CONTRACT,
+
+                finalCanvas.width - 10,
+
+                finalCanvas.height - 10
+
+            );
+
+
+            ctx.fillText(
+
+                SPARKD_CONTRACT,
+
+                finalCanvas.width - 10,
+
+                finalCanvas.height - 10
+
+            );
+
+
+            ////////////////////////////////////////////////////
+            // CREATE SPARKD FORGE BIRTH RECORD
+            // FROM FINAL IMAGE
+            ////////////////////////////////////////////////////
+
+            let forgeRecord =
+            null;
+
+
+            if(
+                window.SPARKD_FORGE &&
+                typeof window.SPARKD_FORGE.createRecord === "function"
+            ){
+
+                forgeRecord =
+                window.SPARKD_FORGE.createRecord(
+                    finalCanvas
+                );
+
+
+                console.log(
+                    "🔥 SPARKD Forge Birth:",
+                    forgeRecord
+                );
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // CREATE HIDDEN FORGE DATA
+            ////////////////////////////////////////////////////
+
+            let hiddenForgeData =
+            null;
+
+
+            if(
+                window.SPARKD_EXPORT &&
+                forgeRecord &&
+                typeof window.SPARKD_EXPORT.attachForgeData === "function"
+            ){
+
+                hiddenForgeData =
+                window.SPARKD_EXPORT.attachForgeData(
+
+                    finalCanvas,
+
+                    forgeRecord
+
+                );
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // CREATE DOWNLOAD LINK
+            ////////////////////////////////////////////////////
+
+            const link =
+            document.createElement(
+                "a"
+            );
+
+
+            ////////////////////////////////////////////////////
+            // INJECT SPARKD FORGE PNG DATA
+            ////////////////////////////////////////////////////
+
+            if(
+                window.SPARKD_PNG &&
+                forgeRecord &&
+                typeof window.SPARKD_PNG.attach === "function"
+            ){
+
+                link.href =
+                window.SPARKD_PNG.attach(
+
+                    finalCanvas,
+
+                    forgeRecord
+
+                );
+
+            }
+            else{
+
+                link.href =
+                finalCanvas.toDataURL(
+                    "image/png"
+                );
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // DOWNLOAD
+            ////////////////////////////////////////////////////
+
+            link.download =
+            "SPARKD-meme.png";
+
+
+            link.click();
+
+        };
+
+
+        img.src =
+        dataURL;
+
+    };
 
 }
-
-
-
-const image = canvas.getObjects().find(
-    obj => obj.type === "image"
-);
-
-
-if(!image){
-
-    alert("Please upload an image first.");
-
-    return;
-
-}
-
-
-const bounds = image.getBoundingRect(false, true);
-
-// Export image + text first
-const dataURL = canvas.toDataURL({
-
-    format:"png",
-
-    left: bounds.left,
-
-    top: bounds.top,
-
-    width: bounds.width,
-
-    height: bounds.height,
-
-    multiplier:2,
-
-    enableRetinaScaling:true
 
 });
-
-// Create final image canvas
-const finalCanvas = document.createElement("canvas");
-
-finalCanvas.width = bounds.width * 2;
-
-finalCanvas.height = bounds.height * 2;
-
-
-const ctx = finalCanvas.getContext("2d");
-
-
-const img = new Image();
-
-
-img.onload = function(){
-
-
-    ctx.drawImage(
-
-        img,
-
-        0,
-
-        0,
-
-        finalCanvas.width,
-
-        finalCanvas.height
-
-    );
-
-
-    // Add SPARKD address
-    ctx.font = "8px Arial";
-
-    ctx.textAlign = "right";
-
-    ctx.textBaseline = "bottom";
-
-
-    ctx.lineWidth = 2;
-
-    ctx.strokeStyle = "#000000";
-
-    ctx.fillStyle = "#ffffff";
-
-
-    ctx.strokeText(
-
-        SPARKD_CONTRACT,
-
-        finalCanvas.width - 10,
-
-        finalCanvas.height - 10
-
-    );
-
-
-    ctx.fillText(
-
-        SPARKD_CONTRACT,
-
-        finalCanvas.width - 10,
-
-        finalCanvas.height - 10
-
-    );
-
-    ////////////////////////////////////////////////////
-// CREATE FORGE RECORD FROM FINAL PNG
-////////////////////////////////////////////////////
-
-if(window.SPARKD_FORGE){
-
-    forgeRecord =
-    SPARKD_FORGE.createRecord(
-        finalCanvas
-    );
-
-
-    console.log(
-        "🔥 SPARKD Forge Birth:",
-        forgeRecord
-    );
-
-
-}
-
-
-
-if(window.SPARKD_EXPORT && forgeRecord){
-
-
-    hiddenForgeData =
-    SPARKD_EXPORT.attachForgeData(
-        finalCanvas,
-        forgeRecord
-    );
-
-
-}
-
-
-
-   const link = document.createElement("a");
-
-
-if(window.SPARKD_PNG && forgeRecord){
-
-    link.href =
-    SPARKD_PNG.attach(
-        finalCanvas,
-        forgeRecord
-    );
-
-}
-else{
-
-    link.href =
-    finalCanvas.toDataURL("image/png");
-
-}
-
-
-link.download = "SPARKD-meme.png";
-
-link.click();
-
-
-};
-
-
-img.src = dataURL;
-
-
-};
-
-
-}
-
-});
+```
