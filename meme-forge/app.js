@@ -428,9 +428,9 @@ if(uploadBtn && imageInput){
 }
 
 
-////////////////////////////////////////////////////
+// ================================
 // ADD TEXT
-////////////////////////////////////////////////////
+// ================================
 
 const addTextBtn =
 document.getElementById("addTextBtn");
@@ -441,9 +441,59 @@ document.getElementById("textInput");
 
 if(addTextBtn){
 
-    addTextBtn.onclick =
-    function(){
+    addTextBtn.onclick = function(){
 
+        const text =
+        textInput
+        ? textInput.value.trim()
+        : "";
+
+
+        const memeText =
+        new fabric.IText(
+
+            text || "SPARKD",
+
+            {
+
+                left:150,
+
+                top:50,
+
+                fill:"#ffffff",
+
+                stroke:"#000000",
+
+                strokeWidth:4,
+
+                fontFamily:"Bangers",
+
+                fontSize:80
+
+            }
+
+        );
+
+
+        // Mark as meme text
+        memeText.isMemeText = true;
+
+
+        canvas.add(
+            memeText
+        );
+
+
+        canvas.setActiveObject(
+            memeText
+        );
+
+
+        canvas.renderAll();
+
+    };
+
+}
         ////////////////////////////////////////////////////
         // CREATE MEME TEXT
         ////////////////////////////////////////////////////
