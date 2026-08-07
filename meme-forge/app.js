@@ -339,16 +339,21 @@ if(addTextBtn){
 
     addTextBtn.onclick = function(){
         
-        if(containsUnsafeContent(textInput.value)){
+       if(window.SPARKD_GUARD){
 
-
-            alert("This content is not allowed.");
-
-            textInput.value = "";
-
+        const allowed =
+        await SPARKD_GUARD.check(file);
+    
+    
+        if(!allowed){
+    
+            imageInput.value = "";
+    
             return;
 
-       }
+    }
+
+}
 
        const memeText = new fabric.IText(
 
