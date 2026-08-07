@@ -209,7 +209,7 @@ if(uploadBtn && imageInput){
 
 
 
-        imageInput.onchange = function(e){
+       imageInput.onchange = async function(e){
     
     
             const file = e.target.files[0];
