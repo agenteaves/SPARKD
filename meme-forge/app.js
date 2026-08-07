@@ -189,6 +189,7 @@ window.addEventListener(
 
 
 
+```javascript
 // ================================
 // IMAGE UPLOAD - AUTO FIT & CENTER
 // ================================
@@ -196,9 +197,7 @@ window.addEventListener(
 const uploadBtn = document.getElementById("uploadBtn");
 const imageInput = document.getElementById("imageInput");
 
-
 if(uploadBtn && imageInput){
-
 
     uploadBtn.onclick = function(){
 
@@ -208,42 +207,43 @@ if(uploadBtn && imageInput){
     };
 
 
+    imageInput.onchange = async function(e){
 
-         imageInput.onchange = async function(e){
-    
-    
-            const file = e.target.files[0];
-    
-    
-            if(!file){
-    
-                return;
+        const file = e.target.files[0];
 
-            }
+        if(!file){
+
+            return;
+
+        }
 
 
+        // ================================
+        // SPARKD CONTENT GUARD
+        // ================================
 
-            const allowed =
+        const allowed =
             await SPARKD_GUARD.check(file);
-            
-            
-            if(!allowed){
-            
-                imageInput.value = "";
-            
-                return;
-
-}
 
 
+        if(!allowed){
 
-        const reader = new FileReader();
+            imageInput.value = "";
 
+            return;
+
+        }
+
+
+        // ================================
+        // LOAD IMAGE
+        // ================================
+
+        const reader =
+            new FileReader();
 
 
         reader.onload = function(event){
-
-
 
             fabric.Image.fromURL(
 
@@ -251,11 +251,8 @@ if(uploadBtn && imageInput){
 
                 function(img){
 
-
-
                     // Canvas size
                     const canvasSize = 1080;
-
 
 
                     // Scale image to fit canvas
@@ -268,21 +265,17 @@ if(uploadBtn && imageInput){
                     );
 
 
-
                     img.scale(scale);
-
 
 
                     // Center image
                     img.set({
 
                         left:
-                        (canvasSize - img.getScaledWidth()) / 2,
-
+                            (canvasSize - img.getScaledWidth()) / 2,
 
                         top:
-                        (canvasSize - img.getScaledHeight()) / 2,
-
+                            (canvasSize - img.getScaledHeight()) / 2,
 
                         cornerColor:"#ff6600",
 
@@ -291,39 +284,32 @@ if(uploadBtn && imageInput){
                     });
 
 
-
-                   canvas.add(img);
-
-                   canvas.sendToBack(img);
+                    // Add image
+                    canvas.add(img);
 
 
-                   // Keep uploaded images behind text
-                   canvas.sendToBack(img);
-                    
-                    
-                   canvas.setActiveObject(img);
-                    
-                    
-                   canvas.renderAll();
+                    // Keep uploaded image behind text
+                    canvas.sendToBack(img);
 
 
+                    canvas.setActiveObject(img);
+
+
+                    canvas.renderAll();
 
                 }
 
             );
 
-
         };
-
 
 
         reader.readAsDataURL(file);
 
-
     };
 
-
 }
+```
 
 
 // ================================
