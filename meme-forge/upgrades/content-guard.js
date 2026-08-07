@@ -4,7 +4,6 @@
 // Client Side Image Safety Filter
 ////////////////////////////////////////////////////
 
-
 window.SPARKD_GUARD = {
 
 
@@ -13,179 +12,167 @@ window.SPARKD_GUARD = {
     loading:false,
 
 
-    ////////////////////////////////////////////////////
-    // LOAD AI MODEL
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// LOAD AI MODEL
+////////////////////////////////////////////////////
 
-    async loadModel(){
-
-
-        if(this.model){
-
-            return this.model;
-
-        }
+async loadModel(){
 
 
+    if(this.model){
 
-        if(this.loading){
+        return this.model;
 
-            while(this.loading){
+    }
 
-                await new Promise(r=>setTimeout(r,100));
 
-            }
+    if(this.loading){
 
-            return this.model;
+        while(this.loading){
+
+            await new Promise(
+                r=>setTimeout(r,100)
+            );
 
         }
 
+        return this.model;
+
+    }
 
 
-        this.loading = true;
+
+    this.loading = true;
+
+
+    console.log(
+        "🛡️ SPARKD Content Guard loading..."
+    );
+
+
+
+    try{
+
+
+        this.model =
+        await nsfwjs.load();
 
 
 
         console.log(
-            "🛡️ SPARKD Content Guard loading..."
+            "🛡️ Content Guard ready"
         );
 
 
-
-        try{
-
-
-            this.model =
-            await nsfwjs.load();
+    }
+    catch(error){
 
 
+        console.error(
+            "🛡️ Content Guard failed:",
+            error
+        );
 
-            console.log(
-                "🛡️ Content Guard ready"
+
+        this.model = null;
+
+
+    }
+
+
+
+    this.loading = false;
+
+
+    return this.model;
+
+
+},
+
+
+
+
+////////////////////////////////////////////////////
+// CHECK IMAGE
+////////////////////////////////////////////////////
+
+async check(file){
+
+
+
+    if(!file){
+
+        return false;
+
+    }
+
+
+
+
+    const filename =
+    file.name.toLowerCase();
+
+
+
+    const blockedExtensions = [
+
+        ".exe",
+        ".js",
+        ".html",
+        ".svg"
+
+    ];
+
+
+
+    for(
+        let ext of blockedExtensions
+    ){
+
+        if(filename.endsWith(ext)){
+
+
+            this.reject(
+                "File type not allowed."
             );
 
 
-        }
-        catch(error){
-
-
-            console.error(
-                "Content Guard failed:",
-                error
-            );
-
-
-            this.model = null;
-
+            return false;
 
         }
 
-
-
-        this.loading = false;
-
-
-        return this.model;
-
-
-    },
+    }
 
 
 
 
-
-    ////////////////////////////////////////////////////
-    // CHECK UPLOADED IMAGE
-    ////////////////////////////////////////////////////
-
-    async check(file){
+    const model =
+    await this.loadModel();
 
 
 
-        ////////////////////////////////////////////////////
-        // BASIC FILE CHECK
-        ////////////////////////////////////////////////////
+    if(!model){
 
 
-        const blockedExtensions = [
-
-            ".exe",
-            ".js",
-            ".html",
-            ".svg"
-
-        ];
+        console.warn(
+            "🛡️ Scanner unavailable. Allowing upload."
+        );
 
 
-
-        const filename =
-        file.name.toLowerCase();
+        return true;
 
 
-
-        for(let ext of blockedExtensions){
-
-
-            if(filename.endsWith(ext)){
-
-
-                this.reject(
-                    "File type not allowed."
-                );
-
-
-                return false;
-
-            }
-
-
-        }
+    }
 
 
 
 
-
-        ////////////////////////////////////////////////////
-        // LOAD MODEL
-        ////////////////////////////////////////////////////
-
-
-        const model =
-        await this.loadModel();
-
-
-
-        if(!model){
-
-
-            console.warn(
-                "Content model unavailable. Allowing image."
-            );
-
-
-            return true;
-
-        }
-
-
-
-
-
-        ////////////////////////////////////////////////////
-        // CREATE IMAGE ELEMENT
-        ////////////////////////////////////////////////////
+    try{
 
 
         const image =
         await this.fileToImage(file);
 
-
-
-
-
-        ////////////////////////////////////////////////////
-        // AI PREDICTION
-        ////////////////////////////////////////////////////
 
 
         const predictions =
@@ -200,41 +187,28 @@ window.SPARKD_GUARD = {
 
 
 
-
-
-
-        ////////////////////////////////////////////////////
-        // BLOCK RULES
-        ////////////////////////////////////////////////////
-
-
-        const blocked = [
-
-            "Porn",
-            "Hentai",
-            "Sexy"
-
-        ];
-
-
-
-
-        for(let result of predictions){
-
+        for(
+            let result of predictions
+        ){
 
 
             if(
-                blocked.includes(result.className)
+
+                (
+                result.className === "Porn" ||
+                result.className === "Hentai" ||
+                result.className === "Sexy"
+                )
+
                 &&
+
                 result.probability > 0.60
+
             ){
 
 
-
                 this.reject(
-
                     "This image contains restricted content."
-
                 );
 
 
@@ -248,8 +222,6 @@ window.SPARKD_GUARD = {
 
 
 
-
-
         console.log(
             "✅ Content approved"
         );
@@ -258,99 +230,115 @@ window.SPARKD_GUARD = {
         return true;
 
 
-
-    },
-
-
+    }
+    catch(error){
 
 
-
-
-    ////////////////////////////////////////////////////
-    // FILE TO IMAGE
-    ////////////////////////////////////////////////////
-
-    fileToImage(file){
-
-
-        return new Promise(function(resolve){
-
-
-
-            const reader =
-            new FileReader();
-
-
-
-            reader.onload =
-            function(e){
-
-
-
-                const img =
-                new Image();
-
-
-
-                img.onload =
-                function(){
-
-
-                    resolve(img);
-
-
-                };
-
-
-
-                img.src =
-                e.target.result;
-
-
-            };
-
-
-
-            reader.readAsDataURL(file);
-
-
-
-        });
-
-
-    },
-
-
-
-
-
-
-
-    ////////////////////////////////////////////////////
-    // BLOCK MESSAGE
-    ////////////////////////////////////////////////////
-
-    reject(message){
-
-
-        console.log(
-            "🚫 SPARKD BLOCKED:",
-            message
+        console.error(
+            "🛡️ Scan error:",
+            error
         );
 
 
-
-        alert(
-
-            "🚫 SPARKD Content Guard\n\n" +
-            message
-
-        );
+        // fail open during testing
+        return true;
 
 
     }
 
 
+},
+
+
+
+
+
+////////////////////////////////////////////////////
+// FILE TO IMAGE
+////////////////////////////////////////////////////
+
+fileToImage(file){
+
+
+    return new Promise(function(resolve,reject){
+
+
+        const reader =
+        new FileReader();
+
+
+
+        reader.onload =
+        function(e){
+
+
+            const img =
+            new Image();
+
+
+
+            img.onload =
+            function(){
+
+                resolve(img);
+
+            };
+
+
+            img.onerror =
+            reject;
+
+
+
+            img.src =
+            e.target.result;
+
+
+        };
+
+
+
+        reader.onerror =
+        reject;
+
+
+
+        reader.readAsDataURL(file);
+
+
+
+    });
+
+
+},
+
+
+
+
+
+////////////////////////////////////////////////////
+// BLOCK MESSAGE
+////////////////////////////////////////////////////
+
+reject(message){
+
+
+    console.log(
+        "🚫 SPARKD BLOCKED:",
+        message
+    );
+
+
+
+    alert(
+
+        "🚫 SPARKD Content Guard\n\n" +
+        message
+
+    );
+
+
+}
+
 
 };
-
