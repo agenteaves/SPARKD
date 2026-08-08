@@ -58,9 +58,7 @@
              * This prevents NSFWJS from attempting to use
              * its broken/default browser model path.
              */
-            model = await nsfwjs.load(MODEL_URL, {
-                type: "graph"
-            });
+            model = await nsfwjs.load(MODEL_URL);
 
             if (!model) {
                 throw new Error("NSFWJS returned no model.");
