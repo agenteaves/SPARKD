@@ -186,9 +186,9 @@ window.addEventListener("load", function () {
     }
 
 
- ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 // IMAGE UPLOAD - AUTO FIT & CENTER
-// SPARKD CONTENT GUARD MUST PASS BEFORE UPLOAD
+// SPARKD CONTENT GUARD CHECKS IMAGE BEFORE UPLOAD
 ////////////////////////////////////////////////////
 
 const uploadBtn =
@@ -238,20 +238,20 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // BASIC FILE CHECK
+        // BASIC FILENAME SAFETY CHECK
         ////////////////////////////////////////////////////
 
         if (
-            !file.type ||
-            !file.type.startsWith("image/")
+            typeof containsUnsafeContent === "function" &&
+            containsUnsafeContent(file.name)
         ) {
 
-            console.error(
-                "❌ Selected file is not an image."
+            console.log(
+                "🚫 Filename blocked by safety check"
             );
 
             alert(
-                "⚠️ Please select a JPG or PNG image."
+                "🚫 This image name is not allowed."
             );
 
             imageInput.value = "";
@@ -262,15 +262,16 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // VERIFY CONTENT GUARD EXISTS
+        // CHECK THAT CONTENT GUARD EXISTS
         ////////////////////////////////////////////////////
 
         if (
-            !window.SPARKD_GUARD
+            !window.SPARKDContentGuard ||
+            typeof window.SPARKDContentGuard.checkImage !== "function"
         ) {
 
             console.error(
-                "❌ SPARKD_GUARD does not exist."
+                "❌ SPARKD Content Guard does not exist."
             );
 
             alert(
@@ -285,24 +286,19 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // VERIFY GUARD CHECK FUNCTION
+        // WAIT FOR CONTENT GUARD MODEL
         ////////////////////////////////////////////////////
 
-        const guardCheck =
-            window.SPARKD_GUARD.check;
-
-
         if (
-            typeof guardCheck !== "function"
+            !window.SPARKDContentGuard.isReady()
         ) {
 
-            console.error(
-                "❌ SPARKD_GUARD.check is not a function.",
-                window.SPARKD_GUARD
+            console.log(
+                "⏳ SPARKD Content Guard is still loading..."
             );
 
             alert(
-                "⚠️ SPARKD Content Guard is not ready."
+                "⚠️ SPARKD Content Guard is still loading. Please wait a few seconds and try again."
             );
 
             imageInput.value = "";
@@ -313,7 +309,7 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // RUN CONTENT GUARD
+        // CREATE IMAGE ELEMENT FOR NSFWJS
         ////////////////////////////////////////////////////
 
         console.log(
@@ -321,15 +317,40 @@ if (uploadBtn && imageInput) {
         );
 
 
-        let allowed;
+        let scanImage;
 
 
         try {
 
-            allowed =
-                await guardCheck.call(
-                    window.SPARKD_GUARD,
-                    file
+            scanImage =
+                await new Promise(
+                    function (resolve, reject) {
+
+                        const img =
+                            new Image();
+
+                        img.onload =
+                            function () {
+
+                                resolve(img);
+
+                            };
+
+                        img.onerror =
+                            function () {
+
+                                reject(
+                                    new Error(
+                                        "Could not load image for safety scan."
+                                    )
+                                );
+
+                            };
+
+                        img.src =
+                            URL.createObjectURL(file);
+
+                    }
                 );
 
 
@@ -337,8 +358,52 @@ if (uploadBtn && imageInput) {
         catch (error) {
 
             console.error(
-                "❌ SPARKD Content Guard scan failed:",
+                "❌ Could not prepare image for Content Guard:",
                 error
+            );
+
+            alert(
+                "⚠️ This image could not be checked."
+            );
+
+            imageInput.value = "";
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // RUN SPARKD CONTENT GUARD
+        ////////////////////////////////////////////////////
+
+        let guardResult;
+
+
+        try {
+
+            guardResult =
+                await window.SPARKDContentGuard.checkImage(
+                    scanImage
+                );
+
+
+            console.log(
+                "🛡️ SPARKD Content Guard result:",
+                guardResult
+            );
+
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ SPARKD Content Guard error:",
+                error
+            );
+
+            URL.revokeObjectURL(
+                scanImage.src
             );
 
             alert(
@@ -353,27 +418,30 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // SHOW GUARD RESULT
+        // CLEAN UP SCAN IMAGE
         ////////////////////////////////////////////////////
 
-        console.log(
-            "🛡️ SPARKD Content Guard result:",
-            allowed
+        URL.revokeObjectURL(
+            scanImage.src
         );
 
 
         ////////////////////////////////////////////////////
-        // IMAGE BLOCKED
+        // BLOCK IMAGE
         ////////////////////////////////////////////////////
 
-        if (!allowed) {
+        if (
+            guardResult &&
+            guardResult.blocked === true
+        ) {
 
-            console.log(
-                "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD"
+            console.warn(
+                "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD",
+                guardResult
             );
 
             alert(
-                "🚫 This image was blocked by SPARKD Content Guard."
+                "🚫 This image cannot be used in SPARKD Meme Forge."
             );
 
             imageInput.value = "";
@@ -384,7 +452,7 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // IMAGE APPROVED
+        // IMAGE PASSED CONTENT CHECK
         ////////////////////////////////////////////////////
 
         console.log(
@@ -393,113 +461,109 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // LOAD IMAGE ONLY AFTER GUARD PASSES
+        // LOAD APPROVED IMAGE INTO CANVAS
         ////////////////////////////////////////////////////
-
-        console.log(
-            "🖼️ Loading approved image into meme canvas..."
-        );
-
 
         const reader =
             new FileReader();
 
 
-        reader.onload = function (event) {
+        reader.onload =
+            function (event) {
 
 
-            fabric.Image.fromURL(
-                event.target.result,
-                function (img) {
+                fabric.Image.fromURL(
+                    event.target.result,
+                    function (img) {
 
 
-                    ////////////////////////////////////////////////////
-                    // CANVAS SIZE
-                    ////////////////////////////////////////////////////
+                        ////////////////////////////////////////////////////
+                        // CANVAS SIZE
+                        ////////////////////////////////////////////////////
 
-                    const canvasSize =
-                        1080;
+                        const canvasSize =
+                            1080;
 
 
-                    ////////////////////////////////////////////////////
-                    // SCALE IMAGE TO FIT
-                    ////////////////////////////////////////////////////
+                        ////////////////////////////////////////////////////
+                        // SCALE IMAGE TO FIT
+                        ////////////////////////////////////////////////////
 
-                    const scale =
-                        Math.min(
-                            canvasSize / img.width,
-                            canvasSize / img.height
+                        const scale =
+                            Math.min(
+                                canvasSize / img.width,
+                                canvasSize / img.height
+                            );
+
+
+                        img.scale(scale);
+
+
+                        ////////////////////////////////////////////////////
+                        // CENTER IMAGE
+                        ////////////////////////////////////////////////////
+
+                        img.set({
+
+                            left:
+                                (
+                                    canvasSize -
+                                    img.getScaledWidth()
+                                ) / 2,
+
+                            top:
+                                (
+                                    canvasSize -
+                                    img.getScaledHeight()
+                                ) / 2,
+
+                            cornerColor:
+                                "#ff6600",
+
+                            transparentCorners:
+                                false
+
+                        });
+
+
+                        ////////////////////////////////////////////////////
+                        // ADD IMAGE
+                        ////////////////////////////////////////////////////
+
+                        canvas.add(img);
+
+
+                        ////////////////////////////////////////////////////
+                        // KEEP IMAGE BEHIND TEXT
+                        ////////////////////////////////////////////////////
+
+                        canvas.sendToBack(img);
+
+
+                        ////////////////////////////////////////////////////
+                        // SELECT IMAGE
+                        ////////////////////////////////////////////////////
+
+                        canvas.setActiveObject(
+                            img
                         );
 
 
-                    img.scale(scale);
+                        ////////////////////////////////////////////////////
+                        // REFRESH CANVAS
+                        ////////////////////////////////////////////////////
+
+                        canvas.renderAll();
 
 
-                    ////////////////////////////////////////////////////
-                    // CENTER IMAGE
-                    ////////////////////////////////////////////////////
+                        console.log(
+                            "✅ APPROVED IMAGE LOADED INTO SPARKD MEME FORGE"
+                        );
 
-                    img.set({
+                    }
+                );
 
-                        left:
-                            (
-                                canvasSize -
-                                img.getScaledWidth()
-                            ) / 2,
-
-                        top:
-                            (
-                                canvasSize -
-                                img.getScaledHeight()
-                            ) / 2,
-
-                        cornerColor:
-                            "#ff6600",
-
-                        transparentCorners:
-                            false
-
-                    });
-
-
-                    ////////////////////////////////////////////////////
-                    // ADD IMAGE
-                    ////////////////////////////////////////////////////
-
-                    canvas.add(img);
-
-
-                    ////////////////////////////////////////////////////
-                    // KEEP IMAGE BEHIND TEXT
-                    ////////////////////////////////////////////////////
-
-                    canvas.sendToBack(img);
-
-
-                    ////////////////////////////////////////////////////
-                    // SELECT IMAGE
-                    ////////////////////////////////////////////////////
-
-                    canvas.setActiveObject(
-                        img
-                    );
-
-
-                    ////////////////////////////////////////////////////
-                    // REFRESH CANVAS
-                    ////////////////////////////////////////////////////
-
-                    canvas.renderAll();
-
-
-                    console.log(
-                        "✅ APPROVED IMAGE LOADED INTO SPARKD MEME FORGE"
-                    );
-
-                }
-            );
-
-        };
+            };
 
 
         reader.readAsDataURL(file);
@@ -507,6 +571,7 @@ if (uploadBtn && imageInput) {
     };
 
 }
+
 
     ////////////////////////////////////////////////////
     // ADD TEXT
