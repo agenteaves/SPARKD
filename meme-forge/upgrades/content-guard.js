@@ -144,6 +144,13 @@
             /*
              * NSFWJS expects an image/canvas/video element.
              */
+
+            console.log("🔬 NSFWJS INPUT:", {
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+                src: image.src
+            });
+           
             const predictions =
                 await model.classify(image);
 
