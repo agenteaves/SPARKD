@@ -1,4 +1,3 @@
-```javascript
 ////////////////////////////////////////////////////
 // SPARKD MEME FORGE
 // CONTENT GUARD v2.0
@@ -432,5 +431,4 @@ window.SPARKD_GUARD = {
     }
 
 };
-```
 
