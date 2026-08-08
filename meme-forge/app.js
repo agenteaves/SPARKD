@@ -382,6 +382,12 @@ if (uploadBtn && imageInput) {
 
         try {
 
+            console.log("🔎 SCAN IMAGE:", {
+            src: scanImage.src,
+            width: scanImage.naturalWidth,
+            height: scanImage.naturalHeight
+});
+
             guardResult =
                 await window.SPARKDContentGuard.checkImage(
                     scanImage
