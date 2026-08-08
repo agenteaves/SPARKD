@@ -156,7 +156,7 @@
 
             console.log(
                 "🛡️ SPARKD image scan:",
-                predictions
+                JSON.stringify(predictions, null, 2)
             );
 
             /*
