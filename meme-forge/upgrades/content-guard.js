@@ -1,434 +1,256 @@
-////////////////////////////////////////////////////
-// SPARKD MEME FORGE
-// CONTENT GUARD v2.0
-// Browser-Side Image Safety Filter
-////////////////////////////////////////////////////
+// ============================================================
+// SPARKD CONTENT GUARD
+// Client-side image safety scanner
+// Uses NSFWJS bundled MobileNetV2 model
+// ============================================================
 
-window.SPARKD_GUARD = {
+(() => {
+    "use strict";
 
-    model: null,
-    loading: false,
+    console.log("🛡️ SPARKD Content Guard loading...");
+
+    let contentModel = null;
+    let modelLoading = null;
+    let scannerReady = false;
+
+    // ------------------------------------------------------------
+    // SETTINGS
+    // ------------------------------------------------------------
+
+    // Explicit sexual content
+    const PORN_BLOCK = 0.55;
+
+    // Hentai / explicit anime content
+    const HENTAI_BLOCK = 0.45;
+
+    // Sexy content needs a higher confidence because normal
+    // photos, swimsuits, fitness images, etc. can score here.
+    const SEXY_BLOCK = 0.90;
 
 
+    // ------------------------------------------------------------
+    // LOAD MODEL
+    // ------------------------------------------------------------
 
-    ////////////////////////////////////////////////////
-    // LOAD AI MODEL
-    ////////////////////////////////////////////////////
+    async function loadModel() {
 
-    async loadModel() {
-
-        if (this.model) {
-            return this.model;
+        if (scannerReady && contentModel) {
+            return contentModel;
         }
 
+        if (modelLoading) {
+            return modelLoading;
+        }
 
-        if (this.loading) {
+        modelLoading = (async () => {
 
-            while (this.loading) {
+            try {
 
-                await new Promise(
-                    r => setTimeout(r, 100)
+                if (!window.nsfwjs) {
+                    throw new Error("NSFWJS library was not loaded.");
+                }
+
+                console.log("🛡️ Loading bundled NSFWJS model...");
+
+                // IMPORTANT:
+                // No URL is supplied here.
+                // This tells NSFWJS to use its bundled model.
+                contentModel = await nsfwjs.load();
+
+                scannerReady = true;
+
+                console.log("✅ SPARKD Content Guard ready.");
+
+                return contentModel;
+
+            } catch (error) {
+
+                console.error(
+                    "❌ SPARKD Content Guard model failed:",
+                    error
                 );
 
+                scannerReady = false;
+                contentModel = null;
+
+                throw error;
             }
 
-            return this.model;
+        })();
 
+        return modelLoading;
+    }
+
+
+    // ------------------------------------------------------------
+    // CLASSIFICATION
+    // ------------------------------------------------------------
+
+    async function scanImage(imageElement) {
+
+        const model = await loadModel();
+
+        const predictions = await model.classify(imageElement, 5);
+
+        console.log("🛡️ SPARKD scan:", predictions);
+
+        const scores = {};
+
+        predictions.forEach(prediction => {
+
+            scores[prediction.className] =
+                Number(prediction.probability) || 0;
+
+        });
+
+
+        const porn =
+            scores.Porn || 0;
+
+        const hentai =
+            scores.Hentai || 0;
+
+        const sexy =
+            scores.Sexy || 0;
+
+
+        // --------------------------------------------------------
+        // BLOCK EXPLICIT CONTENT
+        // --------------------------------------------------------
+
+        if (porn >= PORN_BLOCK) {
+
+            return {
+                allowed: false,
+                reason: "Pornographic content detected.",
+                predictions
+            };
         }
 
 
-        this.loading = true;
+        // --------------------------------------------------------
+        // BLOCK EXPLICIT ANIME / HENTAI
+        // --------------------------------------------------------
+
+        if (hentai >= HENTAI_BLOCK) {
+
+            return {
+                allowed: false,
+                reason: "Explicit anime content detected.",
+                predictions
+            };
+        }
 
 
-        console.log(
-            "🛡️ SPARKD Content Guard loading..."
-        );
+        // --------------------------------------------------------
+        // BLOCK VERY HIGH-CONFIDENCE SEXUAL CONTENT
+        // --------------------------------------------------------
 
+        if (sexy >= SEXY_BLOCK) {
+
+            return {
+                allowed: false,
+                reason: "Sexually explicit content detected.",
+                predictions
+            };
+        }
+
+
+        // --------------------------------------------------------
+        // OTHERWISE ALLOW
+        // --------------------------------------------------------
+
+        return {
+            allowed: true,
+            reason: "Image passed the content scan.",
+            predictions
+        };
+    }
+
+
+    // ------------------------------------------------------------
+    // PUBLIC CHECK FUNCTION
+    // ------------------------------------------------------------
+
+    window.sparkdCheckImage = async function(imageElement) {
 
         try {
 
-            /*
-             * NSFWJS 4.x includes the model definitions
-             * in the browser package.
-             *
-             * This avoids the broken old CloudFront
-             * model used by NSFWJS 2.4.2.
-             */
-
-            this.model =
-                await nsfwjs.load("MobileNetV2");
-
-
-            if (!this.model) {
-
-                throw new Error(
-                    "NSFWJS model returned no model."
-                );
-
+            if (!imageElement) {
+                console.error("❌ SPARKD: No image supplied.");
+                return false;
             }
 
+            const result = await scanImage(imageElement);
 
-            console.log(
-                "🛡️ Content Guard ready"
-            );
+            if (!result.allowed) {
 
+                console.warn(
+                    "🚫 SPARKD BLOCKED:",
+                    result.reason,
+                    result.predictions
+                );
 
-        }
-        catch (error) {
-
-            console.error(
-                "🛡️ Content Guard failed:",
-                error
-            );
-
-
-            this.model = null;
-
-        }
-
-
-        this.loading = false;
-
-
-        return this.model;
-
-    },
-
-
-
-    ////////////////////////////////////////////////////
-    // CHECK IMAGE
-    ////////////////////////////////////////////////////
-
-    async check(file) {
-
-        if (!file) {
-            return false;
-        }
-
-
-        ////////////////////////////////////////////////////
-        // BASIC FILE SECURITY CHECK
-        ////////////////////////////////////////////////////
-
-        const filename =
-            file.name.toLowerCase();
-
-
-        const blockedExtensions = [
-
-            ".exe",
-            ".js",
-            ".html",
-            ".htm",
-            ".svg",
-            ".bat",
-            ".cmd",
-            ".scr",
-            ".msi"
-
-        ];
-
-
-        for (
-            let ext of blockedExtensions
-        ) {
-
-            if (filename.endsWith(ext)) {
-
-                this.reject(
-                    "File type not allowed."
+                alert(
+                    "🚫 Image blocked\n\n" +
+                    "This image appears to contain adult or explicit content."
                 );
 
                 return false;
-
             }
 
-        }
-
-
-
-        ////////////////////////////////////////////////////
-        // MIME TYPE CHECK
-        ////////////////////////////////////////////////////
-
-        if (
-            file.type &&
-            !file.type.startsWith("image/")
-        ) {
-
-            this.reject(
-                "Please upload an image file."
-            );
-
-            return false;
-
-        }
-
-
-
-        ////////////////////////////////////////////////////
-        // LOAD SCANNER
-        ////////////////////////////////////////////////////
-
-        const model =
-            await this.loadModel();
-
-
-        /*
-         * IMPORTANT:
-         *
-         * We FAIL CLOSED here.
-         *
-         * If the AI scanner cannot load,
-         * the image is NOT allowed through.
-         */
-
-        if (!model) {
-
-            this.reject(
-                "The SPARKD Content Guard could not be loaded. Please refresh the page and try again."
-            );
-
-            return false;
-
-        }
-
-
-
-        ////////////////////////////////////////////////////
-        // SCAN IMAGE
-        ////////////////////////////////////////////////////
-
-        try {
-
-            const image =
-                await this.fileToImage(file);
-
-
-            const predictions =
-                await model.classify(image);
-
-
             console.log(
-                "🛡️ Content Scan:",
-                predictions
+                "✅ SPARKD ALLOWED:",
+                result.predictions
             );
-
-
-
-            ////////////////////////////////////////////////////
-            // CHECK RESTRICTED CATEGORIES
-            ////////////////////////////////////////////////////
-
-            for (
-                let result of predictions
-            ) {
-
-                const category =
-                    result.className;
-
-
-                const probability =
-                    result.probability;
-
-
-
-                /*
-                 * Hentai:
-                 * Reject at 50%+
-                 *
-                 * Porn:
-                 * Reject at 50%+
-                 *
-                 * Sexy:
-                 * Reject at 60%+
-                 *
-                 * The Hentai threshold is intentionally
-                 * lower because anime pornography can
-                 * otherwise be classified as Drawing.
-                 */
-
-                if (
-
-                    category === "Hentai" &&
-                    probability >= 0.50
-
-                ) {
-
-                    this.reject(
-                        "This image contains restricted content."
-                    );
-
-                    return false;
-
-                }
-
-
-                if (
-
-                    category === "Porn" &&
-                    probability >= 0.50
-
-                ) {
-
-                    this.reject(
-                        "This image contains restricted content."
-                    );
-
-                    return false;
-
-                }
-
-
-                if (
-
-                    category === "Sexy" &&
-                    probability >= 0.60
-
-                ) {
-
-                    this.reject(
-                        "This image contains restricted content."
-                    );
-
-                    return false;
-
-                }
-
-            }
-
-
-
-            ////////////////////////////////////////////////////
-            // APPROVED
-            ////////////////////////////////////////////////////
-
-            console.log(
-                "✅ Content approved"
-            );
-
 
             return true;
 
-        }
-
-
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "🛡️ Scan error:",
+                "❌ SPARKD Content Guard error:",
                 error
             );
 
-
             /*
-             * FAIL CLOSED
-             *
-             * Never allow an image through if
-             * the scanner encounters an error.
+             * IMPORTANT:
+             * If the scanner itself fails, DO NOT silently allow
+             * the upload. The purpose of this guard is to prevent
+             * unsafe images from entering the Forge.
              */
 
-            this.reject(
-                "The image could not be scanned. Please try another image."
+            alert(
+                "⚠️ Content scanner unavailable.\n\n" +
+                "The image cannot be uploaded until the scanner is ready."
             );
 
-
             return false;
-
         }
-
-    },
-
+    };
 
 
-    ////////////////////////////////////////////////////
-    // FILE TO IMAGE
-    ////////////////////////////////////////////////////
+    // ------------------------------------------------------------
+    // PRELOAD MODEL
+    // ------------------------------------------------------------
 
-    fileToImage(file) {
-
-        return new Promise(
-            function(resolve, reject) {
-
-                const reader =
-                    new FileReader();
+    window.sparkdContentGuardReady = loadModel();
 
 
-                reader.onload =
-                    function(e) {
+    // ------------------------------------------------------------
+    // DEBUG / STATUS
+    // ------------------------------------------------------------
 
-                        const img =
-                            new Image();
+    window.sparkdContentGuardStatus = function() {
 
+        return {
+            loaded: scannerReady,
+            model: contentModel ? "MobileNetV2" : null
+        };
 
-                        img.onload =
-                            function() {
-
-                                resolve(img);
-
-                            };
-
-
-                        img.onerror =
-                            function() {
-
-                                reject(
-                                    new Error(
-                                        "Unable to decode image."
-                                    )
-                                );
-
-                            };
+    };
 
 
-                        img.src =
-                            e.target.result;
+    console.log("🛡️ SPARKD Content Guard installed.");
 
-                    };
-
-
-                reader.onerror =
-                    function() {
-
-                        reject(
-                            new Error(
-                                "Unable to read image file."
-                            )
-                        );
-
-                    };
-
-
-                reader.readAsDataURL(file);
-
-            }
-        );
-
-    },
-
-
-
-    ////////////////////////////////////////////////////
-    // BLOCK MESSAGE
-    ////////////////////////////////////////////////////
-
-    reject(message) {
-
-        console.log(
-            "🚫 SPARKD BLOCKED:",
-            message
-        );
-
-
-        alert(
-
-            "🚫 SPARKD Content Guard\n\n" +
-            message
-
-        );
-
-    }
-
-};
-
+})();
