@@ -186,49 +186,130 @@ window.addEventListener("load", function () {
     }
 
 
+   ////////////////////////////////////////////////////
+// IMAGE UPLOAD - AUTO FIT & CENTER
+// SPARKD CONTENT GUARD MUST PASS BEFORE UPLOAD
+////////////////////////////////////////////////////
+
+const uploadBtn =
+    document.getElementById("uploadBtn");
+
+const imageInput =
+    document.getElementById("imageInput");
+
+
+if (uploadBtn && imageInput) {
+
     ////////////////////////////////////////////////////
-    // IMAGE UPLOAD - AUTO FIT & CENTER
+    // OPEN FILE SELECTOR
     ////////////////////////////////////////////////////
 
-    const uploadBtn =
-        document.getElementById("uploadBtn");
+    uploadBtn.onclick = function () {
 
-    const imageInput =
-        document.getElementById("imageInput");
+        imageInput.value = "";
 
-    if (uploadBtn && imageInput) {
+        imageInput.click();
 
-        uploadBtn.onclick = function () {
+    };
+
+
+    ////////////////////////////////////////////////////
+    // IMAGE SELECTED
+    ////////////////////////////////////////////////////
+
+    imageInput.onchange = async function (e) {
+
+        const file =
+            e.target.files[0];
+
+
+        if (!file) {
+
+            return;
+
+        }
+
+
+        console.log(
+            "🖼️ SPARKD image selected:",
+            file.name
+        );
+
+
+        ////////////////////////////////////////////////////
+        // BASIC FILENAME SAFETY CHECK
+        ////////////////////////////////////////////////////
+
+        if (
+            typeof containsUnsafeContent === "function" &&
+            containsUnsafeContent(file.name)
+        ) {
+
+            console.log(
+                "🚫 Filename blocked by safety check"
+            );
+
+            alert(
+                "🚫 This image name is not allowed."
+            );
 
             imageInput.value = "";
 
-            imageInput.click();
+            return;
 
-        };
+        }
 
 
-        imageInput.onchange = async function (e) {
+        ////////////////////////////////////////////////////
+        // SPARKD CONTENT GUARD
+        // MUST FINISH BEFORE IMAGE IS LOADED
+        ////////////////////////////////////////////////////
 
-            const file =
-                e.target.files[0];
+        if (
+            !window.SPARKD_GUARD ||
+            typeof window.SPARKD_GUARD.check !== "function"
+        ) {
 
-            if (!file) {
-                return;
-            }
+            console.error(
+                "❌ SPARKD Content Guard is NOT available."
+            );
+
+            alert(
+                "⚠️ SPARKD Content Guard is not ready. Please wait a moment and try again."
+            );
+
+            imageInput.value = "";
+
+            return;
+
+        }
+
+
+        console.log(
+            "🛡️ SPARKD Content Guard scanning image..."
+        );
+
+
+        try {
+
+            const allowed =
+                await window.SPARKD_GUARD.check(file);
+
+
+            console.log(
+                "🛡️ SPARKD Content Guard result:",
+                allowed
+            );
 
 
             ////////////////////////////////////////////////////
-            // BASIC FILENAME SAFETY CHECK
+            // IMAGE FAILED CONTENT CHECK
             ////////////////////////////////////////////////////
 
-            if (
-                containsUnsafeContent(
-                    file.name
-                )
-            ) {
+            if (!allowed) {
 
-                alert(
-                    "🚫 This image name is not allowed."
+                console.log(
+                    "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD"
                 );
 
                 imageInput.value = "";
@@ -239,142 +320,146 @@ window.addEventListener("load", function () {
 
 
             ////////////////////////////////////////////////////
-            // SPARKD CONTENT GUARD
+            // IMAGE PASSED CONTENT CHECK
             ////////////////////////////////////////////////////
 
-            if (
-                window.SPARKD_GUARD &&
-                typeof window.SPARKD_GUARD.check === "function"
-            ) {
+            console.log(
+                "✅ IMAGE PASSED SPARKD CONTENT GUARD"
+            );
 
-                try {
 
-                    const allowed =
-                        await window.SPARKD_GUARD.check(
-                            file
+        }
+        catch (error) {
+
+            console.error(
+                "❌ SPARKD Content Guard error:",
+                error
+            );
+
+            alert(
+                "⚠️ Content Guard could not check this image."
+            );
+
+            imageInput.value = "";
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // LOAD IMAGE ONLY AFTER GUARD PASSES
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🖼️ Loading approved image into meme canvas..."
+        );
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload = function (event) {
+
+
+            fabric.Image.fromURL(
+                event.target.result,
+                function (img) {
+
+
+                    ////////////////////////////////////////////////////
+                    // CANVAS SIZE
+                    ////////////////////////////////////////////////////
+
+                    const canvasSize =
+                        1080;
+
+
+                    ////////////////////////////////////////////////////
+                    // SCALE IMAGE TO FIT
+                    ////////////////////////////////////////////////////
+
+                    const scale =
+                        Math.min(
+                            canvasSize / img.width,
+                            canvasSize / img.height
                         );
 
-                    if (!allowed) {
 
-                        imageInput.value = "";
+                    img.scale(scale);
 
-                        return;
 
-                    }
+                    ////////////////////////////////////////////////////
+                    // CENTER IMAGE
+                    ////////////////////////////////////////////////////
 
-                }
-                catch (error) {
+                    img.set({
 
-                    console.error(
-                        "SPARKD Content Guard error:",
-                        error
+                        left:
+                            (
+                                canvasSize -
+                                img.getScaledWidth()
+                            ) / 2,
+
+                        top:
+                            (
+                                canvasSize -
+                                img.getScaledHeight()
+                            ) / 2,
+
+                        cornerColor:
+                            "#ff6600",
+
+                        transparentCorners:
+                            false
+
+                    });
+
+
+                    ////////////////////////////////////////////////////
+                    // ADD IMAGE
+                    ////////////////////////////////////////////////////
+
+                    canvas.add(img);
+
+
+                    ////////////////////////////////////////////////////
+                    // KEEP IMAGE BEHIND TEXT
+                    ////////////////////////////////////////////////////
+
+                    canvas.sendToBack(img);
+
+
+                    ////////////////////////////////////////////////////
+                    // SELECT IMAGE
+                    ////////////////////////////////////////////////////
+
+                    canvas.setActiveObject(img);
+
+
+                    ////////////////////////////////////////////////////
+                    // REFRESH CANVAS
+                    ////////////////////////////////////////////////////
+
+                    canvas.renderAll();
+
+
+                    console.log(
+                        "✅ APPROVED IMAGE LOADED INTO SPARKD MEME FORGE"
                     );
 
-                    alert(
-                        "⚠️ Content Guard could not check this image."
-                    );
-
-                    imageInput.value = "";
-
-                    return;
-
                 }
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // LOAD IMAGE
-            ////////////////////////////////////////////////////
-
-            const reader =
-                new FileReader();
-
-            reader.onload = function (event) {
-
-                fabric.Image.fromURL(
-                    event.target.result,
-                    function (img) {
-
-                        ////////////////////////////////////////////////////
-                        // CANVAS SIZE
-                        ////////////////////////////////////////////////////
-
-                        const canvasSize = 1080;
-
-
-                        ////////////////////////////////////////////////////
-                        // SCALE IMAGE TO FIT
-                        ////////////////////////////////////////////////////
-
-                        const scale =
-                            Math.min(
-                                canvasSize / img.width,
-                                canvasSize / img.height
-                            );
-
-                        img.scale(scale);
-
-
-                        ////////////////////////////////////////////////////
-                        // CENTER IMAGE
-                        ////////////////////////////////////////////////////
-
-                        img.set({
-
-                            left:
-                                (
-                                    canvasSize -
-                                    img.getScaledWidth()
-                                ) / 2,
-
-                            top:
-                                (
-                                    canvasSize -
-                                    img.getScaledHeight()
-                                ) / 2,
-
-                            cornerColor: "#ff6600",
-
-                            transparentCorners: false
-
-                        });
-
-
-                        ////////////////////////////////////////////////////
-                        // ADD IMAGE
-                        ////////////////////////////////////////////////////
-
-                        canvas.add(img);
-
-
-                        ////////////////////////////////////////////////////
-                        // KEEP IMAGE BEHIND TEXT
-                        ////////////////////////////////////////////////////
-
-                        canvas.sendToBack(img);
-
-
-                        ////////////////////////////////////////////////////
-                        // SELECT IMAGE
-                        ////////////////////////////////////////////////////
-
-                        canvas.setActiveObject(img);
-
-
-                        canvas.renderAll();
-
-                    }
-                );
-
-            };
-
-            reader.readAsDataURL(file);
+            );
 
         };
 
-    }
 
+        reader.readAsDataURL(file);
+
+    };
+
+}
 
     ////////////////////////////////////////////////////
     // ADD TEXT
