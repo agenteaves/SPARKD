@@ -1,4 +1,3 @@
-```javascript
 ////////////////////////////////////////////////////
 // SPARKD MEME FORGE v1.1
 // COMPLETE APP ENGINE
@@ -759,4 +758,3 @@ window.addEventListener("load", function () {
     }
 
 });
-```
