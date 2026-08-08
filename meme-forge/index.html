@@ -1,317 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>SPARKD Meme Forge</title>
-
 <meta name="description" content="Create, customize and share SPARKD community memes.">
-
-
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Bangers&display=swap" rel="stylesheet">
-
-
 <link rel="stylesheet" href="style.css">
-
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-
-
 </head>
-
-
 <body>
-
-
 <div id="app">
 
+  <!-- HEADER -->
+  <header>
+    <button id="homeBtn">🏠 Home</button>
+    <button id="profileBtn">👤 Creator Profile</button>
+    <h1 id="sparkdLogo">
+      🔥 SPARKD
+      <span>MEME FORGE</span>
+    </h1>
+    <p>Forge the next viral SPARKD meme.</p>
+  </header>
 
-<header>
+  <!-- TOP TEXT TOOL -->
+  <div id="textToolbar">
+    <input id="textInput" placeholder="SPARKD TO THE MOON">
+    <button id="addTextBtn">🔤 Add Text</button>
+  </div>
 
-<button id="homeBtn">
-🏠 Home
-</button>
-
-<button id="profileBtn">
-👤 Creator Profile
-</button>
- 
-<h1 id="sparkdLogo">
-🔥 SPARKD
-<span>MEME FORGE</span>
-</h1>
-
-
-<p>Forge the next viral SPARKD meme.</p>
-
-
-</header>
-
-
-<!-- TOP TEXT TOOL -->
-<div id="textToolbar">
-
-    <input 
-    id="textInput"
-    placeholder="SPARKD TO THE MOON">
-
-    <button id="addTextBtn">
-    🔤 Add Text
-    </button>
-
-</div>
-
-
-
-<!-- LEFT SIDE TOOLBAR -->
-<!-- LEFT SIDE TOOLBAR -->
-<div id="sideToolbar">
-
-    <button id="uploadBtn">
-        🖼 Upload Image
-    </button>
-
-
-    <button id="clearBtn">
-    🧹 Clear All
-    </button>
-
-    <input 
-    type="file"
-    id="imageInput"
-    accept="image/*"
-    hidden>
-
-
-    <button id="deleteBtn">
-        🗑 Delete
-    </button>
-
+  <!-- LEFT SIDE TOOLBAR -->
+  <div id="sideToolbar">
+    <button id="uploadBtn">🖼 Upload Image</button>
+    <button id="clearBtn">🧹 Clear All</button>
+    <input type="file" id="imageInput" accept="image/*" hidden>
+    <button id="deleteBtn">🗑 Delete</button>
 
     <div class="emojiContainer">
-
-        <button id="emojiBtn">
-            😀 Emojis
-        </button>
-
-
-        <div id="emojiPicker">
-
-            <span class="emojiOption">😀</span>
-            <span class="emojiOption">😂</span>
-            <span class="emojiOption">🤣</span>
-            <span class="emojiOption">😎</span>
-
-            <span class="emojiOption">😍</span>
-            <span class="emojiOption">🔥</span>
-            <span class="emojiOption">🚀</span>
-            <span class="emojiOption">💎</span>
-
-            <span class="emojiOption">❤️</span>
-            <span class="emojiOption">⚡</span>
-            <span class="emojiOption">🐸</span>
-            <span class="emojiOption">👑</span>
-
-            <span class="emojiOption">💰</span>
-            <span class="emojiOption">🤑</span>
-            <span class="emojiOption">💯</span>
-            <span class="emojiOption">👍</span>
-
-        </div>
-
+      <button id="emojiBtn">😀 Emojis</button>
+      <div id="emojiPicker">
+        <span class="emojiOption">😀</span>
+        <span class="emojiOption">😂</span>
+        <span class="emojiOption">🤣</span>
+        <span class="emojiOption">😎</span>
+        <span class="emojiOption">😍</span>
+        <span class="emojiOption">🔥</span>
+        <span class="emojiOption">🚀</span>
+        <span class="emojiOption">💎</span>
+        <span class="emojiOption">❤️</span>
+        <span class="emojiOption">⚡</span>
+        <span class="emojiOption">🐸</span>
+        <span class="emojiOption">👑</span>
+        <span class="emojiOption">💰</span>
+        <span class="emojiOption">🤑</span>
+        <span class="emojiOption">💯</span>
+        <span class="emojiOption">👍</span>
+      </div>
     </div>
 
+    <button id="downloadBtn">⬇ Export</button>
+  </div>
 
-    <button id="downloadBtn">
-        ⬇ Export
-    </button>
-
-
-</div>
-<!-- END SIDE TOOLBAR -->
-
-
-
-<!-- MEME EDITOR -->
-<div id="workspace">
-
+  <!-- MAIN WORKSPACE -->
+  <div id="workspace">
     <div id="editor">
-
-        <div id="canvasBox">
-
-
-        <canvas
-        id="memeCanvas"
-        width="1080"
-        height="1080">
-        </canvas>
-
-
+      <div id="canvasBox">
+        <canvas id="memeCanvas" width="1080" height="1080"></canvas>
+      </div>
     </div>
 
+    <!-- DAILY CHALLENGE / MISSION CONTROL -->
+    <div id="dailyChallenge">
+      <h2>🚀 SPARKD Mission Control</h2>
 
-</div>
+      <div id="sparkPoints">
+        🪙 SPARK Points
+        <strong id="sparkPointAmount">0</strong>
+      </div>
 
-<div id="dailyChallenge">
+      <div id="creatorLevel">
+        ⭐ Creator Level
+        <strong id="creatorLevelName">Level 1 - Meme Rookie</strong>
+      </div>
 
-    <h2>🚀 SPARKD Mission Control</h2>
+      <div id="challengeCategory">Category: Loading...</div>
+      <p id="challengeText">Loading challenge...</p>
+      <div id="challengeDifficulty">Difficulty: ⭐</div>
+      <div id="challengeReward">Reward: +0 SPARK Points</div>
 
-    <div id="sparkPoints">
-
-    🪙 SPARK Points
-
-    <strong id="sparkPointAmount">
-        0
-    </strong>
-
-</div>
-
-    <div id="creatorLevel">
-
-    ⭐ Creator Level
-
-    <strong id="creatorLevelName">
-        Level 1 - Meme Rookie
-    </strong>
-
-</div>
-
-    <div id="challengeCategory">
-        Category: Loading...
+      <button id="completeMissionBtn">✅ Complete Mission</button>
     </div>
+  </div>
 
-    <p id="challengeText">
-        Loading challenge...
-    </p>
+  <!-- WATERMARK / TOKEN INFO -->
+  <div id="watermarkSection">
+    <label>Contract Watermark:</label>
+    <label>SPARKD Token:</label>
+    <p>Official Solana Contract Automatically Applied</p>
+  </div>
 
-    <div id="challengeDifficulty">
-        Difficulty: ⭐
-    </div>
-
-    <div id="challengeReward">
-        Reward: +0 SPARK Points
-    </div>
-
-        <button id="completeMissionBtn">
-
-    ✅ Complete Mission
-
-    </button>
-
-    </div>
+  <footer>
+    SPARKD MEME FORGE v1.1
+  </footer>
 
 </div>
 
-</div>
-    
-<!-- END EDITOR -->
-
-<div id="editor">
-
-
-    </div>
-
-</div>
-
-
-
-<label>
-Contract Watermark:
-</label>
-
-
-<label>
-SPARKD Token:
-</label>
-
-<p>
-Official Solana Contract Automatically Applied
-</p>
-
-
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-<footer>
-
-SPARKD MEME FORGE v1.1
-
-</footer>
-
-
-
-
-</div>
-
-
+<!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
-
 <script src="js/content-guard.js"></script>
-
 <script src="upgrades/content-guard.js"></script>
-
 <script src="app.js?v=10"></script>
 
 <script>
-
-document.getElementById("homeBtn").onclick = function(){
-
+  document.getElementById("homeBtn").onclick = function() {
     window.location.href = "/";
-
-};
-
-
-document.getElementById("profileBtn").onclick = function(){
-
+  };
+  document.getElementById("profileBtn").onclick = function() {
     window.location.href = "/creator-profile/";
-
-};
-
+  };
 </script>
 
 <script src="upgrades/forge-layer.js"></script>
-
 <script src="upgrades/forge-export.js"></script>
-
 <script src="upgrades/png-forge-writer.js"></script>
-
-<script src="upgrades/forge-scanner.js?v=1"></script> 
-
+<script src="upgrades/forge-scanner.js?v=1"></script>
 <script src="upgrades/developer-panel.js"></script>
-
 <script src="upgrades/developer-mode.js"></script>
-
-<script src="upgrades/object-tools.js"></script> 
-
+<script src="upgrades/object-tools.js"></script>
 <script src="upgrades/daily-challenges-data.js"></script>
-  
 <script src="upgrades/daily-challenge.js"></script>
-
 <script src="upgrades/spark-points.js"></script>
-    
 <script src="upgrades/creator-levels.js"></script>
-    
 <script src="upgrades/mission-completion.js"></script>
-
 <script src="upgrades/creator-starter-pack.js"></script>
-
 <script src="upgrades/text-color-picker.js"></script>
 
 </body>
-
 </html>
