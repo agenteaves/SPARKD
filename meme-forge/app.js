@@ -260,84 +260,97 @@ if (uploadBtn && imageInput) {
         }
 
 
-        ////////////////////////////////////////////////////
-        // SPARKD CONTENT GUARD
-        // MUST FINISH BEFORE IMAGE IS LOADED
-        ////////////////////////////////////////////////////
+       ```javascript
+    ////////////////////////////////////////////////////
+    // SPARKD CONTENT GUARD
+    // WAIT FOR GUARD + SCAN BEFORE IMAGE LOAD
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🛡️ Waiting for SPARKD Content Guard..."
+    );
+
+
+    let guardReady = false;
+
+
+    ////////////////////////////////////////////////////
+    // WAIT UP TO 10 SECONDS FOR CONTENT GUARD
+    ////////////////////////////////////////////////////
+
+    for (let i = 0; i < 100; i++) {
 
         if (
-            !window.SPARKD_GUARD ||
-            typeof window.SPARKD_GUARD.check !== "function"
+            window.SPARKD_GUARD &&
+            typeof window.SPARKD_GUARD.check === "function"
         ) {
 
-            console.error(
-                "❌ SPARKD Content Guard is NOT available."
-            );
+            guardReady = true;
 
-            alert(
-                "⚠️ SPARKD Content Guard is not ready. Please wait a moment and try again."
-            );
-
-            imageInput.value = "";
-
-            return;
+            break;
 
         }
+
+
+        await new Promise(
+            resolve => setTimeout(resolve, 100)
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // GUARD FAILED TO BECOME AVAILABLE
+    ////////////////////////////////////////////////////
+
+    if (!guardReady) {
+
+        console.error(
+            "❌ SPARKD Content Guard failed to become available."
+        );
+
+        alert(
+            "⚠️ SPARKD Content Guard is not ready.\n\nPlease wait a moment and try again."
+        );
+
+        imageInput.value = "";
+
+        return;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // SCAN IMAGE
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🛡️ SPARKD Content Guard scanning image..."
+    );
+
+
+    try {
+
+        const allowed =
+            await window.SPARKD_GUARD.check(
+                file
+            );
 
 
         console.log(
-            "🛡️ SPARKD Content Guard scanning image..."
+            "🛡️ SPARKD Content Guard result:",
+            allowed
         );
 
 
-        try {
+        ////////////////////////////////////////////////////
+        // IMAGE FAILED CONTENT CHECK
+        ////////////////////////////////////////////////////
 
-            const allowed =
-                await window.SPARKD_GUARD.check(file);
-
-
-            console.log(
-                "🛡️ SPARKD Content Guard result:",
-                allowed
-            );
-
-
-            ////////////////////////////////////////////////////
-            // IMAGE FAILED CONTENT CHECK
-            ////////////////////////////////////////////////////
-
-            if (!allowed) {
-
-                console.log(
-                    "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD"
-                );
-
-                imageInput.value = "";
-
-                return;
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // IMAGE PASSED CONTENT CHECK
-            ////////////////////////////////////////////////////
+        if (!allowed) {
 
             console.log(
-                "✅ IMAGE PASSED SPARKD CONTENT GUARD"
-            );
-
-
-        }
-        catch (error) {
-
-            console.error(
-                "❌ SPARKD Content Guard error:",
-                error
-            );
-
-            alert(
-                "⚠️ Content Guard could not check this image."
+                "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD"
             );
 
             imageInput.value = "";
@@ -345,6 +358,35 @@ if (uploadBtn && imageInput) {
             return;
 
         }
+
+
+        ////////////////////////////////////////////////////
+        // IMAGE PASSED CONTENT CHECK
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "✅ IMAGE PASSED SPARKD CONTENT GUARD"
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ SPARKD Content Guard error:",
+            error
+        );
+
+        alert(
+            "⚠️ Content Guard could not check this image."
+        );
+
+        imageInput.value = "";
+
+        return;
+
+    }
+```
+
 
 
         ////////////////////////////////////////////////////
