@@ -18,8 +18,8 @@
      * The browser downloads the model.
      * Nothing is hosted on the SPARKD server.
      */
-    const MODEL_URL =
-        "https://nsfwjs.com/model/";
+     const MODEL_URL =
+     "./model/";
 
     /*
      * Conservative thresholds.
