@@ -275,7 +275,7 @@
              * If the combined NSFW confidence is significant,
              * reject the image.
              */
-            if (combinedNSFW >= 0.25) {
+            if (combinedNSFW >= 0.15) {
 
                 console.warn(
                     "🚫 SPARKD BLOCKED: Combined NSFW score",
