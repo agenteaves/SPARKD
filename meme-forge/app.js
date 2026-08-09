@@ -308,219 +308,293 @@ if (uploadBtn && imageInput) {
         }
 
 
-      
+////////////////////////////////////////////////////
+// CREATE IMAGE ELEMENT FOR NSFWJS
+////////////////////////////////////////////////////
+
+console.log(
+    "🛡️ Preparing selected file for Content Guard:",
+    file.name,
+    file.type,
+    file.size
+);
+
+let scanImage = null;
+let scanImageURL = null;
+
+
+try {
+
     ////////////////////////////////////////////////////
-    // CREATE IMAGE ELEMENT FOR NSFWJS
+    // CREATE UNIQUE OBJECT URL FOR THIS FILE
     ////////////////////////////////////////////////////
 
-    console.log(
-        "🛡️ Preparing selected file for Content Guard:",
-        file.name,
-        file.type,
-        file.size
-    );
-
-    let scanImage;
-    let scanImageURL;
+    scanImageURL =
+        URL.createObjectURL(file);
 
 
-    try {
+    ////////////////////////////////////////////////////
+    // LOAD EXACT FILE INTO NEW IMAGE
+    ////////////////////////////////////////////////////
 
-        scanImageURL =
-            URL.createObjectURL(file);
+    scanImage =
+        await new Promise(function (resolve, reject) {
 
+            const img =
+                new Image();
 
-        scanImage =
-            await new Promise(
-                async function (resolve, reject) {
+            img.onload =
+                async function () {
 
-                    const img =
-                        new Image();
+                    try {
 
-                    img.onload =
-                        async function () {
+                        ////////////////////////////////////////////////////
+                        // WAIT UNTIL IMAGE IS FULLY DECODED
+                        ////////////////////////////////////////////////////
 
-                            try {
+                        if (
+                            typeof img.decode === "function"
+                        ) {
 
-                                /*
-                                 * Make absolutely sure the
-                                 * browser has decoded the image
-                                 * before NSFWJS receives it.
-                                 */
-                                if (
-                                    typeof img.decode === "function"
-                                ) {
+                            await img.decode();
 
-                                    await img.decode();
-
-                                }
-
-                                resolve(img);
-
-                            }
-                            catch (error) {
-
-                                reject(error);
-
-                            }
-
-                        };
+                        }
 
 
-                    img.onerror =
-                        function () {
+                        ////////////////////////////////////////////////////
+                        // VERIFY IMAGE DIMENSIONS
+                        ////////////////////////////////////////////////////
+
+                        if (
+                            !img.naturalWidth ||
+                            !img.naturalHeight
+                        ) {
 
                             reject(
                                 new Error(
-                                    "Could not load image for safety scan."
+                                    "Image decoded but has invalid dimensions."
                                 )
                             );
 
-                        };
+                            return;
+
+                        }
 
 
-                    /*
-                     * IMPORTANT:
-                     * Use the object URL belonging to THIS
-                     * selected file.
-                     */
-                    img.src =
-                        scanImageURL;
+                        resolve(img);
 
-                }
-            );
+                    }
+                    catch (error) {
 
+                        reject(error);
 
-        console.log(
-            "✅ IMAGE READY FOR SPARKD CONTENT GUARD:",
-            {
-                fileName: file.name,
-                fileType: file.type,
-                fileSize: file.size,
-                src: scanImage.src,
-                width: scanImage.naturalWidth,
-                height: scanImage.naturalHeight
-            }
-        );
+                    }
+
+                };
 
 
-    }
-    catch (error) {
+            img.onerror =
+                function () {
 
-        console.error(
-            "❌ Could not prepare image for Content Guard:",
-            error
-        );
+                    reject(
+                        new Error(
+                            "Could not load image for safety scan."
+                        )
+                    );
 
-        if (scanImageURL) {
+                };
 
-            URL.revokeObjectURL(
-                scanImageURL
-            );
 
+            ////////////////////////////////////////////////////
+            // LOAD THIS EXACT FILE
+            ////////////////////////////////////////////////////
+
+            img.src =
+                scanImageURL;
+
+        });
+
+
+    ////////////////////////////////////////////////////
+    // VERIFY THE EXACT IMAGE BEING SCANNED
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "✅ IMAGE READY FOR SPARKD CONTENT GUARD:",
+        {
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+
+            objectURL:
+                scanImageURL,
+
+            imageSource:
+                scanImage.src,
+
+            width:
+                scanImage.naturalWidth,
+
+            height:
+                scanImage.naturalHeight
         }
-
-        alert(
-            "⚠️ This image could not be checked."
-        );
-
-        imageInput.value = "";
-
-        return;
-
-    }
+    );
 
 
-    ////////////////////////////////////////////////////
-    // RUN SPARKD CONTENT GUARD
-    ////////////////////////////////////////////////////
+}
+catch (error) {
 
-    let guardResult;
-
-
-    try {
-
-        console.log(
-            "🔎 SCANNING THIS EXACT FILE:",
-            {
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type,
-                width: scanImage.naturalWidth,
-                height: scanImage.naturalHeight
-            }
-        );
+    console.error(
+        "❌ Could not prepare image for Content Guard:",
+        error
+    );
 
 
-        guardResult =
-            await window.SPARKDContentGuard.checkImage(
-                scanImage
-            );
-
-
-        console.log(
-            "🛡️ SPARKD Content Guard result:",
-            guardResult
-        );
-
-
-    }
-    catch (error) {
-
-        console.error(
-            "❌ SPARKD Content Guard error:",
-            error
-        );
+    if (scanImageURL) {
 
         URL.revokeObjectURL(
             scanImageURL
         );
 
-        alert(
-            "⚠️ Content Guard could not check this image."
+    }
+
+
+    alert(
+        "⚠️ This image could not be checked."
+    );
+
+
+    imageInput.value = "";
+
+    return;
+
+}
+
+
+
+////////////////////////////////////////////////////
+// RUN SPARKD CONTENT GUARD
+////////////////////////////////////////////////////
+
+let guardResult;
+
+
+try {
+
+    console.log(
+        "🔎 SCANNING THIS EXACT FILE:",
+        {
+            fileName:
+                file.name,
+
+            fileSize:
+                file.size,
+
+            fileType:
+                file.type,
+
+            objectURL:
+                scanImageURL,
+
+            imageSource:
+                scanImage.src,
+
+            width:
+                scanImage.naturalWidth,
+
+            height:
+                scanImage.naturalHeight
+        }
+    );
+
+
+    ////////////////////////////////////////////////////
+    // SEND THE EXACT DECODED IMAGE TO NSFWJS
+    ////////////////////////////////////////////////////
+
+    guardResult =
+        await window.SPARKDContentGuard.checkImage(
+            scanImage
         );
 
-        imageInput.value = "";
 
-        return;
+    console.log(
+        "🛡️ SPARKD Content Guard result:",
+        guardResult
+    );
+
+
+}
+catch (error) {
+
+    console.error(
+        "❌ SPARKD Content Guard error:",
+        error
+    );
+
+
+    if (scanImageURL) {
+
+        URL.revokeObjectURL(
+            scanImageURL
+        );
 
     }
 
 
+    alert(
+        "⚠️ Content Guard could not check this image."
+    );
 
 
-        ////////////////////////////////////////////////////
-        // CLEAN UP SCAN IMAGE
-        ////////////////////////////////////////////////////
+    imageInput.value = "";
 
-        URL.revokeObjectURL(
-            scanImage.src
-        );
+    return;
+
+}
 
 
-        ////////////////////////////////////////////////////
-        // BLOCK IMAGE
-        ////////////////////////////////////////////////////
 
-        if (
-            guardResult &&
-            guardResult.blocked === true
-        ) {
+////////////////////////////////////////////////////
+// CLEAN UP SCAN IMAGE
+////////////////////////////////////////////////////
 
-            console.warn(
-                "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD",
-                guardResult
-            );
+if (scanImageURL) {
 
-            alert(
-                "🚫 This image cannot be used in SPARKD Meme Forge."
-            );
+    URL.revokeObjectURL(
+        scanImageURL
+    );
 
-            imageInput.value = "";
+}
 
-            return;
 
-        }
+////////////////////////////////////////////////////
+// BLOCK IMAGE
+////////////////////////////////////////////////////
+
+if (
+    guardResult &&
+    guardResult.blocked === true
+) {
+
+    console.warn(
+        "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD",
+        guardResult
+    );
+
+
+    alert(
+        "🚫 This image cannot be used in SPARKD Meme Forge."
+    );
+
+
+    imageInput.value = "";
+
+    return;
+
+}
+
+
 
 
         ////////////////////////////////////////////////////
