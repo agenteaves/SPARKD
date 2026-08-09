@@ -308,119 +308,185 @@ if (uploadBtn && imageInput) {
         }
 
 
-        ////////////////////////////////////////////////////
-        // CREATE IMAGE ELEMENT FOR NSFWJS
-        ////////////////////////////////////////////////////
+      ```javascript
+    ////////////////////////////////////////////////////
+    // CREATE IMAGE ELEMENT FOR NSFWJS
+    ////////////////////////////////////////////////////
 
-        console.log(
-            "🛡️ SPARKD Content Guard scanning image..."
-        );
+    console.log(
+        "🛡️ Preparing selected file for Content Guard:",
+        file.name,
+        file.type,
+        file.size
+    );
+
+    let scanImage;
+    let scanImageURL;
 
 
-        let scanImage;
+    try {
+
+        scanImageURL =
+            URL.createObjectURL(file);
 
 
-        try {
+        scanImage =
+            await new Promise(
+                async function (resolve, reject) {
 
-            scanImage =
-                await new Promise(
-                    function (resolve, reject) {
+                    const img =
+                        new Image();
 
-                        const img =
-                            new Image();
+                    img.onload =
+                        async function () {
 
-                        img.onload =
-                            function () {
+                            try {
+
+                                /*
+                                 * Make absolutely sure the
+                                 * browser has decoded the image
+                                 * before NSFWJS receives it.
+                                 */
+                                if (
+                                    typeof img.decode === "function"
+                                ) {
+
+                                    await img.decode();
+
+                                }
 
                                 resolve(img);
 
-                            };
+                            }
+                            catch (error) {
 
-                        img.onerror =
-                            function () {
+                                reject(error);
 
-                                reject(
-                                    new Error(
-                                        "Could not load image for safety scan."
-                                    )
-                                );
+                            }
 
-                            };
-
-                        img.src =
-                            URL.createObjectURL(file);
-
-                    }
-                );
+                        };
 
 
-        }
-        catch (error) {
+                    img.onerror =
+                        function () {
 
-            console.error(
-                "❌ Could not prepare image for Content Guard:",
-                error
-            );
+                            reject(
+                                new Error(
+                                    "Could not load image for safety scan."
+                                )
+                            );
 
-            alert(
-                "⚠️ This image could not be checked."
-            );
-
-            imageInput.value = "";
-
-            return;
-
-        }
+                        };
 
 
-        ////////////////////////////////////////////////////
-        // RUN SPARKD CONTENT GUARD
-        ////////////////////////////////////////////////////
+                    /*
+                     * IMPORTANT:
+                     * Use the object URL belonging to THIS
+                     * selected file.
+                     */
+                    img.src =
+                        scanImageURL;
 
-        let guardResult;
-
-
-        try {
-
-            console.log("🔎 SCAN IMAGE:", {
-            src: scanImage.src,
-            width: scanImage.naturalWidth,
-            height: scanImage.naturalHeight
-});
-
-            guardResult =
-                await window.SPARKDContentGuard.checkImage(
-                    scanImage
-                );
-
-
-            console.log(
-                "🛡️ SPARKD Content Guard result:",
-                guardResult
+                }
             );
 
 
-        }
-        catch (error) {
+        console.log(
+            "✅ IMAGE READY FOR SPARKD CONTENT GUARD:",
+            {
+                fileName: file.name,
+                fileType: file.type,
+                fileSize: file.size,
+                src: scanImage.src,
+                width: scanImage.naturalWidth,
+                height: scanImage.naturalHeight
+            }
+        );
 
-            console.error(
-                "❌ SPARKD Content Guard error:",
-                error
-            );
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ Could not prepare image for Content Guard:",
+            error
+        );
+
+        if (scanImageURL) {
 
             URL.revokeObjectURL(
-                scanImage.src
+                scanImageURL
             );
-
-            alert(
-                "⚠️ Content Guard could not check this image."
-            );
-
-            imageInput.value = "";
-
-            return;
 
         }
+
+        alert(
+            "⚠️ This image could not be checked."
+        );
+
+        imageInput.value = "";
+
+        return;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // RUN SPARKD CONTENT GUARD
+    ////////////////////////////////////////////////////
+
+    let guardResult;
+
+
+    try {
+
+        console.log(
+            "🔎 SCANNING THIS EXACT FILE:",
+            {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                width: scanImage.naturalWidth,
+                height: scanImage.naturalHeight
+            }
+        );
+
+
+        guardResult =
+            await window.SPARKDContentGuard.checkImage(
+                scanImage
+            );
+
+
+        console.log(
+            "🛡️ SPARKD Content Guard result:",
+            guardResult
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ SPARKD Content Guard error:",
+            error
+        );
+
+        URL.revokeObjectURL(
+            scanImageURL
+        );
+
+        alert(
+            "⚠️ Content Guard could not check this image."
+        );
+
+        imageInput.value = "";
+
+        return;
+
+    }
+```
+
 
 
         ////////////////////////////////////////////////////
