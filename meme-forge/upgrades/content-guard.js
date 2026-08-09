@@ -1,3 +1,4 @@
+```javascript
 /* ============================================================
    SPARKD CONTENT GUARD
    Browser-side image safety scanner
@@ -637,3 +638,4 @@
     loadContentGuard();
 
 })();
+```
