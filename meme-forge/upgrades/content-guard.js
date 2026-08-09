@@ -12,18 +12,20 @@
     let guardReady = false;
     let model = null;
 
+
     /*
      * NSFWJS model hosted locally.
      */
     const MODEL_URL = "./upgrades/model/";
 
+
     /*
-     * SPARKD should be conservative.
+     * SPARKD uses a conservative threshold.
      *
-     * A lower threshold means questionable NSFW images
-     * are rejected instead of being allowed.
+     * Lower threshold = more aggressive blocking.
      */
     const BLOCK_THRESHOLD = 0.15;
+
 
     /*
      * Classes considered unsafe by SPARKD.
@@ -44,36 +46,50 @@
         try {
 
             if (typeof tf === "undefined") {
+
                 throw new Error(
                     "TensorFlow.js is not loaded."
                 );
+
             }
 
+
             if (typeof nsfwjs === "undefined") {
+
                 throw new Error(
                     "NSFWJS is not loaded."
                 );
+
             }
+
 
             console.log(
                 "🛡️ Loading SPARKD content model..."
             );
 
+
             model = await nsfwjs.load(MODEL_URL);
 
+
             if (!model) {
+
                 throw new Error(
                     "NSFWJS returned no model."
                 );
+
             }
 
+
             guardReady = true;
+
 
             console.log(
                 "✅ SPARKD Content Guard ready."
             );
 
+
             window.SPARKD_CONTENT_GUARD_READY = true;
+
 
             window.dispatchEvent(
                 new Event(
@@ -81,17 +97,22 @@
                 )
             );
 
+
         } catch (error) {
 
             guardReady = false;
+
             model = null;
+
 
             console.error(
                 "❌ SPARKD Content Guard model failed:",
                 error
             );
 
+
             window.SPARKD_CONTENT_GUARD_READY = false;
+
 
             window.dispatchEvent(
                 new CustomEvent(
@@ -101,7 +122,9 @@
                     }
                 )
             );
+
         }
+
     }
 
 
@@ -111,41 +134,56 @@
 
     async function checkImage(image) {
 
+
         /*
-         * Model unavailable.
+         * FAIL CLOSED
          *
-         * IMPORTANT:
-         * Fail closed. Never approve an image when the
-         * safety model is unavailable.
+         * If the safety model is unavailable,
+         * the image is NOT allowed.
          */
+
         if (!guardReady || !model) {
 
             return {
+
                 checked: false,
+
                 safe: false,
+
                 blocked: true,
+
                 reason:
                     "Content safety model unavailable."
+
             };
+
         }
 
 
         /*
          * No image supplied.
          */
+
         if (!image) {
 
             return {
+
                 checked: false,
+
                 safe: false,
+
                 blocked: true,
+
                 reason:
                     "No image supplied."
+
             };
+
         }
 
 
         try {
+
 
             console.log(
                 "🔬 NSFWJS INPUT:",
@@ -160,6 +198,7 @@
             /*
              * Run NSFWJS.
              */
+
             const predictions =
                 await model.classify(image);
 
@@ -174,10 +213,12 @@
             );
 
 
-            /*
-             * Find the strongest unsafe category.
-             */
+            /* ====================================================
+               FIND STRONGEST UNSAFE CATEGORY
+            ==================================================== */
+
             let strongestBlocked = null;
+
 
             for (const prediction of predictions) {
 
@@ -194,19 +235,18 @@
                     ) {
 
                         strongestBlocked = prediction;
+
                     }
+
                 }
+
             }
 
 
-            /*
-             * Determine whether the image should be blocked.
-             *
-             * SPARKD uses a conservative threshold because
-             * the goal is to prevent nude/NSFW uploads rather
-             * than merely block images that NSFWJS is 70%+
-             * certain are pornographic.
-             */
+            /* ====================================================
+               INDIVIDUAL NSFW CHECK
+            ==================================================== */
+
             if (
                 strongestBlocked &&
                 strongestBlocked.probability >=
@@ -218,6 +258,7 @@
                     strongestBlocked.className,
                     strongestBlocked.probability
                 );
+
 
                 return {
 
@@ -238,30 +279,34 @@
 
                     reason:
                         "Image contains prohibited NSFW content."
+
                 };
+
             }
 
 
-            /*
-             * Additional combined NSFW check.
-             *
-             * Sometimes NSFWJS distributes confidence across
-             * Porn, Hentai, and Sexy instead of putting most
-             * of the probability into one class.
-             */
+            /* ====================================================
+               COMBINED NSFW CHECK
+            ==================================================== */
+
             const pornScore =
                 predictions.find(
-                    p => p.className === "Porn"
+                    p =>
+                        p.className === "Porn"
                 )?.probability || 0;
+
 
             const hentaiScore =
                 predictions.find(
-                    p => p.className === "Hentai"
+                    p =>
+                        p.className === "Hentai"
                 )?.probability || 0;
+
 
             const sexyScore =
                 predictions.find(
-                    p => p.className === "Sexy"
+                    p =>
+                        p.className === "Sexy"
                 )?.probability || 0;
 
 
@@ -271,16 +316,29 @@
                 sexyScore;
 
 
+            console.log(
+                "🛡️ SPARKD combined NSFW score:",
+                combinedNSFW
+            );
+
+
             /*
-             * If the combined NSFW confidence is significant,
-             * reject the image.
+             * Conservative combined check.
+             *
+             * This catches images where NSFW confidence
+             * is distributed across multiple categories.
              */
-            if (combinedNSFW >= 0.15) {
+
+            if (
+                combinedNSFW >=
+                BLOCK_THRESHOLD
+            ) {
 
                 console.warn(
                     "🚫 SPARKD BLOCKED: Combined NSFW score",
                     combinedNSFW
                 );
+
 
                 return {
 
@@ -301,16 +359,20 @@
 
                     reason:
                         "Image contains prohibited NSFW content."
+
                 };
+
             }
 
 
-            /*
-             * IMAGE PASSED
-             */
+            /* ====================================================
+               IMAGE PASSED
+            ==================================================== */
+
             console.log(
                 "✅ SPARKD image allowed."
             );
+
 
             return {
 
@@ -328,14 +390,18 @@
 
         } catch (error) {
 
+
             /*
-             * IMPORTANT:
-             * If scanning fails, do NOT approve the image.
+             * FAIL CLOSED
+             *
+             * If scanning fails, NEVER approve the image.
              */
+
             console.error(
                 "⚠️ SPARKD image scan failed:",
                 error
             );
+
 
             return {
 
@@ -349,7 +415,9 @@
                     "Image could not be verified for safety."
 
             };
+
         }
+
     }
 
 
@@ -359,14 +427,24 @@
 
     window.SPARKDContentGuard = {
 
-        checkImage: checkImage,
+        checkImage:
+            checkImage,
+
 
         isReady: function () {
-            return guardReady && !!model;
+
+            return (
+                guardReady &&
+                !!model
+            );
+
         },
 
+
         getModel: function () {
+
             return model;
+
         }
 
     };
@@ -379,4 +457,3 @@
     loadContentGuard();
 
 })();
-
