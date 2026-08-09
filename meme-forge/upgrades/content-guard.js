@@ -1,7 +1,7 @@
 /* ============================================================
    SPARKD CONTENT GUARD
    Browser-side image safety scanner
-   ============================================================ */
+============================================================ */
 
 (function () {
 
@@ -18,13 +18,15 @@
     const MODEL_URL = "./upgrades/model/";
 
     /*
-     * Probability required before blocking.
-     * 0.70 = 70%
+     * SPARKD should be conservative.
+     *
+     * A lower threshold means questionable NSFW images
+     * are rejected instead of being allowed.
      */
-    const BLOCK_THRESHOLD = 0.70;
+    const BLOCK_THRESHOLD = 0.15;
 
     /*
-     * Classes that SPARKD will block.
+     * Classes considered unsafe by SPARKD.
      */
     const BLOCKED_CLASSES = [
         "Porn",
@@ -35,7 +37,7 @@
 
     /* ============================================================
        LOAD MODEL
-       ============================================================ */
+    ============================================================ */
 
     async function loadContentGuard() {
 
@@ -105,22 +107,28 @@
 
     /* ============================================================
        CHECK IMAGE
-       ============================================================ */
+    ============================================================ */
 
     async function checkImage(image) {
 
         /*
          * Model unavailable.
+         *
+         * IMPORTANT:
+         * Fail closed. Never approve an image when the
+         * safety model is unavailable.
          */
         if (!guardReady || !model) {
 
             return {
                 checked: false,
-                safe: true,
-                blocked: false,
-                reason: "Content model unavailable"
+                safe: false,
+                blocked: true,
+                reason:
+                    "Content safety model unavailable."
             };
         }
+
 
         /*
          * No image supplied.
@@ -131,9 +139,11 @@
                 checked: false,
                 safe: false,
                 blocked: true,
-                reason: "No image supplied"
+                reason:
+                    "No image supplied."
             };
         }
+
 
         try {
 
@@ -146,8 +156,13 @@
                 }
             );
 
+
+            /*
+             * Run NSFWJS.
+             */
             const predictions =
                 await model.classify(image);
+
 
             console.log(
                 "🛡️ SPARKD image scan:",
@@ -158,8 +173,9 @@
                 )
             );
 
+
             /*
-             * Find strongest blocked category.
+             * Find the strongest unsafe category.
              */
             let strongestBlocked = null;
 
@@ -183,10 +199,14 @@
             }
 
 
-            /* ====================================================
-               BLOCK
-               ==================================================== */
-
+            /*
+             * Determine whether the image should be blocked.
+             *
+             * SPARKD uses a conservative threshold because
+             * the goal is to prevent nude/NSFW uploads rather
+             * than merely block images that NSFWJS is 70%+
+             * certain are pornographic.
+             */
             if (
                 strongestBlocked &&
                 strongestBlocked.probability >=
@@ -217,15 +237,77 @@
                         predictions,
 
                     reason:
-                        "Image contains prohibited content."
+                        "Image contains prohibited NSFW content."
                 };
             }
 
 
-            /* ====================================================
-               ALLOW
-               ==================================================== */
+            /*
+             * Additional combined NSFW check.
+             *
+             * Sometimes NSFWJS distributes confidence across
+             * Porn, Hentai, and Sexy instead of putting most
+             * of the probability into one class.
+             */
+            const pornScore =
+                predictions.find(
+                    p => p.className === "Porn"
+                )?.probability || 0;
 
+            const hentaiScore =
+                predictions.find(
+                    p => p.className === "Hentai"
+                )?.probability || 0;
+
+            const sexyScore =
+                predictions.find(
+                    p => p.className === "Sexy"
+                )?.probability || 0;
+
+
+            const combinedNSFW =
+                pornScore +
+                hentaiScore +
+                sexyScore;
+
+
+            /*
+             * If the combined NSFW confidence is significant,
+             * reject the image.
+             */
+            if (combinedNSFW >= 0.25) {
+
+                console.warn(
+                    "🚫 SPARKD BLOCKED: Combined NSFW score",
+                    combinedNSFW
+                );
+
+                return {
+
+                    checked: true,
+
+                    safe: false,
+
+                    blocked: true,
+
+                    category:
+                        "NSFW",
+
+                    probability:
+                        combinedNSFW,
+
+                    predictions:
+                        predictions,
+
+                    reason:
+                        "Image contains prohibited NSFW content."
+                };
+            }
+
+
+            /*
+             * IMAGE PASSED
+             */
             console.log(
                 "✅ SPARKD image allowed."
             );
@@ -240,11 +322,16 @@
 
                 predictions:
                     predictions
+
             };
 
 
         } catch (error) {
 
+            /*
+             * IMPORTANT:
+             * If scanning fails, do NOT approve the image.
+             */
             console.error(
                 "⚠️ SPARKD image scan failed:",
                 error
@@ -254,12 +341,13 @@
 
                 checked: false,
 
-                safe: true,
+                safe: false,
 
-                blocked: false,
+                blocked: true,
 
                 reason:
-                    "Image scan failed"
+                    "Image could not be verified for safety."
+
             };
         }
     }
@@ -267,7 +355,7 @@
 
     /* ============================================================
        PUBLIC SPARKD CONTENT GUARD
-       ============================================================ */
+    ============================================================ */
 
     window.SPARKDContentGuard = {
 
@@ -286,8 +374,9 @@
 
     /* ============================================================
        START MODEL LOADING
-       ============================================================ */
+    ============================================================ */
 
     loadContentGuard();
 
 })();
+
