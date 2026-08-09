@@ -308,7 +308,7 @@ if (uploadBtn && imageInput) {
         }
 
 
-      ```javascript
+      
     ////////////////////////////////////////////////////
     // CREATE IMAGE ELEMENT FOR NSFWJS
     ////////////////////////////////////////////////////
@@ -485,7 +485,7 @@ if (uploadBtn && imageInput) {
         return;
 
     }
-```
+
 
 
 
