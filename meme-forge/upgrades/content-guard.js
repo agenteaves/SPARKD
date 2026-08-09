@@ -108,6 +108,20 @@
         }
     }
 
+      // ============================================================
+      // SPARKD CONTENT GUARD SETTINGS
+      // ============================================================
+      
+      const BLOCKED_CLASSES = [
+          "Porn",
+          "Hentai",
+          "Sexy"
+      ];
+      
+      // Probability required before an image is blocked.
+      // 0.50 = 50%
+      const BLOCK_THRESHOLD = 0.50;
+
 
     /* ============================================================
        CHECK IMAGE
