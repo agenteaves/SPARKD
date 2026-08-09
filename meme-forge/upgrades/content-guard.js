@@ -285,84 +285,87 @@
             }
 
 
-            /* ====================================================
-               COMBINED NSFW CHECK
-            ==================================================== */
+/* ====================================================
+   COMBINED NSFW CHECK
+==================================================== */
 
-            const pornScore =
-                predictions.find(
-                    p =>
-                        p.className === "Porn"
-                )?.probability || 0;
-
-
-            const hentaiScore =
-                predictions.find(
-                    p =>
-                        p.className === "Hentai"
-                )?.probability || 0;
+const pornScore =
+    predictions.find(
+        p =>
+            p.className === "Porn"
+    )?.probability || 0;
 
 
-            const sexyScore =
-                predictions.find(
-                    p =>
-                        p.className === "Sexy"
-                )?.probability || 0;
+const hentaiScore =
+    predictions.find(
+        p =>
+            p.className === "Hentai"
+    )?.probability || 0;
 
 
-            const combinedNSFW =
-                pornScore +
-                hentaiScore +
-                sexyScore;
+const sexyScore =
+    predictions.find(
+        p =>
+            p.className === "Sexy"
+    )?.probability || 0;
 
 
-            console.log(
-                "🛡️ SPARKD combined NSFW score:",
-                combinedNSFW
-            );
+const combinedNSFW =
+    pornScore +
+    hentaiScore +
+    sexyScore;
 
 
-            /*
-             * Conservative combined check.
-             *
-             * This catches images where NSFW confidence
-             * is distributed across multiple categories.
-             */
-
-            if (
-                combinedNSFW >=
-                BLOCK_THRESHOLD
-            ) {
-
-                console.warn(
-                    "🚫 SPARKD BLOCKED: Combined NSFW score",
-                    combinedNSFW
-                );
+console.log(
+    "🛡️ SPARKD combined NSFW score:",
+    combinedNSFW
+);
 
 
-                return {
+/*
+ * Conservative combined check.
+ *
+ * The individual NSFW classes use the
+ * BLOCK_THRESHOLD of 0.15.
+ *
+ * The combined score uses 0.25 so that
+ * normal images with small amounts of
+ * NSFW probability are not rejected.
+ */
 
-                    checked: true,
+if (
+    combinedNSFW >= 0.25
+) {
 
-                    safe: false,
+    console.warn(
+        "🚫 SPARKD BLOCKED: Combined NSFW score",
+        combinedNSFW
+    );
 
-                    blocked: true,
 
-                    category:
-                        "NSFW",
+    return {
 
-                    probability:
-                        combinedNSFW,
+        checked: true,
 
-                    predictions:
-                        predictions,
+        safe: false,
 
-                    reason:
-                        "Image contains prohibited NSFW content."
+        blocked: true,
 
-                };
+        category:
+            "NSFW",
 
-            }
+        probability:
+            combinedNSFW,
+
+        predictions:
+            predictions,
+
+        reason:
+            "Image contains prohibited NSFW content."
+
+    };
+
+}
 
 
             /* ====================================================
