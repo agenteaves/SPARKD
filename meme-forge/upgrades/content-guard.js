@@ -1,7 +1,7 @@
 /* ============================================================
    SPARKD CONTENT GUARD
    Browser-side image safety scanner
-   Version: v21
+   Version: v22
 ============================================================ */
 
 (function () {
@@ -18,7 +18,7 @@
 
 
     /* ============================================================
-       MODEL
+       MODEL LOCATION
     ============================================================ */
 
     const MODEL_URL =
@@ -26,17 +26,14 @@
 
 
     /* ============================================================
-       BLOCK THRESHOLDS
-       
-       These are intentionally conservative enough to avoid
-       normal-photo false positives.
+       SAFETY THRESHOLDS
     ============================================================ */
 
     const BLOCK_THRESHOLDS = {
 
-        Porn: 0.70,
+        Porn: 0.65,
 
-        Hentai: 0.70,
+        Hentai: 0.65,
 
         Sexy: 0.80
 
@@ -51,12 +48,15 @@
 
 
     /* ============================================================
-       DEBUG STATE
+       MODEL VALIDATION
     ============================================================ */
 
-    let lastFingerprint = null;
+    let modelValidated =
+        false;
 
-    let lastPredictionSignature = null;
+
+    let validationRunning =
+        false;
 
 
     /* ============================================================
@@ -109,6 +109,27 @@
             }
 
 
+            console.log(
+                "🧠 NSFWJS model loaded."
+            );
+
+
+            /*
+             * DO NOT mark the guard ready until the
+             * model passes a sanity check.
+             */
+            await validateModel();
+
+
+            if (!modelValidated) {
+
+                throw new Error(
+                    "NSFWJS model failed validation."
+                );
+
+            }
+
+
             guardReady = true;
 
 
@@ -127,7 +148,6 @@
                 )
             );
 
-
         }
         catch (error) {
 
@@ -135,9 +155,11 @@
 
             model = null;
 
+            modelValidated = false;
+
 
             console.error(
-                "❌ SPARKD Content Guard model failed:",
+                "❌ SPARKD Content Guard failed:",
                 error
             );
 
@@ -162,90 +184,361 @@
 
 
     /* ============================================================
-       WAIT FOR IMAGE TO ACTUALLY LOAD
+       CREATE TEST IMAGE
+       
+       Creates two radically different images.
+       
+       This lets us verify that the model actually responds
+       to changing pixels.
     ============================================================ */
 
-    function waitForImage(image) {
+    function createValidationImages() {
 
-        return new Promise(
-            function (resolve, reject) {
-
-                if (!image) {
-
-                    reject(
-                        new Error(
-                            "No image supplied."
-                        )
-                    );
-
-                    return;
-
-                }
+        const size =
+            224;
 
 
-                /*
-                 * Already loaded.
-                 */
-                if (
-                    image.complete &&
-                    image.naturalWidth > 0 &&
-                    image.naturalHeight > 0
-                ) {
-
-                    resolve(image);
-
-                    return;
-
-                }
+        /*
+         * IMAGE A
+         *
+         * Solid black.
+         */
+        const canvasA =
+            document.createElement(
+                "canvas"
+            );
 
 
-                /*
-                 * Wait for actual browser image decode.
-                 */
-                image.onload =
-                    function () {
+        canvasA.width =
+            size;
 
-                        resolve(image);
-
-                    };
+        canvasA.height =
+            size;
 
 
-                image.onerror =
-                    function () {
+        const ctxA =
+            canvasA.getContext(
+                "2d"
+            );
 
-                        reject(
-                            new Error(
-                                "Browser could not load image."
-                            )
-                        );
 
-                    };
+        ctxA.fillStyle =
+            "#000000";
 
-            }
+
+        ctxA.fillRect(
+            0,
+            0,
+            size,
+            size
         );
+
+
+        /*
+         * IMAGE B
+         *
+         * Bright multi-color pattern.
+         */
+        const canvasB =
+            document.createElement(
+                "canvas"
+            );
+
+
+        canvasB.width =
+            size;
+
+        canvasB.height =
+            size;
+
+
+        const ctxB =
+            canvasB.getContext(
+                "2d"
+            );
+
+
+        ctxB.fillStyle =
+            "#ffffff";
+
+
+        ctxB.fillRect(
+            0,
+            0,
+            size,
+            size
+        );
+
+
+        ctxB.fillStyle =
+            "#ff0000";
+
+
+        ctxB.fillRect(
+            0,
+            0,
+            112,
+            112
+        );
+
+
+        ctxB.fillStyle =
+            "#00ff00";
+
+
+        ctxB.fillRect(
+            112,
+            0,
+            112,
+            112
+        );
+
+
+        ctxB.fillStyle =
+            "#0000ff";
+
+
+        ctxB.fillRect(
+            0,
+            112,
+            112,
+            112
+        );
+
+
+        ctxB.fillStyle =
+            "#000000";
+
+
+        ctxB.fillRect(
+            112,
+            112,
+            112,
+            112
+        );
+
+
+        return {
+
+            imageA:
+                canvasA,
+
+            imageB:
+                canvasB
+
+        };
 
     }
 
 
     /* ============================================================
-       CREATE FRESH SCAN CANVAS
+       PREDICTION SIGNATURE
+    ============================================================ */
+
+    function getPredictionSignature(
+        predictions
+    ) {
+
+        if (
+            !Array.isArray(
+                predictions
+            )
+        ) {
+
+            return "";
+
+        }
+
+
+        return predictions
+            .map(
+                function (prediction) {
+
+                    return (
+                        prediction.className +
+                        ":" +
+                        Number(
+                            prediction.probability
+                        ).toFixed(8)
+                    );
+
+                }
+            )
+            .join("|");
+
+    }
+
+
+    /* ============================================================
+       VALIDATE MODEL
+    ============================================================ */
+
+    async function validateModel() {
+
+        if (
+            validationRunning
+        ) {
+
+            return;
+
+        }
+
+
+        validationRunning =
+            true;
+
+
+        try {
+
+            console.log(
+                "🧪 SPARKD validating NSFWJS model..."
+            );
+
+
+            const tests =
+                createValidationImages();
+
+
+            /*
+             * Run the actual NSFWJS classify()
+             * function on the two different canvases.
+             */
+            const resultA =
+                await model.classify(
+                    tests.imageA
+                );
+
+
+            const resultB =
+                await model.classify(
+                    tests.imageB
+                );
+
+
+            const signatureA =
+                getPredictionSignature(
+                    resultA
+                );
+
+
+            const signatureB =
+                getPredictionSignature(
+                    resultB
+                );
+
+
+            console.log(
+                "🧪 MODEL TEST A:",
+                resultA
+            );
+
+
+            console.log(
+                "🧪 MODEL TEST B:",
+                resultB
+            );
+
+
+            console.log(
+                "🧪 MODEL SIGNATURE A:",
+                signatureA
+            );
+
+
+            console.log(
+                "🧪 MODEL SIGNATURE B:",
+                signatureB
+            );
+
+
+            /*
+             * If two radically different canvases produce
+             * the exact same prediction vector, the model
+             * is not functioning correctly.
+             */
+            if (
+                signatureA ===
+                signatureB
+            ) {
+
+                console.error(
+                    "🚨 SPARKD MODEL FAILURE"
+                );
+
+
+                console.error(
+                    "Two completely different images produced identical NSFWJS predictions."
+                );
+
+
+                console.error(
+                    "The Content Guard will remain disabled."
+                );
+
+
+                modelValidated =
+                    false;
+
+
+                return;
+
+            }
+
+
+            /*
+             * Model responds differently to different
+             * inputs.
+             */
+            modelValidated =
+                true;
+
+
+            console.log(
+                "✅ SPARKD NSFWJS MODEL VALIDATION PASSED."
+            );
+
+        }
+        catch (error) {
+
+            modelValidated =
+                false;
+
+
+            console.error(
+                "❌ SPARKD model validation error:",
+                error
+            );
+
+        }
+        finally {
+
+            validationRunning =
+                false;
+
+        }
+
+    }
+
+
+    /* ============================================================
+       CREATE REAL IMAGE CANVAS
     ============================================================ */
 
     function createScanCanvas(image) {
 
-        const sourceWidth =
+        const width =
             image.naturalWidth ||
             image.width;
 
 
-        const sourceHeight =
+        const height =
             image.naturalHeight ||
             image.height;
 
 
         if (
-            !sourceWidth ||
-            !sourceHeight
+            !width ||
+            !height
         ) {
 
             throw new Error(
@@ -260,11 +553,11 @@
 
 
         let scanWidth =
-            sourceWidth;
+            width;
 
 
         let scanHeight =
-            sourceHeight;
+            height;
 
 
         if (
@@ -299,9 +592,6 @@
         }
 
 
-        /*
-         * Completely new canvas for every scan.
-         */
         const canvas =
             document.createElement(
                 "canvas"
@@ -320,9 +610,6 @@
             canvas.getContext(
                 "2d",
                 {
-                    alpha:
-                        true,
-
                     willReadFrequently:
                         true
                 }
@@ -338,9 +625,6 @@
         }
 
 
-        /*
-         * Clear the canvas first.
-         */
         ctx.clearRect(
             0,
             0,
@@ -349,9 +633,6 @@
         );
 
 
-        /*
-         * Draw ONLY the actual source image.
-         */
         ctx.drawImage(
             image,
             0,
@@ -361,29 +642,10 @@
         );
 
 
-        /*
-         * Force the browser to actually read the
-         * resulting pixels.
-         */
-        const imageData =
-            ctx.getImageData(
-                0,
-                0,
-                scanWidth,
-                scanHeight
-            );
-
-
         return {
 
             canvas:
                 canvas,
-
-            ctx:
-                ctx,
-
-            imageData:
-                imageData,
 
             width:
                 scanWidth,
@@ -401,36 +663,39 @@
     ============================================================ */
 
     function getPixelFingerprint(
-        imageData
+        canvas
     ) {
 
-        if (
-            !imageData ||
-            !imageData.data
-        ) {
+        const ctx =
+            canvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
+            );
+
+
+        if (!ctx) {
 
             throw new Error(
-                "Invalid ImageData."
+                "Could not read image pixels."
             );
 
         }
 
 
         const data =
-            imageData.data;
+            ctx.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            ).data;
 
 
         let fingerprint =
             2166136261;
-
-
-        /*
-         * Sample the entire image at intervals.
-         *
-         * This is stronger than checking only five corners.
-         */
-        const sampleCount =
-            20000;
 
 
         const step =
@@ -438,7 +703,7 @@
                 4,
                 Math.floor(
                     data.length /
-                    sampleCount
+                    20000
                 )
             );
 
@@ -506,277 +771,6 @@
 
 
     /* ============================================================
-       PIXEL STATISTICS
-       
-       This helps prove whether the model input is actually
-       changing between images.
-    ============================================================ */
-
-    function getPixelStatistics(
-        imageData
-    ) {
-
-        const data =
-            imageData.data;
-
-
-        let red =
-            0;
-
-        let green =
-            0;
-
-        let blue =
-            0;
-
-        let alpha =
-            0;
-
-
-        const pixelCount =
-            data.length / 4;
-
-
-        for (
-            let i = 0;
-            i < data.length;
-            i += 4
-        ) {
-
-            red +=
-                data[i];
-
-            green +=
-                data[i + 1];
-
-            blue +=
-                data[i + 2];
-
-            alpha +=
-                data[i + 3];
-
-        }
-
-
-        return {
-
-            averageRed:
-                Number(
-                    red /
-                    pixelCount
-                ).toFixed(2),
-
-            averageGreen:
-                Number(
-                    green /
-                    pixelCount
-                ).toFixed(2),
-
-            averageBlue:
-                Number(
-                    blue /
-                    pixelCount
-                ).toFixed(2),
-
-            averageAlpha:
-                Number(
-                    alpha /
-                    pixelCount
-                ).toFixed(2),
-
-            firstPixel:
-                Array.from(
-                    data.slice(
-                        0,
-                        4
-                    )
-                ),
-
-            lastPixel:
-                Array.from(
-                    data.slice(
-                        Math.max(
-                            0,
-                            data.length - 4
-                        )
-                    )
-                )
-
-        };
-
-    }
-
-
-    /* ============================================================
-       PREDICTION SIGNATURE
-    ============================================================ */
-
-    function getPredictionSignature(
-        predictions
-    ) {
-
-        return predictions
-            .map(
-                function (prediction) {
-
-                    return (
-                        prediction.className +
-                        ":" +
-                        Number(
-                            prediction.probability
-                        ).toFixed(8)
-                    );
-
-                }
-            )
-            .join("|");
-
-    }
-
-
-    /* ============================================================
-       RUN MODEL ON FRESH IMAGE DATA
-       
-       IMPORTANT:
-       We create a NEW tensor from the image pixels every time.
-    ============================================================ */
-
-    async function classifyFreshPixels(
-        imageData,
-        width,
-        height
-    ) {
-
-        if (!model) {
-
-            throw new Error(
-                "NSFWJS model unavailable."
-            );
-
-        }
-
-
-        if (
-            typeof tf === "undefined"
-        ) {
-
-            throw new Error(
-                "TensorFlow.js unavailable."
-            );
-
-        }
-
-
-        /*
-         * Copy the pixel buffer.
-         *
-         * This guarantees this scan owns its own
-         * pixel memory.
-         */
-        const pixelArray =
-            new Uint8Array(
-                imageData.data
-            );
-
-
-        /*
-         * Create a completely fresh TensorFlow tensor.
-         *
-         * Shape:
-         *
-         * [height, width, 3]
-         */
-        const tensor =
-            tf.tensor3d(
-                pixelArray,
-                [
-                    height,
-                    width,
-                    4
-                ],
-                "int32"
-            );
-
-
-        /*
-         * Remove alpha channel.
-         *
-         * NSFWJS models expect RGB.
-         */
-        const rgbTensor =
-            tensor
-                .slice(
-                    [0, 0, 0],
-                    [-1, -1, 3]
-                );
-
-
-        /*
-         * NSFWJS normally handles preprocessing itself
-         * when classify() receives an HTML image/canvas.
-         *
-         * Here we use the model's underlying classify
-         * pipeline only if available.
-         *
-         * First try the standard model.classify(tensor)
-         * path.
-         */
-        let predictions;
-
-
-        try {
-
-            predictions =
-                await model.classify(
-                    rgbTensor
-                );
-
-        }
-        finally {
-
-            /*
-             * Always dispose temporary tensors.
-             */
-            rgbTensor.dispose();
-
-            tensor.dispose();
-
-        }
-
-
-        return predictions;
-
-    }
-
-
-    /* ============================================================
-       STANDARD FALLBACK CLASSIFICATION
-       
-       If the tensor path isn't supported by this NSFWJS
-       build, use the fresh canvas as a fallback.
-    ============================================================ */
-
-    async function classifyFreshCanvas(
-        canvas
-    ) {
-
-        if (!model) {
-
-            throw new Error(
-                "NSFWJS model unavailable."
-            );
-
-        }
-
-
-        return await model.classify(
-            canvas
-        );
-
-    }
-
-
-    /* ============================================================
        CHECK IMAGE
     ============================================================ */
 
@@ -785,11 +779,12 @@
     ) {
 
         /*
-         * FAIL CLOSED if model unavailable.
+         * FAIL CLOSED.
          */
         if (
             !guardReady ||
-            !model
+            !model ||
+            !modelValidated
         ) {
 
             return {
@@ -804,7 +799,7 @@
                     true,
 
                 reason:
-                    "Content safety model unavailable."
+                    "Content safety model is unavailable or failed validation."
 
             };
 
@@ -835,16 +830,7 @@
         try {
 
             /* ====================================================
-               WAIT FOR REAL IMAGE
-            ==================================================== */
-
-            await waitForImage(
-                image
-            );
-
-
-            /* ====================================================
-               CREATE FRESH PIXEL BUFFER
+               CREATE FRESH CANVAS
             ==================================================== */
 
             const scan =
@@ -854,7 +840,7 @@
 
 
             console.log(
-                "🔬 NSFWJS FRESH INPUT:",
+                "🔬 NSFWJS INPUT:",
                 {
 
                     width:
@@ -877,28 +863,12 @@
 
 
             /* ====================================================
-               PIXEL STATISTICS
-            ==================================================== */
-
-            const statistics =
-                getPixelStatistics(
-                    scan.imageData
-                );
-
-
-            console.log(
-                "📊 SPARKD PIXEL STATISTICS:",
-                statistics
-            );
-
-
-            /* ====================================================
-               PIXEL FINGERPRINT
+               VERIFY PIXELS
             ==================================================== */
 
             const fingerprint =
                 getPixelFingerprint(
-                    scan.imageData
+                    scan.canvas
                 );
 
 
@@ -909,79 +879,24 @@
 
 
             /* ====================================================
-               VERIFY INPUT ACTUALLY CHANGES
-            ==================================================== */
-
-            if (
-                lastFingerprint !== null &&
-                fingerprint === lastFingerprint
-            ) {
-
-                console.warn(
-                    "⚠️ SPARKD WARNING: current image has the same pixel fingerprint as the previous scan."
-                );
-
-            }
-
-
-            lastFingerprint =
-                fingerprint;
-
-
-            /* ====================================================
-               MODEL INFERENCE
+               RUN STANDARD NSFWJS CLASSIFY
                
-               Use a fresh TensorFlow tensor first.
+               This is the important part.
+               
+               No manually-created TensorFlow tensor.
+               No preprocessing override.
             ==================================================== */
 
-            let predictions;
+            console.log(
+                "🧠 SPARKD running NSFWJS classify(canvas)..."
+            );
 
 
-            try {
-
-                console.log(
-                    "🧠 SPARKD running NSFWJS on FRESH RGB tensor..."
+            const predictions =
+                await model.classify(
+                    scan.canvas
                 );
 
-
-                predictions =
-                    await classifyFreshPixels(
-                        scan.imageData,
-                        scan.width,
-                        scan.height
-                    );
-
-
-                console.log(
-                    "🧠 SPARKD fresh tensor inference completed."
-                );
-
-            }
-            catch (tensorError) {
-
-                /*
-                 * Some NSFWJS builds do not accept tensors
-                 * through model.classify().
-                 *
-                 * Fall back to the freshly-created canvas.
-                 */
-                console.warn(
-                    "⚠️ Tensor inference unavailable. Using fresh canvas fallback:",
-                    tensorError
-                );
-
-
-                predictions =
-                    await classifyFreshCanvas(
-                        scan.canvas
-                    );
-
-            }
-
-
-            /* ====================================================
-               VALIDATE PREDICTIONS
-            ==================================================== */
 
             if (
                 !Array.isArray(
@@ -1005,61 +920,6 @@
                     2
                 )
             );
-
-
-            /* ====================================================
-               PREDICTION SIGNATURE
-            ==================================================== */
-
-            const predictionSignature =
-                getPredictionSignature(
-                    predictions
-                );
-
-
-            console.log(
-                "🧬 SPARKD prediction signature:",
-                predictionSignature
-            );
-
-
-            /* ====================================================
-               DETECT SUSPICIOUS IDENTICAL MODEL OUTPUT
-               
-               IMPORTANT:
-               
-               We DO NOT automatically block here.
-               
-               This is diagnostic information.
-            ==================================================== */
-
-            if (
-                lastPredictionSignature !== null &&
-                predictionSignature ===
-                lastPredictionSignature &&
-                fingerprint !==
-                lastFingerprint
-            ) {
-
-                console.error(
-                    "🚨 SPARKD WARNING:"
-                );
-
-
-                console.error(
-                    "Different image pixels produced the exact same NSFWJS prediction."
-                );
-
-
-                console.error(
-                    "This may indicate an inference/model problem."
-                );
-
-            }
-
-
-            lastPredictionSignature =
-                predictionSignature;
 
 
             /* ====================================================
@@ -1093,33 +953,30 @@
 
 
                 if (
-                    typeof threshold !==
-                    "number"
+                    prediction.probability >=
+                    threshold
                 ) {
 
-                    continue;
+                    if (
+                        !strongestBlocked ||
+                        prediction.probability >
+                        strongestBlocked.probability
+                    ) {
 
-                }
+                        strongestBlocked = {
 
+                            className:
+                                prediction.className,
 
-                if (
-                    !strongestBlocked ||
-                    prediction.probability >
-                    strongestBlocked.probability
-                ) {
+                            probability:
+                                prediction.probability,
 
-                    strongestBlocked = {
+                            threshold:
+                                threshold
 
-                        className:
-                            prediction.className,
+                        };
 
-                        probability:
-                            prediction.probability,
-
-                        threshold:
-                            threshold
-
-                    };
+                    }
 
                 }
 
@@ -1127,22 +984,17 @@
 
 
             /* ====================================================
-               BLOCK STRONG INDIVIDUAL CLASSIFICATION
+               BLOCK
             ==================================================== */
 
             if (
-                strongestBlocked &&
-                strongestBlocked.probability >=
-                strongestBlocked.threshold
+                strongestBlocked
             ) {
 
                 console.warn(
                     "🚫 SPARKD BLOCKED:",
                     strongestBlocked.className,
-                    "Probability:",
-                    strongestBlocked.probability,
-                    "Threshold:",
-                    strongestBlocked.threshold
+                    strongestBlocked.probability
                 );
 
 
@@ -1178,7 +1030,7 @@
 
 
             /* ====================================================
-               IMAGE PASSED
+               ALLOW
             ==================================================== */
 
             console.log(
@@ -1205,9 +1057,6 @@
         }
         catch (error) {
 
-            /*
-             * FAIL CLOSED.
-             */
             console.error(
                 "⚠️ SPARKD image scan failed:",
                 error
@@ -1250,7 +1099,8 @@
 
                 return (
                     guardReady &&
-                    !!model
+                    !!model &&
+                    modelValidated
                 );
 
             },
@@ -1267,7 +1117,7 @@
 
 
     /* ============================================================
-       START MODEL
+       START
     ============================================================ */
 
     loadContentGuard();
