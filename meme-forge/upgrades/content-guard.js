@@ -26,20 +26,29 @@
     /*
      * Individual NSFW threshold.
      *
-     * 0.15 = 15%
+     * 0.15 = aggressive blocking.
      */
     const BLOCK_THRESHOLD =
         0.15;
 
 
     /*
-     * Classes considered unsafe by SPARKD.
+     * Classes considered unsafe.
      */
     const BLOCKED_CLASSES = [
         "Porn",
         "Hentai",
         "Sexy"
     ];
+
+
+    /*
+     * Used to detect whether the model is
+     * suspiciously returning the exact same
+     * answer for different images.
+     */
+    let lastFingerprint = null;
+    let lastPredictionsSignature = null;
 
 
     /* ============================================================
@@ -145,6 +154,340 @@
 
 
     /* ============================================================
+       CREATE IMAGE CANVAS
+    ============================================================ */
+
+    function createScanCanvas(image) {
+
+        const width =
+            image.naturalWidth ||
+            image.width;
+
+        const height =
+            image.naturalHeight ||
+            image.height;
+
+
+        if (
+            !width ||
+            !height
+        ) {
+
+            throw new Error(
+                "Image has invalid dimensions."
+            );
+
+        }
+
+
+        /*
+         * Limit the working canvas size.
+         *
+         * This keeps browser memory reasonable while
+         * preserving the complete image.
+         */
+        const MAX_SIZE =
+            1600;
+
+
+        let scanWidth =
+            width;
+
+        let scanHeight =
+            height;
+
+
+        if (
+            scanWidth > MAX_SIZE ||
+            scanHeight > MAX_SIZE
+        ) {
+
+            const scale =
+                Math.min(
+                    MAX_SIZE / scanWidth,
+                    MAX_SIZE / scanHeight
+                );
+
+
+            scanWidth =
+                Math.max(
+                    1,
+                    Math.round(
+                        scanWidth * scale
+                    )
+                );
+
+
+            scanHeight =
+                Math.max(
+                    1,
+                    Math.round(
+                        scanHeight * scale
+                    )
+                );
+
+        }
+
+
+        const canvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        canvas.width =
+            scanWidth;
+
+
+        canvas.height =
+            scanHeight;
+
+
+        const ctx =
+            canvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
+            );
+
+
+        if (!ctx) {
+
+            throw new Error(
+                "Could not create image canvas."
+            );
+
+        }
+
+
+        /*
+         * Draw the actual selected image.
+         */
+        ctx.drawImage(
+            image,
+            0,
+            0,
+            scanWidth,
+            scanHeight
+        );
+
+
+        return {
+            canvas: canvas,
+            width: scanWidth,
+            height: scanHeight
+        };
+
+    }
+
+
+    /* ============================================================
+       PIXEL FINGERPRINT
+    ============================================================ */
+
+    function getPixelFingerprint(canvas) {
+
+        const ctx =
+            canvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
+            );
+
+
+        if (!ctx) {
+
+            throw new Error(
+                "Could not read image pixels."
+            );
+
+        }
+
+
+        /*
+         * Sample multiple areas rather than only
+         * the upper-left corner.
+         */
+        const sampleSize =
+            32;
+
+
+        const positions = [
+            [0, 0],
+
+            [
+                Math.max(
+                    0,
+                    canvas.width - sampleSize
+                ),
+                0
+            ],
+
+            [
+                0,
+                Math.max(
+                    0,
+                    canvas.height - sampleSize
+                )
+            ],
+
+            [
+                Math.max(
+                    0,
+                    canvas.width - sampleSize
+                ),
+                Math.max(
+                    0,
+                    canvas.height - sampleSize
+                )
+            ],
+
+            [
+                Math.max(
+                    0,
+                    Math.floor(
+                        (canvas.width -
+                        sampleSize) / 2
+                    )
+                ),
+                Math.max(
+                    0,
+                    Math.floor(
+                        (canvas.height -
+                        sampleSize) / 2
+                    )
+                )
+            ]
+        ];
+
+
+        let fingerprint = 2166136261;
+
+
+        for (
+            const position
+            of positions
+        ) {
+
+            const x =
+                position[0];
+
+            const y =
+                position[1];
+
+
+            const width =
+                Math.min(
+                    sampleSize,
+                    canvas.width - x
+                );
+
+
+            const height =
+                Math.min(
+                    sampleSize,
+                    canvas.height - y
+                );
+
+
+            if (
+                width <= 0 ||
+                height <= 0
+            ) {
+
+                continue;
+
+            }
+
+
+            const data =
+                ctx.getImageData(
+                    x,
+                    y,
+                    width,
+                    height
+                ).data;
+
+
+            for (
+                let i = 0;
+                i < data.length;
+                i += 4
+            ) {
+
+                fingerprint ^=
+                    data[i];
+
+                fingerprint =
+                    Math.imul(
+                        fingerprint,
+                        16777619
+                    );
+
+
+                fingerprint ^=
+                    data[i + 1];
+
+                fingerprint =
+                    Math.imul(
+                        fingerprint,
+                        16777619
+                    );
+
+
+                fingerprint ^=
+                    data[i + 2];
+
+                fingerprint =
+                    Math.imul(
+                        fingerprint,
+                        16777619
+                    );
+
+            }
+
+        }
+
+
+        return (
+            fingerprint >>> 0
+        );
+
+    }
+
+
+    /* ============================================================
+       PREDICTION SIGNATURE
+    ============================================================ */
+
+    function getPredictionSignature(
+        predictions
+    ) {
+
+        return predictions
+            .map(
+                function (prediction) {
+
+                    return (
+                        prediction.className +
+                        ":" +
+                        Number(
+                            prediction.probability
+                        ).toFixed(8)
+                    );
+
+                }
+            )
+            .join("|");
+
+    }
+
+
+    /* ============================================================
        CHECK IMAGE
     ============================================================ */
 
@@ -152,14 +495,9 @@
         image
     ) {
 
-
         /*
          * FAIL CLOSED
-         *
-         * If the safety model is unavailable,
-         * the image is NOT allowed.
          */
-
         if (
             !guardReady ||
             !model
@@ -182,9 +520,8 @@
 
 
         /*
-         * No image supplied.
+         * No image.
          */
-
         if (!image) {
 
             return {
@@ -205,41 +542,34 @@
 
         try {
 
-
             /* ====================================================
-               GET IMAGE DIMENSIONS
+               CREATE REAL PIXEL CANVAS
             ==================================================== */
 
-            const width =
-                image.naturalWidth ||
-                image.width;
-
-
-            const height =
-                image.naturalHeight ||
-                image.height;
-
-
-            if (
-                !width ||
-                !height
-            ) {
-
-                throw new Error(
-                    "Image has invalid dimensions."
+            const scan =
+                createScanCanvas(
+                    image
                 );
 
-            }
+
+            const testCanvas =
+                scan.canvas;
 
 
             console.log(
                 "🔬 NSFWJS INPUT:",
                 {
                     width:
-                        width,
+                        scan.width,
 
                     height:
-                        height,
+                        scan.height,
+
+                    sourceWidth:
+                        image.naturalWidth,
+
+                    sourceHeight:
+                        image.naturalHeight,
 
                     src:
                         image.src
@@ -248,103 +578,13 @@
 
 
             /* ====================================================
-               VERIFY ACTUAL IMAGE PIXELS
+               VERIFY PIXELS
             ==================================================== */
 
-            const testCanvas =
-                document.createElement(
-                    "canvas"
+            const pixelFingerprint =
+                getPixelFingerprint(
+                    testCanvas
                 );
-
-
-            testCanvas.width =
-                width;
-
-
-            testCanvas.height =
-                height;
-
-
-            const testCtx =
-                testCanvas.getContext(
-                    "2d",
-                    {
-                        willReadFrequently:
-                            true
-                    }
-                );
-
-
-            if (!testCtx) {
-
-                throw new Error(
-                    "Could not create image canvas."
-                );
-
-            }
-
-
-            /*
-             * Draw the EXACT image into
-             * a fresh canvas.
-             */
-
-            testCtx.drawImage(
-                image,
-                0,
-                0,
-                width,
-                height
-            );
-
-
-            /* ====================================================
-               CREATE PIXEL FINGERPRINT
-            ==================================================== */
-
-            const sampleWidth =
-                Math.min(
-                    width,
-                    50
-                );
-
-
-            const sampleHeight =
-                Math.min(
-                    height,
-                    50
-                );
-
-
-            const pixelData =
-                testCtx.getImageData(
-                    0,
-                    0,
-                    sampleWidth,
-                    sampleHeight
-                ).data;
-
-
-            let pixelFingerprint =
-                0;
-
-
-            for (
-                let i = 0;
-                i < pixelData.length;
-                i += 4
-            ) {
-
-                pixelFingerprint =
-                    (
-                        pixelFingerprint +
-                        pixelData[i] +
-                        pixelData[i + 1] +
-                        pixelData[i + 2]
-                    ) %
-                    1000000007;
-
-            }
 
 
             console.log(
@@ -354,7 +594,7 @@
 
 
             /* ====================================================
-               RUN NSFWJS
+               RUN NSFWJS ON REAL PIXELS
             ==================================================== */
 
             const predictions =
@@ -363,9 +603,19 @@
                 );
 
 
-            /* ====================================================
-               DISPLAY PREDICTIONS
-            ==================================================== */
+            if (
+                !Array.isArray(
+                    predictions
+                ) ||
+                predictions.length === 0
+            ) {
+
+                throw new Error(
+                    "NSFWJS returned no predictions."
+                );
+
+            }
+
 
             console.log(
                 "🛡️ SPARKD image scan:",
@@ -375,6 +625,97 @@
                     2
                 )
             );
+
+
+            /* ====================================================
+               PREDICTION SIGNATURE
+            ==================================================== */
+
+            const predictionSignature =
+                getPredictionSignature(
+                    predictions
+                );
+
+
+            console.log(
+                "🧬 SPARKD prediction signature:",
+                predictionSignature
+            );
+
+
+            /* ====================================================
+               DETECT SUSPICIOUS IDENTICAL OUTPUT
+            ==================================================== */
+
+            if (
+                lastFingerprint !== null &&
+                pixelFingerprint !== lastFingerprint &&
+                predictionSignature ===
+                lastPredictionsSignature
+            ) {
+
+                console.error(
+                    "❌ SPARKD MODEL VALIDATION FAILED"
+                );
+
+
+                console.error(
+                    "Different image pixels produced the exact same NSFWJS prediction."
+                );
+
+
+                console.error(
+                    "Previous fingerprint:",
+                    lastFingerprint
+                );
+
+
+                console.error(
+                    "Current fingerprint:",
+                    pixelFingerprint
+                );
+
+
+                console.error(
+                    "Prediction signature:",
+                    predictionSignature
+                );
+
+
+                return {
+
+                    checked: false,
+
+                    safe: false,
+
+                    blocked: true,
+
+                    category:
+                        "MODEL_ERROR",
+
+                    probability:
+                        1,
+
+                    predictions:
+                        predictions,
+
+                    reason:
+                        "Content safety model produced identical results for different images."
+
+                };
+
+            }
+
+
+            /*
+             * Remember this scan.
+             */
+            lastFingerprint =
+                pixelFingerprint;
+
+
+            lastPredictionsSignature =
+                predictionSignature;
 
 
             /* ====================================================
@@ -455,30 +796,45 @@
 
 
             /* ====================================================
-               COMBINED NSFW CHECK
+               COMBINED NSFW SCORE
             ==================================================== */
 
             const pornScore =
                 predictions.find(
-                    p =>
-                        p.className ===
-                        "Porn"
+                    function (p) {
+
+                        return (
+                            p.className ===
+                            "Porn"
+                        );
+
+                    }
                 )?.probability || 0;
 
 
             const hentaiScore =
                 predictions.find(
-                    p =>
-                        p.className ===
-                        "Hentai"
+                    function (p) {
+
+                        return (
+                            p.className ===
+                            "Hentai"
+                        );
+
+                    }
                 )?.probability || 0;
 
 
             const sexyScore =
                 predictions.find(
-                    p =>
-                        p.className ===
-                        "Sexy"
+                    function (p) {
+
+                        return (
+                            p.className ===
+                            "Sexy"
+                        );
+
+                    }
                 )?.probability || 0;
 
 
@@ -495,16 +851,8 @@
 
 
             /*
-             * Combined threshold.
-             *
-             * This is intentionally higher than
-             * the individual 0.15 threshold so
-             * ordinary images aren't rejected
-             * merely because NSFWJS assigns
-             * small probabilities to multiple
-             * categories.
+             * Conservative combined threshold.
              */
-
             if (
                 combinedNSFW >=
                 0.25
@@ -567,14 +915,9 @@
         }
         catch (error) {
 
-
             /*
              * FAIL CLOSED
-             *
-             * If scanning fails,
-             * NEVER approve the image.
              */
-
             console.error(
                 "⚠️ SPARKD image scan failed:",
                 error
@@ -637,3 +980,4 @@
     loadContentGuard();
 
 })();
+
