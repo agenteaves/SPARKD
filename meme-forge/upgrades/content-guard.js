@@ -24,12 +24,27 @@
 
 
     /*
-     * Individual NSFW threshold.
+     * INDIVIDUAL BLOCK THRESHOLDS
      *
-     * 0.15 = aggressive blocking.
+     * These are intentionally much less aggressive than
+     * the previous 0.15 threshold.
+     *
+     * Porn / Hentai:
+     * Very strong confidence required.
+     *
+     * Sexy:
+     * Higher threshold because NSFWJS can classify
+     * completely normal photos as "Sexy".
      */
-    const BLOCK_THRESHOLD =
-        0.15;
+    const BLOCK_THRESHOLDS = {
+
+        Porn: 0.70,
+
+        Hentai: 0.70,
+
+        Sexy: 0.80
+
+    };
 
 
     /*
@@ -40,15 +55,6 @@
         "Hentai",
         "Sexy"
     ];
-
-
-    /*
-     * Used to detect whether the model is
-     * suspiciously returning the exact same
-     * answer for different images.
-     */
-    let lastFingerprint = null;
-    let lastPredictionsSignature = null;
 
 
     /* ============================================================
@@ -181,10 +187,7 @@
 
 
         /*
-         * Limit the working canvas size.
-         *
-         * This keeps browser memory reasonable while
-         * preserving the complete image.
+         * Limit working canvas size.
          */
         const MAX_SIZE =
             1600;
@@ -275,9 +278,16 @@
 
 
         return {
-            canvas: canvas,
-            width: scanWidth,
-            height: scanHeight
+
+            canvas:
+                canvas,
+
+            width:
+                scanWidth,
+
+            height:
+                scanHeight
+
         };
 
     }
@@ -285,6 +295,12 @@
 
     /* ============================================================
        PIXEL FINGERPRINT
+       
+       This is now diagnostic only.
+       
+       IMPORTANT:
+       A matching prediction between two different images
+       will NOT automatically block the image.
     ============================================================ */
 
     function getPixelFingerprint(canvas) {
@@ -308,15 +324,12 @@
         }
 
 
-        /*
-         * Sample multiple areas rather than only
-         * the upper-left corner.
-         */
         const sampleSize =
             32;
 
 
         const positions = [
+
             [0, 0],
 
             [
@@ -350,22 +363,28 @@
                 Math.max(
                     0,
                     Math.floor(
-                        (canvas.width -
-                        sampleSize) / 2
+                        (
+                            canvas.width -
+                            sampleSize
+                        ) / 2
                     )
                 ),
                 Math.max(
                     0,
                     Math.floor(
-                        (canvas.height -
-                        sampleSize) / 2
+                        (
+                            canvas.height -
+                            sampleSize
+                        ) / 2
                     )
                 )
             ]
+
         ];
 
 
-        let fingerprint = 2166136261;
+        let fingerprint =
+            2166136261;
 
 
         for (
@@ -497,6 +516,9 @@
 
         /*
          * FAIL CLOSED
+         *
+         * If the safety model isn't available,
+         * the image is blocked.
          */
         if (
             !guardReady ||
@@ -505,11 +527,14 @@
 
             return {
 
-                checked: false,
+                checked:
+                    false,
 
-                safe: false,
+                safe:
+                    false,
 
-                blocked: true,
+                blocked:
+                    true,
 
                 reason:
                     "Content safety model unavailable."
@@ -520,17 +545,20 @@
 
 
         /*
-         * No image.
+         * No image supplied.
          */
         if (!image) {
 
             return {
 
-                checked: false,
+                checked:
+                    false,
 
-                safe: false,
+                safe:
+                    false,
 
-                blocked: true,
+                blocked:
+                    true,
 
                 reason:
                     "No image supplied."
@@ -559,6 +587,7 @@
             console.log(
                 "🔬 NSFWJS INPUT:",
                 {
+
                     width:
                         scan.width,
 
@@ -573,12 +602,15 @@
 
                     src:
                         image.src
+
                 }
             );
 
 
             /* ====================================================
-               VERIFY PIXELS
+               PIXEL FINGERPRINT
+               
+               Diagnostic only.
             ==================================================== */
 
             const pixelFingerprint =
@@ -629,6 +661,12 @@
 
             /* ====================================================
                PREDICTION SIGNATURE
+               
+               Diagnostic only.
+               
+               IMPORTANT:
+               Identical predictions between two images
+               no longer automatically block the image.
             ==================================================== */
 
             const predictionSignature =
@@ -644,82 +682,7 @@
 
 
             /* ====================================================
-               DETECT SUSPICIOUS IDENTICAL OUTPUT
-            ==================================================== */
-
-            if (
-                lastFingerprint !== null &&
-                pixelFingerprint !== lastFingerprint &&
-                predictionSignature ===
-                lastPredictionsSignature
-            ) {
-
-                console.error(
-                    "❌ SPARKD MODEL VALIDATION FAILED"
-                );
-
-
-                console.error(
-                    "Different image pixels produced the exact same NSFWJS prediction."
-                );
-
-
-                console.error(
-                    "Previous fingerprint:",
-                    lastFingerprint
-                );
-
-
-                console.error(
-                    "Current fingerprint:",
-                    pixelFingerprint
-                );
-
-
-                console.error(
-                    "Prediction signature:",
-                    predictionSignature
-                );
-
-
-                return {
-
-                    checked: false,
-
-                    safe: false,
-
-                    blocked: true,
-
-                    category:
-                        "MODEL_ERROR",
-
-                    probability:
-                        1,
-
-                    predictions:
-                        predictions,
-
-                    reason:
-                        "Content safety model produced identical results for different images."
-
-                };
-
-            }
-
-
-            /*
-             * Remember this scan.
-             */
-            lastFingerprint =
-                pixelFingerprint;
-
-
-            lastPredictionsSignature =
-                predictionSignature;
-
-
-            /* ====================================================
-               FIND STRONGEST UNSAFE CATEGORY
+               FIND STRONGEST BLOCKED CATEGORY
             ==================================================== */
 
             let strongestBlocked =
@@ -732,21 +695,54 @@
             ) {
 
                 if (
-                    BLOCKED_CLASSES.includes(
+                    !BLOCKED_CLASSES.includes(
                         prediction.className
                     )
                 ) {
 
-                    if (
-                        !strongestBlocked ||
-                        prediction.probability >
-                        strongestBlocked.probability
-                    ) {
+                    continue;
 
-                        strongestBlocked =
-                            prediction;
+                }
 
-                    }
+
+                const threshold =
+                    BLOCK_THRESHOLDS[
+                        prediction.className
+                    ];
+
+
+                if (
+                    typeof threshold !==
+                    "number"
+                ) {
+
+                    continue;
+
+                }
+
+
+                /*
+                 * Keep the strongest blocked category
+                 * for logging and reporting.
+                 */
+                if (
+                    !strongestBlocked ||
+                    prediction.probability >
+                    strongestBlocked.probability
+                ) {
+
+                    strongestBlocked = {
+
+                        className:
+                            prediction.className,
+
+                        probability:
+                            prediction.probability,
+
+                        threshold:
+                            threshold
+
+                    };
 
                 }
 
@@ -755,28 +751,37 @@
 
             /* ====================================================
                INDIVIDUAL NSFW CHECK
+               
+               Only block when the individual category
+               reaches its own strong threshold.
             ==================================================== */
 
             if (
                 strongestBlocked &&
                 strongestBlocked.probability >=
-                BLOCK_THRESHOLD
+                strongestBlocked.threshold
             ) {
 
                 console.warn(
                     "🚫 SPARKD BLOCKED:",
                     strongestBlocked.className,
-                    strongestBlocked.probability
+                    "Probability:",
+                    strongestBlocked.probability,
+                    "Threshold:",
+                    strongestBlocked.threshold
                 );
 
 
                 return {
 
-                    checked: true,
+                    checked:
+                        true,
 
-                    safe: false,
+                    safe:
+                        false,
 
-                    blocked: true,
+                    blocked:
+                        true,
 
                     category:
                         strongestBlocked.className,
@@ -784,99 +789,8 @@
                     probability:
                         strongestBlocked.probability,
 
-                    predictions:
-                        predictions,
-
-                    reason:
-                        "Image contains prohibited NSFW content."
-
-                };
-
-            }
-
-
-            /* ====================================================
-               COMBINED NSFW SCORE
-            ==================================================== */
-
-            const pornScore =
-                predictions.find(
-                    function (p) {
-
-                        return (
-                            p.className ===
-                            "Porn"
-                        );
-
-                    }
-                )?.probability || 0;
-
-
-            const hentaiScore =
-                predictions.find(
-                    function (p) {
-
-                        return (
-                            p.className ===
-                            "Hentai"
-                        );
-
-                    }
-                )?.probability || 0;
-
-
-            const sexyScore =
-                predictions.find(
-                    function (p) {
-
-                        return (
-                            p.className ===
-                            "Sexy"
-                        );
-
-                    }
-                )?.probability || 0;
-
-
-            const combinedNSFW =
-                pornScore +
-                hentaiScore +
-                sexyScore;
-
-
-            console.log(
-                "🛡️ SPARKD combined NSFW score:",
-                combinedNSFW
-            );
-
-
-            /*
-             * Conservative combined threshold.
-             */
-            if (
-                combinedNSFW >=
-                0.25
-            ) {
-
-                console.warn(
-                    "🚫 SPARKD BLOCKED: Combined NSFW score",
-                    combinedNSFW
-                );
-
-
-                return {
-
-                    checked: true,
-
-                    safe: false,
-
-                    blocked: true,
-
-                    category:
-                        "NSFW",
-
-                    probability:
-                        combinedNSFW,
+                    threshold:
+                        strongestBlocked.threshold,
 
                     predictions:
                         predictions,
@@ -900,11 +814,14 @@
 
             return {
 
-                checked: true,
+                checked:
+                    true,
 
-                safe: true,
+                safe:
+                    true,
 
-                blocked: false,
+                blocked:
+                    false,
 
                 predictions:
                     predictions
@@ -917,6 +834,9 @@
 
             /*
              * FAIL CLOSED
+             *
+             * If the image cannot be verified,
+             * do not allow it through.
              */
             console.error(
                 "⚠️ SPARKD image scan failed:",
@@ -926,11 +846,14 @@
 
             return {
 
-                checked: false,
+                checked:
+                    false,
 
-                safe: false,
+                safe:
+                    false,
 
-                blocked: true,
+                blocked:
+                    true,
 
                 reason:
                     "Image could not be verified for safety."
