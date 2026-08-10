@@ -101,40 +101,40 @@
 
            console.log("🧪 SPARKD TESTING LOADED MODEL...");
 
-const testCanvasA = document.createElement("canvas");
-testCanvasA.width = 224;
-testCanvasA.height = 224;
-
-const ctxA = testCanvasA.getContext("2d");
-
-// Completely black image
-ctxA.fillStyle = "#000000";
-ctxA.fillRect(0, 0, 224, 224);
-
-const testA = await model.classify(testCanvasA);
-
-console.log(
-    "🧪 SPARKD BLACK TEST:",
-    testA
-);
-
-
-// Completely white image
-const testCanvasB = document.createElement("canvas");
-testCanvasB.width = 224;
-testCanvasB.height = 224;
-
-const ctxB = testCanvasB.getContext("2d");
-
-ctxB.fillStyle = "#ffffff";
-ctxB.fillRect(0, 0, 224, 224);
-
-const testB = await model.classify(testCanvasB);
-
-console.log(
-    "🧪 SPARKD WHITE TEST:",
-    testB
-);
+            const testCanvasA = document.createElement("canvas");
+            testCanvasA.width = 224;
+            testCanvasA.height = 224;
+            
+            const ctxA = testCanvasA.getContext("2d");
+            
+            // Completely black image
+            ctxA.fillStyle = "#000000";
+            ctxA.fillRect(0, 0, 224, 224);
+            
+            const testA = await model.classify(testCanvasA);
+            
+            console.log(
+                "🧪 SPARKD BLACK TEST:",
+                testA
+            );
+            
+            
+            // Completely white image
+            const testCanvasB = document.createElement("canvas");
+            testCanvasB.width = 224;
+            testCanvasB.height = 224;
+            
+            const ctxB = testCanvasB.getContext("2d");
+            
+            ctxB.fillStyle = "#ffffff";
+            ctxB.fillRect(0, 0, 224, 224);
+            
+            const testB = await model.classify(testCanvasB);
+            
+            console.log(
+                "🧪 SPARKD WHITE TEST:",
+                testB
+            );
 
 
             if (!model) {
