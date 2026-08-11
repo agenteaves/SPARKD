@@ -48,7 +48,7 @@
      * Lower = stricter
      * Higher = more permissive
      */
-    const BLOCK_THRESHOLD = 0.50;
+    const BLOCK_THRESHOLD = 0.70;
 
     /*
      * IoU threshold used for Non-Maximum Suppression.
