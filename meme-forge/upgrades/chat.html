@@ -1425,12 +1425,13 @@ window.addEventListener(
        PHANTOM MOBILE CALLBACK
     ------------------------------------------------ */
 
-   const handled = await processPhantomCallback();
+    const handled =
+    await processPhantomCallback();
 
-   if (handled) {
-    console.log("Phantom callback handled.");
-   }
 
+    if (handled) {
+      return;
+    }
 
     /* -----------------------------------------------
        DESKTOP AUTO RECONNECT
