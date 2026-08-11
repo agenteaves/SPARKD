@@ -716,61 +716,72 @@ MOBILE
 
 }
 
-/* =========================================
-   SPARKD HOLDER CHAT - ELECTRIC BLUE BUTTON
-   ========================================= */
+/* ================================
+   HOLDER CHAT - ELECTRIC BLUE
+================================ */
 
-a[href="upgrades/chat.html"] {
-    position: relative;
-    display: inline-block;
-    overflow: hidden;
-    color: #ffffff;
-    background: #080b14;
-    border: 1px solid #008cff;
-    box-shadow:
-        0 0 5px #008cff,
-        0 0 12px rgba(0, 140, 255, 0.6),
-        inset 0 0 8px rgba(0, 140, 255, 0.15);
-    text-decoration: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+a[href="upgrades/chat.html"]{
+
+    position:relative;
+
+    overflow:hidden;
+
+    z-index:1;
+
 }
 
-/* Moving electric energy */
-a[href="upgrades/chat.html"]::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -120%;
-    width: 80%;
-    height: 100%;
+/* Electric blue energy moving forward */
 
-    background: linear-gradient(
+a[href="upgrades/chat.html"]::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:-100%;
+
+    width:45%;
+
+    height:100%;
+
+    background:linear-gradient(
         90deg,
         transparent,
-        rgba(0, 140, 255, 0.15),
-        #00aaff,
+        rgba(0,174,255,0.35),
+        #00b7ff,
         #ffffff,
-        #00aaff,
-        rgba(0, 140, 255, 0.15),
+        #00b7ff,
+        rgba(0,174,255,0.35),
         transparent
     );
 
-    filter: blur(4px);
+    filter:blur(2px);
 
-    animation: electricSweep 2.2s linear infinite;
-    pointer-events: none;
+    animation:holderElectricForward 1.8s linear infinite;
+
+    z-index:-1;
+
 }
 
-/* Second energy streak moving the opposite direction */
-a[href="upgrades/chat.html"]::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    right: -120%;
-    width: 65%;
-    height: 2px;
+/* Electric blue energy moving backward */
 
-    background: linear-gradient(
+a[href="upgrades/chat.html"]::after{
+
+    content:"";
+
+    position:absolute;
+
+    bottom:2px;
+
+    right:-100%;
+
+    width:40%;
+
+    height:3px;
+
+    background:linear-gradient(
         90deg,
         transparent,
         #008cff,
@@ -781,46 +792,58 @@ a[href="upgrades/chat.html"]::after {
 
     box-shadow:
         0 0 6px #008cff,
-        0 0 12px #008cff;
+        0 0 12px #008cff,
+        0 0 20px rgba(0,140,255,0.8);
 
-    animation: electricReturn 1.7s linear infinite;
-    pointer-events: none;
+    animation:holderElectricBack 1.4s linear infinite;
+
+    z-index:-1;
+
 }
 
-/* Left → Right */
-@keyframes electricSweep {
-    0% {
-        left: -120%;
+/* Forward */
+
+@keyframes holderElectricForward{
+
+    0%{
+
+        left:-100%;
+
     }
 
-    100% {
-        left: 140%;
+    100%{
+
+        left:150%;
+
     }
+
 }
 
-/* Right → Left */
-@keyframes electricReturn {
-    0% {
-        right: -120%;
+/* Backward */
+
+@keyframes holderElectricBack{
+
+    0%{
+
+        right:-100%;
+
     }
 
-    100% {
-        right: 140%;
+    100%{
+
+        right:150%;
+
     }
+
 }
 
-/* Hover = MORE POWER ⚡ */
-a[href="upgrades/chat.html"]:hover {
-    transform: translateY(-2px);
+/* Extra electricity when hovering */
+
+a[href="upgrades/chat.html"]:hover{
 
     box-shadow:
         0 0 8px #008cff,
         0 0 18px #008cff,
-        0 0 35px rgba(0, 140, 255, 0.75),
-        inset 0 0 12px rgba(0, 140, 255, 0.25);
-}
+        0 0 30px rgba(0,140,255,0.75);
 
-/* Keep text above the electric effects */
-a[href="upgrades/chat.html"] {
-    isolation: isolate;
 }
