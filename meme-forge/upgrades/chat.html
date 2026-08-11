@@ -415,10 +415,9 @@ async function connectWallet() {
 
       updateWalletUI();
 
-      await checkBalanceAndUnlock();
-
-      return;
-    }
+      checkBalanceAndUnlock();
+      
+      return true;
 
 
     alert(
