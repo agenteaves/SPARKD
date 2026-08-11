@@ -11,9 +11,13 @@
 
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
 
-  <!-- TweetNaCl for Phantom Mobile encryption -->
+  <!-- TweetNaCl -->
 
   <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+
+  <!-- bs58 -->
+
+  <script src="https://cdn.jsdelivr.net/npm/bs58@6.0.0/dist/index.umd.min.js"></script>
 
   <!-- Tailwind -->
 
@@ -62,13 +66,12 @@
 
 <body class="spark-gradient min-h-screen text-white">
 
-  <!-- Header -->
+  <!-- HEADER -->
 
   <header class="border-b border-green-900/40 bg-black/40 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
 
 ```
-<div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-
   <div class="flex items-center gap-3">
 
     <div class="w-10 h-10 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center text-xl">
@@ -76,7 +79,6 @@
     </div>
 
     <div>
-
       <h1 class="font-bold text-lg tracking-tight">
         SPARKD Holders
       </h1>
@@ -84,11 +86,9 @@
       <p class="text-xs text-green-400/80">
         Token-gated chatroom
       </p>
-
     </div>
 
   </div>
-
 
   <div id="walletArea" class="flex items-center gap-3">
 
@@ -107,26 +107,28 @@
 
   </header>
 
+  <!-- MAIN -->
+
   <main class="max-w-4xl mx-auto px-4 py-8">
 
 ```
-<!-- Locked State -->
+<!-- LOCKED VIEW -->
 <div id="lockedView" class="text-center py-16">
 
   <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-500/10 border border-green-500/30 mb-6 text-4xl">
     🔒
   </div>
 
-
   <h2 class="text-3xl font-bold mb-3">
     Holders Only
   </h2>
 
-
   <p class="text-gray-400 max-w-md mx-auto mb-8">
 
     Connect a wallet that holds
-    <span class="text-green-400 font-medium">SPARKD</span>
+    <span class="text-green-400 font-medium">
+      SPARKD
+    </span>
     to unlock the exclusive chatroom.
 
     <br>
@@ -136,7 +138,6 @@
     </span>
 
   </p>
-
 
   <div class="bg-black/50 border border-green-900/50 rounded-2xl p-6 max-w-sm mx-auto text-left text-sm">
 
@@ -148,13 +149,10 @@
       BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump
     </code>
 
-
     <p class="text-gray-500 mt-4 text-xs">
-
       Min required:
       <span id="minRequiredLabel">1</span>
       SPARKD
-
     </p>
 
   </div>
@@ -162,10 +160,10 @@
 </div>
 
 
-<!-- Unlocked Chat -->
+<!-- CHAT VIEW -->
 <div id="chatView" class="hidden">
 
-  <!-- Balance bar -->
+  <!-- BALANCE BAR -->
   <div class="flex items-center justify-between mb-6 bg-green-950/40 border border-green-800/50 rounded-2xl px-5 py-3">
 
     <div class="flex items-center gap-3">
@@ -177,7 +175,6 @@
       </span>
 
     </div>
-
 
     <div class="text-right">
 
@@ -194,7 +191,7 @@
   </div>
 
 
-  <!-- Chat window -->
+  <!-- CHAT WINDOW -->
   <div
     class="bg-black/60 border border-green-900/40 rounded-2xl overflow-hidden flex flex-col"
     style="height: 520px;"
@@ -215,26 +212,21 @@
 
     <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
 
-      <!-- Welcome message -->
+      <!-- WELCOME -->
       <div class="flex gap-3">
 
         <div class="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-sm shrink-0">
           💚
         </div>
 
-
         <div>
 
           <p class="text-xs text-green-400 mb-1">
-
             SPARKD Bot
-
             <span class="text-gray-600">
               • system
             </span>
-
           </p>
-
 
           <div class="chat-bubble bg-green-950/60 border border-green-800/40 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm">
 
@@ -254,7 +246,7 @@
     </div>
 
 
-    <!-- Input -->
+    <!-- INPUT -->
     <div class="p-4 border-t border-green-900/40">
 
       <form
@@ -271,7 +263,6 @@
           autocomplete="off"
         />
 
-
         <button
           type="submit"
           class="px-5 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition"
@@ -287,10 +278,7 @@
 
 
   <p class="text-center text-xs text-gray-600 mt-4">
-
-    This is a local demo chat. For production multi-user chat,
-    connect a backend (Supabase / Firebase / Stream) or use Discord + Collab.Land.
-
+    This is a local demo chat. For production multi-user chat, connect a backend.
   </p>
 
 </div>
@@ -298,1391 +286,1218 @@
 
   </main>
 
+  <!-- FOOTER -->
+
   <footer class="text-center text-xs text-gray-600 py-8">
-
-```
-SPARKD • Ignite Real-World Good • Token-gated access
-```
-
+    SPARKD • Ignite Real-World Good • Token-gated access
   </footer>
 
-  <script>
+<script>
 
-    // ======================================================
-    // CONFIG
-    // ======================================================
+/* =====================================================
+   SPARKD CONFIG
+===================================================== */
 
-    const SPARKD_MINT =
-      "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
+const SPARKD_MINT =
+  "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
 
-    const MIN_BALANCE = 1;
+const MIN_BALANCE = 1;
 
-    const RPC_URL =
-      "https://api.mainnet-beta.solana.com";
-
-
-    // ======================================================
-    // SOLANA
-    // ======================================================
-
-    const {
-      Connection,
-      PublicKey
-    } = solanaWeb3;
+const RPC_URL =
+  "https://api.mainnet-beta.solana.com";
 
 
-    const connection =
-      new Connection(
-        RPC_URL,
-        "confirmed"
+/* =====================================================
+   SOLANA
+===================================================== */
+
+const {
+  Connection,
+  PublicKey
+} = solanaWeb3;
+
+const connection =
+  new Connection(
+    RPC_URL,
+    "confirmed"
+  );
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+let currentWallet = null;
+let userBalance = 0;
+
+
+/* =====================================================
+   UI
+===================================================== */
+
+document.getElementById(
+  "minRequiredLabel"
+).textContent = MIN_BALANCE;
+
+
+/* =====================================================
+   BS58 NORMALIZATION
+===================================================== */
+
+function getBS58() {
+
+  if (
+    window.bs58 &&
+    typeof window.bs58.encode === "function" &&
+    typeof window.bs58.decode === "function"
+  ) {
+    return window.bs58;
+  }
+
+  if (
+    window.bs58 &&
+    window.bs58.default &&
+    typeof window.bs58.default.encode === "function"
+  ) {
+    return window.bs58.default;
+  }
+
+  return null;
+}
+
+
+/* =====================================================
+   CONNECT WALLET
+===================================================== */
+
+async function connectWallet() {
+
+  try {
+
+    const isMobile =
+      /Android|iPhone|iPad|iPod/i.test(
+        navigator.userAgent
+      ) ||
+      navigator.maxTouchPoints > 1;
+
+
+    console.log(
+      "Mobile:",
+      isMobile
+    );
+
+
+    /* -----------------------------------------------
+       MOBILE
+    ------------------------------------------------ */
+
+    if (isMobile) {
+
+      startPhantomMobileConnection();
+
+      return;
+    }
+
+
+    /* -----------------------------------------------
+       DESKTOP
+    ------------------------------------------------ */
+
+    const provider =
+      window.phantom?.solana ||
+      window.solana;
+
+
+    if (provider) {
+
+      const resp =
+        await provider.connect();
+
+      currentWallet =
+        resp.publicKey.toString();
+
+      updateWalletUI();
+
+      await checkBalanceAndUnlock();
+
+      return;
+    }
+
+
+    alert(
+      "Please install the Phantom wallet extension."
+    );
+
+    window.open(
+      "https://phantom.app/",
+      "_blank"
+    );
+
+
+  } catch (err) {
+
+    console.error(
+      "Wallet connection failed:",
+      err
+    );
+
+    if (err?.code === 4001) {
+
+      alert(
+        "Wallet connection was rejected."
+      );
+
+    } else {
+
+      alert(
+        "Wallet connection error: " +
+        (err?.message || err)
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =====================================================
+   PHANTOM MOBILE DEEPLINK
+===================================================== */
+
+function startPhantomMobileConnection() {
+
+  console.log(
+    "Starting Phantom mobile connection..."
+  );
+
+
+  try {
+
+    /* -----------------------------------------------
+       CHECK LIBRARIES
+    ------------------------------------------------ */
+
+    if (
+      typeof nacl === "undefined"
+    ) {
+
+      alert(
+        "Phantom connection libraries are missing: TweetNaCl."
+      );
+
+      console.error(
+        "nacl is missing."
+      );
+
+      return;
+    }
+
+
+    const bs58Lib =
+      getBS58();
+
+
+    if (!bs58Lib) {
+
+      alert(
+        "Phantom connection libraries are missing: bs58."
+      );
+
+      console.error(
+        "bs58 is missing or does not expose encode/decode."
+      );
+
+      return;
+    }
+
+
+    console.log(
+      "TweetNaCl loaded."
+    );
+
+    console.log(
+      "bs58 loaded."
+    );
+
+
+    /* -----------------------------------------------
+       CREATE DAPP KEYPAIR
+    ------------------------------------------------ */
+
+    const dappKeyPair =
+      nacl.box.keyPair();
+
+
+    const dappPublicKey =
+      bs58Lib.encode(
+        dappKeyPair.publicKey
       );
 
 
-    // ======================================================
-    // GLOBAL STATE
-    // ======================================================
+    /* -----------------------------------------------
+       STORE SECRET KEY
+    ------------------------------------------------ */
 
-    let currentWallet = null;
+    sessionStorage.setItem(
+      "sparkd_phantom_dapp_secret",
+      bs58Lib.encode(
+        dappKeyPair.secretKey
+      )
+    );
 
-    let userBalance = 0;
 
+    /* -----------------------------------------------
+       STORE PUBLIC KEY
+    ------------------------------------------------ */
 
-    // Phantom mobile session
-    let phantomDappKeyPair = null;
+    sessionStorage.setItem(
+      "sparkd_phantom_dapp_public",
+      dappPublicKey
+    );
 
 
-    document.getElementById(
-      "minRequiredLabel"
-    ).textContent = MIN_BALANCE;
+    /* -----------------------------------------------
+       REDIRECT URL
+    ------------------------------------------------ */
 
+    const redirectLink =
+      window.location.origin +
+      window.location.pathname +
+      "?phantom_callback=1";
 
-    // ======================================================
-    // BASE58 ENCODER
-    // ======================================================
-    // This replaces the bs58 CDN dependency.
-    // ======================================================
 
-    const BASE58_ALPHABET =
-      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    /* -----------------------------------------------
+       PHANTOM CONNECT URL
+    ------------------------------------------------ */
 
+    const phantomConnectUrl =
+      "https://phantom.app/ul/v1/connect" +
+      "?app_url=" +
+      encodeURIComponent(
+        window.location.origin
+      ) +
+      "&dapp_encryption_public_key=" +
+      encodeURIComponent(
+        dappPublicKey
+      ) +
+      "&redirect_link=" +
+      encodeURIComponent(
+        redirectLink
+      ) +
+      "&cluster=mainnet-beta";
 
-    function base58Encode(bytes) {
 
-      if (!bytes || bytes.length === 0) {
-        return "";
-      }
+    console.log(
+      "Opening Phantom:"
+    );
 
+    console.log(
+      phantomConnectUrl
+    );
 
-      const digits = [0];
 
+    /* -----------------------------------------------
+       OPEN PHANTOM
+    ------------------------------------------------ */
 
-      for (const byte of bytes) {
+    window.location.href =
+      phantomConnectUrl;
 
-        let carry = byte;
 
+  } catch (err) {
 
-        for (
-          let j = 0;
-          j < digits.length;
-          j++
-        ) {
+    console.error(
+      "Phantom mobile connection failed:",
+      err
+    );
 
-          const value =
-            digits[j] * 256 +
-            carry;
+    alert(
+      "Phantom launch error: " +
+      (err?.message || err)
+    );
 
+  }
 
-          digits[j] =
-            value % 58;
+}
 
 
-          carry =
-            Math.floor(
-              value / 58
-            );
-        }
+/* =====================================================
+   PROCESS PHANTOM MOBILE CALLBACK
+===================================================== */
 
+async function processPhantomCallback() {
 
-        while (carry > 0) {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
-          digits.push(
-            carry % 58
-          );
 
-          carry =
-            Math.floor(
-              carry / 58
-            );
-        }
-      }
+  const callback =
+    params.get(
+      "phantom_callback"
+    );
 
 
-      let result = "";
+  if (callback !== "1") {
 
+    return false;
+  }
 
-      for (
-        let i = 0;
-        bytes[i] === 0 && i < bytes.length - 1;
-        i++
-      ) {
 
-        result += "1";
-      }
+  console.log(
+    "Phantom callback detected."
+  );
 
 
-      for (
-        let i = digits.length - 1;
-        i >= 0;
-        i--
-      ) {
+  try {
 
-        result +=
-          BASE58_ALPHABET[
-            digits[i]
-          ];
-      }
+    const bs58Lib =
+      getBS58();
 
 
-      return result;
-    }
+    if (
+      typeof nacl === "undefined" ||
+      !bs58Lib
+    ) {
 
-
-    // ======================================================
-    // BASE58 DECODER
-    // ======================================================
-
-    function base58Decode(value) {
-
-      if (!value) {
-        return new Uint8Array();
-      }
-
-
-      const bytes = [0];
-
-
-      for (const char of value) {
-
-        const index =
-          BASE58_ALPHABET.indexOf(
-            char
-          );
-
-
-        if (index === -1) {
-          throw new Error(
-            "Invalid Base58 character."
-          );
-        }
-
-
-        let carry = index;
-
-
-        for (
-          let j = 0;
-          j < bytes.length;
-          j++
-        ) {
-
-          const current =
-            bytes[j] * 58 +
-            carry;
-
-
-          bytes[j] =
-            current & 0xff;
-
-
-          carry =
-            current >> 8;
-        }
-
-
-        while (carry > 0) {
-
-          bytes.push(
-            carry & 0xff
-          );
-
-          carry =
-            carry >> 8;
-        }
-      }
-
-
-      for (
-        let i = 0;
-        value[i] === "1";
-        i++
-      ) {
-
-        bytes.push(0);
-      }
-
-
-      return new Uint8Array(
-        bytes.reverse()
+      throw new Error(
+        "Required encryption libraries are unavailable."
       );
+
     }
 
 
-    // ======================================================
-    // UTF-8 HELPERS
-    // ======================================================
+    /* -----------------------------------------------
+       READ RESPONSE
+    ------------------------------------------------ */
 
-    function utf8Decode(bytes) {
+    const phantomPublicKey =
+      params.get(
+        "phantom_encryption_public_key"
+      );
 
-      return new TextDecoder(
-        "utf-8"
-      ).decode(bytes);
-    }
+    const nonce =
+      params.get(
+        "nonce"
+      );
 
-
-    // ======================================================
-    // PHANTOM MOBILE CONNECTION
-    // ======================================================
-
-    function startPhantomMobileConnection() {
-
-      console.log(
-        "Starting Phantom mobile connection..."
+    const encryptedData =
+      params.get(
+        "data"
       );
 
 
-      try {
+    /* -----------------------------------------------
+       CHECK RESPONSE
+    ------------------------------------------------ */
 
-        // --------------------------------------------------
-        // CHECK TWEETNACL
-        // --------------------------------------------------
+    if (
+      !phantomPublicKey ||
+      !nonce ||
+      !encryptedData
+    ) {
 
-        if (
-          typeof nacl === "undefined"
-        ) {
-
-          alert(
-            "Phantom connection library is missing. Please refresh the page."
-          );
-
-          console.error(
-            "tweetnacl is not loaded."
-          );
-
-          return;
-        }
-
-
-        // --------------------------------------------------
-        // CREATE DAPP KEYPAIR
-        // --------------------------------------------------
-
-        phantomDappKeyPair =
-          nacl.box.keyPair();
-
-
-        const dappPublicKey =
-          base58Encode(
-            phantomDappKeyPair.publicKey
-          );
-
-
-        // --------------------------------------------------
-        // SAVE PRIVATE KEY
-        // --------------------------------------------------
-
-        sessionStorage.setItem(
-          "phantom_dapp_private_key",
-          base58Encode(
-            phantomDappKeyPair.secretKey
-          )
-        );
-
-
-        // --------------------------------------------------
-        // RETURN URL
-        // --------------------------------------------------
-
-        const redirectLink =
-          window.location.origin +
-          window.location.pathname +
-          "?phantom_connect=1";
-
-
-        // --------------------------------------------------
-        // PHANTOM CONNECT URL
-        // --------------------------------------------------
-
-        const phantomConnectUrl =
-          "https://phantom.app/ul/v1/connect" +
-
-          "?app_url=" +
-          encodeURIComponent(
-            window.location.origin
-          ) +
-
-          "&dapp_encryption_public_key=" +
-          encodeURIComponent(
-            dappPublicKey
-          ) +
-
-          "&redirect_link=" +
-          encodeURIComponent(
-            redirectLink
-          ) +
-
-          "&cluster=mainnet-beta";
-
-
-        console.log(
-          "Opening Phantom:",
-          phantomConnectUrl
-        );
-
-
-        // --------------------------------------------------
-        // OPEN PHANTOM
-        // --------------------------------------------------
-
-        window.location.href =
-          phantomConnectUrl;
-
-      } catch (err) {
-
-        console.error(
-          "Phantom mobile connection failed:",
-          err
-        );
-
-
-        alert(
-          "Phantom launch error: " +
-          (err?.message || err)
-        );
-      }
-    }
-
-
-    // ======================================================
-    // PROCESS PHANTOM MOBILE CALLBACK
-    // ======================================================
-
-    async function processPhantomCallback() {
-
-      const params =
-        new URLSearchParams(
-          window.location.search
-        );
-
-
-      const phantomConnect =
+      const errorCode =
         params.get(
-          "phantom_connect"
+          "errorCode"
+        );
+
+      const errorMessage =
+        params.get(
+          "errorMessage"
         );
 
 
-      if (
-        phantomConnect !== "1"
-      ) {
-        return false;
+      if (errorCode || errorMessage) {
+
+        throw new Error(
+          "Phantom rejected connection: " +
+          (errorMessage || errorCode)
+        );
+
       }
 
 
-      console.log(
-        "Phantom callback detected."
+      throw new Error(
+        "Phantom returned an incomplete connection response."
+      );
+
+    }
+
+
+    /* -----------------------------------------------
+       RECOVER DAPP SECRET
+    ------------------------------------------------ */
+
+    const storedSecret =
+      sessionStorage.getItem(
+        "sparkd_phantom_dapp_secret"
       );
 
 
-      try {
+    if (!storedSecret) {
 
-        // --------------------------------------------------
-        // CHECK FOR ERROR
-        // --------------------------------------------------
+      throw new Error(
+        "Phantom session key was not found. Please reconnect."
+      );
 
-        const errorCode =
-          params.get("errorCode");
-
-
-        const errorMessage =
-          params.get("errorMessage");
-
-
-        if (
-          errorCode
-        ) {
-
-          throw new Error(
-            "Phantom rejected the connection: " +
-            (errorMessage || errorCode)
-          );
-        }
-
-
-        // --------------------------------------------------
-        // GET ENCRYPTED RESPONSE
-        // --------------------------------------------------
-
-        const phantomEncryptionPublicKey =
-          params.get(
-            "phantom_encryption_public_key"
-          );
-
-
-        const nonce =
-          params.get(
-            "nonce"
-          );
-
-
-        const encryptedData =
-          params.get(
-            "data"
-          );
-
-
-        if (
-          !phantomEncryptionPublicKey ||
-          !nonce ||
-          !encryptedData
-        ) {
-
-          throw new Error(
-            "Phantom did not return the required connection data."
-          );
-        }
-
-
-        // --------------------------------------------------
-        // GET SAVED DAPP PRIVATE KEY
-        // --------------------------------------------------
-
-        const savedPrivateKey =
-          sessionStorage.getItem(
-            "phantom_dapp_private_key"
-          );
-
-
-        if (
-          !savedPrivateKey
-        ) {
-
-          throw new Error(
-            "The temporary Phantom encryption key was lost. Please try connecting again."
-          );
-        }
-
-
-        const dappSecretKey =
-          base58Decode(
-            savedPrivateKey
-          );
-
-
-        // --------------------------------------------------
-        // DECODE PHANTOM VALUES
-        // --------------------------------------------------
-
-        const phantomPublicKeyBytes =
-          base58Decode(
-            phantomEncryptionPublicKey
-          );
-
-
-        const nonceBytes =
-          base58Decode(
-            nonce
-          );
-
-
-        const encryptedBytes =
-          base58Decode(
-            encryptedData
-          );
-
-
-        // --------------------------------------------------
-        // DECRYPT PHANTOM RESPONSE
-        // --------------------------------------------------
-
-        const decrypted =
-          nacl.box.open(
-            encryptedBytes,
-            nonceBytes,
-            phantomPublicKeyBytes,
-            dappSecretKey
-          );
-
-
-        if (
-          !decrypted
-        ) {
-
-          throw new Error(
-            "Could not decrypt Phantom's response."
-          );
-        }
-
-
-        const responseText =
-          utf8Decode(
-            decrypted
-          );
-
-
-        console.log(
-          "Phantom decrypted response:",
-          responseText
-        );
-
-
-        const response =
-          JSON.parse(
-            responseText
-          );
-
-
-        // --------------------------------------------------
-        // GET WALLET
-        // --------------------------------------------------
-
-        if (
-          !response.public_key
-        ) {
-
-          throw new Error(
-            "Phantom did not return a wallet public key."
-          );
-        }
-
-
-        currentWallet =
-          response.public_key;
-
-
-        console.log(
-          "Phantom mobile wallet connected:",
-          currentWallet
-        );
-
-
-        // --------------------------------------------------
-        // UPDATE UI
-        // --------------------------------------------------
-
-        updateWalletUI();
-
-
-        // --------------------------------------------------
-        // CHECK TOKEN BALANCE
-        // --------------------------------------------------
-
-        await checkBalanceAndUnlock();
-
-
-        // --------------------------------------------------
-        // REMOVE CALLBACK DATA FROM URL
-        // --------------------------------------------------
-
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-
-
-        // --------------------------------------------------
-        // CLEAN TEMPORARY KEY
-        // --------------------------------------------------
-
-        sessionStorage.removeItem(
-          "phantom_dapp_private_key"
-        );
-
-
-        return true;
-
-      } catch (err) {
-
-        console.error(
-          "Phantom callback failed:",
-          err
-        );
-
-
-        alert(
-          "Phantom mobile connection failed: " +
-          (err?.message || err)
-        );
-
-
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-
-
-        sessionStorage.removeItem(
-          "phantom_dapp_private_key"
-        );
-
-
-        return true;
-      }
     }
 
 
-    // ======================================================
-    // CONNECT WALLET
-    // ======================================================
-
-    async function connectWallet() {
-
-      try {
-
-        const isMobile =
-          /Android|iPhone|iPad|iPod/i.test(
-            navigator.userAgent
-          ) ||
-          navigator.maxTouchPoints > 1;
+    const dappSecretKey =
+      bs58Lib.decode(
+        storedSecret
+      );
 
 
-        console.log(
-          "USER AGENT:",
-          navigator.userAgent
-        );
+    /* -----------------------------------------------
+       CREATE SHARED SECRET
+    ------------------------------------------------ */
+
+    const sharedSecret =
+      nacl.box.before(
+        bs58Lib.decode(
+          phantomPublicKey
+        ),
+        dappSecretKey
+      );
 
 
-        console.log(
-          "IS MOBILE:",
-          isMobile
-        );
+    /* -----------------------------------------------
+       DECRYPT DATA
+    ------------------------------------------------ */
+
+    const decrypted =
+      nacl.box.open.after(
+        bs58Lib.decode(
+          encryptedData
+        ),
+        bs58Lib.decode(
+          nonce
+        ),
+        sharedSecret
+      );
 
 
-        // --------------------------------------------------
-        // MOBILE
-        // --------------------------------------------------
+    if (!decrypted) {
 
-        if (
-          isMobile
-        ) {
+      throw new Error(
+        "Could not decrypt Phantom response."
+      );
 
-          console.log(
-            "Mobile device detected."
-          );
-
-
-          startPhantomMobileConnection();
-
-
-          return;
-        }
-
-
-        // --------------------------------------------------
-        // DESKTOP
-        // --------------------------------------------------
-
-        const provider =
-          window.phantom?.solana ||
-          window.solana;
-
-
-        if (
-          provider
-        ) {
-
-          const resp =
-            await provider.connect();
-
-
-          currentWallet =
-            resp.publicKey.toString();
-
-
-          console.log(
-            "Connected:",
-            currentWallet
-          );
-
-
-          updateWalletUI();
-
-
-          await checkBalanceAndUnlock();
-
-
-          return;
-        }
-
-
-        // --------------------------------------------------
-        // NO DESKTOP PHANTOM
-        // --------------------------------------------------
-
-        alert(
-          "Please install the Phantom wallet extension."
-        );
-
-
-        window.open(
-          "https://phantom.app/",
-          "_blank"
-        );
-
-      } catch (err) {
-
-        console.error(
-          "Wallet connection failed:",
-          err
-        );
-
-
-        if (
-          err?.code === 4001
-        ) {
-
-          alert(
-            "Wallet connection was rejected."
-          );
-
-        } else {
-
-          alert(
-            "Wallet connection error: " +
-            (err?.message || err)
-          );
-        }
-      }
     }
 
 
-    // ======================================================
-    // UPDATE WALLET UI
-    // ======================================================
-
-    function updateWalletUI() {
-
-      if (
-        !currentWallet
-      ) {
-        return;
-      }
+    const decoded =
+      new TextDecoder().decode(
+        decrypted
+      );
 
 
-      const area =
-        document.getElementById(
-          "walletArea"
-        );
+    const data =
+      JSON.parse(
+        decoded
+      );
 
 
-      area.innerHTML = `
-
-        <div class="text-right">
-
-          <p class="text-xs text-gray-400">
-            Connected
-          </p>
-
-          <p class="text-sm font-mono text-green-400">
-            ${shorten(currentWallet)}
-          </p>
-
-        </div>
+    console.log(
+      "Phantom decrypted response:",
+      data
+    );
 
 
-        <button
-          onclick="disconnect()"
-          class="text-xs text-gray-500 hover:text-white ml-3"
-        >
-          Disconnect
-        </button>
+    /* -----------------------------------------------
+       WALLET PUBLIC KEY
+    ------------------------------------------------ */
 
-      `;
+    if (!data.public_key) {
+
+      throw new Error(
+        "Phantom did not return a wallet address."
+      );
+
     }
 
 
-    // ======================================================
-    // DISCONNECT
-    // ======================================================
-
-    function disconnect() {
-
-      currentWallet = null;
-
-      userBalance = 0;
+    currentWallet =
+      data.public_key;
 
 
-      document
-        .getElementById(
-          "lockedView"
-        )
-        .classList.remove(
-          "hidden"
-        );
+    /* -----------------------------------------------
+       SAVE SESSION
+    ------------------------------------------------ */
+
+    sessionStorage.setItem(
+      "sparkd_phantom_session",
+      data.session || ""
+    );
 
 
-      document
-        .getElementById(
-          "chatView"
-        )
-        .classList.add(
-          "hidden"
-        );
+    sessionStorage.setItem(
+      "sparkd_phantom_connected",
+      "1"
+    );
 
 
-      document.getElementById(
-        "walletArea"
-      ).innerHTML = `
+    /* -----------------------------------------------
+       CLEAN URL
+    ------------------------------------------------ */
 
-        <button
-          id="connectBtn"
-          onclick="connectWallet()"
-          class="px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition glow-green"
-        >
-          Connect Wallet
-        </button>
-
-      `;
+    const cleanUrl =
+      window.location.origin +
+      window.location.pathname;
 
 
-      if (
-        window.solana
-      ) {
-
-        try {
-
-          window.solana.disconnect();
-
-        } catch (e) {
-
-          console.log(
-            "Wallet disconnect notice:",
-            e
-          );
-        }
-      }
-    }
+    window.history.replaceState(
+      {},
+      document.title,
+      cleanUrl
+    );
 
 
-    // ======================================================
-    // CHECK SPARKD BALANCE
-    // ======================================================
+    /* -----------------------------------------------
+       UPDATE UI
+    ------------------------------------------------ */
 
-    async function checkBalanceAndUnlock() {
-
-      if (
-        !currentWallet
-      ) {
-        return;
-      }
+    updateWalletUI();
 
 
-      try {
+    /* -----------------------------------------------
+       CHECK TOKEN BALANCE
+    ------------------------------------------------ */
 
-        const mint =
-          new PublicKey(
-            SPARKD_MINT
-          );
-
-
-        const owner =
-          new PublicKey(
-            currentWallet
-          );
+    await checkBalanceAndUnlock();
 
 
-        const tokenAccounts =
-          await connection.getParsedTokenAccountsByOwner(
-            owner,
-            {
-              mint: mint
-            }
-          );
+    return true;
 
 
-        let total = 0;
+  } catch (err) {
+
+    console.error(
+      "Phantom callback processing failed:",
+      err
+    );
 
 
-        for (
-          const acc of tokenAccounts.value
-        ) {
-
-          const amount =
-            acc.account.data.parsed.info.tokenAmount.uiAmount;
+    alert(
+      "Phantom connection failed: " +
+      (err?.message || err)
+    );
 
 
-          if (
-            amount
-          ) {
+    return false;
 
-            total += amount;
+  }
+
+}
+
+
+/* =====================================================
+   WALLET UI
+===================================================== */
+
+function updateWalletUI() {
+
+  if (!currentWallet) {
+    return;
+  }
+
+
+  const area =
+    document.getElementById(
+      "walletArea"
+    );
+
+
+  area.innerHTML = `
+
+    <div class="text-right">
+
+      <p class="text-xs text-gray-400">
+        Connected
+      </p>
+
+      <p class="text-sm font-mono text-green-400">
+        ${shorten(currentWallet)}
+      </p>
+
+    </div>
+
+
+    <button
+      onclick="disconnect()"
+      class="text-xs text-gray-500 hover:text-white ml-3"
+    >
+      Disconnect
+    </button>
+
+  `;
+
+}
+
+
+/* =====================================================
+   DISCONNECT
+===================================================== */
+
+function disconnect() {
+
+  currentWallet = null;
+  userBalance = 0;
+
+
+  document
+    .getElementById("lockedView")
+    .classList
+    .remove("hidden");
+
+
+  document
+    .getElementById("chatView")
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById("walletArea")
+    .innerHTML = `
+
+      <button
+        id="connectBtn"
+        onclick="connectWallet()"
+        class="px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition glow-green"
+      >
+        Connect Wallet
+      </button>
+
+    `;
+
+
+  sessionStorage.removeItem(
+    "sparkd_phantom_session"
+  );
+
+  sessionStorage.removeItem(
+    "sparkd_phantom_connected"
+  );
+
+
+  if (
+    window.solana &&
+    typeof window.solana.disconnect === "function"
+  ) {
+
+    window.solana.disconnect()
+      .catch(() => {});
+
+  }
+
+}
+
+
+/* =====================================================
+   CHECK SPARKD BALANCE
+===================================================== */
+
+async function checkBalanceAndUnlock() {
+
+  if (!currentWallet) {
+    return;
+  }
+
+
+  try {
+
+    const mint =
+      new PublicKey(
+        SPARKD_MINT
+      );
+
+
+    const owner =
+      new PublicKey(
+        currentWallet
+      );
+
+
+    const tokenAccounts =
+      await connection
+        .getParsedTokenAccountsByOwner(
+          owner,
+          {
+            mint: mint
           }
-        }
-
-
-        userBalance =
-          total;
-
-
-        console.log(
-          "SPARKD balance:",
-          userBalance
         );
 
 
-        // --------------------------------------------------
-        // HOLDER
-        // --------------------------------------------------
-
-        if (
-          userBalance >= MIN_BALANCE
-        ) {
-
-          document
-            .getElementById(
-              "lockedView"
-            )
-            .classList.add(
-              "hidden"
-            );
+    let total = 0;
 
 
-          document
-            .getElementById(
-              "chatView"
-            )
-            .classList.remove(
-              "hidden"
-            );
-
-
-          document.getElementById(
-            "balanceDisplay"
-          ).textContent =
-
-            userBalance.toLocaleString(
-              undefined,
-              {
-                maximumFractionDigits: 2
-              }
-            ) +
-
-            " SPARKD";
-
-
-          return;
-        }
-
-
-        // --------------------------------------------------
-        // NOT HOLDER
-        // --------------------------------------------------
-
-        alert(
-          `You need at least ${MIN_BALANCE} SPARKD to enter.\n` +
-          `Your balance: ${userBalance}`
-        );
-
-      } catch (err) {
-
-        console.error(
-          "Balance check failed:",
-          err
-        );
-
-
-        alert(
-          "Could not fetch token balance. " +
-          "Try a better RPC or check the mint address."
-        );
-      }
-    }
-
-
-    // ======================================================
-    // LOCAL DEMO CHAT
-    // ======================================================
-
-    const messagesEl =
-      document.getElementById(
-        "messages"
-      );
-
-
-    const STORAGE_KEY =
-      "sparkd_chat_msgs_v1";
-
-
-    // ------------------------------------------------------
-    // LOAD
-    // ------------------------------------------------------
-
-    function loadMessages() {
-
-      const saved =
-        localStorage.getItem(
-          STORAGE_KEY
-        );
-
-
-      if (
-        !saved
-      ) {
-        return;
-      }
-
-
-      try {
-
-        const msgs =
-          JSON.parse(
-            saved
-          );
-
-
-        msgs.forEach(
-          m =>
-            appendMessage(
-              m.name,
-              m.text,
-              m.time,
-              false
-            )
-        );
-
-      } catch (err) {
-
-        console.error(
-          "Could not load saved messages:",
-          err
-        );
-      }
-    }
-
-
-    // ------------------------------------------------------
-    // SAVE
-    // ------------------------------------------------------
-
-    function saveMessage(
-      name,
-      text
+    for (
+      const acc of tokenAccounts.value
     ) {
 
-      const msgs =
-        JSON.parse(
-          localStorage.getItem(
-            STORAGE_KEY
-          ) || "[]"
-        );
+      const amount =
+        acc.account.data.parsed.info.tokenAmount.uiAmount;
 
-
-      msgs.push({
-        name: name,
-        text: text,
-        time: Date.now()
-      });
-
-
-      if (
-        msgs.length > 100
-      ) {
-
-        msgs.shift();
+      if (amount) {
+        total += amount;
       }
 
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(msgs)
-      );
     }
 
 
-    // ------------------------------------------------------
-    // APPEND
-    // ------------------------------------------------------
+    userBalance =
+      total;
 
-    function appendMessage(
-      name,
-      text,
-      time = Date.now(),
-      save = true
+
+    console.log(
+      "SPARKD balance:",
+      userBalance
+    );
+
+
+    if (
+      userBalance >= MIN_BALANCE
     ) {
 
-      const isMe =
-        name ===
-        shorten(
-          currentWallet ||
-          "anon"
-        );
+      document
+        .getElementById("lockedView")
+        .classList
+        .add("hidden");
 
 
-      const div =
-        document.createElement(
-          "div"
-        );
+      document
+        .getElementById("chatView")
+        .classList
+        .remove("hidden");
 
 
-      div.className =
-        `flex gap-3 ${
-          isMe
-            ? "flex-row-reverse"
-            : ""
-        }`;
+      document
+        .getElementById("balanceDisplay")
+        .textContent =
+          userBalance.toLocaleString(
+            undefined,
+            {
+              maximumFractionDigits: 2
+            }
+          ) +
+          " SPARKD";
 
 
-      div.innerHTML = `
+    } else {
 
-        <div
-          class="w-8 h-8 rounded-full ${
-            isMe
-              ? "bg-green-500"
-              : "bg-gray-700"
-          } flex items-center justify-center text-xs shrink-0 font-bold"
-        >
-          ${escapeHtml(
-            name
-              .slice(0, 2)
-              .toUpperCase()
-          )}
-        </div>
+      alert(
+        "You need at least " +
+        MIN_BALANCE +
+        " SPARKD to enter.\n\n" +
+        "Your balance: " +
+        userBalance
+      );
+
+    }
 
 
-        <div
-          class="${
-            isMe
-              ? "text-right"
-              : ""
-          }"
-        >
+  } catch (err) {
 
-          <p
-            class="text-xs ${
-              isMe
-                ? "text-green-400"
-                : "text-gray-400"
-            } mb-1"
-          >
+    console.error(
+      "Balance check failed:",
+      err
+    );
 
-            ${escapeHtml(name)}
 
-            <span class="text-gray-600">
+    alert(
+      "Could not fetch token balance. " +
+      "Try again or check the mint address."
+    );
 
-              •
+  }
 
-              ${new Date(
-                time
-              ).toLocaleTimeString(
+}
+
+
+/* =====================================================
+   LOCAL DEMO CHAT
+===================================================== */
+
+const messagesEl =
+  document.getElementById(
+    "messages"
+  );
+
+
+const STORAGE_KEY =
+  "sparkd_chat_msgs_v1";
+
+
+function loadMessages() {
+
+  const saved =
+    localStorage.getItem(
+      STORAGE_KEY
+    );
+
+
+  if (!saved) {
+    return;
+  }
+
+
+  try {
+
+    const msgs =
+      JSON.parse(saved);
+
+
+    msgs.forEach(
+      m =>
+        appendMessage(
+          m.name,
+          m.text,
+          m.time,
+          false
+        )
+    );
+
+  } catch (err) {
+
+    console.error(
+      "Could not load chat messages:",
+      err
+    );
+
+  }
+
+}
+
+
+function saveMessage(
+  name,
+  text
+) {
+
+  const msgs =
+    JSON.parse(
+      localStorage.getItem(
+        STORAGE_KEY
+      ) || "[]"
+    );
+
+
+  msgs.push({
+    name: name,
+    text: text,
+    time: Date.now()
+  });
+
+
+  if (msgs.length > 100) {
+    msgs.shift();
+  }
+
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(msgs)
+  );
+
+}
+
+
+function appendMessage(
+  name,
+  text,
+  time = Date.now(),
+  save = true
+) {
+
+  const isMe =
+    name ===
+    shorten(
+      currentWallet ||
+      "anon"
+    );
+
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+
+  div.className =
+    `flex gap-3 ${
+      isMe
+        ? "flex-row-reverse"
+        : ""
+    }`;
+
+
+  div.innerHTML = `
+
+    <div class="w-8 h-8 rounded-full ${
+      isMe
+        ? "bg-green-500"
+        : "bg-gray-700"
+    } flex items-center justify-center text-xs shrink-0 font-bold">
+
+      ${escapeHtml(
+        name
+          .slice(0, 2)
+          .toUpperCase()
+      )}
+
+    </div>
+
+
+    <div class="${
+      isMe
+        ? "text-right"
+        : ""
+    }">
+
+      <p class="text-xs ${
+        isMe
+          ? "text-green-400"
+          : "text-gray-400"
+      } mb-1">
+
+        ${escapeHtml(name)}
+
+        <span class="text-gray-600">
+          • ${
+            new Date(time)
+              .toLocaleTimeString(
                 [],
                 {
                   hour: "2-digit",
                   minute: "2-digit"
                 }
-              )}
-
-            </span>
-
-          </p>
-
-
-          <div
-            class="chat-bubble inline-block ${
-              isMe
-                ? "bg-green-600 text-black"
-                : "bg-gray-800 border border-gray-700"
-            } rounded-2xl ${
-              isMe
-                ? "rounded-tr-sm"
-                : "rounded-tl-sm"
-            } px-4 py-2.5 text-sm"
-          >
-
-            ${escapeHtml(text)}
-
-          </div>
-
-        </div>
-
-      `;
-
-
-      messagesEl.appendChild(
-        div
-      );
-
-
-      messagesEl.scrollTop =
-        messagesEl.scrollHeight;
-
-
-      if (
-        save
-      ) {
-
-        saveMessage(
-          name,
-          text
-        );
-      }
-    }
-
-
-    // ------------------------------------------------------
-    // SEND
-    // ------------------------------------------------------
-
-    function sendMessage(e) {
-
-      e.preventDefault();
-
-
-      const input =
-        document.getElementById(
-          "msgInput"
-        );
-
-
-      const text =
-        input.value.trim();
-
-
-      if (
-        !text ||
-        !currentWallet
-      ) {
-
-        return;
-      }
-
-
-      appendMessage(
-        shorten(
-          currentWallet
-        ),
-        text
-      );
-
-
-      input.value = "";
-    }
-
-
-    // ------------------------------------------------------
-    // SHORTEN
-    // ------------------------------------------------------
-
-    function shorten(addr) {
-
-      if (
-        !addr
-      ) {
-
-        return "anon";
-      }
-
-
-      return (
-        addr.slice(0, 4) +
-        "…" +
-        addr.slice(-4)
-      );
-    }
-
-
-    // ------------------------------------------------------
-    // ESCAPE HTML
-    // ------------------------------------------------------
-
-    function escapeHtml(str) {
-
-      return String(str)
-        .replace(
-          /&/g,
-          "&amp;"
-        )
-        .replace(
-          /</g,
-          "&lt;"
-        )
-        .replace(
-          />/g,
-          "&gt;"
-        );
-    }
-
-
-    // ======================================================
-    // PAGE LOAD
-    // ======================================================
-
-    window.addEventListener(
-      "load",
-      async () => {
-
-        loadMessages();
-
-
-        // --------------------------------------------------
-        // PROCESS PHANTOM MOBILE CALLBACK
-        // --------------------------------------------------
-
-        const handled =
-          await processPhantomCallback();
-
-
-        if (
-          handled
-        ) {
-
-          return;
-        }
-
-
-        // --------------------------------------------------
-        // NORMAL DESKTOP AUTO-RECONNECT
-        // --------------------------------------------------
-
-        const provider =
-          window.phantom?.solana ||
-          window.solana;
-
-
-        if (
-          provider?.isConnected &&
-          provider.publicKey
-        ) {
-
-          try {
-
-            currentWallet =
-              provider.publicKey.toString();
-
-
-            console.log(
-              "Existing Phantom connection:",
-              currentWallet
-            );
-
-
-            updateWalletUI();
-
-
-            await checkBalanceAndUnlock();
-
-          } catch (err) {
-
-            console.error(
-              "Existing wallet reconnect failed:",
-              err
-            );
+              )
           }
-        }
+        </span>
 
-      }
+      </p>
+
+
+      <div class="chat-bubble inline-block ${
+        isMe
+          ? "bg-green-600 text-black"
+          : "bg-gray-800 border border-gray-700"
+      } rounded-2xl ${
+        isMe
+          ? "rounded-tr-sm"
+          : "rounded-tl-sm"
+      } px-4 py-2.5 text-sm">
+
+        ${escapeHtml(text)}
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  messagesEl.appendChild(
+    div
+  );
+
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
+
+  if (save) {
+    saveMessage(
+      name,
+      text
+    );
+  }
+
+}
+
+
+/* =====================================================
+   SEND MESSAGE
+===================================================== */
+
+function sendMessage(e) {
+
+  e.preventDefault();
+
+
+  const input =
+    document.getElementById(
+      "msgInput"
     );
 
-  </script>
+
+  const text =
+    input.value.trim();
+
+
+  if (
+    !text ||
+    !currentWallet
+  ) {
+    return;
+  }
+
+
+  appendMessage(
+    shorten(currentWallet),
+    text
+  );
+
+
+  input.value = "";
+
+}
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function shorten(addr) {
+
+  if (!addr) {
+    return "anon";
+  }
+
+
+  return (
+    addr.slice(0, 4) +
+    "…" +
+    addr.slice(-4)
+  );
+
+}
+
+
+function escapeHtml(str) {
+
+  return String(str)
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+/* =====================================================
+   PAGE LOAD
+===================================================== */
+
+window.addEventListener(
+  "load",
+  async () => {
+
+    console.log(
+      "SPARKD gated chat loading..."
+    );
+
+
+    loadMessages();
+
+
+    /* -----------------------------------------------
+       VERIFY LIBRARIES
+    ------------------------------------------------ */
+
+    console.log(
+      "nacl available:",
+      typeof nacl !== "undefined"
+    );
+
+
+    console.log(
+      "bs58 raw:",
+      window.bs58
+    );
+
+
+    console.log(
+      "bs58 normalized:",
+      getBS58()
+    );
+
+
+    /* -----------------------------------------------
+       PHANTOM MOBILE CALLBACK
+    ------------------------------------------------ */
+
+    const handled =
+      await processPhantomCallback();
+
+
+    if (handled) {
+      return;
+    }
+
+
+    /* -----------------------------------------------
+       DESKTOP AUTO RECONNECT
+    ------------------------------------------------ */
+
+    const provider =
+      window.phantom?.solana ||
+      window.solana;
+
+
+    if (
+      provider?.isConnected &&
+      provider.publicKey
+    ) {
+
+      try {
+
+        currentWallet =
+          provider.publicKey.toString();
+
+
+        updateWalletUI();
+
+
+        await checkBalanceAndUnlock();
+
+
+      } catch (err) {
+
+        console.error(
+          "Existing wallet reconnect failed:",
+          err
+        );
+
+      }
+
+    }
+
+  }
+);
+
+</script>
 
 </body>
 </html>
