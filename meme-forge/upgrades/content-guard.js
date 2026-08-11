@@ -716,9 +716,9 @@ function decodeNudeNetOutput(outputTensor) {
     return results;
 }
 
-
 /* ============================================================
    CHECK IMAGE
+   SPARKD NudeNet ONNX detector
 ============================================================ */
 
 async function checkImage(image) {
@@ -726,205 +726,450 @@ async function checkImage(image) {
     /*
      * FAIL CLOSED
      */
-
-    if (
-        !guardReady ||
-        !session
-    ) {
-
+    if (!guardReady || !model) {
         return {
-
             checked: false,
-
             safe: false,
-
             blocked: true,
-
             reason:
                 "Content safety model is unavailable."
         };
     }
 
-
     if (!image) {
-
         return {
-
             checked: false,
-
             safe: false,
-
             blocked: true,
-
             reason:
                 "No image supplied."
         };
     }
 
-
     try {
 
-        /*
-         * Create 320x320 scan image.
-         */
+        /* ====================================================
+           CREATE 320x320 INPUT
+        ==================================================== */
 
         const canvas =
-            createScanCanvas(
-                image
-            );
+            document.createElement("canvas");
 
+        canvas.width = 320;
+        canvas.height = 320;
+
+        const ctx =
+            canvas.getContext("2d");
+
+        if (!ctx) {
+            throw new Error(
+                "Could not create scan canvas."
+            );
+        }
+
+        /*
+         * NudeNet expects RGB image data.
+         * Draw the complete image into the model input.
+         */
+        ctx.drawImage(
+            image,
+            0,
+            0,
+            320,
+            320
+        );
 
         console.log(
             "🧠 SPARKD running NudeNet..."
         );
 
-
         console.log(
             "🔬 NudeNet scan:",
             {
-                width:
-                    canvas.width,
-
-                height:
-                    canvas.height
+                width: canvas.width,
+                height: canvas.height
             }
         );
 
 
-        /*
-         * Convert image to tensor.
-         */
+        /* ====================================================
+           CREATE FLOAT32 NCHW TENSOR
+        ==================================================== */
 
-        const inputTensor =
-            canvasToTensor(
-                canvas
+        const imageData =
+            ctx.getImageData(
+                0,
+                0,
+                320,
+                320
             );
 
+        const input =
+            new Float32Array(
+                1 * 3 * 320 * 320
+            );
 
-        /*
-         * Use the actual model input name.
-         */
+        const planeSize =
+            320 * 320;
+
+        for (
+            let y = 0;
+            y < 320;
+            y++
+        ) {
+
+            for (
+                let x = 0;
+                x < 320;
+                x++
+            ) {
+
+                const src =
+                    (y * 320 + x) * 4;
+
+                const dst =
+                    y * 320 + x;
+
+                /*
+                 * RGB
+                 * Normalize 0..255 -> 0..1
+                 */
+                input[
+                    dst
+                ] =
+                    imageData.data[src] / 255;
+
+                input[
+                    planeSize + dst
+                ] =
+                    imageData.data[src + 1] / 255;
+
+                input[
+                    planeSize * 2 + dst
+                ] =
+                    imageData.data[src + 2] / 255;
+            }
+        }
+
+
+        /* ====================================================
+           RUN ONNX MODEL
+        ==================================================== */
 
         const inputName =
             session.inputNames[0];
 
+        const feeds = {};
+
+        feeds[inputName] =
+            new ort.Tensor(
+                "float32",
+                input,
+                [1, 3, 320, 320]
+            );
+
+        const results =
+            await session.run(feeds);
 
         const outputName =
             session.outputNames[0];
 
+        const output =
+            results[outputName];
 
-        const feeds = {};
-
-
-        feeds[
-            inputName
-        ] =
-            inputTensor;
-
-
-        /*
-         * Run model.
-         */
-
-        const outputs =
-            await session.run(
-                feeds
-            );
-
-
-        const outputTensor =
-            outputs[
-                outputName
-            ];
-
-
-        if (!outputTensor) {
-
+        if (!output) {
             throw new Error(
-                "NudeNet output tensor not found."
+                "NudeNet returned no output tensor."
+            );
+        }
+
+        console.log(
+            "🔬 NudeNet output tensor:",
+            {
+                dimensions: output.dims,
+                length: output.data.length
+            }
+        );
+
+
+        /* ====================================================
+           VERIFY OUTPUT
+           Expected:
+           [1, 22, 2100]
+        ==================================================== */
+
+        if (
+            !Array.isArray(output.dims) ||
+            output.dims.length !== 3
+        ) {
+            throw new Error(
+                "Unexpected NudeNet output dimensions."
+            );
+        }
+
+        const batch =
+            output.dims[0];
+
+        const channels =
+            output.dims[1];
+
+        const detections =
+            output.dims[2];
+
+        if (
+            batch !== 1 ||
+            channels !== 22
+        ) {
+            throw new Error(
+                "Unexpected NudeNet output format: " +
+                JSON.stringify(output.dims)
             );
         }
 
 
+        /* ====================================================
+           NUDENET CLASS LABELS
+
+           18 classes follow the 4 box values.
+        ==================================================== */
+
+        const NUDENET_CLASSES = [
+
+            "exposed anus",
+            "exposed armpits",
+            "belly",
+            "exposed belly",
+            "buttocks",
+            "exposed buttocks",
+            "female face",
+            "male face",
+            "feet",
+            "exposed feet",
+            "breast",
+            "exposed breast",
+            "vagina",
+            "exposed vagina",
+            "male breast",
+            "exposed penis",
+            "unknown_16",
+            "unknown_17"
+
+        ];
+
+
         /*
-         * Decode actual detections.
+         * Classes that should cause SPARKD
+         * to reject an image.
+         */
+        const BLOCKED_PARTS = [
+
+            "exposed anus",
+            "exposed belly",
+            "exposed buttocks",
+            "exposed breasts",
+            "exposed breast",
+            "exposed vagina",
+            "exposed penis"
+
+        ];
+
+
+        /* ====================================================
+           PARSE YOLO OUTPUT
+           
+           Output layout:
+
+           [1, 22, 2100]
+
+           First 4 channels:
+           x
+           y
+           width
+           height
+
+           Remaining 18:
+           class confidence
+        ==================================================== */
+
+        const data =
+            output.data;
+
+        const parsedPredictions = [];
+
+        let strongestBlocked = null;
+
+        /*
+         * NudeNet's ONNX output is channel-first.
+
+         * data[
+         *     channel * detections + detection
+         * ]
          */
 
-        const detections =
-            decodeNudeNetOutput(
-                outputTensor
+        for (
+            let i = 0;
+            i < detections;
+            i++
+        ) {
+
+            const x =
+                data[
+                    i
+                ];
+
+            const y =
+                data[
+                    detections + i
+                ];
+
+            const width =
+                data[
+                    detections * 2 + i
+                ];
+
+            const height =
+                data[
+                    detections * 3 + i
+                ];
+
+
+            let bestClass =
+                -1;
+
+            let bestScore =
+                0;
+
+
+            /*
+             * Find strongest class
+             */
+            for (
+                let c = 0;
+                c < 18;
+                c++
+            ) {
+
+                const score =
+                    data[
+                        detections * (4 + c) + i
+                    ];
+
+                if (
+                    score > bestScore
+                ) {
+
+                    bestScore =
+                        score;
+
+                    bestClass =
+                        c;
+                }
+            }
+
+
+            if (
+                bestClass < 0
+            ) {
+                continue;
+            }
+
+
+            const className =
+                NUDENET_CLASSES[
+                    bestClass
+                ] || "unknown";
+
+
+            /*
+             * Ignore extremely weak detections.
+             */
+            if (
+                bestScore < 0.30
+            ) {
+                continue;
+            }
+
+
+            const prediction = {
+
+                className:
+                    className,
+
+                probability:
+                    bestScore,
+
+                box: [
+                    x,
+                    y,
+                    width,
+                    height
+                ]
+
+            };
+
+
+            parsedPredictions.push(
+                prediction
             );
 
 
-        console.log(
-            "🔬 NudeNet detections:",
-            detections.length
-        );
-
-
-        /*
-         * Show only the strongest detections,
-         * not all 46,200 raw numbers.
-         */
-
-        console.log(
-            "🧪 SPARKD NudeNet top detections:",
-            detections.slice(
-                0,
-                10
-            )
-        );
-
-
-        /*
-         * Find strongest prohibited detection.
-         */
-
-        let strongestBlocked =
-            null;
-
-
-        for (
-            const detection
-            of detections
-        ) {
+            /* =================================================
+               BLOCK PROHIBITED BODY-PART DETECTIONS
+            ================================================= */
 
             if (
-                !BLOCKED_CLASSES.includes(
-                    detection.className
+                BLOCKED_PARTS.includes(
+                    className
                 )
             ) {
 
-                continue;
+                if (
+                    !strongestBlocked ||
+                    bestScore >
+                    strongestBlocked.probability
+                ) {
+
+                    strongestBlocked = {
+
+                        className:
+                            className,
+
+                        probability:
+                            bestScore,
+
+                        box: [
+                            x,
+                            y,
+                            width,
+                            height
+                        ]
+
+                    };
+
+                }
+
             }
 
-
-            if (
-                detection.probability <
-                BLOCK_THRESHOLD
-            ) {
-
-                continue;
-            }
-
-
-            if (
-                !strongestBlocked ||
-                detection.probability >
-                strongestBlocked.probability
-            ) {
-
-                strongestBlocked =
-                    detection;
-            }
         }
+
+
+        /* ====================================================
+           DEBUG OUTPUT
+        ==================================================== */
+
+        console.log(
+            "🛡️ SPARKD NudeNet detections:",
+            parsedPredictions
+        );
 
 
         /* ====================================================
            BLOCK
         ==================================================== */
 
-        if (strongestBlocked) {
+        if (
+            strongestBlocked
+        ) {
 
             console.warn(
                 "🚫 SPARKD BLOCKED:",
@@ -932,14 +1177,16 @@ async function checkImage(image) {
                 strongestBlocked.probability
             );
 
-
             return {
 
-                checked: true,
+                checked:
+                    true,
 
-                safe: false,
+                safe:
+                    false,
 
-                blocked: true,
+                blocked:
+                    true,
 
                 category:
                     strongestBlocked.className,
@@ -947,15 +1194,14 @@ async function checkImage(image) {
                 probability:
                     strongestBlocked.probability,
 
-                threshold:
-                    BLOCK_THRESHOLD,
-
                 predictions:
-                    detections,
+                    parsedPredictions,
 
                 reason:
                     "Image contains prohibited NSFW content."
+
             };
+
         }
 
 
@@ -967,17 +1213,20 @@ async function checkImage(image) {
             "✅ SPARKD image allowed."
         );
 
-
         return {
 
-            checked: true,
+            checked:
+                true,
 
-            safe: true,
+            safe:
+                true,
 
-            blocked: false,
+            blocked:
+                false,
 
             predictions:
-                detections
+                parsedPredictions
+
         };
 
 
@@ -988,25 +1237,28 @@ async function checkImage(image) {
             error
         );
 
-
         /*
          * FAIL CLOSED
          */
-
         return {
 
-            checked: false,
+            checked:
+                false,
 
-            safe: false,
+            safe:
+                false,
 
-            blocked: true,
+            blocked:
+                true,
 
             reason:
                 "Image could not be verified for safety."
-        };
-    }
-}
 
+        };
+
+    }
+
+}
 
 /* ============================================================
    PUBLIC API
