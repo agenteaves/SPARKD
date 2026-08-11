@@ -841,37 +841,29 @@ if (
     updateWalletUI();
 
 
-    /* -----------------------------------------------
-       CHECK TOKEN BALANCE
-    ------------------------------------------------ */
+   /* -----------------------------------------------
+   CHECK TOKEN BALANCE
+------------------------------------------------ */
 
-    checkBalanceAndUnlock();
+await checkBalanceAndUnlock();
 
+return true;
 
-    return true;
+} catch (err) {
 
+  console.error(
+    "Phantom callback processing failed:",
+    err
+  );
 
-  } catch (err) {
+  alert(
+    "Phantom connection failed: " +
+    (err?.message || err)
+  );
 
-    console.error(
-      "Phantom callback processing failed:",
-      err
-    );
-
-
-    alert(
-      "Phantom connection failed: " +
-      (err?.message || err)
-    );
-
-
-    return false;
-
-  }
-
+  return false;
 }
-
-
+  
 /* =====================================================
    WALLET UI
 ===================================================== */
