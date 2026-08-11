@@ -339,21 +339,104 @@ function updateWalletUI() {
     }
 
     // Auto reconnect if already connected
-    window.addEventListener("load", async () => {
-      loadMessages();
-      if (window.solana?.isConnected) {
-        currentWallet = window.solana.publicKey.toString();
-        document.getElementById("connectBtn")?.classList.add("hidden");
-        document.getElementById("walletArea").innerHTML = `
-          <div class="text-right">
-            <p class="text-xs text-gray-400">Connected</p>
-            <p class="text-sm font-mono text-green-400">${shorten(currentWallet)}</p>
-          </div>
-          <button onclick="disconnect()" class="text-xs text-gray-500 hover:text-white ml-3">Disconnect</button>
-        `;
-        await checkBalanceAndUnlock();
-      }
-    });
+  
+  window.addEventListener("load", async () => {
+  loadMessages();
+
+  // --------------------------------------------------
+  // AUTOMATIC PHANTOM MOBILE CONNECTION
+  // --------------------------------------------------
+  // When the mobile browser was redirected into Phantom,
+  // the URL contains ?phantom_connect=1.
+  //
+  // Phantom's in-app browser injects the Solana provider,
+  // so we can automatically connect without making the
+  // user press Connect Wallet a second time.
+  // --------------------------------------------------
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const phantomConnect = urlParams.get("phantom_connect");
+
+  const provider = window.phantom?.solana || window.solana;
+
+  if (phantomConnect === "1" && provider) {
+    try {
+      console.log("Phantom mobile detected. Connecting...");
+
+      const resp = await provider.connect();
+
+      currentWallet = resp.publicKey.toString();
+
+      console.log(
+        "Phantom mobile wallet connected:",
+        currentWallet
+      );
+
+      // Remove the phantom_connect parameter
+      // so refreshing the page doesn't repeatedly trigger it.
+      const cleanUrl =
+        window.location.origin +
+        window.location.pathname;
+
+      window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl
+      );
+
+      updateWalletUI();
+
+      // Check SPARKD balance
+      await checkBalanceAndUnlock();
+
+    } catch (err) {
+      console.error(
+        "Automatic Phantom connection failed:",
+        err
+      );
+
+      // Clean the URL even if connection was rejected.
+      const cleanUrl =
+        window.location.origin +
+        window.location.pathname;
+
+      window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl
+      );
+    }
+
+    return;
+  }
+
+  // --------------------------------------------------
+  // NORMAL PHANTOM AUTO-RECONNECT
+  // --------------------------------------------------
+
+  if (provider?.isConnected && provider.publicKey) {
+    try {
+      currentWallet = provider.publicKey.toString();
+
+      console.log(
+        "Existing Phantom connection:",
+        currentWallet
+      );
+
+      updateWalletUI();
+
+      await checkBalanceAndUnlock();
+
+    } catch (err) {
+      console.error(
+        "Existing wallet reconnect failed:",
+        err
+      );
+    }
+  }
+});
+
+
   </script>
 </body>
 </html>
