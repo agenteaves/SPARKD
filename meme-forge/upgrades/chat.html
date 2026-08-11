@@ -624,48 +624,27 @@ console.log(
    PROCESS PHANTOM MOBILE CALLBACK
 ===================================================== */
 
-async function processPhantomCallback() {
+if (
+  typeof nacl === "undefined"
+) {
 
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
-
-  const callback =
-    params.get(
-      "phantom_callback"
-    );
-
-
-  if (callback !== "1") {
-
-    return false;
-  }
-
-
-  console.log(
-    "Phantom callback detected."
+  throw new Error(
+    "TweetNaCl library is unavailable."
   );
 
+}
 
-  try {
+if (
+  typeof bs58 === "undefined" ||
+  typeof bs58.encode !== "function" ||
+  typeof bs58.decode !== "function"
+) {
 
-    const bs58Lib =
-      getBS58();
+  throw new Error(
+    "bs58 library is unavailable."
+  );
 
-
-    if (
-      typeof nacl === "undefined" ||
-      !bs58Lib
-    ) {
-
-      throw new Error(
-        "Required encryption libraries are unavailable."
-      );
-
-    }
-
+}
 
     /* -----------------------------------------------
        READ RESPONSE
