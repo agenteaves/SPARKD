@@ -342,6 +342,7 @@ document.getElementById(
 
 function getBS58() {
 
+  // Standard browser/global version
   if (
     window.bs58 &&
     typeof window.bs58.encode === "function" &&
@@ -350,13 +351,17 @@ function getBS58() {
     return window.bs58;
   }
 
+  // Some builds expose bs58 under .default
   if (
     window.bs58 &&
     window.bs58.default &&
-    typeof window.bs58.default.encode === "function"
+    typeof window.bs58.default.encode === "function" &&
+    typeof window.bs58.default.decode === "function"
   ) {
     return window.bs58.default;
   }
+
+  console.error("bs58 is not available:", window.bs58);
 
   return null;
 }
