@@ -127,6 +127,33 @@
   </footer>
 
   <script>
+
+// ======================================================
+// PHANTOM MOBILE CONNECTION
+// ======================================================
+
+function startPhantomMobileConnection() {
+
+  console.log("Starting Phantom mobile connection...");
+
+  try {
+
+    // Make sure Phantom connection libraries loaded
+    if (
+      typeof nacl === "undefined" ||
+      typeof bs58 === "undefined"
+    ) {
+      alert(
+        "Phantom connection libraries are missing."
+      );
+
+      console.error(
+        "nacl or bs58 is not loaded."
+      );
+
+      return;
+    }
+
     // ====================== CONFIG ======================
     const SPARKD_MINT = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
     const MIN_BALANCE = 1;          // change this to require more tokens
@@ -369,31 +396,6 @@ function updateWalletUI() {
   loadMessages();
 
     
-// ======================================================
-// PHANTOM MOBILE CONNECTION
-// ======================================================
-
-function startPhantomMobileConnection() {
-
-  console.log("Starting Phantom mobile connection...");
-
-  try {
-
-    // Make sure Phantom connection libraries loaded
-    if (
-      typeof nacl === "undefined" ||
-      typeof bs58 === "undefined"
-    ) {
-      alert(
-        "Phantom connection libraries are missing."
-      );
-
-      console.error(
-        "nacl or bs58 is not loaded."
-      );
-
-      return;
-    }
 
     // --------------------------------------------------
     // CREATE TEMPORARY ENCRYPTION KEYPAIR
