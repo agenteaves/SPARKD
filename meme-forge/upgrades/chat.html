@@ -519,7 +519,7 @@ console.log(
 
 
     const dappPublicKey =
-      bs58Lib.encode(
+      bs58.encode(
         dappKeyPair.publicKey
       );
 
@@ -530,7 +530,7 @@ console.log(
 
     sessionStorage.setItem(
       "sparkd_phantom_dapp_secret",
-      bs58Lib.encode(
+      bs58.encode(
         dappKeyPair.secretKey
       )
     );
