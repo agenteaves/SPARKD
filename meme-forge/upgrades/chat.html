@@ -143,26 +143,24 @@
 
 
  
-async function connectWallet() {
-  try {
 
-    // --------------------------------------------------
-    // DETECT MOBILE FIRST
-    // --------------------------------------------------
+    async function connectWallet() {
+      try {
 
+    // Detect mobile device
     const isMobile =
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      navigator.maxTouchPoints > 1;
+
+    console.log("USER AGENT:", navigator.userAgent);
+    console.log("IS MOBILE:", isMobile);
 
     // --------------------------------------------------
-    // MOBILE PHANTOM
-    // --------------------------------------------------
-    // On a normal mobile browser, do NOT use the
-    // desktop injected-provider connection.
-    // Start Phantom's mobile deeplink flow instead.
+    // MOBILE
     // --------------------------------------------------
 
     if (isMobile) {
-      console.log("Mobile device detected.");
+      alert("MOBILE DETECTED - starting Phantom connection");
 
       startPhantomMobileConnection();
 
@@ -170,7 +168,7 @@ async function connectWallet() {
     }
 
     // --------------------------------------------------
-    // DESKTOP / PHANTOM IN-APP BROWSER
+    // DESKTOP PHANTOM
     // --------------------------------------------------
 
     const provider =
@@ -217,21 +215,12 @@ async function connectWallet() {
       err
     );
 
-    if (err?.code === 4001) {
-
-      alert(
-        "Wallet connection was rejected."
-      );
-
-    } else {
-
-      alert(
-        "Failed to connect wallet. Please try again."
-      );
-    }
+    alert(
+      "Wallet connection error: " +
+      (err?.message || err)
+    );
   }
 }
-
 
 
 function updateWalletUI() {
