@@ -1,379 +1,608 @@
 /* ============================================================
    SPARKD CONTENT GUARD
-   Browser-side image safety scanner
-   Version: v23 - simplified production build
+   NudeNet + ONNX Runtime Web
+   Browser-side nudity detector
+   Version: v24
 ============================================================ */
 
 (function () {
-    "use strict";
 
-    console.log("🛡️ SPARKD Content Guard loading...");
-
-    let guardReady = false;
-    let model = null;
-
-    const MODEL_URL = "./upgrades/model/";
-
-    const BLOCK_THRESHOLDS = {
-        Porn: 0.65,
-        Hentai: 0.65,
-        Sexy: 0.80
-    };
-
-    const BLOCKED_CLASSES = ["Porn", "Hentai", "Sexy"];
+"use strict";
 
 
-    /* ============================================================
-       LOAD MODEL
-    ============================================================ */
-
-    async function loadContentGuard() {
-        try {
-            if (typeof tf === "undefined") {
-                throw new Error("TensorFlow.js is not loaded.");
-            }
-
-            if (typeof nsfwjs === "undefined") {
-                throw new Error("NSFWJS is not loaded.");
-            }
-
-            console.log("🛡️ Loading SPARKD content model...");
-
-            model = await nsfwjs.load(MODEL_URL);
-
-            if (!model) {
-                throw new Error("NSFWJS returned no model.");
-            }
-
-            console.log("🧠 NSFWJS model loaded.");
-
-            guardReady = true;
-
-            window.SPARKD_CONTENT_GUARD_READY = true;
-
-            window.dispatchEvent(
-                new Event("sparkd-content-guard-ready")
-            );
-
-            console.log("✅ SPARKD Content Guard ready.");
-
-        } catch (error) {
-
-            guardReady = false;
-            model = null;
-
-            window.SPARKD_CONTENT_GUARD_READY = false;
-
-            console.error(
-                "❌ SPARKD Content Guard failed:",
-                error
-            );
-
-            window.dispatchEvent(
-                new CustomEvent(
-                    "sparkd-content-guard-error",
-                    { detail: error }
-                )
-            );
-        }
-    }
+console.log(
+    "🛡️ SPARKD Content Guard loading..."
+);
 
 
-    /* ============================================================
-       CREATE SCAN CANVAS
-    ============================================================ */
+/* ============================================================
+   STATE
+============================================================ */
 
-    function createScanCanvas(image) {
+let guardReady = false;
+let session = null;
 
-        const width =
-            image.naturalWidth || image.width;
 
-        const height =
-            image.naturalHeight || image.height;
+/* ============================================================
+   MODEL
+============================================================ */
 
-        if (!width || !height) {
-            throw new Error("Image has invalid dimensions.");
-        }
+const MODEL_URL =
+    "./upgrades/nudenet/nudenet.onnx";
 
-        const MAX_SIZE = 1600;
 
-        let scanWidth = width;
-        let scanHeight = height;
+/* ============================================================
+   MODEL SETTINGS
+============================================================ */
+
+const MODEL_SIZE = 320;
+
+
+/*
+ * NudeNet detection confidence.
+ *
+ * Start conservatively.
+ * We will tune this AFTER seeing real
+ * NudeNet predictions from your images.
+ */
+
+const DETECTION_THRESHOLD = 0.35;
+
+
+/* ============================================================
+   NUDE NET LABELS
+============================================================ */
+
+const NUDE_CLASSES = [
+
+    "FEMALE_GENITALIA_EXPOSED",
+
+    "MALE_GENITALIA_EXPOSED",
+
+    "FEMALE_BREAST_EXPOSED",
+
+    "BUTTOCKS_EXPOSED",
+
+    "ANUS_EXPOSED",
+
+    "PUBIC_AREA_EXPOSED"
+
+];
+
+
+/* ============================================================
+   LOAD MODEL
+============================================================ */
+
+async function loadContentGuard() {
+
+    try {
 
         if (
-            scanWidth > MAX_SIZE ||
-            scanHeight > MAX_SIZE
+            typeof ort === "undefined"
         ) {
-            const scale = Math.min(
-                MAX_SIZE / scanWidth,
-                MAX_SIZE / scanHeight
-            );
 
-            scanWidth = Math.max(
-                1,
-                Math.round(scanWidth * scale)
-            );
-
-            scanHeight = Math.max(
-                1,
-                Math.round(scanHeight * scale)
-            );
-        }
-
-        const canvas =
-            document.createElement("canvas");
-
-        canvas.width = scanWidth;
-        canvas.height = scanHeight;
-
-        const ctx =
-            canvas.getContext("2d");
-
-        if (!ctx) {
             throw new Error(
-                "Could not create image canvas."
+                "ONNX Runtime Web is not loaded."
             );
+
         }
 
-        ctx.drawImage(
-            image,
-            0,
-            0,
-            scanWidth,
-            scanHeight
+
+        console.log(
+            "🛡️ Loading NudeNet ONNX model..."
         );
 
-        return canvas;
+
+        /*
+         * Use WASM.
+         *
+         * This gives us the broadest browser
+         * compatibility.
+         */
+
+        ort.env.wasm.wasmPaths =
+            "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
+
+
+        session =
+            await ort.InferenceSession.create(
+                MODEL_URL,
+                {
+                    executionProviders: [
+                        "wasm"
+                    ]
+                }
+            );
+
+
+        if (!session) {
+
+            throw new Error(
+                "ONNX Runtime returned no session."
+            );
+
+        }
+
+
+        console.log(
+            "🧠 NudeNet ONNX model loaded."
+        );
+
+
+        console.log(
+            "🔬 NudeNet inputs:",
+            session.inputNames
+        );
+
+
+        console.log(
+            "🔬 NudeNet outputs:",
+            session.outputNames
+        );
+
+
+        guardReady = true;
+
+
+        window.SPARKD_CONTENT_GUARD_READY =
+            true;
+
+
+        window.dispatchEvent(
+            new Event(
+                "sparkd-content-guard-ready"
+            )
+        );
+
+
+        console.log(
+            "✅ SPARKD NudeNet Content Guard ready."
+        );
+
+    }
+    catch (error) {
+
+        guardReady = false;
+
+        session = null;
+
+
+        window.SPARKD_CONTENT_GUARD_READY =
+            false;
+
+
+        console.error(
+            "❌ SPARKD NudeNet Content Guard failed:",
+            error
+        );
+
+
+        window.dispatchEvent(
+
+            new CustomEvent(
+                "sparkd-content-guard-error",
+                {
+                    detail: error
+                }
+            )
+
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   CREATE MODEL INPUT
+============================================================ */
+
+function createModelInput(image) {
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+
+    canvas.width =
+        MODEL_SIZE;
+
+    canvas.height =
+        MODEL_SIZE;
+
+
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+
+
+    if (!ctx) {
+
+        throw new Error(
+            "Could not create scan canvas."
+        );
+
     }
 
 
-    /* ============================================================
-       CHECK IMAGE
-    ============================================================ */
+    /*
+     * Draw image directly into the
+     * 320 x 320 model input.
+     */
 
-    async function checkImage(image) {
+    ctx.drawImage(
+        image,
+        0,
+        0,
+        MODEL_SIZE,
+        MODEL_SIZE
+    );
+
+
+    const imageData =
+        ctx.getImageData(
+            0,
+            0,
+            MODEL_SIZE,
+            MODEL_SIZE
+        );
+
+
+    const pixels =
+        imageData.data;
+
+
+    /*
+     * NudeNet YOLO models use
+     * RGB floating point input.
+     *
+     * Shape:
+     *
+     * [1, 3, 320, 320]
+     */
+
+    const input =
+        new Float32Array(
+            3 *
+            MODEL_SIZE *
+            MODEL_SIZE
+        );
+
+
+    const channelSize =
+        MODEL_SIZE *
+        MODEL_SIZE;
+
+
+    for (
+        let y = 0;
+        y < MODEL_SIZE;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < MODEL_SIZE;
+            x++
+        ) {
+
+            const pixelIndex =
+                (
+                    y *
+                    MODEL_SIZE +
+                    x
+                ) * 4;
+
+
+            const tensorIndex =
+                y *
+                MODEL_SIZE +
+                x;
+
+
+            input[
+                tensorIndex
+            ] =
+                pixels[
+                    pixelIndex
+                ] / 255;
+
+
+            input[
+                channelSize +
+                tensorIndex
+            ] =
+                pixels[
+                    pixelIndex + 1
+                ] / 255;
+
+
+            input[
+                channelSize * 2 +
+                tensorIndex
+            ] =
+                pixels[
+                    pixelIndex + 2
+                ] / 255;
+
+        }
+
+    }
+
+
+    return {
+        canvas: canvas,
+        tensor: new ort.Tensor(
+            "float32",
+            input,
+            [
+                1,
+                3,
+                MODEL_SIZE,
+                MODEL_SIZE
+            ]
+        )
+    };
+
+}
+
+
+/* ============================================================
+   CHECK IMAGE
+============================================================ */
+
+async function checkImage(image) {
+
+    /*
+     * FAIL CLOSED
+     */
+
+    if (
+        !guardReady ||
+        !session
+    ) {
+
+        return {
+
+            checked: false,
+
+            safe: false,
+
+            blocked: true,
+
+            reason:
+                "NudeNet safety model is unavailable."
+
+        };
+
+    }
+
+
+    if (!image) {
+
+        return {
+
+            checked: false,
+
+            safe: false,
+
+            blocked: true,
+
+            reason:
+                "No image supplied."
+
+        };
+
+    }
+
+
+    try {
+
+        const prepared =
+            createModelInput(
+                image
+            );
+
+
+        console.log(
+            "🧠 SPARKD running NudeNet..."
+        );
+
+
+        console.log(
+            "🔬 NudeNet scan:",
+            {
+                width:
+                    prepared.canvas.width,
+
+                height:
+                    prepared.canvas.height
+            }
+        );
+
+
+        /*
+         * Use the first model input.
+         */
+
+        const inputName =
+            session.inputNames[0];
+
+
+        const feeds = {};
+
+
+        feeds[inputName] =
+            prepared.tensor;
+
+
+        /*
+         * RUN MODEL
+         */
+
+        const results =
+            await session.run(
+                feeds
+            );
+
+
+        console.log(
+            "🔬 NudeNet raw output:",
+            results
+        );
+
+
+        /*
+         * Get first output tensor.
+         */
+
+        const outputName =
+            session.outputNames[0];
+
+
+        const output =
+            results[
+                outputName
+            ];
+
+
+        if (!output) {
+
+            throw new Error(
+                "NudeNet returned no output tensor."
+            );
+
+        }
+
+
+        console.log(
+            "🔬 NudeNet output tensor:",
+            {
+                dimensions:
+                    output.dims,
+
+                length:
+                    output.data.length
+            }
+        );
+
+
+        /*
+         * IMPORTANT:
+         *
+         * We are NOT going to guess the
+         * output format or thresholds yet.
+         *
+         * First we expose the actual model
+         * output so we can verify that this
+         * model is behaving correctly.
+         */
+
+        const rawOutput =
+            Array.from(
+                output.data
+            );
+
+
+        console.log(
+            "🧪 SPARKD NudeNet RAW PREDICTIONS:",
+            rawOutput
+        );
+
+
+        /*
+         * TEMPORARY SAFETY BEHAVIOR
+         *
+         * Until we confirm the exact output
+         * tensor format, fail closed rather
+         * than accidentally allowing content.
+         */
+
+        return {
+
+            checked: true,
+
+            safe: false,
+
+            blocked: true,
+
+            predictions:
+                rawOutput,
+
+            reason:
+                "NudeNet model executed successfully. Output format verification required."
+
+        };
+
+    }
+    catch (error) {
+
+        console.error(
+            "⚠️ SPARKD NudeNet scan failed:",
+            error
+        );
+
 
         /*
          * FAIL CLOSED
          */
-        if (!guardReady || !model) {
-            return {
-                checked: false,
-                safe: false,
-                blocked: true,
-                reason:
-                    "Content safety model is unavailable."
-            };
-        }
 
-        if (!image) {
-            return {
-                checked: false,
-                safe: false,
-                blocked: true,
-                reason: "No image supplied."
-            };
-        }
+        return {
 
-        try {
+            checked: false,
 
-            const canvas =
-                createScanCanvas(image);
+            safe: false,
 
-            console.log(
-                "🧠 SPARKD running NSFWJS classify(canvas)..."
-            );
+            blocked: true,
 
-           console.log(
-                "🔬 SPARKD scan canvas:",
-                {
-                    width: canvas.width,
-                    height: canvas.height,
-                    pixelSample:
-                        canvas
-                            .getContext("2d")
-                            .getImageData(
-                                0,
-                                0,
-                                1,
-                                1
-                            )
-                            .data
-                }
-            );
+            reason:
+                "Image could not be verified for safety."
 
-            const predictions =
-                await model.classify(canvas);
+        };
 
-           console.log(
-                "🧪 MODEL TEST:",
-                {
-                    imageWidth: canvas.width,
-                    imageHeight: canvas.height,
-                    predictions: predictions.map(function (p) {
-                        return {
-                            className: p.className,
-                            probability: p.probability
-                        };
-                    })
-                }
-            );
-
-            if (
-                !Array.isArray(predictions) ||
-                predictions.length === 0
-            ) {
-                throw new Error(
-                    "NSFWJS returned no predictions."
-                );
-            }
-
-            console.log(
-                "🛡️ SPARKD image scan:",
-                predictions
-            );
-
-
-            /* ====================================================
-               FIND STRONGEST BLOCKED CATEGORY
-            ==================================================== */
-
-            let strongestBlocked = null;
-
-            for (const prediction of predictions) {
-
-                if (
-                    !BLOCKED_CLASSES.includes(
-                        prediction.className
-                    )
-                ) {
-                    continue;
-                }
-
-                const threshold =
-                    BLOCK_THRESHOLDS[
-                        prediction.className
-                    ];
-
-                if (
-                    prediction.probability >=
-                    threshold
-                ) {
-
-                    if (
-                        !strongestBlocked ||
-                        prediction.probability >
-                        strongestBlocked.probability
-                    ) {
-                        strongestBlocked = {
-                            className:
-                                prediction.className,
-
-                            probability:
-                                prediction.probability,
-
-                            threshold:
-                                threshold
-                        };
-                    }
-                }
-            }
-
-
-            /* ====================================================
-               BLOCK
-            ==================================================== */
-
-            if (strongestBlocked) {
-
-                console.warn(
-                    "🚫 SPARKD BLOCKED:",
-                    strongestBlocked.className,
-                    strongestBlocked.probability
-                );
-
-                return {
-                    checked: true,
-                    safe: false,
-                    blocked: true,
-
-                    category:
-                        strongestBlocked.className,
-
-                    probability:
-                        strongestBlocked.probability,
-
-                    threshold:
-                        strongestBlocked.threshold,
-
-                    predictions:
-                        predictions,
-
-                    reason:
-                        "Image contains prohibited NSFW content."
-                };
-            }
-
-
-            /* ====================================================
-               ALLOW
-            ==================================================== */
-
-            console.log(
-                "✅ SPARKD image allowed."
-            );
-
-            return {
-                checked: true,
-                safe: true,
-                blocked: false,
-                predictions: predictions
-            };
-
-        } catch (error) {
-
-            console.error(
-                "⚠️ SPARKD image scan failed:",
-                error
-            );
-
-            /*
-             * FAIL CLOSED
-             */
-            return {
-                checked: false,
-                safe: false,
-                blocked: true,
-                reason:
-                    "Image could not be verified for safety."
-            };
-        }
     }
 
+}
 
-    /* ============================================================
-       PUBLIC API
-    ============================================================ */
 
-    window.SPARKDContentGuard = {
+/* ============================================================
+   PUBLIC API
+============================================================ */
 
-        checkImage: checkImage,
+window.SPARKDContentGuard = {
 
-        isReady: function () {
-            return guardReady && !!model;
+    checkImage:
+        checkImage,
+
+    isReady:
+        function () {
+
+            return (
+                guardReady &&
+                !!session
+            );
+
         },
 
-        getModel: function () {
-            return model;
+    getModel:
+        function () {
+
+            return session;
+
         }
-    };
+
+};
 
 
-    /* ============================================================
-       START
-    ============================================================ */
+/* ============================================================
+   START
+============================================================ */
 
-    loadContentGuard();
+loadContentGuard();
+
 
 })();
 
