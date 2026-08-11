@@ -139,38 +139,98 @@
 
     document.getElementById("minRequiredLabel").textContent = MIN_BALANCE;
 
-    async function connectWallet() {
-      try {
-        const provider = window.solana || window.phantom?.solana;
-        if (!provider) {
-          alert("Please install Phantom or another Solana wallet");
-          window.open("https://phantom.app/", "_blank");
-          return;
-        }
+async function connectWallet() {
+  try {
+    // Detect mobile devices
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        const resp = await provider.connect();
-        currentWallet = resp.publicKey.toString();
-        console.log("Connected:", currentWallet);
+    // Check for an injected Phantom provider first.
+    // This works when the site is already running inside Phantom
+    // or in a desktop browser with the Phantom extension.
+    const provider = window.phantom?.solana || window.solana;
 
-        // Update UI
-        document.getElementById("connectBtn").classList.add("hidden");
-        const area = document.getElementById("walletArea");
-        area.innerHTML = `
-          <div class="text-right">
-            <p class="text-xs text-gray-400">Connected</p>
-            <p class="text-sm font-mono text-green-400">${shorten(currentWallet)}</p>
-          </div>
-          <button onclick="disconnect()" class="text-xs text-gray-500 hover:text-white ml-3">Disconnect</button>
-        `;
+    if (provider) {
+      const resp = await provider.connect();
 
-        await checkBalanceAndUnlock();
-      } catch (err) {
-        console.error(err);
-        alert("Failed to connect wallet");
-      }
+      currentWallet = resp.publicKey.toString();
+      console.log("Connected:", currentWallet);
+
+      updateWalletUI();
+
+      await checkBalanceAndUnlock();
+      return;
     }
 
-    function disconnect() {
+    // --------------------------------------------------
+    // MOBILE PHANTOM
+    // --------------------------------------------------
+    // If we're on a phone and Phantom isn't injected,
+    // open this exact page inside the Phantom app.
+    if (isMobile) {
+      const currentUrl = window.location.href;
+
+      // Add a flag so that once Phantom opens the page,
+      // we automatically attempt the wallet connection.
+      const phantomUrl =
+        currentUrl +
+        (currentUrl.includes("?") ? "&" : "?") +
+        "phantom_connect=1";
+
+      const phantomBrowseUrl =
+        "https://phantom.app/ul/browse/" +
+        encodeURIComponent(phantomUrl) +
+        "?ref=" +
+        encodeURIComponent(window.location.origin);
+
+      console.log("Opening Phantom:", phantomBrowseUrl);
+
+      window.location.href = phantomBrowseUrl;
+      return;
+    }
+
+    // Desktop without Phantom
+    alert("Please install the Phantom wallet extension.");
+
+    window.open(
+      "https://phantom.app/",
+      "_blank"
+    );
+
+  } catch (err) {
+    console.error("Wallet connection failed:", err);
+
+    if (err?.code === 4001) {
+      alert("Wallet connection was rejected.");
+    } else {
+      alert("Failed to connect wallet. Please try again.");
+    }
+  }
+}
+
+function updateWalletUI() {
+  if (!currentWallet) return;
+
+  document.getElementById("connectBtn")?.classList.add("hidden");
+
+  const area = document.getElementById("walletArea");
+
+  area.innerHTML = `
+    <div class="text-right">
+      <p class="text-xs text-gray-400">Connected</p>
+      <p class="text-sm font-mono text-green-400">
+        ${shorten(currentWallet)}
+      </p>
+    </div>
+
+    <button
+      onclick="disconnect()"
+      class="text-xs text-gray-500 hover:text-white ml-3">
+      Disconnect
+    </button>
+  `;
+}
+
+  function disconnect() {
       currentWallet = null;
       userBalance = 0;
       document.getElementById("lockedView").classList.remove("hidden");
