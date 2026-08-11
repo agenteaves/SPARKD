@@ -155,65 +155,76 @@
     console.log("USER AGENT:", navigator.userAgent);
     console.log("IS MOBILE:", isMobile);
 
-    // --------------------------------------------------
-    // MOBILE
-    // --------------------------------------------------
+    
+// --------------------------------------------------
+// MOBILE
+// --------------------------------------------------
 
-    if (isMobile) {
-      alert("MOBILE DETECTED - starting Phantom connection");
+if (isMobile) {
+  console.log("Mobile device detected.");
 
-      startPhantomMobileConnection();
+  // Start Phantom's official mobile deeplink
+  // connection flow.
+  startPhantomMobileConnection();
 
-      return;
-    }
+  return;
+}
 
-    // --------------------------------------------------
-    // DESKTOP PHANTOM
-    // --------------------------------------------------
+// --------------------------------------------------
+// DESKTOP PHANTOM
+// --------------------------------------------------
 
-    const provider =
-      window.phantom?.solana ||
-      window.solana;
+const provider =
+  window.phantom?.solana ||
+  window.solana;
 
-    if (provider) {
+if (provider) {
 
-      const resp =
-        await provider.connect();
+  const resp =
+    await provider.connect();
 
-      currentWallet =
-        resp.publicKey.toString();
+  currentWallet =
+    resp.publicKey.toString();
 
-      console.log(
-        "Connected:",
-        currentWallet
-      );
+  console.log(
+    "Connected:",
+    currentWallet
+  );
 
-      updateWalletUI();
+  updateWalletUI();
 
-      await checkBalanceAndUnlock();
+  await checkBalanceAndUnlock();
 
-      return;
-    }
+  return;
+}
 
-    // --------------------------------------------------
-    // DESKTOP WITHOUT PHANTOM
-    // --------------------------------------------------
+// --------------------------------------------------
+// DESKTOP WITHOUT PHANTOM
+// --------------------------------------------------
+
+alert(
+  "Please install the Phantom wallet extension."
+);
+
+window.open(
+  "https://phantom.app/",
+  "_blank"
+);
+
+} catch (err) {
+
+  console.error(
+    "Wallet connection failed:",
+    err
+  );
+
+  if (err?.code === 4001) {
 
     alert(
-      "Please install the Phantom wallet extension."
+      "Wallet connection was rejected."
     );
 
-    window.open(
-      "https://phantom.app/",
-      "_blank"
-    );
-
-  } catch (err) {
-
-    console.error(
-      "Wallet connection failed:",
-      err
-    );
+  } else {
 
     alert(
       "Wallet connection error: " +
@@ -221,6 +232,14 @@
     );
   }
 }
+}
+
+
+**Important:** this is a drop-in replacement for the block you pasted, so **don't add another `}` or `catch` after it.** It already includes the closing `catch` and function brace from your original block.
+
+The next piece that must be correct is your `startPhantomMobileConnection()` function. That's what will actually launch Phantom. Phantom's mobile connection protocol uses the `/ul/v1/connect` deeplink rather than the `/browse/` URL we were originally using.
+
+After inserting this, **don't change anything else yet**. Test the button and tell me what happens.
 
 
 function updateWalletUI() {
