@@ -184,6 +184,24 @@
                 "🧠 SPARKD running NSFWJS classify(canvas)..."
             );
 
+           console.log(
+                "🔬 SPARKD scan canvas:",
+                {
+                    width: canvas.width,
+                    height: canvas.height,
+                    pixelSample:
+                        canvas
+                            .getContext("2d")
+                            .getImageData(
+                                0,
+                                0,
+                                1,
+                                1
+                            )
+                            .data
+                }
+            );
+
             const predictions =
                 await model.classify(canvas);
 
