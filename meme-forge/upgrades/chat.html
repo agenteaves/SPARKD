@@ -465,51 +465,49 @@ function startPhantomMobileConnection() {
 
   try {
 
-    /* -----------------------------------------------
-       CHECK LIBRARIES
-    ------------------------------------------------ */
+   /* -----------------------------------------------
+CHECK LIBRARIES
+------------------------------------------------ */
 
-    if (
-      typeof nacl === "undefined"
-    ) {
+if (typeof nacl === "undefined") {
 
-      alert(
-        "Phantom connection libraries are missing: TweetNaCl."
-      );
+  alert(
+    "Phantom connection libraries are missing: TweetNaCl."
+  );
 
-      console.error(
-        "nacl is missing."
-      );
+  console.error(
+    "nacl is missing."
+  );
 
-      return;
-    }
+  return;
+}
 
 
-    const bs58Lib =
-      getBS58();
+if (
+  typeof bs58 === "undefined" ||
+  typeof bs58.encode !== "function" ||
+  typeof bs58.decode !== "function"
+) {
+
+  alert(
+    "Phantom connection libraries are missing: bs58."
+  );
+
+  console.error(
+    "bs58 is missing or does not expose encode/decode."
+  );
+
+  return;
+}
 
 
-    if (!bs58Lib) {
+console.log(
+  "TweetNaCl loaded."
+);
 
-      alert(
-        "Phantom connection libraries are missing: bs58."
-      );
-
-      console.error(
-        "bs58 is missing or does not expose encode/decode."
-      );
-
-      return;
-    }
-
-
-    console.log(
-      "TweetNaCl loaded."
-    );
-
-    console.log(
-      "bs58 loaded."
-    );
+console.log(
+  "bs58 loaded."
+);
 
 
     /* -----------------------------------------------
