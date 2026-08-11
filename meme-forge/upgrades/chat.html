@@ -368,6 +368,114 @@ function updateWalletUI() {
   window.addEventListener("load", async () => {
   loadMessages();
 
+    
+// ======================================================
+// PHANTOM MOBILE CONNECTION
+// ======================================================
+
+function startPhantomMobileConnection() {
+
+  console.log("Starting Phantom mobile connection...");
+
+  try {
+
+    // Make sure Phantom connection libraries loaded
+    if (
+      typeof nacl === "undefined" ||
+      typeof bs58 === "undefined"
+    ) {
+      alert(
+        "Phantom connection libraries are missing."
+      );
+
+      console.error(
+        "nacl or bs58 is not loaded."
+      );
+
+      return;
+    }
+
+    // --------------------------------------------------
+    // CREATE TEMPORARY ENCRYPTION KEYPAIR
+    // --------------------------------------------------
+
+    const dappKeyPair =
+      nacl.box.keyPair();
+
+    const dappPublicKey =
+      bs58.encode(
+        dappKeyPair.publicKey
+      );
+
+    const dappSecretKey =
+      bs58.encode(
+        dappKeyPair.secretKey
+      );
+
+    // Save private key temporarily.
+    // Phantom's response will be encrypted to it.
+    sessionStorage.setItem(
+      "phantom_dapp_private_key",
+      dappSecretKey
+    );
+
+    // --------------------------------------------------
+    // RETURN URL
+    // --------------------------------------------------
+
+    const redirectLink =
+      window.location.origin +
+      window.location.pathname +
+      "?phantom_callback=1";
+
+    // --------------------------------------------------
+    // BUILD PHANTOM MOBILE CONNECT URL
+    // --------------------------------------------------
+
+    const phantomConnectUrl =
+      "https://phantom.app/ul/v1/connect" +
+      "?app_url=" +
+      encodeURIComponent(
+        window.location.origin
+      ) +
+      "&dapp_encryption_public_key=" +
+      encodeURIComponent(
+        dappPublicKey
+      ) +
+      "&redirect_link=" +
+      encodeURIComponent(
+        redirectLink
+      ) +
+      "&cluster=mainnet-beta";
+
+    console.log(
+      "Opening Phantom:",
+      phantomConnectUrl
+    );
+
+    // --------------------------------------------------
+    // OPEN PHANTOM
+    // --------------------------------------------------
+
+    window.location.href =
+      phantomConnectUrl;
+
+  } catch (err) {
+
+    console.error(
+      "Phantom mobile connection failed:",
+      err
+    );
+
+    alert(
+      "Phantom launch error: " +
+      (err?.message || err)
+    );
+  }
+}
+
+
+
   // --------------------------------------------------
   // AUTOMATIC PHANTOM MOBILE CONNECTION
   // --------------------------------------------------
