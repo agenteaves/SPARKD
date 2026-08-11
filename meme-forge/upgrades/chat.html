@@ -1425,13 +1425,11 @@ window.addEventListener(
        PHANTOM MOBILE CALLBACK
     ------------------------------------------------ */
 
-    const handled =
-      await processPhantomCallback();
+   const handled = await processPhantomCallback();
 
-
-    if (handled) {
-      return;
-    }
+   if (handled) {
+    console.log("Phantom callback handled.");
+   }
 
 
     /* -----------------------------------------------
