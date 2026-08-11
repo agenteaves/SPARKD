@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPARKD Holders Chat • Token Gated</title>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .spark-gradient {
+      background: linear-gradient(135deg, #0a0a0a 0%, #0f1a0f 50%, #0a0a0a 100%);
+    }
+    .glow-green {
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
+    }
+    .chat-bubble {
+      max-width: 80%;
+      word-break: break-word;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #22c55e55; border-radius: 3px; }
+  </style>
+</head>
+<body class="spark-gradient min-h-screen text-white">
+
+  <!-- Header -->
+  <header class="border-b border-green-900/40 bg-black/40 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center text-xl">💚</div>
+        <div>
+          <h1 class="font-bold text-lg tracking-tight">SPARKD Holders</h1>
+          <p class="text-xs text-green-400/80">Token-gated chatroom</p>
+        </div>
+      </div>
+      <div id="walletArea" class="flex items-center gap-3">
+        <button id="connectBtn" onclick="connectWallet()"
+          class="px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition glow-green">
+          Connect Wallet
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+
+    <!-- Locked State -->
+    <div id="lockedView" class="text-center py-16">
+      <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-500/10 border border-green-500/30 mb-6 text-4xl">
+        🔒
+      </div>
+      <h2 class="text-3xl font-bold mb-3">Holders Only</h2>
+      <p class="text-gray-400 max-w-md mx-auto mb-8">
+        Connect a wallet that holds <span class="text-green-400 font-medium">SPARKD</span> to unlock the exclusive chatroom.
+        <br><span class="text-sm text-gray-500 mt-2 block">Currently only early holders have access. More coming after website launch.</span>
+      </p>
+      <div class="bg-black/50 border border-green-900/50 rounded-2xl p-6 max-w-sm mx-auto text-left text-sm">
+        <p class="text-gray-400 mb-2">Token Contract:</p>
+        <code class="text-green-400 break-all text-xs select-all">BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump</code>
+        <p class="text-gray-500 mt-4 text-xs">Min required: <span id="minRequiredLabel">1</span> SPARKD</p>
+      </div>
+    </div>
+
+    <!-- Unlocked Chat -->
+    <div id="chatView" class="hidden">
+      <!-- Balance bar -->
+      <div class="flex items-center justify-between mb-6 bg-green-950/40 border border-green-800/50 rounded-2xl px-5 py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span class="text-sm text-green-300">You are verified</span>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-gray-400">Your balance</p>
+          <p id="balanceDisplay" class="font-bold text-green-400">— SPARKD</p>
+        </div>
+      </div>
+
+      <!-- Chat window -->
+      <div class="bg-black/60 border border-green-900/40 rounded-2xl overflow-hidden flex flex-col" style="height: 520px;">
+        <div class="px-4 py-3 border-b border-green-900/40 flex items-center justify-between">
+          <span class="font-medium text-sm"># holders-chat</span>
+          <span class="text-xs text-gray-500" id="onlineCount">1 online</span>
+        </div>
+
+        <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- Welcome message -->
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-sm shrink-0">💚</div>
+            <div>
+              <p class="text-xs text-green-400 mb-1">SPARKD Bot <span class="text-gray-600">• system</span></p>
+              <div class="chat-bubble bg-green-950/60 border border-green-800/40 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm">
+                Welcome to the exclusive SPARKD holders chat. Only people who hold the token can see this room.
+                <br><br>
+                Share ideas, coordinate, and help grow the spark 🔥
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="p-4 border-t border-green-900/40">
+          <form id="chatForm" onsubmit="sendMessage(event)" class="flex gap-3">
+            <input id="msgInput" type="text" placeholder="Message holders only..."
+              class="flex-1 bg-black/60 border border-green-900/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500/60 placeholder-gray-600"
+              autocomplete="off" />
+            <button type="submit"
+              class="px-5 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition">
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-gray-600 mt-4">
+        This is a local demo chat. For production multi-user chat, connect a backend (Supabase / Firebase / Stream) or use Discord + Collab.Land.
+      </p>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-gray-600 py-8">
+    SPARKD • Ignite Real-World Good • Token-gated access
+  </footer>
+
+  <script>
+    // ====================== CONFIG ======================
+    const SPARKD_MINT = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
+    const MIN_BALANCE = 1;          // change this to require more tokens
+    const RPC_URL = "https://api.mainnet-beta.solana.com"; // or your Helius / QuickNode RPC
+    // ====================================================
+
+    const { Connection, PublicKey } = solanaWeb3;
+    const connection = new Connection(RPC_URL, "confirmed");
+
+    let currentWallet = null;
+    let userBalance = 0;
+
+    document.getElementById("minRequiredLabel").textContent = MIN_BALANCE;
+
+    async function connectWallet() {
+      try {
+        const provider = window.solana || window.phantom?.solana;
+        if (!provider) {
+          alert("Please install Phantom or another Solana wallet");
+          window.open("https://phantom.app/", "_blank");
+          return;
+        }
+
+        const resp = await provider.connect();
+        currentWallet = resp.publicKey.toString();
+        console.log("Connected:", currentWallet);
+
+        // Update UI
+        document.getElementById("connectBtn").classList.add("hidden");
+        const area = document.getElementById("walletArea");
+        area.innerHTML = `
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Connected</p>
+            <p class="text-sm font-mono text-green-400">${shorten(currentWallet)}</p>
+          </div>
+          <button onclick="disconnect()" class="text-xs text-gray-500 hover:text-white ml-3">Disconnect</button>
+        `;
+
+        await checkBalanceAndUnlock();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to connect wallet");
+      }
+    }
+
+    function disconnect() {
+      currentWallet = null;
+      userBalance = 0;
+      document.getElementById("lockedView").classList.remove("hidden");
+      document.getElementById("chatView").classList.add("hidden");
+      document.getElementById("walletArea").innerHTML = `
+        <button id="connectBtn" onclick="connectWallet()"
+          class="px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition glow-green">
+          Connect Wallet
+        </button>`;
+      if (window.solana) window.solana.disconnect();
+    }
+
+    async function checkBalanceAndUnlock() {
+      if (!currentWallet) return;
+
+      try {
+        const mint = new PublicKey(SPARKD_MINT);
+        const owner = new PublicKey(currentWallet);
+
+        // Get all token accounts for this mint owned by the wallet
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(owner, {
+          mint: mint
+        });
+
+        let total = 0;
+        for (const acc of tokenAccounts.value) {
+          const amount = acc.account.data.parsed.info.tokenAmount.uiAmount;
+          if (amount) total += amount;
+        }
+
+        userBalance = total;
+        console.log("SPARKD balance:", userBalance);
+
+        if (userBalance >= MIN_BALANCE) {
+          // UNLOCK
+          document.getElementById("lockedView").classList.add("hidden");
+          document.getElementById("chatView").classList.remove("hidden");
+          document.getElementById("balanceDisplay").textContent =
+            userBalance.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " SPARKD";
+        } else {
+          alert(`You need at least ${MIN_BALANCE} SPARKD to enter.\nYour balance: ${userBalance}`);
+        }
+      } catch (err) {
+        console.error("Balance check failed:", err);
+        alert("Could not fetch token balance. Try a better RPC or check the mint address.");
+      }
+    }
+
+    // ========== Simple local chat (demo only) ==========
+    const messagesEl = document.getElementById("messages");
+    const STORAGE_KEY = "sparkd_chat_msgs_v1";
+
+    function loadMessages() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const msgs = JSON.parse(saved);
+      msgs.forEach(m => appendMessage(m.name, m.text, m.time, false));
+    }
+
+    function saveMessage(name, text) {
+      const msgs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      msgs.push({ name, text, time: Date.now() });
+      // keep last 100
+      if (msgs.length > 100) msgs.shift();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+    }
+
+    function appendMessage(name, text, time = Date.now(), save = true) {
+      const isMe = name === shorten(currentWallet || "anon");
+      const div = document.createElement("div");
+      div.className = `flex gap-3 ${isMe ? "flex-row-reverse" : ""}`;
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-full ${isMe ? "bg-green-500" : "bg-gray-700"} flex items-center justify-center text-xs shrink-0 font-bold">
+          ${name.slice(0, 2).toUpperCase()}
+        </div>
+        <div class="${isMe ? "text-right" : ""}">
+          <p class="text-xs ${isMe ? "text-green-400" : "text-gray-400"} mb-1">
+            ${name} <span class="text-gray-600">• ${new Date(time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+          </p>
+          <div class="chat-bubble inline-block ${isMe ? "bg-green-600 text-black" : "bg-gray-800 border border-gray-700"} rounded-2xl ${isMe ? "rounded-tr-sm" : "rounded-tl-sm"} px-4 py-2.5 text-sm">
+            ${escapeHtml(text)}
+          </div>
+        </div>
+      `;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      if (save) saveMessage(name, text);
+    }
+
+    function sendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById("msgInput");
+      const text = input.value.trim();
+      if (!text || !currentWallet) return;
+      appendMessage(shorten(currentWallet), text);
+      input.value = "";
+    }
+
+    function shorten(addr) {
+      if (!addr) return "anon";
+      return addr.slice(0, 4) + "…" + addr.slice(-4);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Auto reconnect if already connected
+    window.addEventListener("load", async () => {
+      loadMessages();
+      if (window.solana?.isConnected) {
+        currentWallet = window.solana.publicKey.toString();
+        document.getElementById("connectBtn")?.classList.add("hidden");
+        document.getElementById("walletArea").innerHTML = `
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Connected</p>
+            <p class="text-sm font-mono text-green-400">${shorten(currentWallet)}</p>
+          </div>
+          <button onclick="disconnect()" class="text-xs text-gray-500 hover:text-white ml-3">Disconnect</button>
+        `;
+        await checkBalanceAndUnlock();
+      }
+    });
+  </script>
+</body>
+</html>
