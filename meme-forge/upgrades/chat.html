@@ -11,11 +11,9 @@
 
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
 
-  <!-- Phantom Mobile Encryption -->
+  <!-- TweetNaCl for Phantom Mobile encryption -->
 
   <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bs58@6.0.0/dist/index.umd.min.js"></script>
 
   <!-- Tailwind -->
 
@@ -67,9 +65,10 @@
   <!-- Header -->
 
   <header class="border-b border-green-900/40 bg-black/40 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
 
 ```
+<div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+
   <div class="flex items-center gap-3">
 
     <div class="w-10 h-10 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center text-xl">
@@ -77,6 +76,7 @@
     </div>
 
     <div>
+
       <h1 class="font-bold text-lg tracking-tight">
         SPARKD Holders
       </h1>
@@ -84,9 +84,11 @@
       <p class="text-xs text-green-400/80">
         Token-gated chatroom
       </p>
+
     </div>
 
   </div>
+
 
   <div id="walletArea" class="flex items-center gap-3">
 
@@ -115,11 +117,14 @@
     🔒
   </div>
 
+
   <h2 class="text-3xl font-bold mb-3">
     Holders Only
   </h2>
 
+
   <p class="text-gray-400 max-w-md mx-auto mb-8">
+
     Connect a wallet that holds
     <span class="text-green-400 font-medium">SPARKD</span>
     to unlock the exclusive chatroom.
@@ -129,7 +134,9 @@
     <span class="text-sm text-gray-500 mt-2 block">
       Currently only early holders have access. More coming after website launch.
     </span>
+
   </p>
+
 
   <div class="bg-black/50 border border-green-900/50 rounded-2xl p-6 max-w-sm mx-auto text-left text-sm">
 
@@ -141,10 +148,13 @@
       BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump
     </code>
 
+
     <p class="text-gray-500 mt-4 text-xs">
+
       Min required:
       <span id="minRequiredLabel">1</span>
       SPARKD
+
     </p>
 
   </div>
@@ -167,6 +177,7 @@
       </span>
 
     </div>
+
 
     <div class="text-right">
 
@@ -211,14 +222,19 @@
           💚
         </div>
 
+
         <div>
 
           <p class="text-xs text-green-400 mb-1">
+
             SPARKD Bot
+
             <span class="text-gray-600">
               • system
             </span>
+
           </p>
+
 
           <div class="chat-bubble bg-green-950/60 border border-green-800/40 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm">
 
@@ -255,6 +271,7 @@
           autocomplete="off"
         />
 
+
         <button
           type="submit"
           class="px-5 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition"
@@ -270,8 +287,10 @@
 
 
   <p class="text-center text-xs text-gray-600 mt-4">
+
     This is a local demo chat. For production multi-user chat,
     connect a backend (Supabase / Firebase / Stream) or use Discord + Collab.Land.
+
   </p>
 
 </div>
@@ -280,7 +299,11 @@
   </main>
 
   <footer class="text-center text-xs text-gray-600 py-8">
-    SPARKD • Ignite Real-World Good • Token-gated access
+
+```
+SPARKD • Ignite Real-World Good • Token-gated access
+```
+
   </footer>
 
   <script>
@@ -299,13 +322,20 @@
 
 
     // ======================================================
-    // SOLANA CONNECTION
+    // SOLANA
     // ======================================================
 
-    const { Connection, PublicKey } = solanaWeb3;
+    const {
+      Connection,
+      PublicKey
+    } = solanaWeb3;
+
 
     const connection =
-      new Connection(RPC_URL, "confirmed");
+      new Connection(
+        RPC_URL,
+        "confirmed"
+      );
 
 
     // ======================================================
@@ -313,12 +343,200 @@
     // ======================================================
 
     let currentWallet = null;
+
     let userBalance = 0;
+
+
+    // Phantom mobile session
+    let phantomDappKeyPair = null;
 
 
     document.getElementById(
       "minRequiredLabel"
     ).textContent = MIN_BALANCE;
+
+
+    // ======================================================
+    // BASE58 ENCODER
+    // ======================================================
+    // This replaces the bs58 CDN dependency.
+    // ======================================================
+
+    const BASE58_ALPHABET =
+      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+
+    function base58Encode(bytes) {
+
+      if (!bytes || bytes.length === 0) {
+        return "";
+      }
+
+
+      const digits = [0];
+
+
+      for (const byte of bytes) {
+
+        let carry = byte;
+
+
+        for (
+          let j = 0;
+          j < digits.length;
+          j++
+        ) {
+
+          const value =
+            digits[j] * 256 +
+            carry;
+
+
+          digits[j] =
+            value % 58;
+
+
+          carry =
+            Math.floor(
+              value / 58
+            );
+        }
+
+
+        while (carry > 0) {
+
+          digits.push(
+            carry % 58
+          );
+
+          carry =
+            Math.floor(
+              carry / 58
+            );
+        }
+      }
+
+
+      let result = "";
+
+
+      for (
+        let i = 0;
+        bytes[i] === 0 && i < bytes.length - 1;
+        i++
+      ) {
+
+        result += "1";
+      }
+
+
+      for (
+        let i = digits.length - 1;
+        i >= 0;
+        i--
+      ) {
+
+        result +=
+          BASE58_ALPHABET[
+            digits[i]
+          ];
+      }
+
+
+      return result;
+    }
+
+
+    // ======================================================
+    // BASE58 DECODER
+    // ======================================================
+
+    function base58Decode(value) {
+
+      if (!value) {
+        return new Uint8Array();
+      }
+
+
+      const bytes = [0];
+
+
+      for (const char of value) {
+
+        const index =
+          BASE58_ALPHABET.indexOf(
+            char
+          );
+
+
+        if (index === -1) {
+          throw new Error(
+            "Invalid Base58 character."
+          );
+        }
+
+
+        let carry = index;
+
+
+        for (
+          let j = 0;
+          j < bytes.length;
+          j++
+        ) {
+
+          const current =
+            bytes[j] * 58 +
+            carry;
+
+
+          bytes[j] =
+            current & 0xff;
+
+
+          carry =
+            current >> 8;
+        }
+
+
+        while (carry > 0) {
+
+          bytes.push(
+            carry & 0xff
+          );
+
+          carry =
+            carry >> 8;
+        }
+      }
+
+
+      for (
+        let i = 0;
+        value[i] === "1";
+        i++
+      ) {
+
+        bytes.push(0);
+      }
+
+
+      return new Uint8Array(
+        bytes.reverse()
+      );
+    }
+
+
+    // ======================================================
+    // UTF-8 HELPERS
+    // ======================================================
+
+    function utf8Decode(bytes) {
+
+      return new TextDecoder(
+        "utf-8"
+      ).decode(bytes);
+    }
 
 
     // ======================================================
@@ -331,20 +549,23 @@
         "Starting Phantom mobile connection..."
       );
 
+
       try {
 
-        // Make sure required libraries loaded
+        // --------------------------------------------------
+        // CHECK TWEETNACL
+        // --------------------------------------------------
+
         if (
-          typeof nacl === "undefined" ||
-          typeof bs58 === "undefined"
+          typeof nacl === "undefined"
         ) {
 
           alert(
-            "Phantom connection libraries are missing."
+            "Phantom connection library is missing. Please refresh the page."
           );
 
           console.error(
-            "nacl or bs58 is not loaded."
+            "tweetnacl is not loaded."
           );
 
           return;
@@ -352,29 +573,28 @@
 
 
         // --------------------------------------------------
-        // CREATE TEMPORARY ENCRYPTION KEYPAIR
+        // CREATE DAPP KEYPAIR
         // --------------------------------------------------
 
-        const dappKeyPair =
+        phantomDappKeyPair =
           nacl.box.keyPair();
 
 
         const dappPublicKey =
-          bs58.encode(
-            dappKeyPair.publicKey
+          base58Encode(
+            phantomDappKeyPair.publicKey
           );
 
 
-        const dappSecretKey =
-          bs58.encode(
-            dappKeyPair.secretKey
-          );
+        // --------------------------------------------------
+        // SAVE PRIVATE KEY
+        // --------------------------------------------------
 
-
-        // Save private key temporarily
         sessionStorage.setItem(
           "phantom_dapp_private_key",
-          dappSecretKey
+          base58Encode(
+            phantomDappKeyPair.secretKey
+          )
         );
 
 
@@ -389,23 +609,27 @@
 
 
         // --------------------------------------------------
-        // BUILD PHANTOM MOBILE CONNECT URL
+        // PHANTOM CONNECT URL
         // --------------------------------------------------
 
         const phantomConnectUrl =
           "https://phantom.app/ul/v1/connect" +
+
           "?app_url=" +
           encodeURIComponent(
             window.location.origin
           ) +
+
           "&dapp_encryption_public_key=" +
           encodeURIComponent(
             dappPublicKey
           ) +
+
           "&redirect_link=" +
           encodeURIComponent(
             redirectLink
           ) +
+
           "&cluster=mainnet-beta";
 
 
@@ -429,10 +653,280 @@
           err
         );
 
+
         alert(
           "Phantom launch error: " +
           (err?.message || err)
         );
+      }
+    }
+
+
+    // ======================================================
+    // PROCESS PHANTOM MOBILE CALLBACK
+    // ======================================================
+
+    async function processPhantomCallback() {
+
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+
+      const phantomConnect =
+        params.get(
+          "phantom_connect"
+        );
+
+
+      if (
+        phantomConnect !== "1"
+      ) {
+        return false;
+      }
+
+
+      console.log(
+        "Phantom callback detected."
+      );
+
+
+      try {
+
+        // --------------------------------------------------
+        // CHECK FOR ERROR
+        // --------------------------------------------------
+
+        const errorCode =
+          params.get("errorCode");
+
+
+        const errorMessage =
+          params.get("errorMessage");
+
+
+        if (
+          errorCode
+        ) {
+
+          throw new Error(
+            "Phantom rejected the connection: " +
+            (errorMessage || errorCode)
+          );
+        }
+
+
+        // --------------------------------------------------
+        // GET ENCRYPTED RESPONSE
+        // --------------------------------------------------
+
+        const phantomEncryptionPublicKey =
+          params.get(
+            "phantom_encryption_public_key"
+          );
+
+
+        const nonce =
+          params.get(
+            "nonce"
+          );
+
+
+        const encryptedData =
+          params.get(
+            "data"
+          );
+
+
+        if (
+          !phantomEncryptionPublicKey ||
+          !nonce ||
+          !encryptedData
+        ) {
+
+          throw new Error(
+            "Phantom did not return the required connection data."
+          );
+        }
+
+
+        // --------------------------------------------------
+        // GET SAVED DAPP PRIVATE KEY
+        // --------------------------------------------------
+
+        const savedPrivateKey =
+          sessionStorage.getItem(
+            "phantom_dapp_private_key"
+          );
+
+
+        if (
+          !savedPrivateKey
+        ) {
+
+          throw new Error(
+            "The temporary Phantom encryption key was lost. Please try connecting again."
+          );
+        }
+
+
+        const dappSecretKey =
+          base58Decode(
+            savedPrivateKey
+          );
+
+
+        // --------------------------------------------------
+        // DECODE PHANTOM VALUES
+        // --------------------------------------------------
+
+        const phantomPublicKeyBytes =
+          base58Decode(
+            phantomEncryptionPublicKey
+          );
+
+
+        const nonceBytes =
+          base58Decode(
+            nonce
+          );
+
+
+        const encryptedBytes =
+          base58Decode(
+            encryptedData
+          );
+
+
+        // --------------------------------------------------
+        // DECRYPT PHANTOM RESPONSE
+        // --------------------------------------------------
+
+        const decrypted =
+          nacl.box.open(
+            encryptedBytes,
+            nonceBytes,
+            phantomPublicKeyBytes,
+            dappSecretKey
+          );
+
+
+        if (
+          !decrypted
+        ) {
+
+          throw new Error(
+            "Could not decrypt Phantom's response."
+          );
+        }
+
+
+        const responseText =
+          utf8Decode(
+            decrypted
+          );
+
+
+        console.log(
+          "Phantom decrypted response:",
+          responseText
+        );
+
+
+        const response =
+          JSON.parse(
+            responseText
+          );
+
+
+        // --------------------------------------------------
+        // GET WALLET
+        // --------------------------------------------------
+
+        if (
+          !response.public_key
+        ) {
+
+          throw new Error(
+            "Phantom did not return a wallet public key."
+          );
+        }
+
+
+        currentWallet =
+          response.public_key;
+
+
+        console.log(
+          "Phantom mobile wallet connected:",
+          currentWallet
+        );
+
+
+        // --------------------------------------------------
+        // UPDATE UI
+        // --------------------------------------------------
+
+        updateWalletUI();
+
+
+        // --------------------------------------------------
+        // CHECK TOKEN BALANCE
+        // --------------------------------------------------
+
+        await checkBalanceAndUnlock();
+
+
+        // --------------------------------------------------
+        // REMOVE CALLBACK DATA FROM URL
+        // --------------------------------------------------
+
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+
+
+        // --------------------------------------------------
+        // CLEAN TEMPORARY KEY
+        // --------------------------------------------------
+
+        sessionStorage.removeItem(
+          "phantom_dapp_private_key"
+        );
+
+
+        return true;
+
+      } catch (err) {
+
+        console.error(
+          "Phantom callback failed:",
+          err
+        );
+
+
+        alert(
+          "Phantom mobile connection failed: " +
+          (err?.message || err)
+        );
+
+
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+
+
+        sessionStorage.removeItem(
+          "phantom_dapp_private_key"
+        );
+
+
+        return true;
       }
     }
 
@@ -445,7 +939,6 @@
 
       try {
 
-        // Detect mobile
         const isMobile =
           /Android|iPhone|iPad|iPod/i.test(
             navigator.userAgent
@@ -458,6 +951,7 @@
           navigator.userAgent
         );
 
+
         console.log(
           "IS MOBILE:",
           isMobile
@@ -468,20 +962,24 @@
         // MOBILE
         // --------------------------------------------------
 
-        if (isMobile) {
+        if (
+          isMobile
+        ) {
 
           console.log(
             "Mobile device detected."
           );
 
+
           startPhantomMobileConnection();
+
 
           return;
         }
 
 
         // --------------------------------------------------
-        // DESKTOP PHANTOM
+        // DESKTOP
         // --------------------------------------------------
 
         const provider =
@@ -489,7 +987,9 @@
           window.solana;
 
 
-        if (provider) {
+        if (
+          provider
+        ) {
 
           const resp =
             await provider.connect();
@@ -507,14 +1007,16 @@
 
           updateWalletUI();
 
+
           await checkBalanceAndUnlock();
+
 
           return;
         }
 
 
         // --------------------------------------------------
-        // DESKTOP WITHOUT PHANTOM
+        // NO DESKTOP PHANTOM
         // --------------------------------------------------
 
         alert(
@@ -535,7 +1037,9 @@
         );
 
 
-        if (err?.code === 4001) {
+        if (
+          err?.code === 4001
+        ) {
 
           alert(
             "Wallet connection was rejected."
@@ -558,11 +1062,17 @@
 
     function updateWalletUI() {
 
-      if (!currentWallet) return;
+      if (
+        !currentWallet
+      ) {
+        return;
+      }
 
 
       const area =
-        document.getElementById("walletArea");
+        document.getElementById(
+          "walletArea"
+        );
 
 
       area.innerHTML = `
@@ -603,13 +1113,21 @@
 
 
       document
-        .getElementById("lockedView")
-        .classList.remove("hidden");
+        .getElementById(
+          "lockedView"
+        )
+        .classList.remove(
+          "hidden"
+        );
 
 
       document
-        .getElementById("chatView")
-        .classList.add("hidden");
+        .getElementById(
+          "chatView"
+        )
+        .classList.add(
+          "hidden"
+        );
 
 
       document.getElementById(
@@ -627,11 +1145,16 @@
       `;
 
 
-      if (window.solana) {
+      if (
+        window.solana
+      ) {
 
         try {
+
           window.solana.disconnect();
+
         } catch (e) {
+
           console.log(
             "Wallet disconnect notice:",
             e
@@ -647,17 +1170,25 @@
 
     async function checkBalanceAndUnlock() {
 
-      if (!currentWallet) return;
+      if (
+        !currentWallet
+      ) {
+        return;
+      }
 
 
       try {
 
         const mint =
-          new PublicKey(SPARKD_MINT);
+          new PublicKey(
+            SPARKD_MINT
+          );
 
 
         const owner =
-          new PublicKey(currentWallet);
+          new PublicKey(
+            currentWallet
+          );
 
 
         const tokenAccounts =
@@ -677,17 +1208,20 @@
         ) {
 
           const amount =
-            acc.account.data.parsed.info
-              .tokenAmount.uiAmount;
+            acc.account.data.parsed.info.tokenAmount.uiAmount;
 
 
-          if (amount) {
+          if (
+            amount
+          ) {
+
             total += amount;
           }
         }
 
 
-        userBalance = total;
+        userBalance =
+          total;
 
 
         console.log(
@@ -705,24 +1239,34 @@
         ) {
 
           document
-            .getElementById("lockedView")
-            .classList.add("hidden");
+            .getElementById(
+              "lockedView"
+            )
+            .classList.add(
+              "hidden"
+            );
 
 
           document
-            .getElementById("chatView")
-            .classList.remove("hidden");
+            .getElementById(
+              "chatView"
+            )
+            .classList.remove(
+              "hidden"
+            );
 
 
           document.getElementById(
             "balanceDisplay"
           ).textContent =
+
             userBalance.toLocaleString(
               undefined,
               {
                 maximumFractionDigits: 2
               }
             ) +
+
             " SPARKD";
 
 
@@ -731,7 +1275,7 @@
 
 
         // --------------------------------------------------
-        // NOT A HOLDER
+        // NOT HOLDER
         // --------------------------------------------------
 
         alert(
@@ -760,7 +1304,9 @@
     // ======================================================
 
     const messagesEl =
-      document.getElementById("messages");
+      document.getElementById(
+        "messages"
+      );
 
 
     const STORAGE_KEY =
@@ -768,7 +1314,7 @@
 
 
     // ------------------------------------------------------
-    // LOAD MESSAGES
+    // LOAD
     // ------------------------------------------------------
 
     function loadMessages() {
@@ -779,13 +1325,19 @@
         );
 
 
-      if (!saved) return;
+      if (
+        !saved
+      ) {
+        return;
+      }
 
 
       try {
 
         const msgs =
-          JSON.parse(saved);
+          JSON.parse(
+            saved
+          );
 
 
         msgs.forEach(
@@ -809,7 +1361,7 @@
 
 
     // ------------------------------------------------------
-    // SAVE MESSAGE
+    // SAVE
     // ------------------------------------------------------
 
     function saveMessage(
@@ -832,8 +1384,10 @@
       });
 
 
-      // Keep last 100
-      if (msgs.length > 100) {
+      if (
+        msgs.length > 100
+      ) {
+
         msgs.shift();
       }
 
@@ -846,7 +1400,7 @@
 
 
     // ------------------------------------------------------
-    // APPEND MESSAGE
+    // APPEND
     // ------------------------------------------------------
 
     function appendMessage(
@@ -859,12 +1413,15 @@
       const isMe =
         name ===
         shorten(
-          currentWallet || "anon"
+          currentWallet ||
+          "anon"
         );
 
 
       const div =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
 
       div.className =
@@ -884,9 +1441,11 @@
               : "bg-gray-700"
           } flex items-center justify-center text-xs shrink-0 font-bold"
         >
-          ${name
-            .slice(0, 2)
-            .toUpperCase()}
+          ${escapeHtml(
+            name
+              .slice(0, 2)
+              .toUpperCase()
+          )}
         </div>
 
 
@@ -909,14 +1468,19 @@
             ${escapeHtml(name)}
 
             <span class="text-gray-600">
+
               •
-              ${new Date(time).toLocaleTimeString(
+
+              ${new Date(
+                time
+              ).toLocaleTimeString(
                 [],
                 {
                   hour: "2-digit",
                   minute: "2-digit"
                 }
               )}
+
             </span>
 
           </p>
@@ -933,7 +1497,9 @@
                 : "rounded-tl-sm"
             } px-4 py-2.5 text-sm"
           >
+
             ${escapeHtml(text)}
+
           </div>
 
         </div>
@@ -941,14 +1507,19 @@
       `;
 
 
-      messagesEl.appendChild(div);
+      messagesEl.appendChild(
+        div
+      );
 
 
       messagesEl.scrollTop =
         messagesEl.scrollHeight;
 
 
-      if (save) {
+      if (
+        save
+      ) {
+
         saveMessage(
           name,
           text
@@ -958,7 +1529,7 @@
 
 
     // ------------------------------------------------------
-    // SEND MESSAGE
+    // SEND
     // ------------------------------------------------------
 
     function sendMessage(e) {
@@ -980,12 +1551,15 @@
         !text ||
         !currentWallet
       ) {
+
         return;
       }
 
 
       appendMessage(
-        shorten(currentWallet),
+        shorten(
+          currentWallet
+        ),
         text
       );
 
@@ -995,12 +1569,15 @@
 
 
     // ------------------------------------------------------
-    // SHORTEN WALLET
+    // SHORTEN
     // ------------------------------------------------------
 
     function shorten(addr) {
 
-      if (!addr) {
+      if (
+        !addr
+      ) {
+
         return "anon";
       }
 
@@ -1019,7 +1596,7 @@
 
     function escapeHtml(str) {
 
-      return str
+      return String(str)
         .replace(
           /&/g,
           "&amp;"
@@ -1047,93 +1624,29 @@
 
 
         // --------------------------------------------------
-        // CHECK FOR PHANTOM MOBILE RETURN
+        // PROCESS PHANTOM MOBILE CALLBACK
         // --------------------------------------------------
 
-        const urlParams =
-          new URLSearchParams(
-            window.location.search
-          );
+        const handled =
+          await processPhantomCallback();
 
-
-        const phantomConnect =
-          urlParams.get(
-            "phantom_connect"
-          );
-
-
-        const provider =
-          window.phantom?.solana ||
-          window.solana;
-
-
-        // --------------------------------------------------
-        // PHANTOM MOBILE RETURN
-        // --------------------------------------------------
 
         if (
-          phantomConnect === "1" &&
-          provider
+          handled
         ) {
-
-          try {
-
-            console.log(
-              "Phantom mobile detected. Connecting..."
-            );
-
-
-            const resp =
-              await provider.connect();
-
-
-            currentWallet =
-              resp.publicKey.toString();
-
-
-            console.log(
-              "Phantom mobile wallet connected:",
-              currentWallet
-            );
-
-
-            updateWalletUI();
-
-
-            await checkBalanceAndUnlock();
-
-
-          } catch (err) {
-
-            console.error(
-              "Automatic Phantom connection failed:",
-              err
-            );
-
-
-            alert(
-              "Phantom mobile connection failed: " +
-              (err?.message || err)
-            );
-
-          }
-
-
-          // Clean URL
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
 
           return;
         }
 
 
         // --------------------------------------------------
-        // NORMAL PHANTOM AUTO-RECONNECT
+        // NORMAL DESKTOP AUTO-RECONNECT
         // --------------------------------------------------
+
+        const provider =
+          window.phantom?.solana ||
+          window.solana;
+
 
         if (
           provider?.isConnected &&
