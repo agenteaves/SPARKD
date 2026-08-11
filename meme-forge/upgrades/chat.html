@@ -400,66 +400,66 @@ async function connectWallet() {
     }
 
 
-    /* -----------------------------------------------
-       DESKTOP
-    ------------------------------------------------ */
+   /* -----------------------------------------------
+   DESKTOP
+------------------------------------------------ */
 
-    const provider =
-      window.phantom?.solana ||
-      window.solana;
+const provider =
+  window.phantom?.solana ||
+  window.solana;
 
+if (provider) {
 
-    if (provider) {
+  const resp =
+    await provider.connect();
 
-      const resp =
-        await provider.connect();
+  currentWallet =
+    resp.publicKey.toString();
 
-      currentWallet =
-        resp.publicKey.toString();
+  updateWalletUI();
 
-      updateWalletUI();
+  await checkBalanceAndUnlock();
 
-      checkBalanceAndUnlock();
-      
-      return true;
-    }
-
-    alert(
-      "Please install the Phantom wallet extension."
-    );
-
-    window.open(
-      "https://phantom.app/",
-      "_blank"
-    );
-
-
-  } catch (err) {
-
-    console.error(
-      "Wallet connection failed:",
-      err
-    );
-
-    if (err?.code === 4001) {
-
-      alert(
-        "Wallet connection was rejected."
-      );
-
-    } else {
-
-      alert(
-        "Wallet connection error: " +
-        (err?.message || err)
-      );
-
-    }
-
-  }
-
+  return true;
 }
 
+// --------------------------------------------------
+// DESKTOP WITHOUT PHANTOM
+// --------------------------------------------------
+
+alert(
+  "Please install the Phantom wallet extension."
+);
+
+window.open(
+  "https://phantom.app/",
+  "_blank"
+);
+
+} catch (err) {
+
+  console.error(
+    "Wallet connection failed:",
+    err
+  );
+
+  if (err?.code === 4001) {
+
+    alert(
+      "Wallet connection was rejected."
+    );
+
+  } else {
+
+    alert(
+      "Wallet connection error: " +
+      (err?.message || err)
+    );
+
+  }
+}
+
+}
 
 /* =====================================================
    PHANTOM MOBILE DEEPLINK
