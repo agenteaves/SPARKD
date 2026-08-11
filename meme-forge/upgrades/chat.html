@@ -624,28 +624,6 @@ console.log(
    PROCESS PHANTOM MOBILE CALLBACK
 ===================================================== */
 
-if (
-  typeof nacl === "undefined"
-) {
-
-  throw new Error(
-    "TweetNaCl library is unavailable."
-  );
-
-}
-
-if (
-  typeof bs58 === "undefined" ||
-  typeof bs58.encode !== "function" ||
-  typeof bs58.decode !== "function"
-) {
-
-  throw new Error(
-    "bs58 library is unavailable."
-  );
-
-}
-
     /* -----------------------------------------------
        READ RESPONSE
     ------------------------------------------------ */
