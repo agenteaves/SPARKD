@@ -205,6 +205,20 @@
             const predictions =
                 await model.classify(canvas);
 
+           console.log(
+                "🧪 MODEL TEST:",
+                {
+                    imageWidth: canvas.width,
+                    imageHeight: canvas.height,
+                    predictions: predictions.map(function (p) {
+                        return {
+                            className: p.className,
+                            probability: p.probability
+                        };
+                    })
+                }
+            );
+
             if (
                 !Array.isArray(predictions) ||
                 predictions.length === 0
