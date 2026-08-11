@@ -1420,18 +1420,12 @@ window.addEventListener(
       getBS58()
     );
 
-
+    
     /* -----------------------------------------------
        PHANTOM MOBILE CALLBACK
     ------------------------------------------------ */
-
-    const handled =
-    await processPhantomCallback();
-
-
-    if (handled) {
-      return;
-    }
+    
+    console.log("Checking for Phantom mobile callback...");
 
     /* -----------------------------------------------
        DESKTOP AUTO RECONNECT
