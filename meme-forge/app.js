@@ -238,30 +238,6 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // BASIC FILENAME SAFETY CHECK
-        ////////////////////////////////////////////////////
-
-        if (
-            typeof containsUnsafeContent === "function" &&
-            containsUnsafeContent(file.name)
-        ) {
-
-            console.log(
-                "🚫 Filename blocked by safety check"
-            );
-
-            alert(
-                "🚫 This image name is not allowed."
-            );
-
-            imageInput.value = "";
-
-            return;
-
-        }
-
-
-        ////////////////////////////////////////////////////
         // CHECK THAT CONTENT GUARD EXISTS
         ////////////////////////////////////////////////////
 
