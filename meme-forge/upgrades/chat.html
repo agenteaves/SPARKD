@@ -141,62 +141,48 @@
 
     document.getElementById("minRequiredLabel").textContent = MIN_BALANCE;
 
-async function connectWallet() {
-  try {
-    // Detect mobile devices
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // Check for an injected Phantom provider first.
-    // This works when the site is already running inside Phantom
-    // or in a desktop browser with the Phantom extension.
+  async function connectWallet() {
+   try {
+    // --------------------------------------------------
+    // DESKTOP / PHANTOM IN-APP BROWSER
+    // --------------------------------------------------
+
     const provider = window.phantom?.solana || window.solana;
 
     if (provider) {
       const resp = await provider.connect();
 
       currentWallet = resp.publicKey.toString();
+
       console.log("Connected:", currentWallet);
 
       updateWalletUI();
 
       await checkBalanceAndUnlock();
+
       return;
     }
 
     // --------------------------------------------------
-    // MOBILE PHANTOM
+    // MOBILE PHANTOM DEEPLINK
     // --------------------------------------------------
-    // If we're on a phone and Phantom isn't injected,
-    // open this exact page inside the Phantom app.
+
+    const isMobile =
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     if (isMobile) {
-      const currentUrl = window.location.href;
-
-      // Add a flag so that once Phantom opens the page,
-      // we automatically attempt the wallet connection.
-      const phantomUrl =
-        currentUrl +
-        (currentUrl.includes("?") ? "&" : "?") +
-        "phantom_connect=1";
-
-      const phantomBrowseUrl =
-        "https://phantom.app/ul/browse/" +
-        encodeURIComponent(phantomUrl) +
-        "?ref=" +
-        encodeURIComponent(window.location.origin);
-
-      console.log("Opening Phantom:", phantomBrowseUrl);
-
-      window.location.href = phantomBrowseUrl;
+      startPhantomMobileConnection();
       return;
     }
 
-    // Desktop without Phantom
+    // --------------------------------------------------
+    // DESKTOP WITHOUT PHANTOM
+    // --------------------------------------------------
+
     alert("Please install the Phantom wallet extension.");
 
-    window.open(
-      "https://phantom.app/",
-      "_blank"
-    );
+    window.open("https://phantom.app/", "_blank");
 
   } catch (err) {
     console.error("Wallet connection failed:", err);
@@ -208,6 +194,7 @@ async function connectWallet() {
     }
   }
 }
+
 
 function updateWalletUI() {
   if (!currentWallet) return;
