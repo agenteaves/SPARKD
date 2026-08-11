@@ -234,14 +234,6 @@ window.open(
 }
 }
 
-
-**Important:** this is a drop-in replacement for the block you pasted, so **don't add another `}` or `catch` after it.** It already includes the closing `catch` and function brace from your original block.
-
-The next piece that must be correct is your `startPhantomMobileConnection()` function. That's what will actually launch Phantom. Phantom's mobile connection protocol uses the `/ul/v1/connect` deeplink rather than the `/browse/` URL we were originally using.
-
-After inserting this, **don't change anything else yet**. Test the button and tell me what happens.
-
-
 function updateWalletUI() {
   if (!currentWallet) return;
 
