@@ -802,67 +802,7 @@ if (
       data.public_key;
 
 
-    /* -----------------------------------------------
-       SAVE SESSION
-    ------------------------------------------------ */
-
-    sessionStorage.setItem(
-      "sparkd_phantom_session",
-      data.session || ""
-    );
-
-
-    sessionStorage.setItem(
-      "sparkd_phantom_connected",
-      "1"
-    );
-
-
-    /* -----------------------------------------------
-       CLEAN URL
-    ------------------------------------------------ */
-
-    const cleanUrl =
-      window.location.origin +
-      window.location.pathname;
-
-
-    window.history.replaceState(
-      {},
-      document.title,
-      cleanUrl
-    );
-
-
-    /* -----------------------------------------------
-       UPDATE UI
-    ------------------------------------------------ */
-
-    updateWalletUI();
-
-
-   /* -----------------------------------------------
-   CHECK TOKEN BALANCE
------------------------------------------------- */
-
-await checkBalanceAndUnlock();
-
-return true;
-
-} catch (err) {
-
-  console.error(
-    "Phantom callback processing failed:",
-    err
-  );
-
-  alert(
-    "Phantom connection failed: " +
-    (err?.message || err)
-  );
-
-  return false;
-}
+   
   
 /* =====================================================
    WALLET UI
@@ -1417,7 +1357,7 @@ window.addEventListener(
        PHANTOM MOBILE CALLBACK
     ------------------------------------------------ */
     
-    console.log("Checking for Phantom mobile callback...");
+    console.log("Phantom mobile callback skipped for now.");
 
     /* -----------------------------------------------
        DESKTOP AUTO RECONNECT
