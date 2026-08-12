@@ -423,14 +423,16 @@ const resp =
 
 console.log("Phantom connect response:", resp);
   
-  currentWallet =
-    resp.publicKey.toString();
+ currentWallet =
+  resp.publicKey.toString();
 
-  updateWalletUI();
+updateWalletUI();
 
-  await checkBalanceAndUnlock();
+await checkBalanceAndUnlock();
 
-  return true;
+alert("Wallet connected successfully!");
+
+return true;
 }
 
 // --------------------------------------------------
