@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPARKD Phantom Test</title>
+</head>
+
+<body style="background:#111;color:white;font-family:Arial;padding:40px">
+
+  <h1>SPARKD Phantom Test</h1>
+
+  <button id="connectBtn"
+    style="padding:15px 25px;font-size:18px;cursor:pointer;">
+    Connect Phantom
+  </button>
+
+  <p id="status">Not connected</p>
+
+  <script>
+    document.getElementById("connectBtn").onclick = async function () {
+
+      const status = document.getElementById("status");
+
+      try {
+
+        const provider =
+          window.phantom?.solana ||
+          window.solana;
+
+        console.log("Provider:", provider);
+        console.log("Phantom:", provider?.isPhantom);
+        console.log("Connected:", provider?.isConnected);
+
+        if (!provider) {
+          throw new Error("Phantom was not detected.");
+        }
+
+        status.textContent = "Connecting...";
+
+        const response =
+          await provider.connect();
+
+        console.log("CONNECT RESPONSE:", response);
+
+        const wallet =
+          response.publicKey.toString();
+
+        console.log("WALLET:", wallet);
+
+        status.textContent =
+          "Connected: " + wallet;
+
+      } catch (error) {
+
+        console.error("PHANTOM TEST ERROR:", error);
+
+        status.textContent =
+          "ERROR: " +
+          (error?.message || error);
+
+      }
+
+    };
+  </script>
+
+</body>
+</html>
+
 
