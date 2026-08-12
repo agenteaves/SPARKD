@@ -18,7 +18,7 @@
 
   <a
   href="/meme-forge/"
-  class="absolute top-5 left-5 z-50 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg transition"
+  id="memeForgeBtn"
 >
   ← Meme Forge
 </a>
@@ -30,6 +30,27 @@
       font-family: 'Inter', system-ui, sans-serif;
     }
 
+    #memeForgeBtn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+
+  z-index: 999999;
+
+  background: #f97316;
+  color: white;
+
+  padding: 10px 16px;
+
+  border-radius: 8px;
+
+  font-weight: 600;
+  text-decoration: none;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  pointer-events: auto;
+}
 
     .spark-gradient {
       background: linear-gradient(
