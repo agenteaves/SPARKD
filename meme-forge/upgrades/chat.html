@@ -405,7 +405,11 @@ async function connectWallet() {
 ------------------------------------------------ */
 
 const provider =
-  window.phantom?.solana;
+  window.solana || window.phantom?.solana;
+
+console.log("Provider:", provider);
+console.log("isPhantom:", provider?.isPhantom);
+console.log("isConnected:", provider?.isConnected);
 
 console.log("Phantom provider:", provider);
 console.log("Phantom installed:", !!provider);
