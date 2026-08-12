@@ -412,10 +412,7 @@ console.log("Phantom installed:", !!provider);
 
 if (provider) {
 
- const resp =
-  await provider.connect({
-    onlyIfTrusted: false
-  });
+ const resp = await provider.connect();
   
   currentWallet =
     resp.publicKey.toString();
