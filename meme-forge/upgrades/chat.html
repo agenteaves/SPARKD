@@ -103,51 +103,52 @@
         💚
       </div>
 
-      <div>
-        <h1 class="font-bold text-lg tracking-tight">
-          SPARKD Holders
-        </h1>
+     <!-- HEADER CONTENT -->
 
-        <p class="text-xs text-green-400/80">
-          Token-gated chatroom
-        </p>
-      </div>
+<div class="relative max-w-4xl mx-auto px-4 py-4">
 
-    </div>
+  <!-- CENTER: SPARKD TITLE -->
+
+  <div class="text-center">
+
+    <h1 class="font-bold text-lg tracking-tight">
+      SPARKD Holders
+    </h1>
+
+    <p class="text-xs text-green-400/80">
+      Token-gated chatroom
+    </p>
+
+  </div>
 
 
-    <!-- RIGHT: MEME FORGE + WALLET -->
-    <div class="flex items-center gap-3">
+  <!-- RIGHT: MEME FORGE + WALLET -->
 
-      <a
-        href="/meme-forge/"
-        class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg transition whitespace-nowrap"
+  <div class="absolute top-1/2 right-4 -translate-y-1/2 flex items-center gap-3">
+
+    <a
+      href="/meme-forge/"
+      class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg transition whitespace-nowrap"
+    >
+      ← Meme Forge
+    </a>
+
+    <div id="walletArea" class="flex items-center gap-3">
+
+      <button
+        id="connectBtn"
+        onclick="connectWallet()"
+        class="px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition glow-green"
       >
-        ← Meme Forge
-      </a>
-
-      <div id="walletArea" class="flex items-center gap-3">
-
-        <button
-          id="connectBtn"
-          onclick="connectWallet()"
-          class="px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition glow-green"
-        >
-          Connect Wallet
-        </button>
-
-      </div>
+        Connect Wallet
+      </button>
 
     </div>
 
   </div>
-</header>
 
-
-<!-- MAIN -->
-
-<main class="max-w-4xl mx-auto px-4 py-8">
-
+</div>
+      
 <!-- LOCKED VIEW -->
 <div id="lockedView" class="text-center py-16">
 
