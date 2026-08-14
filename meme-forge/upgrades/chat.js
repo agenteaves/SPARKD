@@ -121,10 +121,6 @@ function displayMessages(messages) {
     return;
   }
 
-
-  chatMessages.innerHTML = "";
-
-
   messages.forEach(
     message => {
 
