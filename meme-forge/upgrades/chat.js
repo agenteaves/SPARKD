@@ -6,7 +6,7 @@ const SUPABASE_URL =
   "https://uxpbgzksfizkyxubctep.supabase.co";
 
 const SUPABASE_ANON_KEY =
-  "YOUR_PUBLISHABLE_KEY_HERE";
+  "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
 
 console.log("SPARKD Chat JS loaded");
 
