@@ -722,13 +722,52 @@ MOBILE
 
 a[href="upgrades/chat.html"]{
 
-    position:relative;
+    position:absolute;
+
+    top:20px;
+
+    left:125px;
+
+    background:#ff6a00;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 18px;
+
+    border-radius:8px;
+
+    font-family:Orbitron;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    text-decoration:none;
+
+    display:inline-block;
 
     overflow:hidden;
 
     z-index:1;
 
 }
+
+
+/* Match Home button hover */
+
+a[href="upgrades/chat.html"]:hover{
+
+    transform:scale(1.05);
+
+    box-shadow:
+        0 0 8px #008cff,
+        0 0 18px #008cff,
+        0 0 30px rgba(0,140,255,0.75);
+
+}
+
 
 /* Electric blue energy moving forward */
 
@@ -764,6 +803,7 @@ a[href="upgrades/chat.html"]::before{
     z-index:-1;
 
 }
+
 
 /* Electric blue energy moving backward */
 
@@ -801,42 +841,35 @@ a[href="upgrades/chat.html"]::after{
 
 }
 
+
 /* Forward */
 
 @keyframes holderElectricForward{
 
     0%{
-
         left:-100%;
-
     }
 
     100%{
-
         left:150%;
-
     }
 
 }
+
 
 /* Backward */
 
 @keyframes holderElectricBack{
 
     0%{
-
         right:-100%;
-
     }
 
     100%{
-
         right:150%;
-
     }
 
 }
-
 /* Extra electricity when hovering */
 
 a[href="upgrades/chat.html"]:hover{
