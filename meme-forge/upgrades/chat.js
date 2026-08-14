@@ -26,3 +26,48 @@ if (typeof supabase === "undefined") {
     supabaseClient
   );
 }
+
+// ==========================================
+// TEST DATABASE CONNECTION
+// ==========================================
+
+async function testSupabaseConnection() {
+
+  try {
+
+    const { data, error } =
+      await supabaseClient
+        .from("messages")
+        .select("id, wallet, message, created_at")
+        .order("created_at", {
+          ascending: false
+        })
+        .limit(5);
+
+    if (error) {
+
+      console.error(
+        "SPARKD database test failed:",
+        error
+      );
+
+      return;
+    }
+
+    console.log(
+      "SPARKD database connection successful.",
+      data
+    );
+
+  } catch (err) {
+
+    console.error(
+      "SPARKD database test error:",
+      err
+    );
+
+  }
+
+}
+
+testSupabaseConnection();
