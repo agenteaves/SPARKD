@@ -912,80 +912,6 @@ const messagesEl =
   );
 
 
-const STORAGE_KEY =
-  "sparkd_chat_msgs_v1";
-
-
-function loadMessages() {
-
-  const saved =
-    localStorage.getItem(
-      STORAGE_KEY
-    );
-
-
-  if (!saved) {
-    return;
-  }
-
-
-  try {
-
-    const msgs =
-      JSON.parse(saved);
-
-
-    msgs.forEach(
-      m =>
-        appendMessage(
-          m.name,
-          m.text,
-          m.time,
-          false
-        )
-    );
-
-  } catch (err) {
-
-    console.error(
-      "Could not load chat messages:",
-      err
-    );
-
-  }
-
-}
-
-
-
-  const msgs =
-    JSON.parse(
-      localStorage.getItem(
-        STORAGE_KEY
-      ) || "[]"
-    );
-
-
-  msgs.push({
-    name: name,
-    text: text,
-    time: Date.now()
-  });
-
-
-  if (msgs.length > 100) {
-    msgs.shift();
-  }
-
-
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(msgs)
-  );
-
-}
-
-
 function appendMessage(
   name,
   text,
@@ -1088,14 +1014,6 @@ function appendMessage(
 
   messagesEl.scrollTop =
     messagesEl.scrollHeight;
-
-
-  if (save) {
-    saveMessage(
-      name,
-      text
-    );
-  }
 
 }
 
