@@ -108,7 +108,7 @@ function displayMessages(messages) {
 
   const chatMessages =
     document.getElementById(
-      "chatMessages"
+      "messages"
     );
 
 
@@ -149,7 +149,7 @@ function addMessageToChat(message) {
 
   const chatMessages =
     document.getElementById(
-      "chatMessages"
+      "messages"
     );
 
 
@@ -243,7 +243,7 @@ function scrollChatToBottom() {
 
   const chatMessages =
     document.getElementById(
-      "chatMessages"
+      "messages"
     );
 
 
@@ -289,7 +289,7 @@ async function sendMessage(event) {
 
   const input =
     document.getElementById(
-      "msgInput"
+      "messages"
     );
 
 
