@@ -1,6 +1,6 @@
 // ==========================================
 // SPARKD TOKEN-GATED CHAT
-// Supabase + Realtime
+// SUPABASE + REALTIME
 // ==========================================
 
 const SUPABASE_URL =
@@ -11,7 +11,7 @@ const SUPABASE_ANON_KEY =
 
 
 // ==========================================
-// SUPABASE
+// SUPABASE CLIENT
 // ==========================================
 
 let supabaseClient = null;
@@ -42,10 +42,10 @@ if (typeof supabase === "undefined") {
 
 
 // ==========================================
-// LOAD MESSAGES
+// LOAD EXISTING MESSAGES
 // ==========================================
 
-async function loadMessages() {
+async function loadSupabaseMessages() {
 
   if (!supabaseClient) {
     return;
@@ -80,12 +80,23 @@ async function loadMessages() {
 
 
     console.log(
-      "Messages loaded:",
-      data
+      "SPARKD messages loaded:",
+      data.length
     );
 
 
-    displayMessages(data);
+    data.forEach(
+      msg => {
+
+        appendMessage(
+          shorten(msg.wallet),
+          msg.message,
+          msg.created_at,
+          false
+        );
+
+      }
+    );
 
 
   } catch (err) {
@@ -101,174 +112,30 @@ async function loadMessages() {
 
 
 // ==========================================
-// DISPLAY MESSAGES
-// ==========================================
-
-function displayMessages(messages) {
-
-  const chatMessages =
-    document.getElementById(
-      "messages"
-    );
-
-
-  if (!chatMessages) {
-
-    console.error(
-      "chatMessages element not found."
-    );
-
-    return;
-  }
-
-  messages.forEach(
-    message => {
-
-      addMessageToChat(
-        message
-      );
-
-    }
-  );
-
-
-  scrollChatToBottom();
-
-}
-
-
-// ==========================================
-// ADD ONE MESSAGE
-// ==========================================
-
-function addMessageToChat(message) {
-
-  const chatMessages =
-    document.getElementById(
-      "messages"
-    );
-
-
-  if (!chatMessages) {
-    return;
-  }
-
-
-  const messageElement =
-    document.createElement(
-      "div"
-    );
-
-
-  const wallet =
-    message.wallet || "Unknown";
-
-
-  const shortWallet =
-    wallet.length > 12
-      ? wallet.slice(0, 6) +
-        "..." +
-        wallet.slice(-4)
-      : wallet;
-
-
-  const time =
-    message.created_at
-      ? new Date(
-          message.created_at
-        ).toLocaleTimeString(
-          [],
-          {
-            hour: "numeric",
-            minute: "2-digit"
-          }
-        )
-      : "";
-
-
-  messageElement.className =
-    "mb-3";
-
-
-  messageElement.innerHTML = `
-    <div class="text-xs text-green-500 mb-1">
-      ${escapeHTML(shortWallet)}
-      <span class="text-gray-600 ml-2">
-        ${escapeHTML(time)}
-      </span>
-    </div>
-
-    <div class="text-sm text-gray-200 break-words">
-      ${escapeHTML(message.message)}
-    </div>
-  `;
-
-
-  chatMessages.appendChild(
-    messageElement
-  );
-
-}
-
-
-// ==========================================
-// ESCAPE HTML
-// ==========================================
-
-function escapeHTML(value) {
-
-  const div =
-    document.createElement(
-      "div"
-    );
-
-  div.textContent =
-    String(value ?? "");
-
-
-  return div.innerHTML;
-
-}
-
-
-// ==========================================
-// SCROLL
-// ==========================================
-
-function scrollChatToBottom() {
-
-  const chatMessages =
-    document.getElementById(
-      "messages"
-    );
-
-
-  if (!chatMessages) {
-    return;
-  }
-
-
-  chatMessages.scrollTop =
-    chatMessages.scrollHeight;
-
-}
-
-
-// ==========================================
 // SEND MESSAGE
 // ==========================================
 
-async function sendMessage(event) {
+async function sendMessage(e) {
 
-  event.preventDefault();
+  e.preventDefault();
 
 
-  if (!supabaseClient) {
-
-    alert(
-      "Chat connection is not ready."
+  const input =
+    document.getElementById(
+      "msgInput"
     );
 
+
+  if (!input) {
+    return;
+  }
+
+
+  const text =
+    input.value.trim();
+
+
+  if (!text) {
     return;
   }
 
@@ -283,30 +150,20 @@ async function sendMessage(event) {
   }
 
 
-  const input =
-    document.getElementById(
-      "messages"
-    );
-
-
-  if (!input) {
-    return;
-  }
-
-
-  const message =
-    input.value.trim();
-
-
-  if (!message) {
-    return;
-  }
-
-
-  if (message.length > 1000) {
+  if (text.length > 1000) {
 
     alert(
       "Message is too long. Maximum 1000 characters."
+    );
+
+    return;
+  }
+
+
+  if (!supabaseClient) {
+
+    alert(
+      "Chat connection is not ready."
     );
 
     return;
@@ -324,7 +181,7 @@ async function sendMessage(event) {
             currentWallet,
 
           message:
-            message
+            text
 
         });
 
@@ -362,10 +219,10 @@ async function sendMessage(event) {
 
 
 // ==========================================
-// REALTIME
+// REALTIME CHAT
 // ==========================================
 
-function setupRealtime() {
+function setupRealtimeChat() {
 
   if (!supabaseClient) {
     return;
@@ -374,7 +231,7 @@ function setupRealtime() {
 
   supabaseClient
     .channel(
-      "sparkd-chat"
+      "sparkd-messages"
     )
     .on(
       "postgres_changes",
@@ -386,17 +243,19 @@ function setupRealtime() {
       payload => {
 
         console.log(
-          "New chat message:",
+          "New SPARKD message:",
           payload.new
         );
 
 
-        addMessageToChat(
-          payload.new
+        appendMessage(
+          shorten(
+            payload.new.wallet
+          ),
+          payload.new.message,
+          payload.new.created_at,
+          false
         );
-
-
-        scrollChatToBottom();
 
       }
     )
@@ -404,7 +263,7 @@ function setupRealtime() {
       status => {
 
         console.log(
-          "SPARKD Realtime:",
+          "SPARKD Realtime status:",
           status
         );
 
@@ -415,21 +274,26 @@ function setupRealtime() {
 
 
 // ==========================================
-// START CHAT
+// INITIALIZE
 // ==========================================
 
-function initializeChat() {
+async function initializeSparkdChat() {
 
   console.log(
-    "SPARKD chat initializing..."
+    "SPARKD shared chat initializing..."
   );
 
 
-  loadMessages();
+  await loadSupabaseMessages();
 
-  setupRealtime();
+  setupRealtimeChat();
+
+
+  console.log(
+    "SPARKD shared chat ready."
+  );
 
 }
 
 
-initializeChat();
+initializeSparkdChat();
