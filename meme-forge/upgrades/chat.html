@@ -1019,43 +1019,6 @@ function appendMessage(
 
 
 /* =====================================================
-   SEND MESSAGE
-===================================================== */
-
-
- e.preventDefault();
-
-
-  const input =
-    document.getElementById(
-      "msgInput"
-    );
-
-
-  const text =
-    input.value.trim();
-
-
-  if (
-    !text ||
-    !currentWallet
-  ) {
-    return;
-  }
-
-
-  appendMessage(
-    shorten(currentWallet),
-    text
-  );
-
-
-  input.value = "";
-
-}
-
-
-/* =====================================================
    HELPERS
 ===================================================== */
 
