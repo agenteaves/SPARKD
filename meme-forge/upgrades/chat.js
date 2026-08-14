@@ -1,9 +1,12 @@
 // ==========================================
-// SPARKD TOKEN-GATED CHAT
-// External Chat JavaScript
+// SPARKD CHAT - SUPABASE CONNECTION
 // ==========================================
 
-console.log("SPARKD Chat JS loaded");
+const SUPABASE_URL =
+  "https://uxpbgzksfizkyxubctep.supabase.co";
 
-// Chat initialization will go here.
-// Backend connection will be added next.
+const SUPABASE_ANON_KEY =
+  "sb_publishable_mPYz5Xv3Gx0m0sgmQiDA6w_Gi0Fj-zq";
+
+console.log("SPARKD Chat JS loaded");
+console.log("Supabase URL:", SUPABASE_URL);
