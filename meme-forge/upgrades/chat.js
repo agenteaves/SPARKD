@@ -1,12 +1,28 @@
 // ==========================================
-// SPARKD CHAT - SUPABASE CONNECTION
+// SPARKD CHAT - SUPABASE TEST
 // ==========================================
 
 const SUPABASE_URL =
   "https://uxpbgzksfizkyxubctep.supabase.co";
 
 const SUPABASE_ANON_KEY =
-  "sb_publishable_mPYz5Xv3Gx0m0sgmQiDA6w_Gi0Fj-zq";
+  "YOUR_PUBLISHABLE_KEY_HERE";
 
 console.log("SPARKD Chat JS loaded");
-console.log("Supabase URL:", SUPABASE_URL);
+
+if (typeof supabase === "undefined") {
+  console.error("Supabase library did not load.");
+} else {
+  console.log("Supabase library loaded.");
+
+  const supabaseClient =
+    supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+  console.log(
+    "SPARKD Supabase client created.",
+    supabaseClient
+  );
+}
