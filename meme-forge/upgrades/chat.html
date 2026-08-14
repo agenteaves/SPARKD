@@ -957,10 +957,6 @@ function loadMessages() {
 }
 
 
-function saveMessage(
-  name,
-  text
-) {
 
   const msgs =
     JSON.parse(
@@ -1108,9 +1104,8 @@ function appendMessage(
    SEND MESSAGE
 ===================================================== */
 
-function sendMessage(e) {
 
-  e.preventDefault();
+ e.preventDefault();
 
 
   const input =
@@ -1202,7 +1197,6 @@ window.addEventListener(
     );
 
 
-    loadMessages();
 
 
     /* -----------------------------------------------
