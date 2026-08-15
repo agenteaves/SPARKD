@@ -1258,4 +1258,17 @@ body {
 
 }
 
+/* =====================================================
+   SPARKD ACHIEVEMENT ARTWORK
+   ===================================================== */
+
+.achievementIcon img {
+    width: 110px;
+    height: 110px;
+
+    object-fit: contain;
+
+    display: block;
+    margin: 0 auto;
+}
 
