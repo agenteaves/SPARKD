@@ -415,19 +415,22 @@
     }
 
 
-    ////////////////////////////////////////////////////
-    // PUBLIC API
-    ////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
+// PUBLIC API
+////////////////////////////////////////////////////
 
-    window.SPARKD_WEBSITE_STATS = {
+window.SPARKD_WEBSITE_STATS = {
 
-        recordVisit:
-            recordVisit,
+    recordVisit:
+        recordVisit,
 
-        getSessionId:
-            getSessionId
+    getSessionId:
+        getSessionId,
 
-    };
+    supabaseClient:
+        statsSupabaseClient
+
+};
 
 
     ////////////////////////////////////////////////////
