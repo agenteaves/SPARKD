@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD WEBSITE STATS DASHBOARD
-// Developer Upgrade Module
+// Supabase Statistics Dashboard
 ////////////////////////////////////////////////////
 
 (function () {
@@ -12,7 +12,7 @@
     // OPEN DASHBOARD
     ////////////////////////////////////////////////////
 
-    function openWebsiteStats() {
+    async function openWebsiteStats() {
 
         if (
             document.getElementById(
@@ -51,187 +51,196 @@
             <div class="statsContent">
 
 
-                <div class="statsGrid">
+                <div
+                    id="statsLoading"
+                    class="statsLoading"
+                >
+                    Loading statistics...
+                </div>
 
 
-                    <div class="statCard">
+                <div
+                    id="statsError"
+                    class="statsError"
+                    style="display:none;"
+                >
+                </div>
 
-                        <div class="statTitle">
-                            👥 Total Visits
+
+                <div
+                    id="statsDashboardContent"
+                    style="display:none;"
+                >
+
+
+                    <div class="statsGrid">
+
+
+                        <div class="statCard">
+
+                            <div class="statTitle">
+                                👥 Unique Visitors
+                            </div>
+
+                            <div
+                                class="statValue"
+                                id="statsUniqueVisitors"
+                            >
+                                0
+                            </div>
+
                         </div>
 
-                        <div
-                            class="statValue"
-                            id="statsTotalVisits"
-                        >
-                            0
+
+
+                        <div class="statCard">
+
+                            <div class="statTitle">
+                                📄 Page Views
+                            </div>
+
+                            <div
+                                class="statValue"
+                                id="statsPageViews"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="statCard">
+
+                            <div class="statTitle">
+                                📅 Today
+                            </div>
+
+                            <div
+                                class="statValue"
+                                id="statsToday"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="statCard">
+
+                            <div class="statTitle">
+                                📈 This Week
+                            </div>
+
+                            <div
+                                class="statValue"
+                                id="statsWeek"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="statCard">
+
+                            <div class="statTitle">
+                                🗓 This Month
+                            </div>
+
+                            <div
+                                class="statValue"
+                                id="statsMonth"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div class="statsSection">
+
+                        <h3>
+                            📄 Top Pages
+                        </h3>
+
+                        <div id="statsPages">
                         </div>
 
                     </div>
 
 
 
-                    <div class="statCard">
+                    <div class="statsSection">
 
-                        <div class="statTitle">
-                            📄 Page Views
-                        </div>
+                        <h3>
+                            💻 Devices
+                        </h3>
 
-                        <div
-                            class="statValue"
-                            id="statsPageViews"
-                        >
-                            0
+                        <div id="statsDevices">
                         </div>
 
                     </div>
 
 
 
-                    <div class="statCard">
+                    <div class="statsSection">
 
-                        <div class="statTitle">
-                            📅 Today
-                        </div>
+                        <h3>
+                            🌐 Browsers
+                        </h3>
 
-                        <div
-                            class="statValue"
-                            id="statsToday"
-                        >
-                            0
+                        <div id="statsBrowsers">
                         </div>
 
                     </div>
 
 
 
-                    <div class="statCard">
+                    <div class="statsSection">
 
-                        <div class="statTitle">
-                            📈 This Week
-                        </div>
+                        <h3>
+                            🖥 Operating Systems
+                        </h3>
 
-                        <div
-                            class="statValue"
-                            id="statsWeek"
-                        >
-                            0
+                        <div id="statsOperatingSystems">
                         </div>
 
                     </div>
 
 
 
-                    <div class="statCard">
+                    <div class="statsSection">
 
-                        <div class="statTitle">
-                            🗓 This Month
-                        </div>
+                        <h3>
+                            🔗 Referrers
+                        </h3>
 
-                        <div
-                            class="statValue"
-                            id="statsMonth"
-                        >
-                            0
+                        <div id="statsReferrers">
                         </div>
 
                     </div>
 
 
 
-                    <div class="statCard">
+                    <div class="statsActions">
 
-                        <div class="statTitle">
-                            🕐 Last Visit
-                        </div>
-
-                        <div
-                            class="statValue statSmall"
-                            id="statsLastVisit"
+                        <button
+                            id="refreshWebsiteStats"
                         >
-                            —
-                        </div>
+                            🔄 Refresh Stats
+                        </button>
 
                     </div>
 
 
                 </div>
-
-
-
-                <div class="statsSection">
-
-                    <h3>
-                        📄 Top Pages
-                    </h3>
-
-                    <div id="statsPages">
-                        No data yet.
-                    </div>
-
-                </div>
-
-
-
-                <div class="statsSection">
-
-                    <h3>
-                        💻 Devices
-                    </h3>
-
-                    <div id="statsDevices">
-                        No data yet.
-                    </div>
-
-                </div>
-
-
-
-                <div class="statsSection">
-
-                    <h3>
-                        🌐 Browsers
-                    </h3>
-
-                    <div id="statsBrowsers">
-                        No data yet.
-                    </div>
-
-                </div>
-
-
-
-                <div class="statsSection">
-
-                    <h3>
-                        🖥 Operating Systems
-                    </h3>
-
-                    <div id="statsOperatingSystems">
-                        No data yet.
-                    </div>
-
-                </div>
-
-
-
-                <div class="statsActions">
-
-                    <button
-                        id="refreshWebsiteStats"
-                    >
-                        🔄 Refresh Stats
-                    </button>
-
-
-                    <button
-                        id="clearWebsiteStats"
-                    >
-                        🗑 Clear Local Stats
-                    </button>
-
-                </div>
-
 
             </div>
 
@@ -244,9 +253,6 @@
 
 
         addDashboardStyles();
-
-
-        updateDashboard();
 
 
         ////////////////////////////////////////////////////
@@ -263,65 +269,67 @@
 
 
         ////////////////////////////////////////////////////
-        // REFRESH
+        // LOAD DATA
         ////////////////////////////////////////////////////
 
-        document.getElementById(
-            "refreshWebsiteStats"
-        ).onclick = function () {
-
-            updateDashboard();
-
-        };
-
-
-        ////////////////////////////////////////////////////
-        // CLEAR
-        ////////////////////////////////////////////////////
-
-        document.getElementById(
-            "clearWebsiteStats"
-        ).onclick = function () {
-
-            const confirmClear =
-                confirm(
-                    "Clear the local SPARKD website statistics?"
-                );
-
-
-            if (!confirmClear) {
-                return;
-            }
-
-
-            if (
-                window.SPARKD_WEBSITE_STATS
-            ) {
-
-                window.SPARKD_WEBSITE_STATS.clear();
-
-            }
-
-
-            updateDashboard();
-
-        };
+        await loadWebsiteStats();
 
     }
 
 
     ////////////////////////////////////////////////////
-    // UPDATE DASHBOARD
+    // LOAD SUPABASE STATS
     ////////////////////////////////////////////////////
 
-    function updateDashboard() {
+    async function loadWebsiteStats() {
+
+        const loading =
+            document.getElementById(
+                "statsLoading"
+            );
+
+
+        const errorBox =
+            document.getElementById(
+                "statsError"
+            );
+
+
+        const content =
+            document.getElementById(
+                "statsDashboardContent"
+            );
+
+
+        if (!loading || !errorBox || !content) {
+            return;
+        }
+
+
+        loading.style.display =
+            "block";
+
+
+        errorBox.style.display =
+            "none";
+
+
+        content.style.display =
+            "none";
+
+
+        ////////////////////////////////////////////////////
+        // CHECK SUPABASE
+        ////////////////////////////////////////////////////
 
         if (
-            !window.SPARKD_WEBSITE_STATS
+            typeof supabaseClient === "undefined"
+            ||
+            !supabaseClient
         ) {
 
-            console.error(
-                "SPARKD Website Stats module not loaded."
+            showStatsError(
+                "Supabase connection is not available."
             );
 
             return;
@@ -329,82 +337,368 @@
         }
 
 
-        const stats =
-            window.SPARKD_WEBSITE_STATS
-            .getStats();
+        try {
+
+            ////////////////////////////////////////////////////
+            // CALL DATABASE FUNCTION
+            ////////////////////////////////////////////////////
+
+            const { data, error } =
+                await supabaseClient
+                    .rpc(
+                        "get_website_stats"
+                    );
 
 
-        document.getElementById(
-            "statsTotalVisits"
-        ).textContent =
-            stats.totalVisits || 0;
+            if (error) {
+
+                console.error(
+                    "SPARKD Stats RPC error:",
+                    error
+                );
 
 
-        document.getElementById(
-            "statsPageViews"
-        ).textContent =
-            stats.pageViews || 0;
+                showStatsError(
+                    "Could not load website statistics."
+                );
 
 
-        document.getElementById(
-            "statsToday"
-        ).textContent =
-            stats.visitsToday || 0;
+                return;
+
+            }
 
 
-        document.getElementById(
-            "statsWeek"
-        ).textContent =
-            stats.visitsThisWeek || 0;
+            if (!data) {
+
+                showStatsError(
+                    "No statistics were returned."
+                );
 
 
-        document.getElementById(
-            "statsMonth"
-        ).textContent =
-            stats.visitsThisMonth || 0;
+                return;
+
+            }
 
 
-        document.getElementById(
-            "statsLastVisit"
-        ).textContent =
-            formatDate(
-                stats.lastVisit
+            ////////////////////////////////////////////////////
+            // UPDATE OVERVIEW
+            ////////////////////////////////////////////////////
+
+            document.getElementById(
+                "statsUniqueVisitors"
+            ).textContent =
+                data.uniqueVisitors || 0;
+
+
+            document.getElementById(
+                "statsPageViews"
+            ).textContent =
+                data.totalPageViews || 0;
+
+
+            document.getElementById(
+                "statsToday"
+            ).textContent =
+                data.visitsToday || 0;
+
+
+            document.getElementById(
+                "statsWeek"
+            ).textContent =
+                data.visitsThisWeek || 0;
+
+
+            document.getElementById(
+                "statsMonth"
+            ).textContent =
+                data.visitsThisMonth || 0;
+
+
+            ////////////////////////////////////////////////////
+            // UPDATE LISTS
+            ////////////////////////////////////////////////////
+
+            renderTopPages(
+                data.topPages
             );
 
 
-        renderList(
-            "statsPages",
-            stats.pages
-        );
+            renderDevices(
+                data.devices
+            );
 
 
-        renderList(
+            renderBrowsers(
+                data.browsers
+            );
+
+
+            renderOperatingSystems(
+                data.operatingSystems
+            );
+
+
+            renderReferrers(
+                data.referrers
+            );
+
+
+            ////////////////////////////////////////////////////
+            // SHOW DASHBOARD
+            ////////////////////////////////////////////////////
+
+            loading.style.display =
+                "none";
+
+
+            content.style.display =
+                "block";
+
+
+            ////////////////////////////////////////////////////
+            // REFRESH BUTTON
+            ////////////////////////////////////////////////////
+
+            const refreshButton =
+                document.getElementById(
+                    "refreshWebsiteStats"
+                );
+
+
+            if (refreshButton) {
+
+                refreshButton.onclick =
+                    loadWebsiteStats;
+
+            }
+
+
+        }
+        catch (err) {
+
+            console.error(
+                "SPARKD Stats error:",
+                err
+            );
+
+
+            showStatsError(
+                "Unexpected error loading statistics."
+            );
+
+        }
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // ERROR DISPLAY
+    ////////////////////////////////////////////////////
+
+    function showStatsError(message) {
+
+        const loading =
+            document.getElementById(
+                "statsLoading"
+            );
+
+
+        const errorBox =
+            document.getElementById(
+                "statsError"
+            );
+
+
+        if (loading) {
+
+            loading.style.display =
+                "none";
+
+        }
+
+
+        if (errorBox) {
+
+            errorBox.textContent =
+                message;
+
+            errorBox.style.display =
+                "block";
+
+        }
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // TOP PAGES
+    ////////////////////////////////////////////////////
+
+    function renderTopPages(data) {
+
+        const element =
+            document.getElementById(
+                "statsPages"
+            );
+
+
+        if (!element) {
+            return;
+        }
+
+
+        if (
+            !data ||
+            data.length === 0
+        ) {
+
+            element.innerHTML =
+                "<div class='statsEmpty'>No page data yet.</div>";
+
+            return;
+
+        }
+
+
+        element.innerHTML =
+            data
+            .map(function (item) {
+
+                return `
+
+                    <div class="statsRow">
+
+                        <span>
+                            ${escapeHTML(
+                                item.page
+                            )}
+                        </span>
+
+                        <strong>
+                            ${item.views}
+                        </strong>
+
+                    </div>
+
+                `;
+
+            })
+            .join("");
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // DEVICES
+    ////////////////////////////////////////////////////
+
+    function renderDevices(data) {
+
+        renderCountList(
             "statsDevices",
-            stats.devices
-        );
-
-
-        renderList(
-            "statsBrowsers",
-            stats.browsers
-        );
-
-
-        renderList(
-            "statsOperatingSystems",
-            stats.operatingSystems
+            data,
+            "device"
         );
 
     }
 
 
     ////////////////////////////////////////////////////
-    // RENDER LIST
+    // BROWSERS
     ////////////////////////////////////////////////////
 
-    function renderList(
+    function renderBrowsers(data) {
+
+        renderCountList(
+            "statsBrowsers",
+            data,
+            "browser"
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // OPERATING SYSTEMS
+    ////////////////////////////////////////////////////
+
+    function renderOperatingSystems(data) {
+
+        renderCountList(
+            "statsOperatingSystems",
+            data,
+            "operatingSystem"
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // REFERRERS
+    ////////////////////////////////////////////////////
+
+    function renderReferrers(data) {
+
+        const element =
+            document.getElementById(
+                "statsReferrers"
+            );
+
+
+        if (!element) {
+            return;
+        }
+
+
+        if (
+            !data ||
+            data.length === 0
+        ) {
+
+            element.innerHTML =
+                "<div class='statsEmpty'>No referrer data yet.</div>";
+
+            return;
+
+        }
+
+
+        element.innerHTML =
+            data
+            .map(function (item) {
+
+                return `
+
+                    <div class="statsRow">
+
+                        <span>
+                            ${escapeHTML(
+                                item.referrer
+                            )}
+                        </span>
+
+                        <strong>
+                            ${item.count}
+                        </strong>
+
+                    </div>
+
+                `;
+
+            })
+            .join("");
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // GENERIC COUNT LIST
+    ////////////////////////////////////////////////////
+
+    function renderCountList(
         elementId,
-        data
+        data,
+        nameKey
     ) {
 
         const element =
@@ -420,7 +714,7 @@
 
         if (
             !data ||
-            Object.keys(data).length === 0
+            data.length === 0
         ) {
 
             element.innerHTML =
@@ -431,67 +725,30 @@
         }
 
 
-        const entries =
-            Object.entries(data)
-            .sort(
-                function (a, b) {
-
-                    return b[1] - a[1];
-
-                }
-            );
-
-
         element.innerHTML =
-            entries
-            .map(
-                function (entry) {
+            data
+            .map(function (item) {
 
-                    return `
+                return `
 
-                        <div class="statsRow">
+                    <div class="statsRow">
 
-                            <span>
-                                ${escapeHTML(entry[0])}
-                            </span>
+                        <span>
+                            ${escapeHTML(
+                                item[nameKey]
+                            )}
+                        </span>
 
-                            <strong>
-                                ${entry[1]}
-                            </strong>
+                        <strong>
+                            ${item.count}
+                        </strong>
 
-                        </div>
+                    </div>
 
-                    `;
+                `;
 
-                }
-            )
+            })
             .join("");
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // DATE FORMAT
-    ////////////////////////////////////////////////////
-
-    function formatDate(date) {
-
-        if (!date) {
-            return "—";
-        }
-
-
-        try {
-
-            return new Date(date)
-                .toLocaleString();
-
-        }
-        catch (error) {
-
-            return "—";
-
-        }
 
     }
 
@@ -503,11 +760,26 @@
     function escapeHTML(value) {
 
         return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
 
     }
 
@@ -548,7 +820,7 @@
                 z-index: 999999;
 
                 background:
-                    rgba(0, 0, 0, 0.96);
+                    rgba(0, 0, 0, 0.97);
 
                 color: white;
 
@@ -566,211 +838,272 @@
 
                 top: 0;
 
+                z-index: 2;
+
                 display: flex;
 
-                justify-content: space-between;
+                justify-content:
+                    space-between;
 
                 align-items: center;
 
-                padding: 18px 24px;
+                padding:
+                    18px 24px;
 
-                background: #111;
+                background:
+                    #111;
 
                 border-bottom:
                     1px solid #333;
 
-                font-size: 21px;
+                font-size:
+                    21px;
 
-                font-weight: bold;
+                font-weight:
+                    bold;
 
             }
 
 
             .statsHeader button {
 
-                border: none;
+                border:
+                    none;
 
-                background: transparent;
+                background:
+                    transparent;
 
-                color: white;
+                color:
+                    white;
 
-                font-size: 20px;
+                font-size:
+                    20px;
 
-                cursor: pointer;
+                cursor:
+                    pointer;
 
             }
 
 
             .statsContent {
 
-                max-width: 1100px;
+                max-width:
+                    1100px;
 
-                margin: auto;
+                margin:
+                    auto;
 
-                padding: 25px;
+                padding:
+                    25px;
 
             }
 
 
             .statsGrid {
 
-                display: grid;
+                display:
+                    grid;
 
                 grid-template-columns:
                     repeat(
                         auto-fit,
-                        minmax(180px, 1fr)
+                        minmax(
+                            180px,
+                            1fr
+                        )
                     );
 
-                gap: 15px;
+                gap:
+                    15px;
 
-                margin-bottom: 25px;
+                margin-bottom:
+                    25px;
 
             }
 
 
             .statCard {
 
-                background: #181818;
+                background:
+                    #181818;
 
                 border:
                     1px solid #333;
 
-                border-radius: 12px;
+                border-radius:
+                    12px;
 
-                padding: 20px;
-
-                box-sizing: border-box;
+                padding:
+                    20px;
 
             }
 
 
             .statTitle {
 
-                color: #aaa;
+                color:
+                    #aaa;
 
-                font-size: 14px;
+                font-size:
+                    14px;
 
-                margin-bottom: 10px;
+                margin-bottom:
+                    10px;
 
             }
 
 
             .statValue {
 
-                font-size: 30px;
+                font-size:
+                    30px;
 
-                font-weight: bold;
-
-            }
-
-
-            .statSmall {
-
-                font-size: 15px;
-
-                line-height: 1.4;
+                font-weight:
+                    bold;
 
             }
 
 
             .statsSection {
 
-                background: #181818;
+                background:
+                    #181818;
 
                 border:
                     1px solid #333;
 
-                border-radius: 12px;
+                border-radius:
+                    12px;
 
-                padding: 20px;
+                padding:
+                    20px;
 
-                margin-bottom: 15px;
+                margin-bottom:
+                    15px;
 
             }
 
 
             .statsSection h3 {
 
-                margin-top: 0;
+                margin-top:
+                    0;
 
-                margin-bottom: 15px;
+                margin-bottom:
+                    15px;
 
             }
 
 
             .statsRow {
 
-                display: flex;
+                display:
+                    flex;
 
-                justify-content: space-between;
+                justify-content:
+                    space-between;
 
-                align-items: center;
+                align-items:
+                    center;
 
-                padding: 10px 0;
+                padding:
+                    10px 0;
 
                 border-bottom:
                     1px solid #292929;
+
+                gap:
+                    20px;
 
             }
 
 
             .statsRow:last-child {
 
-                border-bottom: none;
+                border-bottom:
+                    none;
 
             }
 
 
             .statsEmpty {
 
-                color: #888;
+                color:
+                    #888;
+
+            }
+
+
+            .statsLoading {
+
+                text-align:
+                    center;
+
+                padding:
+                    60px 20px;
+
+                color:
+                    #aaa;
+
+                font-size:
+                    18px;
+
+            }
+
+
+            .statsError {
+
+                text-align:
+                    center;
+
+                padding:
+                    60px 20px;
+
+                color:
+                    #ff6a00;
+
+                font-size:
+                    18px;
 
             }
 
 
             .statsActions {
 
-                display: flex;
+                display:
+                    flex;
 
-                gap: 10px;
+                gap:
+                    10px;
 
-                flex-wrap: wrap;
-
-                margin-top: 20px;
+                margin-top:
+                    20px;
 
             }
 
 
             .statsActions button {
 
-                border: none;
+                border:
+                    none;
 
-                border-radius: 8px;
+                border-radius:
+                    8px;
 
-                padding: 11px 16px;
+                padding:
+                    11px 16px;
 
-                cursor: pointer;
+                cursor:
+                    pointer;
 
-                font-weight: bold;
+                font-weight:
+                    bold;
 
-            }
+                background:
+                    #ff6a00;
 
-
-            #refreshWebsiteStats {
-
-                background: #ff6a00;
-
-                color: white;
-
-            }
-
-
-            #clearWebsiteStats {
-
-                background: #333;
-
-                color: white;
+                color:
+                    white;
 
             }
 
@@ -781,16 +1114,49 @@
 
                 .statsContent {
 
-                    padding: 15px;
+                    padding:
+                        15px;
 
                 }
 
 
                 .statsHeader {
 
-                    padding: 15px;
+                    padding:
+                        15px;
 
-                    font-size: 18px;
+                    font-size:
+                        18px;
+
+                }
+
+
+                .statsGrid {
+
+                    grid-template-columns:
+                        repeat(
+                            2,
+                            minmax(
+                                0,
+                                1fr
+                            )
+                        );
+
+                }
+
+
+                .statCard {
+
+                    padding:
+                        15px;
+
+                }
+
+
+                .statValue {
+
+                    font-size:
+                        24px;
 
                 }
 
