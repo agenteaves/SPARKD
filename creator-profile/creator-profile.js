@@ -418,6 +418,7 @@
                 </section>
 
 
+
 <!-- ACHIEVEMENTS -->
 
 <section class="profileSection">
@@ -432,11 +433,17 @@
 
         <!-- FIRST SPARK -->
 
-        <div class="achievement locked">
+        <div
+            class="achievement locked"
+            data-achievement="first-spark"
+        >
 
-        <div class="achievementIcon">
-            <img src="achievements/key.png" alt="First Spark">
-        </div>
+            <div class="achievementIcon">
+                <img
+                    src="achievements/key.png"
+                    alt="First Spark"
+                >
+            </div>
 
             <span>
                 First Spark
@@ -451,11 +458,17 @@
 
         <!-- MEME MAKER -->
 
-        <div class="achievement locked">
+        <div
+            class="achievement locked"
+            data-achievement="meme-maker"
+        >
 
-        <div class="achievementIcon">
-            <img src="achievements/blacksmith.png" alt="Meme Maker">
-        </div>
+            <div class="achievementIcon">
+                <img
+                    src="achievements/blacksmith.png"
+                    alt="Meme Maker"
+                >
+            </div>
 
             <span>
                 Meme Maker
@@ -470,11 +483,17 @@
 
         <!-- MISSION RUNNER -->
 
-        <div class="achievement locked">
+        <div
+            class="achievement locked"
+            data-achievement="mission-runner"
+        >
 
-        <div class="achievementIcon">
-            <img src="achievements/map.png" alt="Mission Runner">
-        </div>
+            <div class="achievementIcon">
+                <img
+                    src="achievements/map.png"
+                    alt="Mission Runner"
+                >
+            </div>
 
             <span>
                 Mission Runner
@@ -489,11 +508,17 @@
 
         <!-- SPARKD HOLDER -->
 
-        <div class="achievement locked">
+        <div
+            class="achievement locked"
+            data-achievement="sparkd-holder"
+        >
 
-        <div class="achievementIcon">
-            <img src="achievements/chest.png" alt="SPARKD Holder">
-        </div>
+            <div class="achievementIcon">
+                <img
+                    src="achievements/chest.png"
+                    alt="SPARKD Holder"
+                >
+            </div>
 
             <span>
                 SPARKD Holder
@@ -508,11 +533,17 @@
 
         <!-- MEME LEGEND -->
 
-        <div class="achievement locked">
+        <div
+            class="achievement locked"
+            data-achievement="meme-legend"
+        >
 
-         <div class="achievementIcon">
-            <img src="achievements/throne.png" alt="Meme Legend">
-        </div>
+            <div class="achievementIcon">
+                <img
+                    src="achievements/throne.png"
+                    alt="Meme Legend"
+                >
+            </div>
 
             <span>
                 Meme Legend
@@ -527,11 +558,17 @@
 
         <!-- SPARKD OG -->
 
-        <div class="achievement locked">
+        <div
+            class="achievement locked"
+            data-achievement="sparkd-og"
+        >
 
-        <div class="achievementIcon">
-            <img src="achievements/dragon.png" alt="SPARKD OG">
-        </div>
+            <div class="achievementIcon">
+                <img
+                    src="achievements/dragon.png"
+                    alt="SPARKD OG"
+                >
+            </div>
 
             <span>
                 SPARKD OG
@@ -551,6 +588,8 @@
 `;
 
     }
+
+
 
     ////////////////////////////////////////////////////
     // UPDATE PROFILE DISPLAY
