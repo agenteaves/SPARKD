@@ -342,14 +342,11 @@ async function recordVisit() {
     }
 
 
-    ////////////////////////////////////////////////////
-    // SUPABASE STILL NOT AVAILABLE
+        ////////////////////////////////////////////////////
+    // CHECK STATS SUPABASE CLIENT
     ////////////////////////////////////////////////////
 
-    if (
-        typeof supabaseClient === "undefined" ||
-        !supabaseClient
-    ) {
+    if (!statsSupabaseClient) {
 
         console.error(
             "SPARKD Stats: Supabase client could not be initialized."
@@ -396,45 +393,42 @@ async function recordVisit() {
 
 
     ////////////////////////////////////////////////////
-    // SEND VISIT
-    ////////////////////////////////////////////////////
+// SEND VISIT
+////////////////////////////////////////////////////
 
-    try {
+try {
 
-        const { error } =
-            await supabaseClient
-                .from("website_visits")
-                .insert(visit);
-
-
-        if (error) {
-
-            console.error(
-                "SPARKD Stats: visit recording failed:",
-                error
-            );
-
-            return;
-
-        }
+    const { error } =
+        await statsSupabaseClient
+            .from("website_visits")
+            .insert(visit);
 
 
-        console.log(
-            "SPARKD Stats: visit recorded."
-        );
-
-
-    } catch (err) {
+    if (error) {
 
         console.error(
-            "SPARKD Stats: visit recording error:",
-            err
+            "SPARKD Stats: visit recording failed:",
+            error
         );
+
+        return;
 
     }
 
-}
 
+    console.log(
+        "SPARKD Stats: visit recorded."
+    );
+
+
+} catch (err) {
+
+    console.error(
+        "SPARKD Stats: visit recording error:",
+        err
+    );
+
+}
     ////////////////////////////////////////////////////
     // PUBLIC API
     ////////////////////////////////////////////////////
