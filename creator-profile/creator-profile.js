@@ -453,9 +453,9 @@
 
         <div class="achievement locked">
 
-            <div class="achievementIcon">
-                ◉
-            </div>
+        <div class="achievementIcon">
+            <img src="achievements/blacksmith.png" alt="Meme Maker">
+        </div>
 
             <span>
                 Meme Maker
@@ -472,9 +472,9 @@
 
         <div class="achievement locked">
 
-            <div class="achievementIcon">
-                ⟁
-            </div>
+        <div class="achievementIcon">
+            <img src="achievements/map.png" alt="Mission Runner">
+        </div>
 
             <span>
                 Mission Runner
@@ -491,9 +491,9 @@
 
         <div class="achievement locked">
 
-            <div class="achievementIcon">
-                ◇
-            </div>
+        <div class="achievementIcon">
+            <img src="achievements/chest.png" alt="SPARKD Holder">
+        </div>
 
             <span>
                 SPARKD Holder
@@ -510,9 +510,9 @@
 
         <div class="achievement locked">
 
-            <div class="achievementIcon">
-                ⬢
-            </div>
+         <div class="achievementIcon">
+            <img src="achievements/throne.png" alt="Meme Legend">
+        </div>
 
             <span>
                 Meme Legend
@@ -529,9 +529,9 @@
 
         <div class="achievement locked">
 
-            <div class="achievementIcon">
-                ✦
-            </div>
+        <div class="achievementIcon">
+            <img src="achievements/dragon.png" alt="SPARKD OG">
+        </div>
 
             <span>
                 SPARKD OG
