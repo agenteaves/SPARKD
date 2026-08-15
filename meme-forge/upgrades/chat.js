@@ -41,6 +41,28 @@ if (typeof supabase === "undefined") {
 }
 
 // ==========================================
+// SHORTEN WALLET ADDRESS
+// ==========================================
+
+function shorten(wallet) {
+
+    if (!wallet) {
+        return "Unknown";
+    }
+
+    if (wallet.length <= 12) {
+        return wallet;
+    }
+
+    return (
+        wallet.slice(0, 6) +
+        "..." +
+        wallet.slice(-4)
+    );
+
+}
+
+// ==========================================
 // APPEND CHAT MESSAGE
 // ==========================================
 
@@ -145,6 +167,7 @@ function appendMessage(
     }
 
 }
+
 
 
 // ==========================================
