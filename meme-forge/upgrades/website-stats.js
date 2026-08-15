@@ -6,7 +6,36 @@
 (function () {
 
     "use strict";
+    
+    ////////////////////////////////////////////////////
+    // SUPABASE CONFIG
+    ////////////////////////////////////////////////////
 
+    const SUPABASE_URL =
+        "https://uxpbgzksfizkyxubctep.supabase.co";
+
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+
+
+    ////////////////////////////////////////////////////
+    // SUPABASE CLIENT
+    ////////////////////////////////////////////////////
+
+    let statsSupabaseClient = null;
+
+
+    if (
+        typeof supabase !== "undefined"
+    ) {
+
+        statsSupabaseClient =
+            supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY
+            );
+
+    }
 
     ////////////////////////////////////////////////////
     // CONFIG
