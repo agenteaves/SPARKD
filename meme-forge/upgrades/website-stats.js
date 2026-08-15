@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD WEBSITE STATS
-// Developer Upgrade Module
+// Supabase Website Visitor Tracker
 ////////////////////////////////////////////////////
 
 (function () {
@@ -12,174 +12,113 @@
     // CONFIG
     ////////////////////////////////////////////////////
 
-    const SPARKD_STATS = {
+    const STATS_CONFIG = {
 
-        version: "1.0.0",
+        sessionKey:
+            "sparkdWebsiteStatsSession",
 
-        storageKey: "sparkdWebsiteStats",
-
-        sessionKey: "sparkdStatsSession",
-
-        enabled: true
+        sessionDuration:
+            30 * 60 * 1000
 
     };
 
 
     ////////////////////////////////////////////////////
-    // INITIALIZE STATS
+    // CREATE / GET SESSION
     ////////////////////////////////////////////////////
 
-    function initializeStats() {
+    function getSessionId() {
 
-        if (!SPARKD_STATS.enabled) {
-            return;
-        }
+        const now =
+            Date.now();
 
 
-        let stats =
+        const existing =
             localStorage.getItem(
-                SPARKD_STATS.storageKey
+                STATS_CONFIG.sessionKey
             );
 
 
-        if (!stats) {
+        if (existing) {
 
-            stats = {
+            try {
 
-                totalVisits: 0,
-
-                uniqueVisitors: 0,
-
-                pageViews: 0,
-
-                visitsToday: 0,
-
-                visitsThisWeek: 0,
-
-                visitsThisMonth: 0,
-
-                lastVisit: null,
-
-                pages: {},
-
-                devices: {},
-
-                browsers: {},
-
-                operatingSystems: {}
-
-            };
+                const session =
+                    JSON.parse(existing);
 
 
-            saveStats(stats);
+                if (
+                    session.id &&
+                    now - session.created <
+                    STATS_CONFIG.sessionDuration
+                ) {
 
-        }
+                    return session.id;
 
+                }
 
-        recordVisit();
+            }
+            catch (error) {
 
-    }
-
-
-    ////////////////////////////////////////////////////
-    // LOAD STATS
-    ////////////////////////////////////////////////////
-
-    function loadStats() {
-
-        try {
-
-            const data =
-                localStorage.getItem(
-                    SPARKD_STATS.storageKey
+                console.warn(
+                    "SPARKD stats session could not be read."
                 );
-
-
-            if (!data) {
-
-                return {
-
-                    totalVisits: 0,
-
-                    uniqueVisitors: 0,
-
-                    pageViews: 0,
-
-                    visitsToday: 0,
-
-                    visitsThisWeek: 0,
-
-                    visitsThisMonth: 0,
-
-                    lastVisit: null,
-
-                    pages: {},
-
-                    devices: {},
-
-                    browsers: {},
-
-                    operatingSystems: {}
-
-                };
 
             }
 
-
-            return JSON.parse(data);
-
-
         }
-        catch (error) {
-
-            console.error(
-                "SPARKD Stats load error:",
-                error
-            );
 
 
-            return {
+        const newSession = {
 
-                totalVisits: 0,
+            id:
+                generateSessionId(),
 
-                uniqueVisitors: 0,
+            created:
+                now
 
-                pageViews: 0,
+        };
 
-                visitsToday: 0,
 
-                visitsThisWeek: 0,
+        localStorage.setItem(
 
-                visitsThisMonth: 0,
+            STATS_CONFIG.sessionKey,
 
-                lastVisit: null,
+            JSON.stringify(newSession)
 
-                pages: {},
+        );
 
-                devices: {},
 
-                browsers: {},
-
-                operatingSystems: {}
-
-            };
-
-        }
+        return newSession.id;
 
     }
 
 
     ////////////////////////////////////////////////////
-    // SAVE STATS
+    // GENERATE SESSION ID
     ////////////////////////////////////////////////////
 
-    function saveStats(stats) {
+    function generateSessionId() {
 
-        localStorage.setItem(
+        if (
+            window.crypto &&
+            crypto.randomUUID
+        ) {
 
-            SPARKD_STATS.storageKey,
+            return crypto.randomUUID();
 
-            JSON.stringify(stats)
+        }
+
+
+        return (
+
+            Date.now().toString(36)
+            +
+            "-"
+            +
+            Math.random()
+                .toString(36)
+                .substring(2, 12)
 
         );
 
@@ -187,281 +126,7 @@
 
 
     ////////////////////////////////////////////////////
-    // RECORD VISIT
-    ////////////////////////////////////////////////////
-
-    function recordVisit() {
-
-        const stats =
-            loadStats();
-
-
-        const today =
-            new Date()
-            .toISOString()
-            .split("T")[0];
-
-
-        const page =
-            window.location.pathname;
-
-
-        ////////////////////////////////////////////////////
-        // PAGE VIEW
-        ////////////////////////////////////////////////////
-
-        stats.pageViews++;
-
-
-        ////////////////////////////////////////////////////
-        // TOTAL VISIT
-        ////////////////////////////////////////////////////
-
-        stats.totalVisits++;
-
-
-        ////////////////////////////////////////////////////
-        // DAILY VISITS
-        ////////////////////////////////////////////////////
-
-        if (!stats.daily) {
-
-            stats.daily = {};
-
-        }
-
-
-        if (!stats.daily[today]) {
-
-            stats.daily[today] = 0;
-
-        }
-
-
-        stats.daily[today]++;
-
-
-        ////////////////////////////////////////////////////
-        // PAGE TRACKING
-        ////////////////////////////////////////////////////
-
-        if (!stats.pages[page]) {
-
-            stats.pages[page] = 0;
-
-        }
-
-
-        stats.pages[page]++;
-
-
-        ////////////////////////////////////////////////////
-        // DEVICE
-        ////////////////////////////////////////////////////
-
-        const device =
-            detectDevice();
-
-
-        if (!stats.devices[device]) {
-
-            stats.devices[device] = 0;
-
-        }
-
-
-        stats.devices[device]++;
-
-
-        ////////////////////////////////////////////////////
-        // BROWSER
-        ////////////////////////////////////////////////////
-
-        const browser =
-            detectBrowser();
-
-
-        if (!stats.browsers[browser]) {
-
-            stats.browsers[browser] = 0;
-
-        }
-
-
-        stats.browsers[browser]++;
-
-
-        ////////////////////////////////////////////////////
-        // OPERATING SYSTEM
-        ////////////////////////////////////////////////////
-
-        const operatingSystem =
-            detectOperatingSystem();
-
-
-        if (!stats.operatingSystems[operatingSystem]) {
-
-            stats.operatingSystems[
-                operatingSystem
-            ] = 0;
-
-        }
-
-
-        stats.operatingSystems[
-            operatingSystem
-        ]++;
-
-
-        ////////////////////////////////////////////////////
-        // LAST VISIT
-        ////////////////////////////////////////////////////
-
-        stats.lastVisit =
-            new Date().toISOString();
-
-
-        ////////////////////////////////////////////////////
-        // CALCULATED PERIODS
-        ////////////////////////////////////////////////////
-
-        stats.visitsToday =
-            calculateToday(stats);
-
-
-        stats.visitsThisWeek =
-            calculateThisWeek(stats);
-
-
-        stats.visitsThisMonth =
-            calculateThisMonth(stats);
-
-
-        saveStats(stats);
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // CALCULATE TODAY
-    ////////////////////////////////////////////////////
-
-    function calculateToday(stats) {
-
-        const today =
-            new Date()
-            .toISOString()
-            .split("T")[0];
-
-
-        if (!stats.daily) {
-            return 0;
-        }
-
-
-        return stats.daily[today] || 0;
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // CALCULATE THIS WEEK
-    ////////////////////////////////////////////////////
-
-    function calculateThisWeek(stats) {
-
-        if (!stats.daily) {
-            return 0;
-        }
-
-
-        const now =
-            new Date();
-
-
-        let total = 0;
-
-
-        for (let i = 0; i < 7; i++) {
-
-            const date =
-                new Date(now);
-
-
-            date.setDate(
-                now.getDate() - i
-            );
-
-
-            const key =
-                date
-                .toISOString()
-                .split("T")[0];
-
-
-            total +=
-                stats.daily[key] || 0;
-
-        }
-
-
-        return total;
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // CALCULATE THIS MONTH
-    ////////////////////////////////////////////////////
-
-    function calculateThisMonth(stats) {
-
-        if (!stats.daily) {
-            return 0;
-        }
-
-
-        const now =
-            new Date();
-
-
-        const year =
-            now.getFullYear();
-
-
-        const month =
-            String(
-                now.getMonth() + 1
-            ).padStart(2, "0");
-
-
-        let total = 0;
-
-
-        Object.keys(stats.daily)
-        .forEach(function (date) {
-
-            if (
-                date.startsWith(
-                    year + "-" + month
-                )
-            ) {
-
-                total +=
-                    stats.daily[date];
-
-            }
-
-        });
-
-
-        return total;
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // DEVICE DETECTION
+    // DETECT DEVICE
     ////////////////////////////////////////////////////
 
     function detectDevice() {
@@ -490,7 +155,7 @@
 
 
     ////////////////////////////////////////////////////
-    // BROWSER DETECTION
+    // DETECT BROWSER
     ////////////////////////////////////////////////////
 
     function detectBrowser() {
@@ -504,6 +169,15 @@
         ) {
 
             return "Microsoft Edge";
+
+        }
+
+
+        if (
+            userAgent.includes("OPR/")
+        ) {
+
+            return "Opera";
 
         }
 
@@ -545,7 +219,7 @@
 
 
     ////////////////////////////////////////////////////
-    // OPERATING SYSTEM
+    // DETECT OPERATING SYSTEM
     ////////////////////////////////////////////////////
 
     function detectOperatingSystem() {
@@ -559,15 +233,6 @@
         ) {
 
             return "Windows";
-
-        }
-
-
-        if (
-            userAgent.includes("Mac OS")
-        ) {
-
-            return "macOS";
 
         }
 
@@ -593,6 +258,15 @@
 
 
         if (
+            userAgent.includes("Mac OS")
+        ) {
+
+            return "macOS";
+
+        }
+
+
+        if (
             userAgent.includes("Linux")
         ) {
 
@@ -607,46 +281,119 @@
 
 
     ////////////////////////////////////////////////////
+    // SEND VISIT TO SUPABASE
+    ////////////////////////////////////////////////////
+
+    async function recordVisit() {
+
+        ////////////////////////////////////////////////////
+        // WAIT FOR EXISTING SUPABASE CLIENT
+        ////////////////////////////////////////////////////
+
+        if (
+            typeof supabaseClient === "undefined"
+            ||
+            !supabaseClient
+        ) {
+
+            console.warn(
+                "SPARKD Stats: Supabase client is not available yet."
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            const sessionId =
+                getSessionId();
+
+
+            const visit = {
+
+                session_id:
+                    sessionId,
+
+                page:
+                    window.location.pathname,
+
+                referrer:
+                    document.referrer || null,
+
+                device:
+                    detectDevice(),
+
+                browser:
+                    detectBrowser(),
+
+                operating_system:
+                    detectOperatingSystem()
+
+            };
+
+
+            const { error } =
+                await supabaseClient
+                    .from(
+                        "website_visits"
+                    )
+                    .insert(
+                        visit
+                    );
+
+
+            if (error) {
+
+                console.error(
+                    "SPARKD Stats: visit recording failed:",
+                    error
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "SPARKD Stats: visit recorded."
+            );
+
+
+        }
+        catch (error) {
+
+            console.error(
+                "SPARKD Stats error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    ////////////////////////////////////////////////////
     // PUBLIC API
     ////////////////////////////////////////////////////
 
     window.SPARKD_WEBSITE_STATS = {
 
-        initialize:
-            initializeStats,
+        recordVisit:
+            recordVisit,
 
-
-        getStats:
-            loadStats,
-
-
-        refresh:
-            function () {
-
-                initializeStats();
-
-                return loadStats();
-
-            },
-
-
-        clear:
-            function () {
-
-                localStorage.removeItem(
-                    SPARKD_STATS.storageKey
-                );
-
-            }
+        getSessionId:
+            getSessionId
 
     };
 
 
     ////////////////////////////////////////////////////
-    // START
+    // START TRACKING
     ////////////////////////////////////////////////////
 
-    initializeStats();
+    recordVisit();
 
 
 })();
