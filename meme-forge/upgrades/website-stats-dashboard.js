@@ -342,7 +342,7 @@ if (!statsClient) {
             ////////////////////////////////////////////////////
 
             const { data, error } =
-                await supabaseClient
+                await statsClient
                     .rpc(
                         "get_website_stats"
                     );
