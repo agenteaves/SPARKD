@@ -182,19 +182,28 @@ async function loadSupabaseMessages() {
 
   try {
 
-    const { data, error } =
-      await supabaseClient
-        .from("messages")
-        .select(
-          "id, wallet, message, created_at"
-        )
-        .order(
-          "created_at",
-          {
-            ascending: true
-          }
-        )
-        .limit(100);
+    const cutoff =
+  new Date(
+    Date.now() - 24 * 60 * 60 * 1000
+  ).toISOString();
+
+
+const { data, error } =
+  await supabaseClient
+    .from("messages")
+    .select(
+      "id, wallet, message, created_at"
+    )
+    .gte(
+      "created_at",
+      cutoff
+    )
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
 
 
     if (error) {
