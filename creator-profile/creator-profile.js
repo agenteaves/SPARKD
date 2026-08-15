@@ -763,68 +763,196 @@
         }
 
 
+      
         ////////////////////////////////////////////////////
         // CHECK FOR EXISTING SPARKD CONTENT GUARD
         ////////////////////////////////////////////////////
 
         const guard =
-            window.SPARKD_CONTENT_GUARD;
+            window.SPARKDContentGuard;
 
 
         if (
-            guard &&
-            typeof guard.scanImage === "function"
+            !guard ||
+            typeof guard.checkImage !== "function"
         ) {
 
-            try {
+            console.error(
+                "SPARKD Content Guard API is not available."
+            );
 
-                const result =
-                    await guard.scanImage(file);
+
+            if (status) {
+
+                status.textContent =
+                    "🚫 Content protection is not ready. Image rejected.";
+
+            }
 
 
-                if (
-                    result === false ||
-                    (
-                        result &&
-                        result.safe === false
-                    )
-                ) {
+            return false;
 
-                    if (status) {
+        }
 
-                        status.textContent =
-                            "🚫 Image rejected by SPARKD Content Guard.";
 
-                    }
+        try {
 
-                    return false;
+            /*
+             * Wait for the Content Guard model
+             * to finish loading.
+             */
 
-                }
-
+            if (
+                typeof guard.isReady === "function" &&
+                !guard.isReady()
+            ) {
 
                 if (status) {
 
                     status.textContent =
-                        "✅ Image approved by SPARKD Content Guard.";
+                        "🛡️ Waiting for image protection to initialize...";
 
                 }
 
 
-                return true;
+                await new Promise(
+                    function (resolve, reject) {
+
+                        const timeout =
+                            setTimeout(
+                                function () {
+
+                                    reject(
+                                        new Error(
+                                            "Content Guard initialization timed out."
+                                        )
+                                    );
+
+                                },
+                                15000
+                            );
+
+
+                        function readyHandler() {
+
+                            clearTimeout(
+                                timeout
+                            );
+
+
+                            window.removeEventListener(
+                                "sparkd-content-guard-ready",
+                                readyHandler
+                            );
+
+
+                            resolve();
+
+                        }
+
+
+                        window.addEventListener(
+                            "sparkd-content-guard-ready",
+                            readyHandler
+                        );
+
+                    }
+                );
 
             }
-            catch (error) {
 
-                console.error(
-                    "SPARKD profile image scan failed:",
-                    error
+
+            /*
+             * Convert uploaded File into an Image.
+             */
+
+            const image =
+                await new Promise(
+                    function (resolve, reject) {
+
+                        const reader =
+                            new FileReader();
+
+
+                        reader.onload =
+                            function (event) {
+
+                                const img =
+                                    new Image();
+
+
+                                img.onload =
+                                    function () {
+
+                                        resolve(
+                                            img
+                                        );
+
+                                    };
+
+
+                                img.onerror =
+                                    function () {
+
+                                        reject(
+                                            new Error(
+                                                "Could not load image for safety scan."
+                                            )
+                                        );
+
+                                    };
+
+
+                                img.src =
+                                    event.target.result;
+
+                            };
+
+
+                        reader.onerror =
+                            function () {
+
+                                reject(
+                                    new Error(
+                                        "Could not read image file."
+                                    )
+                                );
+
+                            };
+
+
+                        reader.readAsDataURL(
+                            file
+                        );
+
+                    }
                 );
 
 
+            /*
+             * Run the existing SPARKD Content Guard.
+             */
+
+            const result =
+                await guard.checkImage(
+                    image
+                );
+
+
+            /*
+             * FAIL CLOSED
+             */
+
+            if (
+                !result ||
+                result.safe !== true ||
+                result.blocked === true
+            ) {
+
                 if (status) {
 
                     status.textContent =
-                        "🚫 Image could not be verified.";
+                        "🚫 Image rejected by SPARKD Content Guard.";
 
                 }
 
@@ -832,6 +960,36 @@
                 return false;
 
             }
+
+
+            if (status) {
+
+                status.textContent =
+                    "✅ Image approved by SPARKD Content Guard.";
+
+            }
+
+
+            return true;
+
+        }
+        catch (error) {
+
+            console.error(
+                "SPARKD profile image scan failed:",
+                error
+            );
+
+
+            if (status) {
+
+                status.textContent =
+                    "🚫 Image could not be verified.";
+
+            }
+
+
+            return false;
 
         }
 
