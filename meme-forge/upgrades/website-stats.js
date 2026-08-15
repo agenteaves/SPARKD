@@ -309,40 +309,13 @@
     }
 
 
-   ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 // SEND VISIT TO SUPABASE
 ////////////////////////////////////////////////////
 
 async function recordVisit() {
 
     ////////////////////////////////////////////////////
-    // WAIT FOR EXISTING SUPABASE CLIENT
-    ////////////////////////////////////////////////////
-
-    let attempts = 0;
-
-    while (
-        (
-            typeof supabaseClient === "undefined" ||
-            !supabaseClient
-        ) &&
-        attempts < 50
-    ) {
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    100
-                )
-        );
-
-        attempts++;
-
-    }
-
-
-        ////////////////////////////////////////////////////
     // CHECK STATS SUPABASE CLIENT
     ////////////////////////////////////////////////////
 
@@ -393,62 +366,63 @@ async function recordVisit() {
 
 
     ////////////////////////////////////////////////////
-// SEND VISIT
-////////////////////////////////////////////////////
+    // SEND VISIT
+    ////////////////////////////////////////////////////
 
-try {
+    try {
 
-    const { error } =
-        await statsSupabaseClient
-            .from("website_visits")
-            .insert(visit);
+        const { error } =
+            await statsSupabaseClient
+                .from("website_visits")
+                .insert(visit);
 
 
-    if (error) {
+        if (error) {
 
-        console.error(
-            "SPARKD Stats: visit recording failed:",
-            error
+            console.error(
+                "SPARKD Stats: visit recording failed:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        console.log(
+            "SPARKD Stats: visit recorded."
         );
 
-        return;
+
+    } catch (err) {
+
+        console.error(
+            "SPARKD Stats: visit recording error:",
+            err
+        );
 
     }
 
-
-    console.log(
-        "SPARKD Stats: visit recorded."
-    );
+}  // <-- closes recordVisit()
 
 
-} catch (err) {
+////////////////////////////////////////////////////
+// PUBLIC API
+////////////////////////////////////////////////////
 
-    console.error(
-        "SPARKD Stats: visit recording error:",
-        err
-    );
+window.SPARKD_WEBSITE_STATS = {
 
-}
-    ////////////////////////////////////////////////////
-    // PUBLIC API
-    ////////////////////////////////////////////////////
+    recordVisit:
+        recordVisit,
 
-    window.SPARKD_WEBSITE_STATS = {
+    getSessionId:
+        getSessionId
 
-        recordVisit:
-            recordVisit,
-
-        getSessionId:
-            getSessionId
-
-    };
+};
 
 
-    ////////////////////////////////////////////////////
-    // START TRACKING
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// START TRACKING
+////////////////////////////////////////////////////
 
-    recordVisit();
-
-
-})();
+recordVisit();
