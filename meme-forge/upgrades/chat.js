@@ -40,6 +40,112 @@ if (typeof supabase === "undefined") {
 
 }
 
+// ==========================================
+// APPEND CHAT MESSAGE
+// ==========================================
+
+function appendMessage(
+    wallet,
+    message,
+    createdAt,
+    scrollToBottom = true
+) {
+
+    const messages =
+        document.getElementById("messages");
+
+    if (!messages) {
+        return;
+    }
+
+
+    const messageWrapper =
+        document.createElement("div");
+
+    messageWrapper.className =
+        "flex gap-3";
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-sm shrink-0";
+
+    avatar.textContent =
+        "💚";
+
+
+    const content =
+        document.createElement("div");
+
+
+    const name =
+        document.createElement("p");
+
+    name.className =
+        "text-xs text-green-400 mb-1";
+
+    name.textContent =
+        wallet || "Unknown";
+
+
+    const time =
+        document.createElement("span");
+
+    time.className =
+        "text-gray-600";
+
+    time.textContent =
+        createdAt
+            ? " • " +
+              new Date(createdAt).toLocaleTimeString(
+                  [],
+                  {
+                      hour: "numeric",
+                      minute: "2-digit"
+                  }
+              )
+            : "";
+
+
+    name.appendChild(time);
+
+
+    const bubble =
+        document.createElement("div");
+
+    bubble.className =
+        "chat-bubble bg-green-950/60 border border-green-800/40 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm break-words";
+
+    bubble.textContent =
+        message;
+
+
+    content.appendChild(name);
+
+    content.appendChild(bubble);
+
+
+    messageWrapper.appendChild(avatar);
+
+    messageWrapper.appendChild(content);
+
+
+    messages.appendChild(
+        messageWrapper
+    );
+
+
+    if (scrollToBottom) {
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+    }
+
+}
+
 
 // ==========================================
 // LOAD EXISTING MESSAGES
