@@ -26,7 +26,7 @@
     ============================================================ */
 
     const MODEL_URL =
-        "./upgrades/nudenet/nudenet.onnx";
+        "/meme-forge/upgrades/nudenet/nudenet.onnx";
 
 
     /* ============================================================
