@@ -36,8 +36,17 @@ function openDeveloperPanel(){
 
     <div class="devSection">
 
-        <h3>Player Data</h3>
+    <h3>Player Data</h3>
+        
+    <div class="devSection">
 
+    <h3>Website</h3>
+
+    <button id="openWebsiteStatsBtn">
+        📊 Website Stats
+    </button>
+
+</div>
 
         <p>
         🪙 Points:
