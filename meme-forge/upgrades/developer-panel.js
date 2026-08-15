@@ -171,7 +171,30 @@ function openDeveloperPanel(){
 
     };
 
+    ////////////////////////////////////////////////////
+// WEBSITE STATS
+////////////////////////////////////////////////////
 
+document.getElementById(
+    "openWebsiteStatsBtn"
+).onclick = function () {
+
+    if (
+        window.SPARKD_WEBSITE_STATS_DASHBOARD
+    ) {
+
+        window.SPARKD_WEBSITE_STATS_DASHBOARD.open();
+
+    }
+    else {
+
+        alert(
+            "Website Stats dashboard is not loaded."
+        );
+
+    }
+
+};
 
     document.getElementById("add100").onclick =
     function(){
