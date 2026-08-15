@@ -286,92 +286,48 @@
 
     async function recordVisit() {
 
-        ////////////////////////////////////////////////////
-        // WAIT FOR EXISTING SUPABASE CLIENT
-        ////////////////////////////////////////////////////
+       ////////////////////////////////////////////////////
+// WAIT FOR EXISTING SUPABASE CLIENT
+////////////////////////////////////////////////////
 
-        if (
-            typeof supabaseClient === "undefined"
-            ||
-            !supabaseClient
-        ) {
+let attempts = 0;
 
-            console.warn(
-                "SPARKD Stats: Supabase client is not available yet."
-            );
+while (
+    (
+        typeof supabaseClient === "undefined"
+        ||
+        !supabaseClient
+    )
+    &&
+    attempts < 50
+) {
 
-            return;
+    await new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                100
+            )
+    );
 
-        }
+    attempts++;
 
-
-        try {
-
-            const sessionId =
-                getSessionId();
-
-
-            const visit = {
-
-                session_id:
-                    sessionId,
-
-                page:
-                    window.location.pathname,
-
-                referrer:
-                    document.referrer || null,
-
-                device:
-                    detectDevice(),
-
-                browser:
-                    detectBrowser(),
-
-                operating_system:
-                    detectOperatingSystem()
-
-            };
+}
 
 
-            const { error } =
-                await supabaseClient
-                    .from(
-                        "website_visits"
-                    )
-                    .insert(
-                        visit
-                    );
+if (
+    typeof supabaseClient === "undefined"
+    ||
+    !supabaseClient
+) {
 
+    console.error(
+        "SPARKD Stats: Supabase client could not be initialized."
+    );
 
-            if (error) {
+    return;
 
-                console.error(
-                    "SPARKD Stats: visit recording failed:",
-                    error
-                );
-
-                return;
-
-            }
-
-
-            console.log(
-                "SPARKD Stats: visit recorded."
-            );
-
-
-        }
-        catch (error) {
-
-            console.error(
-                "SPARKD Stats error:",
-                error
-            );
-
-        }
-
-    }
+}
 
 
     ////////////////////////////////////////////////////
