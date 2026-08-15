@@ -277,217 +277,232 @@
     }
 
 
+   ////////////////////////////////////////////////////
+// LOAD SUPABASE STATS
+////////////////////////////////////////////////////
+
+async function loadWebsiteStats() {
+
+    const loading =
+        document.getElementById(
+            "statsLoading"
+        );
+
+
+    const errorBox =
+        document.getElementById(
+            "statsError"
+        );
+
+
+    const content =
+        document.getElementById(
+            "statsDashboardContent"
+        );
+
+
+    if (
+        !loading ||
+        !errorBox ||
+        !content
+    ) {
+
+        return;
+
+    }
+
+
+    loading.style.display =
+        "block";
+
+
+    errorBox.style.display =
+        "none";
+
+
+    content.style.display =
+        "none";
+
+
     ////////////////////////////////////////////////////
-    // LOAD SUPABASE STATS
+    // CHECK STATS SUPABASE CLIENT
     ////////////////////////////////////////////////////
 
-    async function loadWebsiteStats() {
-
-        const loading =
-            document.getElementById(
-                "statsLoading"
-            );
+    const statsClient =
+        window.SPARKD_WEBSITE_STATS
+            ?.supabaseClient;
 
 
-        const errorBox =
-            document.getElementById(
-                "statsError"
-            );
+    if (!statsClient) {
+
+        showStatsError(
+            "Supabase connection is not available."
+        );
+
+        return;
+
+    }
 
 
-        const content =
-            document.getElementById(
-                "statsDashboardContent"
-            );
+    ////////////////////////////////////////////////////
+    // LOAD STATISTICS
+    ////////////////////////////////////////////////////
 
+    try {
 
-        if (!loading || !errorBox || !content) {
-            return;
-        }
-
-
-        loading.style.display =
-            "block";
-
-
-        errorBox.style.display =
-            "none";
-
-
-        content.style.display =
-            "none";
+        const { data, error } =
+            await statsClient
+                .rpc(
+                    "get_website_stats"
+                );
 
 
         ////////////////////////////////////////////////////
-// CHECK STATS SUPABASE CLIENT
-////////////////////////////////////////////////////
+        // CHECK RPC ERROR
+        ////////////////////////////////////////////////////
 
-const statsClient =
-    window.SPARKD_WEBSITE_STATS
-        ?.supabaseClient;
-
-
-if (!statsClient) {
-
-    showStatsError(
-        "Supabase connection is not available."
-    );
-
-    return;
-
-}
-
-            ////////////////////////////////////////////////////
-            // CALL DATABASE FUNCTION
-            ////////////////////////////////////////////////////
-
-            const { data, error } =
-                await statsClient
-                    .rpc(
-                        "get_website_stats"
-                    );
-
-
-            if (error) {
-
-                console.error(
-                    "SPARKD Stats RPC error:",
-                    error
-                );
-
-
-                showStatsError(
-                    "Could not load website statistics."
-                );
-
-
-                return;
-
-            }
-
-
-            if (!data) {
-
-                showStatsError(
-                    "No statistics were returned."
-                );
-
-
-                return;
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // UPDATE OVERVIEW
-            ////////////////////////////////////////////////////
-
-            document.getElementById(
-                "statsUniqueVisitors"
-            ).textContent =
-                data.uniqueVisitors || 0;
-
-
-            document.getElementById(
-                "statsPageViews"
-            ).textContent =
-                data.totalPageViews || 0;
-
-
-            document.getElementById(
-                "statsToday"
-            ).textContent =
-                data.visitsToday || 0;
-
-
-            document.getElementById(
-                "statsWeek"
-            ).textContent =
-                data.visitsThisWeek || 0;
-
-
-            document.getElementById(
-                "statsMonth"
-            ).textContent =
-                data.visitsThisMonth || 0;
-
-
-            ////////////////////////////////////////////////////
-            // UPDATE LISTS
-            ////////////////////////////////////////////////////
-
-            renderTopPages(
-                data.topPages
-            );
-
-
-            renderDevices(
-                data.devices
-            );
-
-
-            renderBrowsers(
-                data.browsers
-            );
-
-
-            renderOperatingSystems(
-                data.operatingSystems
-            );
-
-
-            renderReferrers(
-                data.referrers
-            );
-
-
-            ////////////////////////////////////////////////////
-            // SHOW DASHBOARD
-            ////////////////////////////////////////////////////
-
-            loading.style.display =
-                "none";
-
-
-            content.style.display =
-                "block";
-
-
-            ////////////////////////////////////////////////////
-            // REFRESH BUTTON
-            ////////////////////////////////////////////////////
-
-            const refreshButton =
-                document.getElementById(
-                    "refreshWebsiteStats"
-                );
-
-
-            if (refreshButton) {
-
-                refreshButton.onclick =
-                    loadWebsiteStats;
-
-            }
-
-
-        }
-        catch (err) {
+        if (error) {
 
             console.error(
-                "SPARKD Stats error:",
-                err
+                "SPARKD Stats RPC error:",
+                error
             );
 
 
             showStatsError(
-                "Unexpected error loading statistics."
+                "Could not load website statistics."
             );
+
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // CHECK DATA
+        ////////////////////////////////////////////////////
+
+        if (!data) {
+
+            showStatsError(
+                "No statistics were returned."
+            );
+
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // UPDATE OVERVIEW
+        ////////////////////////////////////////////////////
+
+        document.getElementById(
+            "statsUniqueVisitors"
+        ).textContent =
+            data.uniqueVisitors || 0;
+
+
+        document.getElementById(
+            "statsPageViews"
+        ).textContent =
+            data.totalPageViews || 0;
+
+
+        document.getElementById(
+            "statsToday"
+        ).textContent =
+            data.visitsToday || 0;
+
+
+        document.getElementById(
+            "statsWeek"
+        ).textContent =
+            data.visitsThisWeek || 0;
+
+
+        document.getElementById(
+            "statsMonth"
+        ).textContent =
+            data.visitsThisMonth || 0;
+
+
+        ////////////////////////////////////////////////////
+        // UPDATE LISTS
+        ////////////////////////////////////////////////////
+
+        renderTopPages(
+            data.topPages
+        );
+
+
+        renderDevices(
+            data.devices
+        );
+
+
+        renderBrowsers(
+            data.browsers
+        );
+
+
+        renderOperatingSystems(
+            data.operatingSystems
+        );
+
+
+        renderReferrers(
+            data.referrers
+        );
+
+
+        ////////////////////////////////////////////////////
+        // SHOW DASHBOARD
+        ////////////////////////////////////////////////////
+
+        loading.style.display =
+            "none";
+
+
+        content.style.display =
+            "block";
+
+
+        ////////////////////////////////////////////////////
+        // REFRESH BUTTON
+        ////////////////////////////////////////////////////
+
+        const refreshButton =
+            document.getElementById(
+                "refreshWebsiteStats"
+            );
+
+
+        if (refreshButton) {
+
+            refreshButton.onclick =
+                loadWebsiteStats;
 
         }
 
     }
+    catch (err) {
 
+        console.error(
+            "SPARKD Stats error:",
+            err
+        );
+
+
+        showStatsError(
+            "Unexpected error loading statistics."
+        );
+
+    }
+
+}
 
     ////////////////////////////////////////////////////
     // ERROR DISPLAY
