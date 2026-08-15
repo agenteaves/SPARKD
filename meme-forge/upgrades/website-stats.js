@@ -6,7 +6,8 @@
 (function () {
 
     "use strict";
-    
+
+
     ////////////////////////////////////////////////////
     // SUPABASE CONFIG
     ////////////////////////////////////////////////////
@@ -36,6 +37,14 @@
             );
 
     }
+    else {
+
+        console.error(
+            "SPARKD Stats: Supabase library is not available."
+        );
+
+    }
+
 
     ////////////////////////////////////////////////////
     // CONFIG
@@ -309,79 +318,20 @@
     }
 
 
-////////////////////////////////////////////////////
-// SEND VISIT TO SUPABASE
-////////////////////////////////////////////////////
-
-async function recordVisit() {
-
     ////////////////////////////////////////////////////
-    // CHECK STATS SUPABASE CLIENT
+    // SEND VISIT TO SUPABASE
     ////////////////////////////////////////////////////
 
-    if (!statsSupabaseClient) {
+    async function recordVisit() {
 
-        console.error(
-            "SPARKD Stats: Supabase client could not be initialized."
-        );
+        ////////////////////////////////////////////////////
+        // CHECK STATS SUPABASE CLIENT
+        ////////////////////////////////////////////////////
 
-        return;
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // CREATE SESSION ID
-    ////////////////////////////////////////////////////
-
-    const sessionId =
-        getSessionId();
-
-
-    ////////////////////////////////////////////////////
-    // BUILD VISIT DATA
-    ////////////////////////////////////////////////////
-
-    const visit = {
-
-        session_id:
-            sessionId,
-
-        page:
-            window.location.pathname,
-
-        referrer:
-            document.referrer || null,
-
-        device:
-            detectDevice(),
-
-        browser:
-            detectBrowser(),
-
-        operating_system:
-            detectOperatingSystem()
-
-    };
-
-
-    ////////////////////////////////////////////////////
-    // SEND VISIT
-    ////////////////////////////////////////////////////
-
-    try {
-
-        const { error } =
-            await statsSupabaseClient
-                .from("website_visits")
-                .insert(visit);
-
-
-        if (error) {
+        if (!statsSupabaseClient) {
 
             console.error(
-                "SPARKD Stats: visit recording failed:",
-                error
+                "SPARKD Stats: Supabase client could not be initialized."
             );
 
             return;
@@ -389,40 +339,102 @@ async function recordVisit() {
         }
 
 
-        console.log(
-            "SPARKD Stats: visit recorded."
-        );
+        ////////////////////////////////////////////////////
+        // CREATE SESSION ID
+        ////////////////////////////////////////////////////
+
+        const sessionId =
+            getSessionId();
 
 
-    } catch (err) {
+        ////////////////////////////////////////////////////
+        // BUILD VISIT DATA
+        ////////////////////////////////////////////////////
 
-        console.error(
-            "SPARKD Stats: visit recording error:",
-            err
-        );
+        const visit = {
+
+            session_id:
+                sessionId,
+
+            page:
+                window.location.pathname,
+
+            referrer:
+                document.referrer || null,
+
+            device:
+                detectDevice(),
+
+            browser:
+                detectBrowser(),
+
+            operating_system:
+                detectOperatingSystem()
+
+        };
+
+
+        ////////////////////////////////////////////////////
+        // SEND VISIT
+        ////////////////////////////////////////////////////
+
+        try {
+
+            const { error } =
+                await statsSupabaseClient
+                    .from("website_visits")
+                    .insert(visit);
+
+
+            if (error) {
+
+                console.error(
+                    "SPARKD Stats: visit recording failed:",
+                    error
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "SPARKD Stats: visit recorded."
+            );
+
+        }
+        catch (err) {
+
+            console.error(
+                "SPARKD Stats: visit recording error:",
+                err
+            );
+
+        }
 
     }
 
-}  // <-- closes recordVisit()
+
+    ////////////////////////////////////////////////////
+    // PUBLIC API
+    ////////////////////////////////////////////////////
+
+    window.SPARKD_WEBSITE_STATS = {
+
+        recordVisit:
+            recordVisit,
+
+        getSessionId:
+            getSessionId
+
+    };
 
 
-////////////////////////////////////////////////////
-// PUBLIC API
-////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    // START TRACKING
+    ////////////////////////////////////////////////////
 
-window.SPARKD_WEBSITE_STATS = {
-
-    recordVisit:
-        recordVisit,
-
-    getSessionId:
-        getSessionId
-
-};
+    recordVisit();
 
 
-////////////////////////////////////////////////////
-// START TRACKING
-////////////////////////////////////////////////////
-
-recordVisit();
+})();
