@@ -280,55 +280,131 @@
     }
 
 
-    ////////////////////////////////////////////////////
-    // SEND VISIT TO SUPABASE
-    ////////////////////////////////////////////////////
-
-    async function recordVisit() {
-
-       ////////////////////////////////////////////////////
-// WAIT FOR EXISTING SUPABASE CLIENT
+   ////////////////////////////////////////////////////
+// SEND VISIT TO SUPABASE
 ////////////////////////////////////////////////////
 
-let attempts = 0;
+async function recordVisit() {
 
-while (
-    (
-        typeof supabaseClient === "undefined"
-        ||
+    ////////////////////////////////////////////////////
+    // WAIT FOR EXISTING SUPABASE CLIENT
+    ////////////////////////////////////////////////////
+
+    let attempts = 0;
+
+    while (
+        (
+            typeof supabaseClient === "undefined" ||
+            !supabaseClient
+        ) &&
+        attempts < 50
+    ) {
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    100
+                )
+        );
+
+        attempts++;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // SUPABASE STILL NOT AVAILABLE
+    ////////////////////////////////////////////////////
+
+    if (
+        typeof supabaseClient === "undefined" ||
         !supabaseClient
-    )
-    &&
-    attempts < 50
-) {
+    ) {
 
-    await new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                100
-            )
-    );
+        console.error(
+            "SPARKD Stats: Supabase client could not be initialized."
+        );
 
-    attempts++;
+        return;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CREATE SESSION ID
+    ////////////////////////////////////////////////////
+
+    const sessionId =
+        getSessionId();
+
+
+    ////////////////////////////////////////////////////
+    // BUILD VISIT DATA
+    ////////////////////////////////////////////////////
+
+    const visit = {
+
+        session_id:
+            sessionId,
+
+        page:
+            window.location.pathname,
+
+        referrer:
+            document.referrer || null,
+
+        device:
+            detectDevice(),
+
+        browser:
+            detectBrowser(),
+
+        operating_system:
+            detectOperatingSystem()
+
+    };
+
+
+    ////////////////////////////////////////////////////
+    // SEND VISIT
+    ////////////////////////////////////////////////////
+
+    try {
+
+        const { error } =
+            await supabaseClient
+                .from("website_visits")
+                .insert(visit);
+
+
+        if (error) {
+
+            console.error(
+                "SPARKD Stats: visit recording failed:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        console.log(
+            "SPARKD Stats: visit recorded."
+        );
+
+
+    } catch (err) {
+
+        console.error(
+            "SPARKD Stats: visit recording error:",
+            err
+        );
+
+    }
 
 }
-
-
-if (
-    typeof supabaseClient === "undefined"
-    ||
-    !supabaseClient
-) {
-
-    console.error(
-        "SPARKD Stats: Supabase client could not be initialized."
-    );
-
-    return;
-
-}
-
 
     ////////////////////////////////////////////////////
     // PUBLIC API
