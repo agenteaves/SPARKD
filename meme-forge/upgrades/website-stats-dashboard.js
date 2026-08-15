@@ -319,25 +319,23 @@
 
 
         ////////////////////////////////////////////////////
-        // CHECK SUPABASE
-        ////////////////////////////////////////////////////
+// CHECK STATS SUPABASE CLIENT
+////////////////////////////////////////////////////
 
-        if (
-            typeof supabaseClient === "undefined"
-            ||
-            !supabaseClient
-        ) {
-
-            showStatsError(
-                "Supabase connection is not available."
-            );
-
-            return;
-
-        }
+const statsClient =
+    window.SPARKD_WEBSITE_STATS
+        ?.supabaseClient;
 
 
-        try {
+if (!statsClient) {
+
+    showStatsError(
+        "Supabase connection is not available."
+    );
+
+    return;
+
+}
 
             ////////////////////////////////////////////////////
             // CALL DATABASE FUNCTION
