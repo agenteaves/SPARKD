@@ -12,50 +12,44 @@
 
 <style>
 
-/* ==================================================
+/* =========================================================
    SPARKD ACHIEVEMENTS
-   ================================================== */
+   This section is intentionally isolated from the
+   existing creator profile styling.
+   ========================================================= */
 
 .achievements-section {
     width: min(1100px, 92%);
-    margin: 50px auto;
+    margin: 50px auto 70px;
 }
 
 .achievements-section h2 {
     text-align: center;
-    margin-bottom: 10px;
-    font-size: 32px;
+    margin: 0 0 8px;
 }
 
 .achievements-subtitle {
     text-align: center;
-    opacity: 0.75;
-    margin-bottom: 35px;
+    opacity: 0.7;
+    margin: 0 0 30px;
 }
 
 .achievements-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
+    gap: 24px;
 }
 
 .achievement-card {
     position: relative;
     min-height: 330px;
-    padding: 25px;
+    padding: 22px;
+
     border-radius: 18px;
 
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,0.08),
-            rgba(0,0,0,0.35)
-        );
+    background: rgba(255,255,255,0.05);
 
     border: 1px solid rgba(255,255,255,0.12);
-
-    box-shadow:
-        0 10px 30px rgba(0,0,0,0.35);
 
     text-align: center;
 
@@ -67,10 +61,7 @@
 }
 
 .achievement-card:hover {
-    transform: translateY(-6px);
-
-    box-shadow:
-        0 15px 40px rgba(0,0,0,0.5);
+    transform: translateY(-5px);
 }
 
 .achievement-art {
@@ -94,53 +85,50 @@
         transform 0.35s ease;
 }
 
-/* Locked artwork */
+/* Locked appearance */
 
 .achievement-card.locked .achievement-art img {
     filter:
         grayscale(1)
-        brightness(0.35);
+        brightness(0.4);
 
-    opacity: 0.7;
+    opacity: 0.65;
 }
 
-/* Unlocked artwork */
+/* Unlocked appearance */
 
 .achievement-card.unlocked .achievement-art img {
     filter: none;
-
     opacity: 1;
 }
 
-/* Lock badge */
+/* Lock symbol */
 
 .lock-badge {
     position: absolute;
 
-    top: 15px;
-    right: 15px;
+    top: 12px;
+    right: 14px;
 
     font-size: 20px;
 }
 
-/* Achievement text */
+/* Text */
 
 .achievement-name {
-    margin: 5px 0;
-
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 700;
+
+    margin-top: 5px;
 }
 
 .achievement-description {
-    margin: 5px 0;
+    margin-top: 6px;
 
     font-size: 14px;
 
-    opacity: 0.7;
+    opacity: 0.75;
 }
-
-/* Locked requirement */
 
 .achievement-requirement {
     margin-top: 12px;
@@ -150,24 +138,16 @@
     opacity: 0.55;
 }
 
-/* ==================================================
-   SPARKD OG SPECIAL CARD
-   ================================================== */
+/* Special OG card */
 
 .achievement-card.og {
-    border-color:
-        rgba(255, 80, 30, 0.35);
+    border-color: rgba(255,70,30,0.3);
 }
 
-.achievement-card.og.unlocked {
-    box-shadow:
-        0 0 30px rgba(255, 60, 20, 0.35),
-        0 15px 45px rgba(0,0,0,0.5);
-}
 
-/* ==================================================
-   RESPONSIVE
-   ================================================== */
+/* =========================================================
+   MOBILE
+   ========================================================= */
 
 @media (max-width: 850px) {
 
@@ -192,12 +172,14 @@
 
 <body>
 
+<!-- =====================================================
+     SPARKD CREATOR PROFILE
+     ===================================================== -->
+
 <div id="profilePage">
 
 
-    <!-- ==================================================
-         HEADER
-         ================================================== -->
+    <!-- PROFILE HEADER -->
 
     <header class="profile-header">
 
@@ -212,12 +194,14 @@
     </header>
 
 
-
-    <!-- ==================================================
-         PROFILE INFORMATION
-         ================================================== -->
+    <!-- =================================================
+         PROFILE CARD
+         ================================================= -->
 
     <section class="profile-card">
+
+
+        <!-- PROFILE PICTURE -->
 
         <div class="profile-picture-area">
 
@@ -227,6 +211,7 @@
                     id="profilePicture"
                     src=""
                     alt="SPARKD Creator Profile Picture"
+                    style="display:none;"
                 >
 
                 <div
@@ -238,9 +223,11 @@
 
             </div>
 
+
             <button id="uploadProfilePictureBtn">
                 🖼 Upload Profile Picture
             </button>
+
 
             <input
                 type="file"
@@ -252,6 +239,8 @@
         </div>
 
 
+        <!-- PROFILE INFORMATION -->
+
         <div class="profile-information">
 
             <h2 id="creatorName">
@@ -262,9 +251,14 @@
                 Forge your legend on SPARKD.
             </p>
 
+
+            <!-- PROFILE STATS -->
+
             <div class="profile-stats">
 
+
                 <div>
+
                     <strong id="creatorLevel">
                         Level 1
                     </strong>
@@ -272,9 +266,12 @@
                     <span>
                         Creator Level
                     </span>
+
                 </div>
 
+
                 <div>
+
                     <strong id="sparkPoints">
                         0
                     </strong>
@@ -282,9 +279,12 @@
                     <span>
                         SPARK Points
                     </span>
+
                 </div>
 
+
                 <div>
+
                     <strong id="missionsCompleted">
                         0
                     </strong>
@@ -292,9 +292,12 @@
                     <span>
                         Missions
                     </span>
+
                 </div>
 
+
                 <div>
+
                     <strong id="achievementsUnlocked">
                         0
                     </strong>
@@ -302,7 +305,9 @@
                     <span>
                         Achievements
                     </span>
+
                 </div>
+
 
             </div>
 
@@ -312,9 +317,9 @@
 
 
 
-    <!-- ==================================================
+    <!-- =================================================
          ACHIEVEMENTS
-         ================================================== -->
+         ================================================= -->
 
     <section class="achievements-section">
 
@@ -553,10 +558,13 @@
 </div>
 
 
+<!-- =====================================================
+     EXISTING CREATOR PROFILE JAVASCRIPT
+     ===================================================== -->
+
 <script src="creator-profile.js"></script>
 
 </body>
 
 </html>
-
 
