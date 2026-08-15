@@ -418,130 +418,135 @@
                 </section>
 
 
-                <!-- ACHIEVEMENTS -->
+<!-- ACHIEVEMENTS -->
 
-                <section class="profileSection">
+<section class="profileSection">
 
-                    <h2>
-                        🏆 Creator Achievements
-                    </h2>
-
-
-                    <div class="achievementGrid">
+    <h2>
+        🏆 Creator Achievements
+    </h2>
 
 
-                        <div class="achievement locked">
-
-                            🔥
-
-                            <span>
-                                First Spark
-                            </span>
-
-                        </div>
+    <div class="achievementGrid">
 
 
-                        <div class="achievement locked">
+        <!-- FIRST SPARK -->
 
-                            🎨
+        <div class="achievement locked">
 
-                            <span>
-                                Meme Maker
-                            </span>
+            <div class="achievementIcon">
+                ◈
+            </div>
 
-                        </div>
+            <span>
+                First Spark
+            </span>
 
-
-                        <div class="achievement locked">
-
-                            🚀
-
-                            <span>
-                                Mission Runner
-                            </span>
-
-                        </div>
-
-
-                        <div class="achievement locked">
-
-                            💎
-
-                            <span>
-                                SPARKD Holder
-                            </span>
-
-                        </div>
-
-
-                        <div class="achievement locked">
-
-                            👑
-
-                            <span>
-                                Meme Legend
-                            </span>
-
-                        </div>
-
-
-                        <div class="achievement locked">
-
-                            ⚡
-
-                            <span>
-                                SPARKD OG
-                            </span>
-
-                        </div>
-
-
-                    </div>
-
-                </section>
-
-
-                <!-- RECENT CREATIONS -->
-
-                <section class="profileSection">
-
-                    <h2>
-                        🎨 Recent Creations
-                    </h2>
-
-
-                    <div
-                        id="recentCreations"
-                        class="recentCreations"
-                    >
-
-                        <div class="emptyCreations">
-
-                            Your latest SPARKD creations will appear here.
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-
-            </main>
-
-
-            <footer class="profileFooter">
-
-                🔥 SPARKD CREATOR NETWORK
-
-            </footer>
-
+            <small>
+                FIRST IGNITION
+            </small>
 
         </div>
 
-        `;
+
+        <!-- MEME MAKER -->
+
+        <div class="achievement locked">
+
+            <div class="achievementIcon">
+                ◉
+            </div>
+
+            <span>
+                Meme Maker
+            </span>
+
+            <small>
+                CREATOR
+            </small>
+
+        </div>
 
 
-    }
+        <!-- MISSION RUNNER -->
+
+        <div class="achievement locked">
+
+            <div class="achievementIcon">
+                ⟁
+            </div>
+
+            <span>
+                Mission Runner
+            </span>
+
+            <small>
+                MISSION CONTROL
+            </small>
+
+        </div>
+
+
+        <!-- SPARKD HOLDER -->
+
+        <div class="achievement locked">
+
+            <div class="achievementIcon">
+                ◇
+            </div>
+
+            <span>
+                SPARKD Holder
+            </span>
+
+            <small>
+                HOLDER
+            </small>
+
+        </div>
+
+
+        <!-- MEME LEGEND -->
+
+        <div class="achievement locked">
+
+            <div class="achievementIcon">
+                ⬢
+            </div>
+
+            <span>
+                Meme Legend
+            </span>
+
+            <small>
+                ELITE CREATOR
+            </small>
+
+        </div>
+
+
+        <!-- SPARKD OG -->
+
+        <div class="achievement locked">
+
+            <div class="achievementIcon">
+                ✦
+            </div>
+
+            <span>
+                SPARKD OG
+            </span>
+
+            <small>
+                ORIGINAL SPARK
+            </small>
+
+        </div>
+
+
+    </div>
+
+</section>
 
 
     ////////////////////////////////////////////////////
