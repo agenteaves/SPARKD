@@ -434,9 +434,9 @@
 
         <div class="achievement locked">
 
-            <div class="achievementIcon">
-                ◈
-            </div>
+        <div class="achievementIcon">
+            <img src="achievements/key.png" alt="First Spark">
+        </div>
 
             <span>
                 First Spark
