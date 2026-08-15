@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,25 +10,553 @@
 
 <link rel="stylesheet" href="style.css">
 
+<style>
+
+/* ==================================================
+   SPARKD ACHIEVEMENTS
+   ================================================== */
+
+.achievements-section {
+    width: min(1100px, 92%);
+    margin: 50px auto;
+}
+
+.achievements-section h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 32px;
+}
+
+.achievements-subtitle {
+    text-align: center;
+    opacity: 0.75;
+    margin-bottom: 35px;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.achievement-card {
+    position: relative;
+    min-height: 330px;
+    padding: 25px;
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.08),
+            rgba(0,0,0,0.35)
+        );
+
+    border: 1px solid rgba(255,255,255,0.12);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.35);
+
+    text-align: center;
+
+    overflow: hidden;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.achievement-card:hover {
+    transform: translateY(-6px);
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,0.5);
+}
+
+.achievement-art {
+    height: 190px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 15px;
+}
+
+.achievement-art img {
+    max-width: 90%;
+    max-height: 190px;
+
+    object-fit: contain;
+
+    transition:
+        filter 0.35s ease,
+        transform 0.35s ease;
+}
+
+/* Locked artwork */
+
+.achievement-card.locked .achievement-art img {
+    filter:
+        grayscale(1)
+        brightness(0.35);
+
+    opacity: 0.7;
+}
+
+/* Unlocked artwork */
+
+.achievement-card.unlocked .achievement-art img {
+    filter: none;
+
+    opacity: 1;
+}
+
+/* Lock badge */
+
+.lock-badge {
+    position: absolute;
+
+    top: 15px;
+    right: 15px;
+
+    font-size: 20px;
+}
+
+/* Achievement text */
+
+.achievement-name {
+    margin: 5px 0;
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.achievement-description {
+    margin: 5px 0;
+
+    font-size: 14px;
+
+    opacity: 0.7;
+}
+
+/* Locked requirement */
+
+.achievement-requirement {
+    margin-top: 12px;
+
+    font-size: 13px;
+
+    opacity: 0.55;
+}
+
+/* ==================================================
+   SPARKD OG SPECIAL CARD
+   ================================================== */
+
+.achievement-card.og {
+    border-color:
+        rgba(255, 80, 30, 0.35);
+}
+
+.achievement-card.og.unlocked {
+    box-shadow:
+        0 0 30px rgba(255, 60, 20, 0.35),
+        0 15px 45px rgba(0,0,0,0.5);
+}
+
+/* ==================================================
+   RESPONSIVE
+   ================================================== */
+
+@media (max-width: 850px) {
+
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 550px) {
+
+    .achievements-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+
 </head>
 
 
 <body>
 
-
-<h1>
-⚡ SPARKD Creator Profile Coming Soon!
-</h1>
+<div id="profilePage">
 
 
-<p>
-Your creator journey will start here.
-</p>
+    <!-- ==================================================
+         HEADER
+         ================================================== -->
+
+    <header class="profile-header">
+
+        <h1>
+            ⚡ SPARKD Creator Profile
+        </h1>
+
+        <p>
+            Forge your identity. Complete missions. Become legendary.
+        </p>
+
+    </header>
+
+
+
+    <!-- ==================================================
+         PROFILE INFORMATION
+         ================================================== -->
+
+    <section class="profile-card">
+
+        <div class="profile-picture-area">
+
+            <div class="profile-picture-wrapper">
+
+                <img
+                    id="profilePicture"
+                    src=""
+                    alt="SPARKD Creator Profile Picture"
+                >
+
+                <div
+                    id="profilePicturePlaceholder"
+                    class="profile-picture-placeholder"
+                >
+                    👤
+                </div>
+
+            </div>
+
+            <button id="uploadProfilePictureBtn">
+                🖼 Upload Profile Picture
+            </button>
+
+            <input
+                type="file"
+                id="profilePictureInput"
+                accept="image/*"
+                hidden
+            >
+
+        </div>
+
+
+        <div class="profile-information">
+
+            <h2 id="creatorName">
+                SPARKD Creator
+            </h2>
+
+            <p id="creatorBio">
+                Forge your legend on SPARKD.
+            </p>
+
+            <div class="profile-stats">
+
+                <div>
+                    <strong id="creatorLevel">
+                        Level 1
+                    </strong>
+
+                    <span>
+                        Creator Level
+                    </span>
+                </div>
+
+                <div>
+                    <strong id="sparkPoints">
+                        0
+                    </strong>
+
+                    <span>
+                        SPARK Points
+                    </span>
+                </div>
+
+                <div>
+                    <strong id="missionsCompleted">
+                        0
+                    </strong>
+
+                    <span>
+                        Missions
+                    </span>
+                </div>
+
+                <div>
+                    <strong id="achievementsUnlocked">
+                        0
+                    </strong>
+
+                    <span>
+                        Achievements
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         ACHIEVEMENTS
+         ================================================== -->
+
+    <section class="achievements-section">
+
+        <h2>
+            🏆 SPARKD Achievements
+        </h2>
+
+        <p class="achievements-subtitle">
+            Earn achievements as your creator journey grows.
+        </p>
+
+
+        <div class="achievements-grid">
+
+
+            <!-- FIRST SPARK -->
+
+            <div
+                class="achievement-card locked"
+                data-achievement="first-spark"
+            >
+
+                <span class="lock-badge">
+                    🔒
+                </span>
+
+                <div class="achievement-art">
+
+                    <img
+                        src="achievements/key.png"
+                        alt="First Spark"
+                    >
+
+                </div>
+
+                <div class="achievement-name">
+                    FIRST SPARK
+                </div>
+
+                <div class="achievement-description">
+                    Awaken the first spark.
+                </div>
+
+                <div class="achievement-requirement">
+                    Complete your first SPARKD activity.
+                </div>
+
+            </div>
+
+
+
+            <!-- MEME MAKER -->
+
+            <div
+                class="achievement-card locked"
+                data-achievement="meme-maker"
+            >
+
+                <span class="lock-badge">
+                    🔒
+                </span>
+
+                <div class="achievement-art">
+
+                    <img
+                        src="achievements/blacksmith.png"
+                        alt="Meme Maker"
+                    >
+
+                </div>
+
+                <div class="achievement-name">
+                    MEME MAKER
+                </div>
+
+                <div class="achievement-description">
+                    Forge your first creation.
+                </div>
+
+                <div class="achievement-requirement">
+                    Create your first SPARKD meme.
+                </div>
+
+            </div>
+
+
+
+            <!-- MISSION RUNNER -->
+
+            <div
+                class="achievement-card locked"
+                data-achievement="mission-runner"
+            >
+
+                <span class="lock-badge">
+                    🔒
+                </span>
+
+                <div class="achievement-art">
+
+                    <img
+                        src="achievements/map.png"
+                        alt="Mission Runner"
+                    >
+
+                </div>
+
+                <div class="achievement-name">
+                    MISSION RUNNER
+                </div>
+
+                <div class="achievement-description">
+                    Follow the path to greatness.
+                </div>
+
+                <div class="achievement-requirement">
+                    Complete your first mission.
+                </div>
+
+            </div>
+
+
+
+            <!-- SPARKD HOLDER -->
+
+            <div
+                class="achievement-card locked"
+                data-achievement="sparkd-holder"
+            >
+
+                <span class="lock-badge">
+                    🔒
+                </span>
+
+                <div class="achievement-art">
+
+                    <img
+                        src="achievements/chest.png"
+                        alt="SPARKD Holder"
+                    >
+
+                </div>
+
+                <div class="achievement-name">
+                    SPARKD HOLDER
+                </div>
+
+                <div class="achievement-description">
+                    Hold the treasure.
+                </div>
+
+                <div class="achievement-requirement">
+                    Hold SPARKD tokens.
+                </div>
+
+            </div>
+
+
+
+            <!-- MEME LEGEND -->
+
+            <div
+                class="achievement-card locked"
+                data-achievement="meme-legend"
+            >
+
+                <span class="lock-badge">
+                    🔒
+                </span>
+
+                <div class="achievement-art">
+
+                    <img
+                        src="achievements/throne.png"
+                        alt="Meme Legend"
+                    >
+
+                </div>
+
+                <div class="achievement-name">
+                    MEME LEGEND
+                </div>
+
+                <div class="achievement-description">
+                    Claim your place among legends.
+                </div>
+
+                <div class="achievement-requirement">
+                    Reach creator mastery.
+                </div>
+
+            </div>
+
+
+
+            <!-- SPARKD OG -->
+
+            <div
+                class="achievement-card locked og"
+                data-achievement="sparkd-og"
+            >
+
+                <span class="lock-badge">
+                    🔒
+                </span>
+
+                <div class="achievement-art">
+
+                    <img
+                        src="achievements/dragon.png"
+                        alt="SPARKD OG"
+                    >
+
+                </div>
+
+                <div class="achievement-name">
+                    SPARKD OG
+                </div>
+
+                <div class="achievement-description">
+                    The original flame.
+                </div>
+
+                <div class="achievement-requirement">
+                    Reserved for the earliest SPARKD creators.
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+</div>
 
 
 <script src="creator-profile.js"></script>
 
-
 </body>
 
 </html>
+
+
