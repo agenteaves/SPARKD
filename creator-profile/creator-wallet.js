@@ -9,31 +9,43 @@
 
 
     ////////////////////////////////////////////////////
-    // ELEMENTS
+    // WAIT FOR PROFILE HTML
     ////////////////////////////////////////////////////
 
-    const connectButton =
-        document.getElementById(
-            "connectWalletBtn"
-        );
+    function initializeWallet() {
 
 
-    const holderStatus =
-        document.getElementById(
-            "holderStatus"
-        );
+        ////////////////////////////////////////////////////
+        // ELEMENTS
+        ////////////////////////////////////////////////////
+
+        const connectButton =
+            document.getElementById(
+                "connectWalletBtn"
+            );
 
 
-    if (!connectButton) {
+        const holderStatus =
+            document.getElementById(
+                "holderStatus"
+            );
 
-        console.warn(
-            "SPARKD Wallet: Connect button not found."
-        );
 
-        return;
+        if (!connectButton) {
 
-    }
+            console.warn(
+                "SPARKD Wallet: Connect button not found."
+            );
 
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // EVERYTHING BELOW THIS POINT
+        // STAYS INSIDE initializeWallet()
+        ////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////
     // PHANTOM PROVIDER
