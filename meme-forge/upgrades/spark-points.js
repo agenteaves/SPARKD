@@ -78,39 +78,3 @@ window.addSparkPoints = function(amount){
 
 
 };
-
-
-
-// =================================
-// COMPLETE MISSION BUTTON
-// =================================
-
-window.addEventListener("load", function(){
-
-
-    const button =
-    document.getElementById("completeMissionBtn");
-
-
-
-    if(button){
-
-
-        button.onclick = function(){
-
-
-            window.addSparkPoints(100);
-
-
-            alert(
-                "🔥 Mission Complete! +100 SPARK Points"
-            );
-
-
-        };
-
-
-    }
-
-
-});
