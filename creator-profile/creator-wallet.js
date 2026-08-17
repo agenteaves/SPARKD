@@ -9,7 +9,7 @@
 
 
     ////////////////////////////////////////////////////
-    // WAIT FOR PROFILE HTML
+    // INITIALIZE WALLET
     ////////////////////////////////////////////////////
 
     function initializeWallet() {
@@ -43,216 +43,207 @@
 
 
         ////////////////////////////////////////////////////
-        // EVERYTHING BELOW THIS POINT
-        // STAYS INSIDE initializeWallet()
+        // PHANTOM PROVIDER
         ////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////
-    // PHANTOM PROVIDER
-    ////////////////////////////////////////////////////
-
-    function getProvider() {
-
-        if (
-            window.phantom &&
-            window.phantom.solana
-        ) {
-
-            return window.phantom.solana;
-
-        }
-
-
-        if (
-            window.solana &&
-            window.solana.isPhantom
-        ) {
-
-            return window.solana;
-
-        }
-
-
-        return null;
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // DISPLAY WALLET
-    ////////////////////////////////////////////////////
-
-    function showWallet(publicKey) {
-
-        const address =
-            publicKey.toString();
-
-
-        const shortAddress =
-            address.slice(0, 6) +
-            "..." +
-            address.slice(-6);
-
-
-        holderStatus.innerHTML = `
-
-            <strong>
-                🟢 Wallet Connected
-            </strong>
-
-            <span>
-                ${shortAddress}
-            </span>
-
-        `;
-
-
-        connectButton.innerHTML =
-            "🔌 Wallet Connected";
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // CONNECT WALLET
-    ////////////////////////////////////////////////////
-
-    async function connectWallet() {
-
-        const provider =
-            getProvider();
-
-
-        if (!provider) {
-
-            alert(
-                "👻 Phantom Wallet was not detected. Please install or open Phantom Wallet."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            const response =
-                await provider.connect();
-
+        function getProvider() {
 
             if (
-                response &&
-                response.publicKey
+                window.phantom &&
+                window.phantom.solana
             ) {
 
-                showWallet(
-                    response.publicKey
-                );
+                return window.phantom.solana;
 
             }
 
+
+            if (
+                window.solana &&
+                window.solana.isPhantom
+            ) {
+
+                return window.solana;
+
+            }
+
+
+            return null;
+
         }
-        catch (error) {
 
-            console.error(
-                "SPARKD Wallet connection failed:",
-                error
-            );
+
+        ////////////////////////////////////////////////////
+        // DISPLAY WALLET
+        ////////////////////////////////////////////////////
+
+        function showWallet(publicKey) {
+
+            const address =
+                publicKey.toString();
+
+
+            const shortAddress =
+                address.slice(0, 6) +
+                "..." +
+                address.slice(-6);
+
+
+            holderStatus.innerHTML = `
+
+                <strong>
+                    🟢 Wallet Connected
+                </strong>
+
+                <span>
+                    ${shortAddress}
+                </span>
+
+            `;
+
+
+            connectButton.innerHTML =
+                "🔌 Wallet Connected";
 
         }
 
-    }
+
+        ////////////////////////////////////////////////////
+        // CONNECT WALLET
+        ////////////////////////////////////////////////////
+
+        async function connectWallet() {
+
+            const provider =
+                getProvider();
 
 
-    ////////////////////////////////////////////////////
-    // BUTTON
-    ////////////////////////////////////////////////////
+            if (!provider) {
 
-    connectButton.addEventListener(
-        "click",
-        connectWallet
-    );
+                alert(
+                    "👻 Phantom Wallet was not detected. Please install or open Phantom Wallet."
+                );
 
+                return;
 
-    ////////////////////////////////////////////////////
-    // EXISTING CONNECTION
-    ////////////////////////////////////////////////////
-
-    const provider =
-        getProvider();
+            }
 
 
-    if (
-        provider &&
-        provider.isConnected &&
-        provider.publicKey
-    ) {
+            try {
 
-        showWallet(
-            provider.publicKey
-        );
-
-    }
+                const response =
+                    await provider.connect();
 
 
-    ////////////////////////////////////////////////////
-    // WALLET CONNECT EVENT
-    ////////////////////////////////////////////////////
-
-    if (provider) {
-
-        provider.on(
-            "connect",
-            function (publicKey) {
-
-                if (publicKey) {
+                if (
+                    response &&
+                    response.publicKey
+                ) {
 
                     showWallet(
-                        publicKey
+                        response.publicKey
                     );
 
                 }
 
             }
-        );
+            catch (error) {
 
-    }
-
-
-    ////////////////////////////////////////////////////
-    // WALLET DISCONNECT EVENT
-    ////////////////////////////////////////////////////
-
-    if (provider) {
-
-        provider.on(
-            "disconnect",
-            function () {
-
-                holderStatus.innerHTML = `
-
-                    <strong>
-                        Wallet Not Connected
-                    </strong>
-
-                    <span>
-                        Connect your wallet to verify SPARKD ownership.
-                    </span>
-
-                `;
-
-
-                connectButton.innerHTML =
-                    "🔗 Connect SPARKD Wallet";
+                console.error(
+                    "SPARKD Wallet connection failed:",
+                    error
+                );
 
             }
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // CONNECT BUTTON
+        ////////////////////////////////////////////////////
+
+        connectButton.addEventListener(
+            "click",
+            connectWallet
         );
 
-    }
 
-    ////////////////////////////////////////////////////
-    // CLOSE WALLET INITIALIZATION
-    ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        // EXISTING CONNECTION
+        ////////////////////////////////////////////////////
+
+        const provider =
+            getProvider();
+
+
+        if (
+            provider &&
+            provider.isConnected &&
+            provider.publicKey
+        ) {
+
+            showWallet(
+                provider.publicKey
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // WALLET CONNECT EVENT
+        ////////////////////////////////////////////////////
+
+        if (provider) {
+
+            provider.on(
+                "connect",
+                function (publicKey) {
+
+                    if (publicKey) {
+
+                        showWallet(
+                            publicKey
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // WALLET DISCONNECT EVENT
+        ////////////////////////////////////////////////////
+
+        if (provider) {
+
+            provider.on(
+                "disconnect",
+                function () {
+
+                    holderStatus.innerHTML = `
+
+                        <strong>
+                            Wallet Not Connected
+                        </strong>
+
+                        <span>
+                            Connect your wallet to verify SPARKD ownership.
+                        </span>
+
+                    `;
+
+
+                    connectButton.innerHTML =
+                        "🔗 Connect SPARKD Wallet";
+
+                }
+            );
+
+        }
 
     }
 
@@ -279,4 +270,3 @@
 
 
 })();
-
