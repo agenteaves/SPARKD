@@ -250,5 +250,33 @@
 
     }
 
+    ////////////////////////////////////////////////////
+    // CLOSE WALLET INITIALIZATION
+    ////////////////////////////////////////////////////
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // WAIT FOR DOM
+    ////////////////////////////////////////////////////
+
+    if (
+        document.readyState === "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeWallet
+        );
+
+    }
+    else {
+
+        initializeWallet();
+
+    }
+
 
 })();
+
