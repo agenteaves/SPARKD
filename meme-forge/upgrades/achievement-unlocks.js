@@ -47,7 +47,7 @@
 
 
     ////////////////////////////////////////////////////
-    // GET CURRENT SPARK POINTS
+    // GET SPARK POINTS
     ////////////////////////////////////////////////////
 
     function getSparkPoints() {
@@ -60,7 +60,7 @@
 
 
     ////////////////////////////////////////////////////
-    // SYNC POINTS INTO CREATOR PROFILE
+    // UPDATE PROFILE POINTS
     ////////////////////////////////////////////////////
 
     function syncProfilePoints(points) {
@@ -72,7 +72,9 @@
         try {
 
             const saved =
-                localStorage.getItem(PROFILE_KEY);
+                localStorage.getItem(
+                    PROFILE_KEY
+                );
 
 
             if (!saved) {
@@ -99,31 +101,9 @@
         catch (error) {
 
             console.warn(
-                "SPARKD achievement profile sync failed:",
+                "SPARKD profile sync failed:",
                 error
             );
-
-        }
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // UPDATE PROFILE POINT DISPLAY
-    ////////////////////////////////////////////////////
-
-    function updatePointsDisplay(points) {
-
-        const pointsDisplay =
-            document.getElementById(
-                "sparkPoints"
-            );
-
-
-        if (pointsDisplay) {
-
-            pointsDisplay.textContent =
-                points;
 
         }
 
@@ -139,85 +119,73 @@
         let unlockedCount = 0;
 
 
-        ACHIEVEMENTS.forEach(function (achievement) {
+        ACHIEVEMENTS.forEach(
+            function (achievement) {
 
 
-            const card =
-                document.querySelector(
-                    '[data-achievement="' +
-                    achievement.id +
-                    '"]'
-                );
-
-
-            if (!card) {
-
-                return;
-
-            }
-
-
-            const unlocked =
-                points >= achievement.points;
-
-
-            if (unlocked) {
-
-                unlockedCount++;
-
-
-                card.classList.remove(
-                    "locked"
-                );
-
-
-                card.classList.add(
-                    "unlocked"
-                );
-
-
-                const lockBadge =
-                    card.querySelector(
-                        ".lock-badge"
+                const card =
+                    document.querySelector(
+                        '[data-achievement="' +
+                        achievement.id +
+                        '"]'
                     );
 
 
-                if (lockBadge) {
+                if (!card) {
 
-                    lockBadge.textContent =
-                        "🔥";
+                    return;
+
+                }
+
+
+                if (
+                    points >=
+                    achievement.points
+                ) {
+
+                    unlockedCount++;
+
+
+                    card.classList.remove(
+                        "locked"
+                    );
+
+
+                    card.classList.add(
+                        "unlocked"
+                    );
+
+
+                    const icon =
+                        card.querySelector(
+                            ".achievementIcon"
+                        );
+
+
+                    if (icon) {
+
+                        icon.classList.add(
+                            "unlocked"
+                        );
+
+                    }
+
+                }
+                else {
+
+                    card.classList.remove(
+                        "unlocked"
+                    );
+
+
+                    card.classList.add(
+                        "locked"
+                    );
 
                 }
 
             }
-            else {
-
-                card.classList.remove(
-                    "unlocked"
-                );
-
-
-                card.classList.add(
-                    "locked"
-                );
-
-
-                const lockBadge =
-                    card.querySelector(
-                        ".lock-badge"
-                    );
-
-
-                if (lockBadge) {
-
-                    lockBadge.textContent =
-                        "🔒";
-
-                }
-
-            }
-
-        });
+        );
 
 
         ////////////////////////////////////////////////////
@@ -241,7 +209,7 @@
 
 
     ////////////////////////////////////////////////////
-    // RUN ACHIEVEMENT CHECK
+    // CHECK ACHIEVEMENTS
     ////////////////////////////////////////////////////
 
     function checkAchievements() {
@@ -251,11 +219,6 @@
 
 
         syncProfilePoints(
-            points
-        );
-
-
-        updatePointsDisplay(
             points
         );
 
@@ -279,7 +242,7 @@
 
 
     ////////////////////////////////////////////////////
-    // WAIT FOR PROFILE PAGE
+    // WAIT FOR DOM
     ////////////////////////////////////////////////////
 
     if (
