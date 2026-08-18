@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD ACHIEVEMENT UNLOCK SYSTEM
+// SPARKD ACHIEVEMENT SYSTEM
+// UNLOCKS + POPUP + REPLAY + AUDIO
 ////////////////////////////////////////////////////
 
 (function () {
@@ -8,42 +9,74 @@
 
 
     ////////////////////////////////////////////////////
-    // ACHIEVEMENT REQUIREMENTS
+    // ACHIEVEMENT DATABASE
     ////////////////////////////////////////////////////
 
     const ACHIEVEMENTS = [
 
         {
             id: "first-spark",
-            points: 2000
+            name: "FIRST SPARK",
+            points: 2000,
+            icon: "achievements/key.png",
+            voice:
+                "Congratulations! You've done it! First SPARKD achievement unlocked!"
         },
 
         {
             id: "meme-maker",
-            points: 4000
+            name: "MEME MAKER",
+            points: 4000,
+            icon: "achievements/blacksmith.png",
+            voice:
+                "Meme Maker unlocked! Your creative journey has begun!"
         },
 
         {
             id: "mission-runner",
-            points: 8000
+            name: "MISSION RUNNER",
+            points: 8000,
+            icon: "achievements/map.png",
+            voice:
+                "Mission Runner unlocked! You're becoming a true SPARKD creator!"
         },
 
         {
             id: "sparkd-holder",
-            points: 16000
+            name: "SPARKD HOLDER",
+            points: 16000,
+            icon: "achievements/chest.png",
+            voice:
+                "SPARKD Holder unlocked! Your dedication is shining!"
         },
 
         {
             id: "meme-legend",
-            points: 32000
+            name: "MEME LEGEND",
+            points: 32000,
+            icon: "achievements/throne.png",
+            voice:
+                "Meme Legend unlocked! You've reached legendary status!"
         },
 
         {
             id: "sparkd-og",
-            points: 64000
+            name: "SPARKD OG",
+            points: 64000,
+            icon: "achievements/dragon.png",
+            voice:
+                "SPARKD OG unlocked! You are one of the originals!"
         }
 
     ];
+
+
+    ////////////////////////////////////////////////////
+    // STORAGE KEYS
+    ////////////////////////////////////////////////////
+
+    const SHOWN_PREFIX =
+        "sparkdAchievementShown_";
 
 
     ////////////////////////////////////////////////////
@@ -60,50 +93,342 @@
 
 
     ////////////////////////////////////////////////////
-    // UPDATE PROFILE POINTS
+    // CHECK IF FIRST-TIME POPUP WAS SHOWN
     ////////////////////////////////////////////////////
 
-    function syncProfilePoints(points) {
+    function wasShown(id) {
 
-        const PROFILE_KEY =
-            "sparkdCreatorProfile";
+        return (
+            localStorage.getItem(
+                SHOWN_PREFIX + id
+            ) === "true"
+        );
 
-
-        try {
-
-            const saved =
-                localStorage.getItem(
-                    PROFILE_KEY
-                );
+    }
 
 
-            if (!saved) {
+    ////////////////////////////////////////////////////
+    // MARK POPUP AS SHOWN
+    ////////////////////////////////////////////////////
 
-                return;
+    function markShown(id) {
 
-            }
+        localStorage.setItem(
+            SHOWN_PREFIX + id,
+            "true"
+        );
 
-
-            const profile =
-                JSON.parse(saved);
-
-
-            profile.sparkPoints =
-                points;
+    }
 
 
-            localStorage.setItem(
-                PROFILE_KEY,
-                JSON.stringify(profile)
+    ////////////////////////////////////////////////////
+    // CREATE POPUP
+    ////////////////////////////////////////////////////
+
+    function createPopup() {
+
+        let popup =
+            document.getElementById(
+                "sparkdAchievementPopup"
+            );
+
+
+        if (popup) {
+
+            return popup;
+
+        }
+
+
+        popup =
+            document.createElement("div");
+
+
+        popup.id =
+            "sparkdAchievementPopup";
+
+
+        popup.innerHTML = `
+
+            <div
+                class="sparkdAchievementOverlay"
+                id="sparkdAchievementOverlay"
+            >
+
+                <div
+                    class="sparkdAchievementModal"
+                    role="dialog"
+                    aria-modal="true"
+                >
+
+                    <div class="sparkdAchievementTitle">
+                        🏆 ACHIEVEMENT UNLOCKED!
+                    </div>
+
+
+                    <div
+                        class="sparkdAchievementArtwork"
+                    >
+
+                        <img
+                            id="sparkdAchievementImage"
+                            src=""
+                            alt="Achievement"
+                        >
+
+                    </div>
+
+
+                    <div
+                        id="sparkdAchievementName"
+                        class="sparkdAchievementName"
+                    >
+                    </div>
+
+
+                    <div
+                        id="sparkdAchievementRequirement"
+                        class="sparkdAchievementRequirement"
+                    >
+                    </div>
+
+
+                    <button
+                        id="sparkdAchievementClose"
+                        class="sparkdAchievementClose"
+                        type="button"
+                    >
+                        CLOSE
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            popup
+        );
+
+
+        ////////////////////////////////////////////////////
+        // CLOSE BUTTON
+        ////////////////////////////////////////////////////
+
+        const closeButton =
+            document.getElementById(
+                "sparkdAchievementClose"
+            );
+
+
+        if (closeButton) {
+
+            closeButton.addEventListener(
+                "click",
+                closePopup
             );
 
         }
-        catch (error) {
 
-            console.warn(
-                "SPARKD profile sync failed:",
-                error
+
+        ////////////////////////////////////////////////////
+        // CLICK OUTSIDE MODAL
+        ////////////////////////////////////////////////////
+
+        const overlay =
+            document.getElementById(
+                "sparkdAchievementOverlay"
             );
+
+
+        if (overlay) {
+
+            overlay.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target ===
+                        overlay
+                    ) {
+
+                        closePopup();
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        return popup;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // AUDIO / VOICE
+    ////////////////////////////////////////////////////
+
+    function playAchievementVoice(
+        achievement
+    ) {
+
+        if (
+            !window.speechSynthesis
+        ) {
+
+            return;
+
+        }
+
+
+        window.speechSynthesis.cancel();
+
+
+        const speech =
+            new SpeechSynthesisUtterance(
+                achievement.voice
+            );
+
+
+        speech.rate = 0.95;
+
+        speech.pitch = 1.0;
+
+        speech.volume = 1.0;
+
+
+        window.speechSynthesis.speak(
+            speech
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // OPEN ACHIEVEMENT POPUP
+    ////////////////////////////////////////////////////
+
+    function showAchievement(
+        achievement
+    ) {
+
+        const popup =
+            createPopup();
+
+
+        const image =
+            document.getElementById(
+                "sparkdAchievementImage"
+            );
+
+
+        const name =
+            document.getElementById(
+                "sparkdAchievementName"
+            );
+
+
+        const requirement =
+            document.getElementById(
+                "sparkdAchievementRequirement"
+            );
+
+
+        if (!popup) {
+
+            return;
+
+        }
+
+
+        if (image) {
+
+            image.src =
+                achievement.icon;
+
+            image.alt =
+                achievement.name;
+
+        }
+
+
+        if (name) {
+
+            name.textContent =
+                achievement.name;
+
+        }
+
+
+        if (requirement) {
+
+            requirement.textContent =
+                achievement.points.toLocaleString() +
+                " SPARK Points";
+
+        }
+
+
+        popup.classList.remove(
+            "sparkd-achievement-visible"
+        );
+
+
+        // Force animation restart
+
+        void popup.offsetWidth;
+
+
+        popup.classList.add(
+            "sparkd-achievement-visible"
+        );
+
+
+        ////////////////////////////////////////////////////
+        // PLAY VOICE
+        ////////////////////////////////////////////////////
+
+        playAchievementVoice(
+            achievement
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CLOSE POPUP
+    ////////////////////////////////////////////////////
+
+    function closePopup() {
+
+        const popup =
+            document.getElementById(
+                "sparkdAchievementPopup"
+            );
+
+
+        if (!popup) {
+
+            return;
+
+        }
+
+
+        popup.classList.remove(
+            "sparkd-achievement-visible"
+        );
+
+
+        if (
+            window.speechSynthesis
+        ) {
+
+            window.speechSynthesis.cancel();
 
         }
 
@@ -114,14 +439,16 @@
     // UPDATE ACHIEVEMENT CARDS
     ////////////////////////////////////////////////////
 
-    function updateAchievements(points) {
+    function updateAchievements(
+        points,
+        allowFirstTimePopup
+    ) {
 
         let unlockedCount = 0;
 
 
         ACHIEVEMENTS.forEach(
             function (achievement) {
-
 
                 const card =
                     document.querySelector(
@@ -156,16 +483,49 @@
                     );
 
 
-                    const icon =
-                        card.querySelector(
-                            ".achievementIcon"
+                    ////////////////////////////////////////////////////
+                    // MAKE UNLOCKED CARD CLICKABLE
+                    ////////////////////////////////////////////////////
+
+                    card.style.cursor =
+                        "pointer";
+
+
+                    card.onclick =
+                        function () {
+
+                            showAchievement(
+                                achievement
+                            );
+
+                        };
+
+
+                    ////////////////////////////////////////////////////
+                    // FIRST-TIME UNLOCK
+                    ////////////////////////////////////////////////////
+
+                    if (
+                        allowFirstTimePopup &&
+                        !wasShown(
+                            achievement.id
+                        )
+                    ) {
+
+                        markShown(
+                            achievement.id
                         );
 
 
-                    if (icon) {
+                        setTimeout(
+                            function () {
 
-                        icon.classList.add(
-                            "unlocked"
+                                showAchievement(
+                                    achievement
+                                );
+
+                            },
+                            700
                         );
 
                     }
@@ -182,6 +542,14 @@
                         "locked"
                     );
 
+
+                    card.style.cursor =
+                        "default";
+
+
+                    card.onclick =
+                        null;
+
                 }
 
             }
@@ -189,7 +557,7 @@
 
 
         ////////////////////////////////////////////////////
-        // UPDATE ACHIEVEMENT COUNT
+        // ACHIEVEMENT COUNTER
         ////////////////////////////////////////////////////
 
         const achievementCount =
@@ -212,19 +580,17 @@
     // CHECK ACHIEVEMENTS
     ////////////////////////////////////////////////////
 
-    function checkAchievements() {
+    function checkAchievements(
+        allowFirstTimePopup
+    ) {
 
         const points =
             getSparkPoints();
 
 
-        syncProfilePoints(
-            points
-        );
-
-
         updateAchievements(
-            points
+            points,
+            allowFirstTimePopup
         );
 
     }
@@ -236,13 +602,15 @@
 
     function initializeAchievements() {
 
-        checkAchievements();
+        checkAchievements(
+            true
+        );
 
     }
 
 
     ////////////////////////////////////////////////////
-    // WAIT FOR DOM
+    // WAIT FOR PROFILE DOM
     ////////////////////////////////////////////////////
 
     if (
@@ -270,7 +638,19 @@
     window.SPARKD_ACHIEVEMENTS = {
 
         check:
-            checkAchievements,
+            function () {
+
+                checkAchievements(
+                    false
+                );
+
+            },
+
+        show:
+            showAchievement,
+
+        close:
+            closePopup,
 
         getPoints:
             getSparkPoints
