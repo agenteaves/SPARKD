@@ -597,16 +597,21 @@
 
 
     ////////////////////////////////////////////////////
-    // INITIALIZE
-    ////////////////////////////////////////////////////
+// INITIALIZE
+////////////////////////////////////////////////////
 
-    function initializeAchievements() {
+function initializeAchievements() {
 
-        checkAchievements(
-            true
-        );
+    // Give the profile page a moment to finish
+    // rendering its achievement cards.
 
-    }
+    setTimeout(function () {
+
+        checkAchievements(true);
+
+    }, 500);
+
+}
 
 
     ////////////////////////////////////////////////////
