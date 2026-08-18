@@ -356,31 +356,6 @@
                 </section>
 
 
-                <!-- SPARKD HOLDER -->
-
-                <section class="profileSection holderSection">
-
-                    <h2>
-                        🔥 SPARKD Holder Status
-                    </h2>
-
-
-                    <div
-                        id="holderStatus"
-                        class="holderStatus"
-                    >
-
-                        <strong>
-                            Wallet Not Connected
-                        </strong>
-
-                        <span>
-                            Connect your wallet to verify SPARKD ownership.
-                        </span>
-
-                    </div>
-
-
                     <button
                         id="connectWalletBtn"
                         class="connectWalletButton"
