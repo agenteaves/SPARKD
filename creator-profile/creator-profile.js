@@ -353,18 +353,6 @@
 
                     </div>
 
-                </section>
-
-
-                    <button
-                        id="connectWalletBtn"
-                        class="connectWalletButton"
-                    >
-                        🔗 Connect SPARKD Wallet
-                    </button>
-
-                </section>
-
 
                 <!-- FEATURED MEME -->
 
