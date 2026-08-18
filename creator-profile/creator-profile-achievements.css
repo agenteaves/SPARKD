@@ -225,8 +225,7 @@
    VISIBLE POPUP
    ===================================================== */
 
-#sparkdAchievementPopup
-.sparkd-achievement-visible {
+#sparkdAchievementPopup.sparkd-achievement-visible {
 
     opacity: 1;
 
@@ -290,8 +289,7 @@
    POPUP ENTRANCE
    ===================================================== */
 
-#sparkdAchievementPopup
-.sparkd-achievement-visible
+#sparkdAchievementPopup.sparkd-achievement-visible
 .sparkdAchievementModal {
 
     animation:
