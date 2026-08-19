@@ -435,118 +435,144 @@
     }
 
 
-    ////////////////////////////////////////////////////
-    // UPDATE ACHIEVEMENT CARDS
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// UPDATE ACHIEVEMENT CARDS
+////////////////////////////////////////////////////
 
-    function updateAchievements(
-        points,
-        allowFirstTimePopup
-    ) {
+function updateAchievements(
+    points,
+    allowFirstTimePopup
+) {
 
-        let unlockedCount = 0;
-
-
-        ACHIEVEMENTS.forEach(
-            function (achievement) {
-
-                const card =
-                    document.querySelector(
-                        '[data-achievement="' +
-                        achievement.id +
-                        '"]'
-                    );
+    let unlockedCount = 0;
 
 
-                if (!card) {
+    ACHIEVEMENTS.forEach(
+        function (achievement) {
 
-                    return;
+            const card =
+                document.querySelector(
+                    '[data-achievement="' +
+                    achievement.id +
+                    '"]'
+                );
 
-                }
 
+            if (!card) {
+
+                return;
+
+            }
+
+
+            if (
+                points >=
+                achievement.points
+            ) {
+
+                unlockedCount++;
+
+
+                card.classList.remove(
+                    "locked"
+                );
+
+
+                card.classList.add(
+                    "unlocked"
+                );
+
+
+                ////////////////////////////////////////////////////
+                // MAKE UNLOCKED CARD CLICKABLE
+                ////////////////////////////////////////////////////
+
+                card.style.cursor =
+                    "pointer";
+
+
+                card.onclick =
+                    function () {
+
+                        showAchievement(
+                            achievement
+                        );
+
+                    };
+
+
+                ////////////////////////////////////////////////////
+                // FIRST-TIME UNLOCK
+                ////////////////////////////////////////////////////
 
                 if (
-                    points >=
-                    achievement.points
+                    allowFirstTimePopup &&
+                    !wasShown(
+                        achievement.id
+                    )
                 ) {
 
-                    unlockedCount++;
-
-
-                    card.classList.remove(
-                        "locked"
-                    );
-
-
-                    card.classList.add(
-                        "unlocked"
-                    );
-
-
-                    ////////////////////////////////////////////////////
-                    // MAKE UNLOCKED CARD CLICKABLE
-                    ////////////////////////////////////////////////////
-
-                    card.style.cursor =
-                        "pointer";
-
-
-                    card.onclick =
+                    setTimeout(
                         function () {
 
                             showAchievement(
                                 achievement
                             );
 
-                        };
+                            markShown(
+                                achievement.id
+                            );
+
+                        },
+                        700
+                    );
+
+                }
+
+            }
+            else {
+
+                card.classList.remove(
+                    "unlocked"
+                );
 
 
-                    ////////////////////////////////////////////////////
-                    // FIRST-TIME UNLOCK
-                    ////////////////////////////////////////////////////
-
-                   if (
-    allowFirstTimePopup &&
-    !wasShown(
-        achievement.id
-    )
-) {
-
-    setTimeout(
-        function () {
-
-            showAchievement(
-                achievement
-            );
-
-            markShown(
-                achievement.id
-            );
-
-        },
-        700
-    );
-
-}
-
-        ////////////////////////////////////////////////////
-        // ACHIEVEMENT COUNTER
-        ////////////////////////////////////////////////////
-
-        const achievementCount =
-            document.getElementById(
-                "achievementsUnlocked"
-            );
+                card.classList.add(
+                    "locked"
+                );
 
 
-        if (achievementCount) {
+                card.style.cursor =
+                    "default";
 
-            achievementCount.textContent =
-                unlockedCount;
+
+                card.onclick =
+                    null;
+
+            }
 
         }
+    );
+
+
+    ////////////////////////////////////////////////////
+    // ACHIEVEMENT COUNTER
+    ////////////////////////////////////////////////////
+
+    const achievementCount =
+        document.getElementById(
+            "achievementsUnlocked"
+        );
+
+
+    if (achievementCount) {
+
+        achievementCount.textContent =
+            unlockedCount;
 
     }
+
+}
 
 
     ////////////////////////////////////////////////////
