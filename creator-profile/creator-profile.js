@@ -635,8 +635,10 @@
 
 
         if (points)
-            points.textContent =
-                profile.sparkPoints;
+        points.textContent =
+        Number(
+            localStorage.getItem("sparkPoints")
+        ) || 0;
 
 
         if (memes)
