@@ -269,44 +269,89 @@
     }
 
 
-    ////////////////////////////////////////////////////
-    // AUDIO / VOICE
-    ////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
+// ACHIEVEMENT VOICE
+////////////////////////////////////////////////////
 
-    function playAchievementVoice(
-        achievement
+function playAchievementVoice(
+    achievement
+) {
+
+    if (
+        !achievement ||
+        !achievement.voice
     ) {
 
-        if (
-            !window.speechSynthesis
-        ) {
-
-            return;
-
-        }
-
-
-        window.speechSynthesis.cancel();
-
-
-        const speech =
-            new SpeechSynthesisUtterance(
-                achievement.voice
-            );
-
-
-        speech.rate = 0.95;
-
-        speech.pitch = 1.0;
-
-        speech.volume = 1.0;
-
-
-        window.speechSynthesis.speak(
-            speech
-        );
+        return;
 
     }
+
+
+    ////////////////////////////////////////////////////
+    // USE SPARKD GLOBAL AUDIO SYSTEM
+    ////////////////////////////////////////////////////
+
+    if (
+        window.SPARKD_AUDIO &&
+        typeof window.SPARKD_AUDIO.speak ===
+        "function"
+    ) {
+
+        console.log(
+            "🔊 SPARKD Achievement Audio:",
+            achievement.name
+        );
+
+
+        window.SPARKD_AUDIO.speak(
+            achievement.voice
+        );
+
+
+        return;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // FALLBACK TO DIRECT SPEECH
+    ////////////////////////////////////////////////////
+
+    if (
+        !window.speechSynthesis
+    ) {
+
+        return;
+
+    }
+
+
+    window.speechSynthesis.cancel();
+
+
+    const speech =
+        new SpeechSynthesisUtterance(
+            achievement.voice
+        );
+
+
+    speech.rate =
+        0.95;
+
+
+    speech.pitch =
+        1.0;
+
+
+    speech.volume =
+        1.0;
+
+
+    window.speechSynthesis.speak(
+        speech
+    );
+
+}
 
 
     ////////////////////////////////////////////////////
