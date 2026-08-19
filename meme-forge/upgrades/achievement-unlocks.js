@@ -505,56 +505,29 @@
                     // FIRST-TIME UNLOCK
                     ////////////////////////////////////////////////////
 
-                    if (
-                        allowFirstTimePopup &&
-                        !wasShown(
-                            achievement.id
-                        )
-                    ) {
+                   if (
+    allowFirstTimePopup &&
+    !wasShown(
+        achievement.id
+    )
+) {
 
-                        markShown(
-                            achievement.id
-                        );
+    setTimeout(
+        function () {
 
+            showAchievement(
+                achievement
+            );
 
-                        setTimeout(
-                            function () {
+            markShown(
+                achievement.id
+            );
 
-                                showAchievement(
-                                    achievement
-                                );
+        },
+        700
+    );
 
-                            },
-                            700
-                        );
-
-                    }
-
-                }
-                else {
-
-                    card.classList.remove(
-                        "unlocked"
-                    );
-
-
-                    card.classList.add(
-                        "locked"
-                    );
-
-
-                    card.style.cursor =
-                        "default";
-
-
-                    card.onclick =
-                        null;
-
-                }
-
-            }
-        );
-
+}
 
         ////////////////////////////////////////////////////
         // ACHIEVEMENT COUNTER
