@@ -193,13 +193,26 @@
                     </div>
 
 
-                    <button
-                        id="sparkdAchievementClose"
-                        class="sparkdAchievementClose"
-                        type="button"
-                    >
-                        CLOSE
-                    </button>
+                   <div class="sparkdAchievementActions">
+
+    <button
+        id="sparkdAchievementHear"
+        class="sparkdAchievementHear"
+        type="button"
+    >
+        🔊 TAP TO HEAR
+    </button>
+
+
+        <button
+            id="sparkdAchievementClose"
+            class="sparkdAchievementClose"
+            type="button"
+        >
+            CLOSE
+        </button>
+
+    </div>
 
                 </div>
 
