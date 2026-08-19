@@ -244,7 +244,39 @@
             );
 
         }
+        
+////////////////////////////////////////////////////
+// TAP TO HEAR BUTTON
+////////////////////////////////////////////////////
 
+const hearButton =
+    document.getElementById(
+        "sparkdAchievementHear"
+    );
+
+
+if (hearButton) {
+
+    hearButton.addEventListener(
+        "click",
+        function () {
+
+            if (
+                window.SPARKD_AUDIO &&
+                typeof window.SPARKD_AUDIO.speak ===
+                "function"
+            ) {
+
+                window.SPARKD_AUDIO.speak(
+                    window.SPARKD_CURRENT_ACHIEVEMENT.voice
+                );
+
+            }
+
+        }
+    );
+
+}
 
         ////////////////////////////////////////////////////
         // CLICK OUTSIDE MODAL
@@ -372,11 +404,15 @@ function playAchievementVoice(
     ////////////////////////////////////////////////////
 
     function showAchievement(
-        achievement
-    ) {
+    achievement
+) {
 
-        const popup =
-            createPopup();
+    window.SPARKD_CURRENT_ACHIEVEMENT =
+        achievement;
+
+
+    const popup =
+        createPopup();
 
 
         const image =
