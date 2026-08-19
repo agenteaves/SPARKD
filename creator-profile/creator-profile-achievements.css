@@ -235,6 +235,20 @@
 
 }
 
+/* =====================================================
+   VISIBLE ACHIEVEMENT OVERLAY
+   ===================================================== */
+
+#sparkdAchievementPopup.sparkd-achievement-visible
+.sparkdAchievementOverlay {
+
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+
+}
 
 /* =====================================================
    MODAL
