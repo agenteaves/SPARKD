@@ -601,14 +601,48 @@ function updateAchievements(
 
 function initializeAchievements() {
 
-    // Give the profile page a moment to finish
-    // rendering its achievement cards.
+    ////////////////////////////////////////////////////
+    // WAIT FOR PROFILE ACHIEVEMENT CARDS
+    ////////////////////////////////////////////////////
 
-    setTimeout(function () {
+    let attempts = 0;
 
-        checkAchievements(true);
+    const waitForAchievements =
+        setInterval(function () {
 
-    }, 500);
+            attempts++;
+
+            const firstCard =
+                document.querySelector(
+                    '[data-achievement="first-spark"]'
+                );
+
+            if (firstCard) {
+
+                clearInterval(
+                    waitForAchievements
+                );
+
+                checkAchievements(true);
+
+                return;
+
+            }
+
+
+            if (attempts >= 20) {
+
+                clearInterval(
+                    waitForAchievements
+                );
+
+                console.warn(
+                    "SPARKD Achievements: Profile cards not found."
+                );
+
+            }
+
+        }, 250);
 
 }
 
