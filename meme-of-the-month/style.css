@@ -1,1 +1,806 @@
+/* =====================================================
+   SPARKD MEME OF THE MONTH
+   MAIN STYLES
+   ===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    color: #ffffff;
+
+    background:
+        radial-gradient(
+            circle at 50% -10%,
+            rgba(255, 110, 0, 0.18),
+            transparent 40%
+        ),
+        linear-gradient(
+            180deg,
+            #090909 0%,
+            #111111 45%,
+            #070707 100%
+        );
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+.motm-header {
+
+    position: relative;
+
+    text-align: center;
+
+    padding:
+        45px 20px
+        35px;
+
+    border-bottom:
+        1px solid
+        rgba(255, 120, 0, 0.25);
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 100, 0, 0.12),
+            transparent 65%
+        );
+
+}
+
+
+.motm-home {
+
+    position: absolute;
+
+    top: 22px;
+    left: 22px;
+
+    color: #ff7a00;
+
+    text-decoration: none;
+
+    font-size: 18px;
+
+    font-weight: 800;
+
+    transition:
+        transform 0.2s ease,
+        text-shadow 0.2s ease;
+
+}
+
+
+.motm-home:hover {
+
+    transform:
+        scale(1.05);
+
+    text-shadow:
+        0 0 12px
+        rgba(255, 120, 0, 0.8);
+
+}
+
+
+.motm-header h1 {
+
+    margin:
+        15px 0 10px;
+
+    font-size:
+        clamp(32px, 6vw, 62px);
+
+    letter-spacing:
+        2px;
+
+    color:
+        #ffffff;
+
+    text-shadow:
+
+        0 0 10px
+        rgba(255, 120, 0, 0.8),
+
+        0 0 35px
+        rgba(255, 80, 0, 0.45);
+
+}
+
+
+.motm-header p {
+
+    margin: 0;
+
+    color:
+        rgba(255, 255, 255, 0.65);
+
+    font-size:
+        17px;
+
+}
+
+
+/* =====================================================
+   MAIN
+   ===================================================== */
+
+main {
+
+    width:
+        min(1100px, 94vw);
+
+    margin:
+        0 auto;
+
+}
+
+
+/* =====================================================
+   SECTIONS
+   ===================================================== */
+
+section {
+
+    margin:
+        45px 0;
+
+}
+
+
+.section-label {
+
+    display:
+        inline-block;
+
+    margin-bottom:
+        12px;
+
+    padding:
+        7px 14px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255, 110, 0, 0.12);
+
+    border:
+        1px solid
+        rgba(255, 130, 0, 0.35);
+
+    color:
+        #ff9a3c;
+
+    font-size:
+        12px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        1.5px;
+
+}
+
+
+section h2 {
+
+    margin:
+        0 0 20px;
+
+    font-size:
+        clamp(26px, 4vw, 42px);
+
+}
+
+
+.section-description {
+
+    max-width:
+        700px;
+
+    color:
+        rgba(255, 255, 255, 0.68);
+
+    line-height:
+        1.7;
+
+}
+
+
+/* =====================================================
+   CURRENT WINNER
+   ===================================================== */
+
+.winner-section {
+
+    text-align:
+        center;
+
+    padding:
+        35px 20px
+        45px;
+
+}
+
+
+.winner-section h2 {
+
+    color:
+        #ffb15c;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+.winner-display {
+
+    width:
+        min(850px, 100%);
+
+    min-height:
+        430px;
+
+    margin:
+        25px auto;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        28px;
+
+    border:
+        2px solid
+        rgba(255, 120, 0, 0.55);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35, 20, 10, 0.95),
+            rgba(10, 10, 12, 0.98)
+        );
+
+    box-shadow:
+
+        0 0 25px
+        rgba(255, 110, 0, 0.25),
+
+        inset 0 0 50px
+        rgba(255, 90, 0, 0.06);
+
+}
+
+
+.winner-placeholder {
+
+    max-width:
+        600px;
+
+    padding:
+        40px 25px;
+
+}
+
+
+.winner-icon {
+
+    font-size:
+        90px;
+
+    margin-bottom:
+        20px;
+
+    filter:
+        drop-shadow(
+            0 0 20px
+            rgba(255, 160, 0, 0.75)
+        );
+
+}
+
+
+.winner-placeholder h3 {
+
+    margin:
+        0 0 15px;
+
+    font-size:
+        clamp(22px, 4vw, 34px);
+
+}
+
+
+.winner-placeholder p {
+
+    margin: 0;
+
+    color:
+        rgba(255, 255, 255, 0.6);
+
+    line-height:
+        1.7;
+
+}
+
+
+.winner-info {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        6px;
+
+}
+
+
+.winner-info span {
+
+    color:
+        #ff8a22;
+
+    font-size:
+        13px;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        2px;
+
+}
+
+
+.winner-info strong {
+
+    font-size:
+        25px;
+
+}
+
+
+/* =====================================================
+   COMPETITION
+   ===================================================== */
+
+.competition-section {
+
+    text-align:
+        center;
+
+    padding:
+        40px 25px;
+
+    border-radius:
+        25px;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+}
+
+
+.competition-section
+.section-description {
+
+    margin:
+        0 auto 30px;
+
+}
+
+
+/* =====================================================
+   STAT CARDS
+   ===================================================== */
+
+.competition-stats {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        15px;
+
+    max-width:
+        750px;
+
+    margin:
+        30px auto;
+
+}
+
+
+.stat-card {
+
+    padding:
+        22px 12px;
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(0, 0, 0, 0.35);
+
+    border:
+        1px solid
+        rgba(255, 120, 0, 0.2);
+
+}
+
+
+.stat-number {
+
+    display:
+        block;
+
+    font-size:
+        30px;
+
+    font-weight:
+        900;
+
+    color:
+        #ff9a3c;
+
+}
+
+
+.stat-label {
+
+    display:
+        block;
+
+    margin-top:
+        6px;
+
+    font-size:
+        11px;
+
+    color:
+        rgba(255, 255, 255, 0.55);
+
+    letter-spacing:
+        1px;
+
+}
+
+
+/* =====================================================
+   BUTTON
+   ===================================================== */
+
+.motm-button {
+
+    border:
+        none;
+
+    border-radius:
+        999px;
+
+    padding:
+        16px 28px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff8a00,
+            #ff4500
+        );
+
+    color:
+        #ffffff;
+
+    font-size:
+        15px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        0.5px;
+
+    cursor:
+        pointer;
+
+    box-shadow:
+        0 0 20px
+        rgba(255, 100, 0, 0.3);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+.motm-button:hover {
+
+    transform:
+        translateY(-2px)
+        scale(1.02);
+
+    box-shadow:
+        0 0 35px
+        rgba(255, 100, 0, 0.55);
+
+}
+
+
+.burn-note {
+
+    margin:
+        15px 0 0;
+
+    color:
+        rgba(255, 255, 255, 0.45);
+
+    font-size:
+        13px;
+
+}
+
+
+/* =====================================================
+   SUBMISSIONS
+   ===================================================== */
+
+.submissions-section {
+
+    padding:
+        10px 0;
+
+}
+
+
+.submissions-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                220px,
+                1fr
+            )
+        );
+
+    gap:
+        20px;
+
+}
+
+
+.empty-submissions {
+
+    grid-column:
+        1 / -1;
+
+    text-align:
+        center;
+
+    padding:
+        60px 20px;
+
+    border:
+        1px dashed
+        rgba(255, 255, 255, 0.15);
+
+    border-radius:
+        20px;
+
+    color:
+        rgba(255, 255, 255, 0.5);
+
+}
+
+
+.empty-submissions span {
+
+    display:
+        block;
+
+    font-size:
+        50px;
+
+    margin-bottom:
+        15px;
+
+}
+
+
+/* =====================================================
+   HALL OF FAME
+   ===================================================== */
+
+.hall-section {
+
+    padding:
+        35px 0;
+
+}
+
+
+.hall-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                220px,
+                1fr
+            )
+        );
+
+    gap:
+        20px;
+
+}
+
+
+.empty-hall {
+
+    padding:
+        45px 20px;
+
+    text-align:
+        center;
+
+    border:
+        1px dashed
+        rgba(255, 180, 80, 0.2);
+
+    border-radius:
+        20px;
+
+    color:
+        rgba(255, 255, 255, 0.45);
+
+}
+
+
+.empty-hall:first-letter {
+
+    font-size:
+        35px;
+
+}
+
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+
+.motm-footer {
+
+    margin-top:
+        60px;
+
+    padding:
+        35px 20px;
+
+    text-align:
+        center;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    color:
+        rgba(255, 255, 255, 0.5);
+
+}
+
+
+.motm-footer a {
+
+    color:
+        #ff8a22;
+
+    text-decoration:
+        none;
+
+}
+
+
+.motm-footer a:hover {
+
+    text-decoration:
+        underline;
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (
+    max-width: 700px
+) {
+
+    .motm-header {
+
+        padding-top:
+            70px;
+
+    }
+
+
+    .motm-home {
+
+        top: 18px;
+        left: 18px;
+
+    }
+
+
+    .winner-display {
+
+        min-height:
+            320px;
+
+    }
+
+
+    .competition-stats {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .motm-button {
+
+        width:
+            100%;
+
+        max-width:
+            400px;
+
+    }
+
+}
+
 
