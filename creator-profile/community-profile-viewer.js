@@ -198,8 +198,30 @@ function waitForProfileInterface(
                     );
 
 
+                    /*
+                     * Apply the creator's database
+                     * profile information and
+                     * view-only protection.
+                     */
+
                     activateViewOnlyMode(
                         creator
+                    );
+
+
+                    /*
+                     * Apply achievements based
+                     * on THIS creator's SPARKD
+                     * Points from Supabase.
+                     */
+
+                    updatePublicAchievements(
+                        creator
+                    );
+
+
+                    console.log(
+                        "🏆 SPARKD Public Achievements updated."
                     );
 
 
@@ -232,6 +254,8 @@ function waitForProfileInterface(
         );
 
 }
+
+
 
     ////////////////////////////////////////////////////
     // ACTIVATE VIEW-ONLY MODE
