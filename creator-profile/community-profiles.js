@@ -261,37 +261,266 @@
     // LOAD COMMUNITY PROFILES
     ////////////////////////////////////////////////////
 
-    async function loadCommunityProfiles() {
+   async function loadCommunityProfiles() {
 
-        const list =
-            document.getElementById(
-                "communityProfilesList"
-            );
-
-
-        if (!list)
-            return;
+    const list =
+        document.getElementById(
+            "communityProfilesList"
+        );
 
 
-        /*
-         * Supabase connection will be added
-         * after we connect this file to the
-         * existing SPARKD Supabase project.
-         */
+    if (!list)
+        return;
+
+
+    list.innerHTML = `
+
+        <div class="communityProfilesLoading">
+
+            🔄 Loading SPARKD creators...
+
+        </div>
+
+    `;
+
+
+    ////////////////////////////////////////////////////
+    // SUPABASE CLIENT
+    ////////////////////////////////////////////////////
+
+    const SUPABASE_URL =
+        "https://uxpbgzksfizkyxubctep.supabase.co";
+
+
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+
+
+    if (
+        typeof window.supabase === "undefined" ||
+        typeof window.supabase.createClient !== "function"
+    ) {
 
         list.innerHTML = `
 
             <div class="communityProfilesEmpty">
 
-                👥
+                🚫 Community directory unavailable.
 
-                <strong>
-                    SPARKD Creator Directory
-                </strong>
+            </div>
 
-                <span>
-                    Community profiles will appear here.
-                </span>
+        `;
+
+        console.error(
+            "SPARKD Community Profiles: Supabase is not available."
+        );
+
+        return;
+
+    }
+
+
+    const communitySupabase =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+
+    ////////////////////////////////////////////////////
+    // LOAD PUBLIC CREATOR PROFILES
+    ////////////////////////////////////////////////////
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await communitySupabase
+                .from("creator_profiles")
+                .select(
+                    "creator_id,display_name,username,profile_image,creator_level,spark_points,memes_created,missions_completed,creator_rank,joined_date"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "SPARKD Community Profiles database error:",
+                error
+            );
+
+
+            list.innerHTML = `
+
+                <div class="communityProfilesEmpty">
+
+                    🚫 Could not load creator directory.
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        if (
+            !data ||
+            data.length === 0
+        ) {
+
+            list.innerHTML = `
+
+                <div class="communityProfilesEmpty">
+
+                    👥
+
+                    <strong>
+                        No SPARKD creators yet.
+                    </strong>
+
+                    <span>
+                        Be the first creator to register!
+                    </span>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // BUILD CREATOR LIST
+        ////////////////////////////////////////////////////
+
+        list.innerHTML = "";
+
+
+        data.forEach(
+            function (creator) {
+
+                const card =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                card.type =
+                    "button";
+
+
+                card.className =
+                    "communityCreatorCard";
+
+
+                card.dataset.creatorId =
+                    creator.creator_id;
+
+
+                const image =
+                    creator.profile_image
+                    ?
+
+                    `<img
+                        src="${creator.profile_image}"
+                        alt="Creator profile"
+                    >`
+
+                    :
+
+                    `<div
+                        class="communityCreatorPlaceholder"
+                    >
+                        ⚡
+                    </div>`;
+
+
+                card.innerHTML = `
+
+                    <div class="communityCreatorImage">
+
+                        ${image}
+
+                    </div>
+
+
+                    <div class="communityCreatorInfo">
+
+                        <strong>
+                            ${creator.display_name || "SPARKD Creator"}
+                        </strong>
+
+                        <span>
+                            @${creator.username || "creator"}
+                        </span>
+
+                        <small>
+                            ${creator.creator_rank || "Meme Rookie"}
+                        </small>
+
+                    </div>
+
+
+                    <div class="communityCreatorArrow">
+
+                        👁️
+
+                    </div>
+
+                `;
+
+
+                card.addEventListener(
+                    "click",
+                    function () {
+
+                        viewCreatorProfile(
+                            creator.creator_id
+                        );
+
+                    }
+                );
+
+
+                list.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+        console.log(
+            "👥 SPARKD Community Profiles loaded:",
+            data.length
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "SPARKD Community Profiles failed:",
+            error
+        );
+
+
+        list.innerHTML = `
+
+            <div class="communityProfilesEmpty">
+
+                🚫 Unable to load creator directory.
 
             </div>
 
@@ -299,6 +528,7 @@
 
     }
 
+}
 
     ////////////////////////////////////////////////////
     // VIEW CREATOR PROFILE
