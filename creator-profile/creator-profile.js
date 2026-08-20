@@ -50,47 +50,232 @@
     };
 
 
-    ////////////////////////////////////////////////////
-    // LOAD SAVED PROFILE
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// LOAD SAVED PROFILE
+////////////////////////////////////////////////////
 
-    function loadProfile() {
+async function loadProfile() {
 
-        try {
+    try {
 
-            const saved =
-                localStorage.getItem(
-                    PROFILE_KEY
-                );
-
-
-            if (saved) {
-
-                const parsed =
-                    JSON.parse(saved);
+        const saved =
+            localStorage.getItem(
+                PROFILE_KEY
+            );
 
 
-                profile = {
+        ////////////////////////////////////////////////////
+        // LOAD LOCAL PROFILE IF AVAILABLE
+        ////////////////////////////////////////////////////
 
-                    ...profile,
+        if (saved) {
 
-                    ...parsed
+            const parsed =
+                JSON.parse(saved);
 
-                };
 
-            }
+            profile = {
+
+                ...profile,
+
+                ...parsed
+
+            };
+
+
+            console.log(
+                "🔥 SPARKD: Local creator profile loaded."
+            );
+
+
+            return;
 
         }
-        catch (error) {
+
+
+        ////////////////////////////////////////////////////
+        // RECOVER USING CREATOR ID
+        ////////////////////////////////////////////////////
+
+        const creatorID =
+            localStorage.getItem(
+                "sparkdCreatorID"
+            );
+
+
+        if (!creatorID) {
+
+            console.log(
+                "SPARKD: No Creator ID available."
+            );
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // CHECK SUPABASE
+        ////////////////////////////////////////////////////
+
+        if (
+            typeof window.supabase === "undefined" ||
+            typeof window.supabase.createClient !== "function"
+        ) {
 
             console.warn(
-                "SPARKD profile could not be loaded:",
+                "SPARKD: Supabase unavailable."
+            );
+
+            return;
+
+        }
+
+
+        const SUPABASE_URL =
+            "https://uxpbgzksfizkyxubctep.supabase.co";
+
+
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+
+
+        const recoveryClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY
+            );
+
+
+        ////////////////////////////////////////////////////
+        // FIND EXISTING CREATOR
+        ////////////////////////////////////////////////////
+
+        const {
+            data,
+            error
+        } =
+            await recoveryClient
+                .from("creator_profiles")
+                .select(
+                    "creator_id,display_name,username,bio,profile_image,creator_level,spark_points,memes_created,missions_completed,creator_rank,joined_date"
+                )
+                .eq(
+                    "creator_id",
+                    creatorID
+                )
+                .maybeSingle();
+
+
+        if (error) {
+
+            console.error(
+                "SPARKD Creator Profile recovery error:",
                 error
+            );
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // PROFILE FOUND
+        ////////////////////////////////////////////////////
+
+        if (data) {
+
+            profile = {
+
+                ...profile,
+
+                displayName:
+                    data.display_name ||
+                    profile.displayName,
+
+                username:
+                    data.username ||
+                    profile.username,
+
+                bio:
+                    data.bio ||
+                    profile.bio,
+
+                profileImage:
+                    data.profile_image ||
+                    profile.profileImage,
+
+                creatorLevel:
+                    data.creator_level ||
+                    profile.creatorLevel,
+
+                sparkPoints:
+                    Number(
+                        data.spark_points
+                    ) ||
+                    0,
+
+                memesCreated:
+                    Number(
+                        data.memes_created
+                    ) ||
+                    0,
+
+                missionsCompleted:
+                    Number(
+                        data.missions_completed
+                    ) ||
+                    0,
+
+                creatorRank:
+                    data.creator_rank ||
+                    profile.creatorRank,
+
+                joinedDate:
+                    data.joined_date ||
+                    profile.joinedDate
+
+            };
+
+
+            ////////////////////////////////////////////////////
+            // RESTORE LOCAL PROFILE
+            ////////////////////////////////////////////////////
+
+            localStorage.setItem(
+                PROFILE_KEY,
+                JSON.stringify(
+                    profile
+                )
+            );
+
+
+            console.log(
+                "🔥 SPARKD: Creator profile recovered from community database:",
+                creatorID
+            );
+
+        }
+        else {
+
+            console.log(
+                "SPARKD: No community profile found for:",
+                creatorID
             );
 
         }
 
     }
+    catch (error) {
+
+        console.warn(
+            "SPARKD profile could not be loaded:",
+            error
+        );
+
+    }
+
+}
 
 
     ////////////////////////////////////////////////////
