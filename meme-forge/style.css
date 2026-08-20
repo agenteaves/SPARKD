@@ -972,8 +972,56 @@ a[href="upgrades/chat.html"]{
 
     justify-content:center;
 
+    isolation:isolate;
+
 }
 
+
+/* ================================================
+   HOLDER CHAT - ELECTRIC EFFECT
+================================================ */
+
+#chatBtn::before,
+#chatBtn::after{
+
+    display:block;
+
+    pointer-events:none;
+
+    z-index:0;
+
+}
+
+
+/* Forward electricity */
+
+#chatBtn::before{
+
+    animation:
+        holderElectricForward
+        1.8s
+        linear
+        infinite;
+
+}
+
+
+/* Backward electricity */
+
+#chatBtn::after{
+
+    animation:
+        holderElectricBack
+        1.4s
+        linear
+        infinite;
+
+}
+
+
+/* ================================================
+   HOLDER CHAT - HOVER
+================================================ */
 
 a[href="upgrades/chat.html"]:hover{
 
@@ -985,42 +1033,4 @@ a[href="upgrades/chat.html"]:hover{
         0 0 30px rgba(0,140,255,0.75);
 
 }
-
- 
-/* ================================================
-   HOLDER CHAT - FORCE ELECTRIC EFFECT
-================================================ */
-
-#chatBtn::before,
-#chatBtn::after {
-
-    display: block;
-
-    pointer-events: none;
-
-}
-
-#chatBtn::before {
-
-    animation:
-        holderElectricForward
-        1.8s
-        linear
-        infinite;
-
-}
-
-#chatBtn::after {
-
-    animation:
-        holderElectricBack
-        1.4s
-        linear
-        infinite;
-
-}
-
-
-
-   
 
