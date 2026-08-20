@@ -1276,3 +1276,296 @@ body {
     left: 180px;
 }
 
+/* =====================================================
+   SPARKD COMMUNITY PROFILES DROPDOWN
+   ===================================================== */
+
+.communityProfilesDropdown {
+
+    position: fixed;
+
+    top: 75px;
+
+    left: 180px;
+
+    width: 360px;
+
+    max-height: 70vh;
+
+    overflow-y: auto;
+
+    background:
+        rgba(5, 10, 8, 0.97);
+
+    border:
+        1px solid rgba(57, 255, 117, 0.45);
+
+    border-radius: 14px;
+
+    padding: 15px;
+
+    box-shadow:
+        0 0 25px rgba(57, 255, 117, 0.18);
+
+    z-index: 99999;
+
+    display: none;
+}
+
+
+.communityProfilesDropdown.open {
+
+    display: block;
+
+}
+
+
+/* =====================================================
+   COMMUNITY PROFILES HEADER
+   ===================================================== */
+
+.communityProfilesHeader {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+
+    color:
+        #39ff75;
+
+    font-family:
+        Orbitron,
+        sans-serif;
+
+}
+
+
+#closeCommunityProfiles {
+
+    width: auto;
+
+    margin: 0;
+
+    padding: 4px 9px;
+
+    border: 1px solid
+        rgba(57, 255, 117, 0.35);
+
+    border-radius: 7px;
+
+    background:
+        rgba(0, 30, 10, 0.8);
+
+    color:
+        #39ff75;
+
+    cursor: pointer;
+
+}
+
+
+/* =====================================================
+   COMMUNITY CREATOR LIST
+   ===================================================== */
+
+.communityProfilesList {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+}
+
+
+.communityCreatorCard {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 10px;
+
+    margin: 0;
+
+    border: 1px solid
+        rgba(57, 255, 117, 0.18);
+
+    border-radius: 10px;
+
+    background:
+        rgba(0, 30, 10, 0.45);
+
+    color: white;
+
+    text-align: left;
+
+    cursor: pointer;
+
+}
+
+
+.communityCreatorCard:hover {
+
+    border-color:
+        #39ff75;
+
+    background:
+        rgba(0, 255, 100, 0.08);
+
+    box-shadow:
+        0 0 15px
+        rgba(57, 255, 117, 0.18);
+
+}
+
+
+/* =====================================================
+   CREATOR IMAGE
+   ===================================================== */
+
+.communityCreatorImage {
+
+    width: 55px;
+
+    height: 55px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    overflow: hidden;
+
+    border: 1px solid
+        rgba(57, 255, 117, 0.45);
+
+}
+
+
+.communityCreatorImage img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+
+.communityCreatorPlaceholder {
+
+    width: 100%;
+
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 24px;
+
+}
+
+
+/* =====================================================
+   CREATOR INFORMATION
+   ===================================================== */
+
+.communityCreatorInfo {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+
+    flex: 1;
+
+}
+
+
+.communityCreatorInfo strong {
+
+    color:
+        white;
+
+    font-size: 14px;
+
+}
+
+
+.communityCreatorInfo span {
+
+    color:
+        #39ff75;
+
+    font-size: 12px;
+
+}
+
+
+.communityCreatorInfo small {
+
+    color:
+        #999;
+
+    font-size: 10px;
+
+}
+
+
+.communityCreatorArrow {
+
+    font-size: 16px;
+
+    opacity: 0.75;
+
+}
+
+
+/* =====================================================
+   EMPTY / LOADING STATES
+   ===================================================== */
+
+.communityProfilesEmpty,
+.communityProfilesLoading {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 30px 15px;
+
+    text-align: center;
+
+    color: #aaa;
+
+}
+
+
+.communityProfilesEmpty strong {
+
+    color:
+        #39ff75;
+
+}
