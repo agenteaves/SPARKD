@@ -530,29 +530,31 @@
 
 }
 
-    ////////////////////////////////////////////////////
-    // VIEW CREATOR PROFILE
-    ////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
+// VIEW CREATOR PROFILE
+////////////////////////////////////////////////////
 
-    function viewCreatorProfile(
+function viewCreatorProfile(
+    creatorId
+) {
+
+    if (!creatorId)
+        return;
+
+
+    console.log(
+        "👁️ SPARKD: Opening creator profile:",
         creatorId
-    ) {
-
-        if (!creatorId)
-            return;
+    );
 
 
-        /*
-         * The public profile viewer will be
-         * connected here.
-         */
-
-        console.log(
-            "SPARKD: View creator profile:",
+    window.location.href =
+        "index.html?creator=" +
+        encodeURIComponent(
             creatorId
         );
 
-    }
+}
 
 
     ////////////////////////////////////////////////////
