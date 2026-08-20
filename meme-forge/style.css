@@ -655,7 +655,8 @@ MOBILE
 
 }
 
-   /* ================================
+ 
+/* ================================
    HOME BUTTON
 ================================ */
 
@@ -665,7 +666,7 @@ MOBILE
 
     top:20px;
 
-    left:195px;
+    left:200px;
 
     background:#ff6a00;
 
@@ -683,6 +684,8 @@ MOBILE
 
     cursor:pointer;
 
+    height:42px;
+
 }
 
 
@@ -692,7 +695,12 @@ MOBILE
 
     box-shadow:0 0 15px #ff6a00;
 
-} 
+}
+
+
+/* ================================
+   CHALLENGE TEXT
+================================ */
 
 #challengeCategory,
 #challengeDifficulty,
@@ -708,13 +716,13 @@ MOBILE
 
 }
 
+
 #challengeReward{
 
     color:#00ff99;
 
 }
 
-}
 
 /* ================================
    HOLDER CHAT - ELECTRIC BLUE
@@ -726,7 +734,7 @@ a[href="upgrades/chat.html"]{
 
     top:20px;
 
-    left:10px;
+    left:20px;
 
     background:#ff6a00;
 
@@ -746,7 +754,15 @@ a[href="upgrades/chat.html"]{
 
     text-decoration:none;
 
-    display:inline-block;
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    height:42px;
+
+    box-sizing:border-box;
 
     overflow:hidden;
 
@@ -870,6 +886,8 @@ a[href="upgrades/chat.html"]::after{
     }
 
 }
+
+
 /* Extra electricity when hovering */
 
 a[href="upgrades/chat.html"]:hover{
@@ -881,46 +899,55 @@ a[href="upgrades/chat.html"]:hover{
 
 }
 
+
 /* ================================
    CREATOR PROFILE BUTTON
 ================================ */
 
-#profileBtn {
+#profileBtn{
 
-    position: absolute;
+    position:absolute;
 
-    top: 20px;
+    top:20px;
 
-    left: 314px;
+    left:320px;
 
-    background: #ff6a00;
+    background:#ff6a00;
 
-    color: white;
+    color:white;
 
-    border: none;
+    border:none;
 
-    padding: 10px 18px;
+    padding:10px 18px;
 
-    border-radius: 8px;
+    border-radius:8px;
 
-    font-family: Orbitron;
+    font-family:Orbitron;
 
-    font-weight: bold;
+    font-weight:bold;
 
-    cursor: pointer;
+    cursor:pointer;
 
-    text-decoration: none;
+    text-decoration:none;
 
-    display: inline-block;
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    height:42px;
+
+    box-sizing:border-box;
 
 }
 
 
-#profileBtn:hover {
+#profileBtn:hover{
 
-    transform: scale(1.05);
+    transform:scale(1.05);
 
-    box-shadow: 0 0 15px #ff6a00;
+    box-shadow:0 0 15px #ff6a00;
 
 }
 
