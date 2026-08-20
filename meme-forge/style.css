@@ -951,3 +951,40 @@ a[href="upgrades/chat.html"]:hover{
 
 }
 
+
+/* ================================
+   HOLDER CHAT - FINAL STYLE
+================================ */
+
+a[href="upgrades/chat.html"]{
+
+    background:#ff6a00;
+
+    color:white;
+
+    height:42px;
+
+    box-sizing:border-box;
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+a[href="upgrades/chat.html"]:hover{
+
+    transform:scale(1.05);
+
+    box-shadow:
+        0 0 8px #008cff,
+        0 0 18px #008cff,
+        0 0 30px rgba(0,140,255,0.75);
+
+}
+
+   
+
