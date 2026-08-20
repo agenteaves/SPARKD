@@ -1048,70 +1048,249 @@
 
 
     ////////////////////////////////////////////////////
-    // SAVE EDITED PROFILE
+// SAVE EDITED PROFILE
+////////////////////////////////////////////////////
+
+async function saveEditedProfile() {
+
+    const displayName =
+        document.getElementById(
+            "displayNameInput"
+        );
+
+    const username =
+        document.getElementById(
+            "usernameInput"
+        );
+
+    const bio =
+        document.getElementById(
+            "bioInput"
+        );
+
+
+    ////////////////////////////////////////////////////
+    // UPDATE LOCAL PROFILE DATA
     ////////////////////////////////////////////////////
 
-    function saveEditedProfile() {
+    if (displayName) {
 
-        const displayName =
-            document.getElementById(
-                "displayNameInput"
-            );
+        profile.displayName =
+            displayName.value.trim()
+            ||
+            "SPARKD Creator";
 
-
-        const username =
-            document.getElementById(
-                "usernameInput"
-            );
+    }
 
 
-        const bio =
-            document.getElementById(
-                "bioInput"
-            );
+    if (username) {
 
-
-        if (displayName) {
-
-            profile.displayName =
-                displayName.value.trim()
-                ||
-                "SPARKD Creator";
-
-        }
-
-
-        if (username) {
-
-            profile.username =
-                username.value.trim()
+        profile.username =
+            username.value.trim()
                 .replace(
                     /^@/,
                     ""
                 )
-                ||
-                "creator";
+            ||
+            "creator";
 
-        }
-
-
-        if (bio) {
-
-            profile.bio =
-                bio.value.trim();
-
-        }
+    }
 
 
-        saveProfile();
+    if (bio) {
 
+        profile.bio =
+            bio.value.trim();
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // SAVE TO LOCALSTORAGE
+    ////////////////////////////////////////////////////
+
+    saveProfile();
+
+
+    ////////////////////////////////////////////////////
+    // GET CREATOR ID
+    ////////////////////////////////////////////////////
+
+    const creatorID =
+        localStorage.getItem(
+            "sparkdCreatorID"
+        );
+
+
+    if (!creatorID) {
+
+        console.error(
+            "SPARKD Creator Profile: Creator ID not found."
+        );
 
         alert(
-            "🔥 SPARKD Creator Profile saved!"
+            "⚠️ Creator ID not found. Profile saved locally, but could not be registered with the community."
+        );
+
+        return;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // SUPABASE CONNECTION
+    ////////////////////////////////////////////////////
+
+    const SUPABASE_URL =
+        "https://uxpbgzksfizkyxubctep.supabase.co";
+
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+
+
+    if (
+        typeof window.supabase === "undefined" ||
+        typeof window.supabase.createClient !== "function"
+    ) {
+
+        console.error(
+            "SPARKD Creator Profile: Supabase library unavailable."
+        );
+
+        alert(
+            "⚠️ Profile saved locally, but community registration is temporarily unavailable."
+        );
+
+        return;
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CREATE SUPABASE CLIENT
+    ////////////////////////////////////////////////////
+
+    const creatorSupabase =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+
+    ////////////////////////////////////////////////////
+    // SAVE PROFILE TO COMMUNITY DATABASE
+    ////////////////////////////////////////////////////
+
+    const communityProfile = {
+
+        creator_id:
+            creatorID,
+
+        display_name:
+            profile.displayName,
+
+        username:
+            profile.username,
+
+        bio:
+            profile.bio,
+
+        profile_image:
+            profile.profileImage,
+
+        creator_level:
+            profile.creatorLevel,
+
+        spark_points:
+            Number(
+                localStorage.getItem("sparkPoints")
+            ) || 0,
+
+        memes_created:
+            Number(
+                profile.memesCreated
+            ) || 0,
+
+        missions_completed:
+            Number(
+                profile.missionsCompleted
+            ) || 0,
+
+        creator_rank:
+            profile.creatorRank,
+
+        joined_date:
+            profile.joinedDate,
+
+        updated_at:
+            new Date().toISOString()
+
+    };
+
+
+    try {
+
+        const {
+            error
+        } =
+            await creatorSupabase
+                .from("creator_profiles")
+                .upsert(
+                    communityProfile,
+                    {
+                        onConflict:
+                            "creator_id"
+                    }
+                );
+
+
+        ////////////////////////////////////////////////////
+        // CHECK DATABASE RESULT
+        ////////////////////////////////////////////////////
+
+        if (error) {
+
+            console.error(
+                "SPARKD Creator Profile database error:",
+                error
+            );
+
+            alert(
+                "⚠️ Profile saved locally, but the community profile could not be registered."
+            );
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // SUCCESS
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🔥 SPARKD Creator Profile registered in community database."
+        );
+
+        alert(
+            "🔥 SPARKD Creator Profile saved and registered with the community!"
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "SPARKD Creator Profile save failed:",
+            error
+        );
+
+        alert(
+            "⚠️ Profile saved locally, but community registration failed."
         );
 
     }
 
+}
 
     ////////////////////////////////////////////////////
     // HOME BUTTON
