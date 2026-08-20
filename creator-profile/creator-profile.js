@@ -1113,28 +1113,41 @@ async function saveEditedProfile() {
 
 
     ////////////////////////////////////////////////////
-    // GET CREATOR ID
-    ////////////////////////////////////////////////////
+// GET / CREATE CREATOR ID
+////////////////////////////////////////////////////
 
-    const creatorID =
-        localStorage.getItem(
-            "sparkdCreatorID"
-        );
+let creatorID =
+    localStorage.getItem(
+        "sparkdCreatorID"
+    );
 
 
-    if (!creatorID) {
+////////////////////////////////////////////////////
+// CREATE CREATOR ID IF THIS IS A NEW CREATOR
+////////////////////////////////////////////////////
 
-        console.error(
-            "SPARKD Creator Profile: Creator ID not found."
-        );
+if (!creatorID) {
 
-        alert(
-            "⚠️ Creator ID not found. Profile saved locally, but could not be registered with the community."
-        );
+    creatorID =
+        "CREATOR-" +
+        Math.random()
+            .toString(36)
+            .substring(2, 10)
+            .toUpperCase();
 
-        return;
 
-    }
+    localStorage.setItem(
+        "sparkdCreatorID",
+        creatorID
+    );
+
+
+    console.log(
+        "🔥 SPARKD: New Creator ID created:",
+        creatorID
+    );
+
+}
 
 
     ////////////////////////////////////////////////////
