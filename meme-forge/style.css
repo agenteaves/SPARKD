@@ -986,5 +986,41 @@ a[href="upgrades/chat.html"]:hover{
 
 }
 
+ 
+/* ================================================
+   HOLDER CHAT - FORCE ELECTRIC EFFECT
+================================================ */
+
+#chatBtn::before,
+#chatBtn::after {
+
+    display: block;
+
+    pointer-events: none;
+
+}
+
+#chatBtn::before {
+
+    animation:
+        holderElectricForward
+        1.8s
+        linear
+        infinite;
+
+}
+
+#chatBtn::after {
+
+    animation:
+        holderElectricBack
+        1.4s
+        linear
+        infinite;
+
+}
+
+
+
    
 
