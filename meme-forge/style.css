@@ -768,24 +768,14 @@ a[href="upgrades/chat.html"]{
 
     z-index:1;
 
-}
-
-
-/* Match Home button hover */
-
-a[href="upgrades/chat.html"]:hover{
-
-    transform:scale(1.05);
-
-    box-shadow:
-        0 0 8px #008cff,
-        0 0 18px #008cff,
-        0 0 30px rgba(0,140,255,0.75);
+    isolation:isolate;
 
 }
 
 
-/* Electric blue energy moving forward */
+/* ================================
+   ELECTRIC BLUE ENERGY - FORWARD
+================================ */
 
 a[href="upgrades/chat.html"]::before{
 
@@ -816,12 +806,16 @@ a[href="upgrades/chat.html"]::before{
 
     animation:holderElectricForward 1.8s linear infinite;
 
-    z-index:-1;
+    z-index:0;
+
+    pointer-events:none;
 
 }
 
 
-/* Electric blue energy moving backward */
+/* ================================
+   ELECTRIC BLUE ENERGY - BACKWARD
+================================ */
 
 a[href="upgrades/chat.html"]::after{
 
@@ -853,12 +847,16 @@ a[href="upgrades/chat.html"]::after{
 
     animation:holderElectricBack 1.4s linear infinite;
 
-    z-index:-1;
+    z-index:0;
+
+    pointer-events:none;
 
 }
 
 
-/* Forward */
+/* ================================
+   ELECTRIC FORWARD ANIMATION
+================================ */
 
 @keyframes holderElectricForward{
 
@@ -873,7 +871,9 @@ a[href="upgrades/chat.html"]::after{
 }
 
 
-/* Backward */
+/* ================================
+   ELECTRIC BACKWARD ANIMATION
+================================ */
 
 @keyframes holderElectricBack{
 
@@ -888,9 +888,13 @@ a[href="upgrades/chat.html"]::after{
 }
 
 
-/* Extra electricity when hovering */
+/* ================================
+   HOLDER CHAT HOVER
+================================ */
 
 a[href="upgrades/chat.html"]:hover{
+
+    transform:scale(1.05);
 
     box-shadow:
         0 0 8px #008cff,
@@ -951,86 +955,4 @@ a[href="upgrades/chat.html"]:hover{
 
 }
 
-
-/* ================================
-   HOLDER CHAT - FINAL STYLE
-================================ */
-
-a[href="upgrades/chat.html"]{
-
-    background:#ff6a00;
-
-    color:white;
-
-    height:42px;
-
-    box-sizing:border-box;
-
-    display:inline-flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    isolation:isolate;
-
-}
-
-
-/* ================================================
-   HOLDER CHAT - ELECTRIC EFFECT
-================================================ */
-
-#chatBtn::before,
-#chatBtn::after{
-
-    display:block;
-
-    pointer-events:none;
-
-    z-index:0;
-
-}
-
-
-/* Forward electricity */
-
-#chatBtn::before{
-
-    animation:
-        holderElectricForward
-        1.8s
-        linear
-        infinite;
-
-}
-
-
-/* Backward electricity */
-
-#chatBtn::after{
-
-    animation:
-        holderElectricBack
-        1.4s
-        linear
-        infinite;
-
-}
-
-
-/* ================================================
-   HOLDER CHAT - HOVER
-================================================ */
-
-a[href="upgrades/chat.html"]:hover{
-
-    transform:scale(1.05);
-
-    box-shadow:
-        0 0 8px #008cff,
-        0 0 18px #008cff,
-        0 0 30px rgba(0,140,255,0.75);
-
-}
 
