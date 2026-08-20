@@ -581,46 +581,357 @@ FOOTER
 
 footer {
 
-    padding:25px;
 
-    color:#777;
+padding:25px;
 
-    font-size:13px;
+color:#777;
+
+font-size:13px;
+
+
+}
+
+/* ================================
+HOME BUTTON
+================================ */
+
+#homeBtn{
+
+
+position:absolute;
+
+top:20px;
+
+left:200px;
+
+background:#ff6a00;
+
+color:white;
+
+border:none;
+
+padding:10px 18px;
+
+border-radius:8px;
+
+font-family:Orbitron;
+
+font-weight:bold;
+
+cursor:pointer;
+
+height:42px;
+
+
+}
+
+#homeBtn:hover{
+
+
+transform:scale(1.05);
+
+box-shadow:0 0 15px #ff6a00;
+
+
+}
+
+/* ================================
+CHALLENGE TEXT
+================================ */
+
+#challengeCategory,
+#challengeDifficulty,
+#challengeReward{
+
+
+margin-top:10px;
+
+color:#ffb347;
+
+font-size:14px;
+
+font-weight:bold;
+
+
+}
+
+#challengeReward{
+
+
+color:#00ff99;
+
+
+}
+
+/* ================================
+HOLDER CHAT - ELECTRIC BLUE
+================================ */
+
+#chatBtn{
+
+
+position:absolute;
+
+top:20px;
+
+left:20px;
+
+background:#ff6a00;
+
+color:white;
+
+border:none;
+
+padding:10px 18px;
+
+border-radius:8px;
+
+font-family:Orbitron;
+
+font-weight:bold;
+
+cursor:pointer;
+
+text-decoration:none;
+
+display:inline-flex;
+
+align-items:center;
+
+justify-content:center;
+
+height:42px;
+
+box-sizing:border-box;
+
+overflow:hidden;
+
+z-index:1;
+
+isolation:isolate;
+
+
+}
+
+/* ================================
+ELECTRIC BLUE ENERGY - FORWARD
+================================ */
+
+#chatBtn::before{
+
+
+content:"";
+
+position:absolute;
+
+top:0;
+
+left:-100%;
+
+width:45%;
+
+height:100%;
+
+background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(0,174,255,0.35),
+    #00b7ff,
+    #ffffff,
+    #00b7ff,
+    rgba(0,174,255,0.35),
+    transparent
+);
+
+filter:blur(2px);
+
+animation:holderElectricForward 1.8s linear infinite;
+
+z-index:0;
+
+pointer-events:none;
+
+
+}
+
+/* ================================
+ELECTRIC BLUE ENERGY - BACKWARD
+================================ */
+
+#chatBtn::after{
+
+
+content:"";
+
+position:absolute;
+
+bottom:2px;
+
+right:-100%;
+
+width:40%;
+
+height:3px;
+
+background:linear-gradient(
+    90deg,
+    transparent,
+    #008cff,
+    #ffffff,
+    #008cff,
+    transparent
+);
+
+box-shadow:
+    0 0 6px #008cff,
+    0 0 12px #008cff,
+    0 0 20px rgba(0,140,255,0.8);
+
+animation:holderElectricBack 1.4s linear infinite;
+
+z-index:0;
+
+pointer-events:none;
+
+
+}
+
+/* ================================
+ELECTRIC ANIMATIONS
+================================ */
+
+@keyframes holderElectricForward{
+
+
+0%{
+    left:-45%;
+}
+
+100%{
+    left:100%;
+}
+
+
+}
+
+@keyframes holderElectricBack{
+
+0%{
+    right:-40%;
+}
+
+100%{
+    right:100%;
+}
+
+
+}
+
+/* ================================
+HOLDER CHAT HOVER
+================================ */
+
+#chatBtn:hover{
+
+
+transform:scale(1.05);
+
+box-shadow:
+    0 0 8px #008cff,
+    0 0 18px #008cff,
+    0 0 30px rgba(0,140,255,0.75);
+
+
+}
+
+/* ================================
+CREATOR PROFILE BUTTON
+================================ */
+
+#profileBtn{
+
+
+position:absolute;
+
+top:20px;
+
+left:320px;
+
+background:#ff6a00;
+
+color:white;
+
+border:none;
+
+padding:10px 18px;
+
+border-radius:8px;
+
+font-family:Orbitron;
+
+font-weight:bold;
+
+cursor:pointer;
+
+text-decoration:none;
+
+display:inline-flex;
+
+align-items:center;
+
+justify-content:center;
+
+height:42px;
+
+box-sizing:border-box;
+
+
+}
+
+#profileBtn:hover{
+
+
+transform:scale(1.05);
+
+box-shadow:0 0 15px #ff6a00;
+
+
+}
+
+/* ================================
+MOBILE
+================================ */
+
+@media(max-width:900px){
+
+
+#sideToolbar {
+
+    position:static;
+
+    transform:none;
+
+    flex-direction:row;
+
+    justify-content:center;
+
+    margin-bottom:15px;
+
+    z-index:9999 !important;
 
 }
 
 
+#emojiPicker {
 
-/* =========================
-MOBILE
-========================= */
+    left:0;
 
-@media(max-width:900px){
+    top:50px;
 
-    #sideToolbar {
-
-        position:static;
-
-        transform:none;
-
-        flex-direction:row;
-
-        justify-content:center;
-
-        margin-bottom:15px;
-
-    }
+}
 
 
-    #emojiPicker {
-
-        left:0;
-
-        top:50px;
-
-    }
-
-    /* ================================
+/* ================================
    FABRIC CANVAS LAYER FIX
 ================================ */
 
@@ -640,318 +951,11 @@ MOBILE
 }
 
 
-#sideToolbar {
-
-    z-index:9999 !important;
-
-}
-
-
 #textToolbar {
 
     position:relative;
 
     z-index:9999;
-
-}
-
- 
-/* ================================
-   HOME BUTTON
-================================ */
-
-#homeBtn{
-
-    position:absolute;
-
-    top:20px;
-
-    left:200px;
-
-    background:#ff6a00;
-
-    color:white;
-
-    border:none;
-
-    padding:10px 18px;
-
-    border-radius:8px;
-
-    font-family:Orbitron;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    height:42px;
-
-}
-
-
-#homeBtn:hover{
-
-    transform:scale(1.05);
-
-    box-shadow:0 0 15px #ff6a00;
-
-}
-
-
-/* ================================
-   CHALLENGE TEXT
-================================ */
-
-#challengeCategory,
-#challengeDifficulty,
-#challengeReward{
-
-    margin-top:10px;
-
-    color:#ffb347;
-
-    font-size:14px;
-
-    font-weight:bold;
-
-}
-
-
-#challengeReward{
-
-    color:#00ff99;
-
-}
-
-
-/* ================================
-   HOLDER CHAT - ELECTRIC BLUE
-================================ */
-
-a[href="upgrades/chat.html"]{
-
-    position:absolute;
-
-    top:20px;
-
-    left:20px;
-
-    background:#ff6a00;
-
-    color:white;
-
-    border:none;
-
-    padding:10px 18px;
-
-    border-radius:8px;
-
-    font-family:Orbitron;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    text-decoration:none;
-
-    display:inline-flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    height:42px;
-
-    box-sizing:border-box;
-
-    overflow:hidden;
-
-    z-index:1;
-
-    isolation:isolate;
-
-}
-
-
-/* ================================
-   ELECTRIC BLUE ENERGY - FORWARD
-================================ */
-
-a[href="upgrades/chat.html"]::before{
-
-    content:"";
-
-    position:absolute;
-
-    top:0;
-
-    left:-100%;
-
-    width:45%;
-
-    height:100%;
-
-    background:linear-gradient(
-        90deg,
-        transparent,
-        rgba(0,174,255,0.35),
-        #00b7ff,
-        #ffffff,
-        #00b7ff,
-        rgba(0,174,255,0.35),
-        transparent
-    );
-
-    filter:blur(2px);
-
-    animation:holderElectricForward 1.8s linear infinite;
-
-    z-index:0;
-
-    pointer-events:none;
-
-}
-
-
-/* ================================
-   ELECTRIC BLUE ENERGY - BACKWARD
-================================ */
-
-a[href="upgrades/chat.html"]::after{
-
-    content:"";
-
-    position:absolute;
-
-    bottom:2px;
-
-    right:-100%;
-
-    width:40%;
-
-    height:3px;
-
-    background:linear-gradient(
-        90deg,
-        transparent,
-        #008cff,
-        #ffffff,
-        #008cff,
-        transparent
-    );
-
-    box-shadow:
-        0 0 6px #008cff,
-        0 0 12px #008cff,
-        0 0 20px rgba(0,140,255,0.8);
-
-    animation:holderElectricBack 1.4s linear infinite;
-
-    z-index:0;
-
-    pointer-events:none;
-
-}
-
-
-/* ================================
-   ELECTRIC FORWARD ANIMATION
-================================ */
-
-@keyframes holderElectricForward{
-
-    0%{
-        left:-45%;
-    }
-
-    100%{
-        left:100%;
-    }
-
-}
-
-
-/* ================================
-   ELECTRIC BACKWARD ANIMATION
-================================ */
-
-@keyframes holderElectricBack{
-
-    0%{
-        right:-40%;
-    }
-
-    100%{
-        right:100%;
-    }
-
-}
-
-
-/* ================================
-   HOLDER CHAT HOVER
-================================ */
-
-a[href="upgrades/chat.html"]:hover{
-
-    transform:scale(1.05);
-
-    box-shadow:
-        0 0 8px #008cff,
-        0 0 18px #008cff,
-        0 0 30px rgba(0,140,255,0.75);
-
-}
-
-
-/* ================================
-   CREATOR PROFILE BUTTON
-================================ */
-
-#profileBtn{
-
-    position:absolute;
-
-    top:20px;
-
-    left:320px;
-
-    background:#ff6a00;
-
-    color:white;
-
-    border:none;
-
-    padding:10px 18px;
-
-    border-radius:8px;
-
-    font-family:Orbitron;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    text-decoration:none;
-
-    display:inline-flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    height:42px;
-
-    box-sizing:border-box;
-
-}
-
-
-#profileBtn:hover{
-
-    transform:scale(1.05);
-
-    box-shadow:0 0 15px #ff6a00;
 
 }
 
