@@ -726,7 +726,7 @@ a[href="upgrades/chat.html"]{
 
     top:20px;
 
-    left:125px;
+    left:290px;
 
     background:#ff6a00;
 
@@ -880,3 +880,47 @@ a[href="upgrades/chat.html"]:hover{
         0 0 30px rgba(0,140,255,0.75);
 
 }
+
+/* ================================
+   CREATOR PROFILE BUTTON
+================================ */
+
+#profileBtn {
+
+    position: absolute;
+
+    top: 20px;
+
+    left: 145px;
+
+    background: #ff6a00;
+
+    color: white;
+
+    border: none;
+
+    padding: 10px 18px;
+
+    border-radius: 8px;
+
+    font-family: Orbitron;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    display: inline-block;
+
+}
+
+
+#profileBtn:hover {
+
+    transform: scale(1.05);
+
+    box-shadow: 0 0 15px #ff6a00;
+
+}
+
