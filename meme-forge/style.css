@@ -861,11 +861,11 @@ a[href="upgrades/chat.html"]::after{
 @keyframes holderElectricForward{
 
     0%{
-        left:-100%;
+        left:-45%;
     }
 
     100%{
-        left:150%;
+        left:100%;
     }
 
 }
@@ -878,11 +878,11 @@ a[href="upgrades/chat.html"]::after{
 @keyframes holderElectricBack{
 
     0%{
-        right:-100%;
+        right:-40%;
     }
 
     100%{
-        right:150%;
+        right:100%;
     }
 
 }
