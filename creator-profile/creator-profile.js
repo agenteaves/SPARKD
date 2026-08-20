@@ -1375,67 +1375,82 @@ if (!creatorID) {
     }
 
 
-    ////////////////////////////////////////////////////
-    // INITIALIZE
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// INITIALIZE
+////////////////////////////////////////////////////
 
-    function initializeCreatorProfile() {
+async function initializeCreatorProfile() {
 
-        loadProfile();
+    /*
+     * Wait for the local profile or
+     * Supabase recovery to finish.
+     */
 
-        createProfileInterface();
-
-        updateProfileDisplay();
-
-        setupEvents();
-
-        console.log(
-            "🔥 SPARKD Creator Profile loaded."
-        );
-
-    }
+    await loadProfile();
 
 
-    if (
-        document.readyState ===
-        "loading"
-    ) {
+    /*
+     * Build the profile interface
+     * after profile data is ready.
+     */
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            initializeCreatorProfile
-        );
-
-    }
-    else {
-
-        initializeCreatorProfile();
-
-    }
+    createProfileInterface();
 
 
-    ////////////////////////////////////////////////////
-    // PUBLIC API
-    ////////////////////////////////////////////////////
+    updateProfileDisplay();
 
-    window.SPARKD_CREATOR_PROFILE = {
 
-        getProfile:
-            function () {
+    setupEvents();
 
-                return {
-                    ...profile
-                };
 
-            },
+    console.log(
+        "🔥 SPARKD Creator Profile loaded."
+    );
 
-        saveProfile:
-            saveProfile,
+}
 
-        updateProfile:
-            updateProfileDisplay
 
-    };
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeCreatorProfile
+    );
+
+}
+else {
+
+    initializeCreatorProfile();
+
+}
+
+
+////////////////////////////////////////////////////
+// PUBLIC API
+////////////////////////////////////////////////////
+
+window.SPARKD_CREATOR_PROFILE = {
+
+    getProfile:
+        function () {
+
+            return {
+                ...profile
+            };
+
+        },
+
+    saveProfile:
+        saveProfile,
+
+    updateProfile:
+        updateProfileDisplay
+
+};
 
 
 })();
+
