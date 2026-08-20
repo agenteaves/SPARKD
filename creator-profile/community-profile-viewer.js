@@ -134,84 +134,104 @@
     }
 
 
-    ////////////////////////////////////////////////////
-    // WAIT FOR PROFILE PAGE
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// WAIT FOR PROFILE INTERFACE
+////////////////////////////////////////////////////
 
-    function waitForProfileInterface(
-        creator
-    ) {
+function waitForProfileInterface(
+    creator
+) {
 
-        let attempts = 0;
-
-
-        const timer =
-            setInterval(
-                function () {
-
-                    attempts++;
+    let attempts = 0;
 
 
-                    const displayName =
-                        document.getElementById(
-                            "displayNameInput"
-                        );
+    const timer =
+        setInterval(
+            function () {
+
+                attempts++;
 
 
-                    const username =
-                        document.getElementById(
-                            "usernameInput"
-                        );
+                const profilePage =
+                    document.getElementById(
+                        "sparkdProfilePage"
+                    );
 
 
-                    const bio =
-                        document.getElementById(
-                            "bioInput"
-                        );
+                const displayName =
+                    document.getElementById(
+                        "displayNameInput"
+                    );
 
 
-                    if (
-                        displayName &&
-                        username &&
-                        bio
-                    ) {
-
-                        clearInterval(
-                            timer
-                        );
+                const username =
+                    document.getElementById(
+                        "usernameInput"
+                    );
 
 
-                        activateViewOnlyMode(
-                            creator
-                        );
+                const bio =
+                    document.getElementById(
+                        "bioInput"
+                    );
 
 
-                        return;
+                /*
+                 * Wait until creator-profile.js
+                 * has finished building the page.
+                 */
 
-                    }
+                if (
+                    profilePage &&
+                    displayName &&
+                    username &&
+                    bio
+                ) {
+
+                    clearInterval(
+                        timer
+                    );
 
 
-                    if (
-                        attempts >= 100
-                    ) {
-
-                        clearInterval(
-                            timer
-                        );
+                    console.log(
+                        "👁️ SPARKD Profile Viewer: Profile interface ready."
+                    );
 
 
-                        console.error(
-                            "SPARKD Profile Viewer: Profile interface was not found."
-                        );
+                    activateViewOnlyMode(
+                        creator
+                    );
 
-                    }
 
-                },
-                100
-            );
+                    return;
 
-    }
+                }
 
+
+                /*
+                 * Keep trying for up to 20 seconds.
+                 */
+
+                if (
+                    attempts >= 200
+                ) {
+
+                    clearInterval(
+                        timer
+                    );
+
+
+                    console.error(
+                        "SPARKD Profile Viewer: Timed out waiting for profile interface."
+                    );
+
+                }
+
+            },
+            100
+        );
+
+}
 
     ////////////////////////////////////////////////////
     // ACTIVATE VIEW-ONLY MODE
