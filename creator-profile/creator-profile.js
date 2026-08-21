@@ -438,6 +438,37 @@ async function loadProfile() {
                                 💾 Save Profile
                             </button>
 
+                           <div
+    id="creatorWalletSection"
+    class="creatorWalletSection"
+>
+
+    <div
+        id="holderStatus"
+        class="holderStatus"
+    >
+
+        <strong>
+            🔌 Wallet Not Connected
+        </strong>
+
+        <span>
+            Connect your Phantom wallet to secure your SPARKD creator profile.
+        </span>
+
+    </div>
+
+
+    <button
+        id="connectWalletBtn"
+        class="connectWalletButton"
+        type="button"
+    >
+        🔗 Connect SPARKD Wallet
+    </button>
+
+</div> 
+
                         </div>
 
                     </div>
