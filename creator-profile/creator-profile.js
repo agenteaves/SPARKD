@@ -1482,7 +1482,7 @@ async function loadProfile() {
     }
 
 
-    ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
 // SAVE EDITED PROFILE
 ////////////////////////////////////////////////////
 
@@ -1521,7 +1521,8 @@ async function saveEditedProfile() {
     if (username) {
 
         profile.username =
-            username.value.trim()
+            username.value
+                .trim()
                 .replace(
                     /^@/,
                     ""
@@ -1541,48 +1542,49 @@ async function saveEditedProfile() {
 
 
     ////////////////////////////////////////////////////
-    // SAVE TO LOCALSTORAGE
+    // SAVE PROFILE LOCALLY
     ////////////////////////////////////////////////////
-
-    saveProfile();
-
-
-    ////////////////////////////////////////////////////
-// GET / CREATE CREATOR ID
-////////////////////////////////////////////////////
-
-let creatorID =
-    localStorage.getItem(
-        "sparkdCreatorID"
-    );
-
-
-////////////////////////////////////////////////////
-// CREATE CREATOR ID IF THIS IS A NEW CREATOR
-////////////////////////////////////////////////////
-
-if (!creatorID) {
-
-    creatorID =
-        "CREATOR-" +
-        Math.random()
-            .toString(36)
-            .substring(2, 10)
-            .toUpperCase();
-
 
     localStorage.setItem(
-        "sparkdCreatorID",
-        creatorID
+        PROFILE_KEY,
+        JSON.stringify(
+            profile
+        )
     );
 
 
-    console.log(
-        "🔥 SPARKD: New Creator ID created:",
-        creatorID
-    );
+    ////////////////////////////////////////////////////
+    // GET / CREATE CREATOR ID
+    ////////////////////////////////////////////////////
 
-}
+    let creatorID =
+        localStorage.getItem(
+            "sparkdCreatorID"
+        );
+
+
+    if (!creatorID) {
+
+        creatorID =
+            "CREATOR-" +
+            Math.random()
+                .toString(36)
+                .substring(2, 10)
+                .toUpperCase();
+
+
+        localStorage.setItem(
+            "sparkdCreatorID",
+            creatorID
+        );
+
+
+        console.log(
+            "🔥 SPARKD: New Creator ID created:",
+            creatorID
+        );
+
+    }
 
 
     ////////////////////////////////////////////////////
@@ -1591,6 +1593,7 @@ if (!creatorID) {
 
     const SUPABASE_URL =
         "https://uxpbgzksfizkyxubctep.supabase.co";
+
 
     const SUPABASE_ANON_KEY =
         "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
@@ -1605,9 +1608,11 @@ if (!creatorID) {
             "SPARKD Creator Profile: Supabase library unavailable."
         );
 
+
         alert(
             "⚠️ Profile saved locally, but community registration is temporarily unavailable."
         );
+
 
         return;
 
@@ -1626,7 +1631,7 @@ if (!creatorID) {
 
 
     ////////////////////////////////////////////////////
-    // SAVE PROFILE TO COMMUNITY DATABASE
+    // BUILD COMMUNITY PROFILE
     ////////////////////////////////////////////////////
 
     const communityProfile = {
@@ -1651,7 +1656,9 @@ if (!creatorID) {
 
         spark_points:
             Number(
-                localStorage.getItem("sparkPoints")
+                localStorage.getItem(
+                    "sparkPoints"
+                )
             ) || 0,
 
         memes_created:
@@ -1676,13 +1683,19 @@ if (!creatorID) {
     };
 
 
+    ////////////////////////////////////////////////////
+    // SAVE TO SUPABASE
+    ////////////////////////////////////////////////////
+
     try {
 
         const {
             error
         } =
             await creatorSupabase
-                .from("creator_profiles")
+                .from(
+                    "creator_profiles"
+                )
                 .upsert(
                     communityProfile,
                     {
@@ -1703,9 +1716,11 @@ if (!creatorID) {
                 error
             );
 
+
             alert(
                 "⚠️ Profile saved locally, but the community profile could not be registered."
             );
+
 
             return;
 
@@ -1720,6 +1735,7 @@ if (!creatorID) {
             "🔥 SPARKD Creator Profile registered in community database."
         );
 
+
         alert(
             "🔥 SPARKD Creator Profile saved and registered with the community!"
         );
@@ -1732,6 +1748,7 @@ if (!creatorID) {
             error
         );
 
+
         alert(
             "⚠️ Profile saved locally, but community registration failed."
         );
@@ -1739,7 +1756,6 @@ if (!creatorID) {
     }
 
 }
-
     ////////////////////////////////////////////////////
     // HOME BUTTON
     ////////////////////////////////////////////////////
