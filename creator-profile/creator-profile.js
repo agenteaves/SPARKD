@@ -530,16 +530,17 @@ async function loadProfile() {
                             </span>
 
                             <strong id="joinedDate">
-                                --
+                                
                             </strong>
 
                         </div>
 
 
                     </div>
+                    
+                </section>
 
-
-                <!-- FEATURED MEME -->
+            <!-- FEATURED MEME -->
 
                 <section class="profileSection">
 
@@ -729,14 +730,18 @@ async function loadProfile() {
         </div>
 
 
-    </div>
+       </div>
 
 </section>
+
+
+            </main>
+
+        </div>
 
 `;
 
     }
-
 
 
     ////////////////////////////////////////////////////
