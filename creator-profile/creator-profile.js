@@ -1894,9 +1894,7 @@ window.SPARKD_CREATOR_PROFILE = {
 
         },
 
-    saveProfile:
-        saveProfile,
-
+    
     updateProfile:
         updateProfileDisplay
 
