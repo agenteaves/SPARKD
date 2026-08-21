@@ -70,25 +70,37 @@ async function loadProfile() {
 
         if (saved) {
 
-            const parsed =
-                JSON.parse(saved);
+            try {
+
+                const parsed =
+                    JSON.parse(saved);
 
 
-            profile = {
+                profile = {
 
-                ...profile,
+                    ...profile,
 
-                ...parsed
+                    ...parsed
 
-            };
-
-
-            console.log(
-                "🔥 SPARKD: Local creator profile loaded."
-            );
+                };
 
 
-            return;
+                console.log(
+                    "🔥 SPARKD: Local creator profile loaded."
+                );
+
+
+                return;
+
+            }
+            catch (error) {
+
+                console.warn(
+                    "SPARKD: Saved local profile could not be parsed.",
+                    error
+                );
+
+            }
 
         }
 
@@ -97,7 +109,7 @@ async function loadProfile() {
         // CHECK EXISTING CREATOR ID
         ////////////////////////////////////////////////////
 
-        const existingCreatorID =
+        let existingCreatorID =
             localStorage.getItem(
                 "sparkdCreatorID"
             );
@@ -141,14 +153,23 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // RECOVERY BY EXISTING CREATOR ID
+        // FUNCTION: LOAD PROFILE BY CREATOR ID
         ////////////////////////////////////////////////////
 
-        if (existingCreatorID) {
+        async function recoverByCreatorID(
+            creatorID
+        ) {
+
+            if (!creatorID) {
+
+                return false;
+
+            }
+
 
             console.log(
-                "SPARKD: Creator ID found:",
-                existingCreatorID
+                "🔎 SPARKD: Loading creator profile:",
+                creatorID
             );
 
 
@@ -163,7 +184,7 @@ async function loadProfile() {
                     )
                     .eq(
                         "creator_id",
-                        existingCreatorID
+                        creatorID
                     )
                     .maybeSingle();
 
@@ -175,79 +196,129 @@ async function loadProfile() {
                     error
                 );
 
-                return;
+                return false;
 
             }
 
 
-            if (data) {
+            if (!data) {
 
-                profile = {
-
-                    ...profile,
-
-                    displayName:
-                        data.display_name ||
-                        profile.displayName,
-
-                    username:
-                        data.username ||
-                        profile.username,
-
-                    bio:
-                        data.bio ||
-                        profile.bio,
-
-                    profileImage:
-                        data.profile_image ||
-                        profile.profileImage,
-
-                    creatorLevel:
-                        data.creator_level ||
-                        profile.creatorLevel,
-
-                    sparkPoints:
-                        Number(
-                            data.spark_points
-                        ) ||
-                        0,
-
-                    memesCreated:
-                        Number(
-                            data.memes_created
-                        ) ||
-                        0,
-
-                    missionsCompleted:
-                        Number(
-                            data.missions_completed
-                        ) ||
-                        0,
-
-                    creatorRank:
-                        data.creator_rank ||
-                        profile.creatorRank,
-
-                    joinedDate:
-                        data.joined_date ||
-                        profile.joinedDate
-
-                };
-
-
-                localStorage.setItem(
-                    PROFILE_KEY,
-                    JSON.stringify(
-                        profile
-                    )
+                console.warn(
+                    "SPARKD: Creator profile not found:",
+                    creatorID
                 );
 
+                return false;
 
-                console.log(
-                    "🔥 SPARKD: Creator profile recovered:",
+            }
+
+
+            ////////////////////////////////////////////////////
+            // APPLY DATABASE PROFILE
+            ////////////////////////////////////////////////////
+
+            profile = {
+
+                ...profile,
+
+                displayName:
+                    data.display_name ||
+                    profile.displayName,
+
+                username:
+                    data.username ||
+                    profile.username,
+
+                bio:
+                    data.bio ||
+                    profile.bio,
+
+                profileImage:
+                    data.profile_image ||
+                    profile.profileImage,
+
+                creatorLevel:
+                    data.creator_level ||
+                    profile.creatorLevel,
+
+                sparkPoints:
+                    Number(
+                        data.spark_points
+                    ) || 0,
+
+                memesCreated:
+                    Number(
+                        data.memes_created
+                    ) || 0,
+
+                missionsCompleted:
+                    Number(
+                        data.missions_completed
+                    ) || 0,
+
+                creatorRank:
+                    data.creator_rank ||
+                    profile.creatorRank,
+
+                joinedDate:
+                    data.joined_date ||
+                    profile.joinedDate
+
+            };
+
+
+            ////////////////////////////////////////////////////
+            // SAVE CREATOR ID
+            ////////////////////////////////////////////////////
+
+            localStorage.setItem(
+                "sparkdCreatorID",
+                creatorID
+            );
+
+
+            ////////////////////////////////////////////////////
+            // SAVE RECOVERED PROFILE LOCALLY
+            ////////////////////////////////////////////////////
+
+            localStorage.setItem(
+                PROFILE_KEY,
+                JSON.stringify(
+                    profile
+                )
+            );
+
+
+            console.log(
+                "🔥 SPARKD: Creator profile recovered:",
+                creatorID
+            );
+
+
+            return true;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // TRY EXISTING CREATOR ID
+        ////////////////////////////////////////////////////
+
+        if (existingCreatorID) {
+
+            console.log(
+                "SPARKD: Existing Creator ID found:",
+                existingCreatorID
+            );
+
+
+            const recovered =
+                await recoverByCreatorID(
                     existingCreatorID
                 );
 
+
+            if (recovered) {
 
                 return;
 
@@ -265,37 +336,80 @@ async function loadProfile() {
         );
 
 
-        let provider = null;
+        ////////////////////////////////////////////////////
+        // GET PHANTOM PROVIDER
+        ////////////////////////////////////////////////////
+
+        function getProvider() {
+
+            if (
+                window.phantom &&
+                window.phantom.solana
+            ) {
+
+                return window.phantom.solana;
+
+            }
 
 
-        if (
-            window.phantom &&
-            window.phantom.solana
-        ) {
+            if (
+                window.solana &&
+                window.solana.isPhantom
+            ) {
 
-            provider =
-                window.phantom.solana;
+                return window.solana;
 
-        }
-        else if (
-            window.solana &&
-            window.solana.isPhantom
-        ) {
+            }
 
-            provider =
-                window.solana;
+
+            return null;
 
         }
 
 
         ////////////////////////////////////////////////////
-        // NO PHANTOM AVAILABLE
+        // WAIT FOR PHANTOM TO BECOME AVAILABLE
+        ////////////////////////////////////////////////////
+
+        let provider = null;
+
+
+        for (
+            let attempt = 0;
+            attempt < 20;
+            attempt++
+        ) {
+
+            provider =
+                getProvider();
+
+
+            if (provider) {
+
+                break;
+
+            }
+
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        250
+                    )
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // PHANTOM NOT AVAILABLE
         ////////////////////////////////////////////////////
 
         if (!provider) {
 
             console.log(
-                "SPARKD: Phantom wallet not available for recovery."
+                "SPARKD: Phantom wallet provider not available."
             );
 
 
@@ -310,7 +424,38 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // WALLET MUST ALREADY BE CONNECTED
+        // WAIT FOR EXISTING PHANTOM CONNECTION
+        ////////////////////////////////////////////////////
+
+        for (
+            let attempt = 0;
+            attempt < 20;
+            attempt++
+        ) {
+
+            if (
+                provider.isConnected &&
+                provider.publicKey
+            ) {
+
+                break;
+
+            }
+
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        250
+                    )
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // GET CONNECTED WALLET
         ////////////////////////////////////////////////////
 
         if (
@@ -334,7 +479,7 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // GET WALLET ADDRESS
+        // WALLET ADDRESS
         ////////////////////////////////////////////////////
 
         const walletAddress =
@@ -342,23 +487,23 @@ async function loadProfile() {
 
 
         console.log(
-            "🔐 SPARKD: Phantom wallet detected:",
+            "🔗 SPARKD: Connected wallet detected:",
             walletAddress
         );
 
 
         ////////////////////////////////////////////////////
-        // FIND CREATOR BY WALLET
+        // SEARCH CREATOR PROFILE BY WALLET
         ////////////////////////////////////////////////////
 
         const {
-            data: walletProfile,
+            data: walletCreator,
             error: walletError
         } =
             await recoveryClient
                 .from("creator_profiles")
                 .select(
-                    "creator_id,display_name,username,bio,profile_image,creator_level,spark_points,memes_created,missions_completed,creator_rank,joined_date,wallet_address"
+                    "creator_id,display_name,username,wallet_address"
                 )
                 .eq(
                     "wallet_address",
@@ -368,13 +513,13 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // WALLET LOOKUP ERROR
+        // WALLET SEARCH ERROR
         ////////////////////////////////////////////////////
 
         if (walletError) {
 
             console.error(
-                "SPARKD Wallet Profile Recovery Error:",
+                "SPARKD: Wallet-based creator recovery failed:",
                 walletError
             );
 
@@ -385,123 +530,60 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // PROFILE FOUND BY WALLET
+        // CREATOR FOUND
         ////////////////////////////////////////////////////
 
-        if (walletProfile) {
+        if (walletCreator) {
 
-            const recoveredCreatorID =
-                walletProfile.creator_id;
+            existingCreatorID =
+                walletCreator.creator_id;
 
-
-            ////////////////////////////////////////////////////
-            // RESTORE CREATOR ID
-            ////////////////////////////////////////////////////
 
             localStorage.setItem(
                 "sparkdCreatorID",
-                recoveredCreatorID
-            );
-
-
-            ////////////////////////////////////////////////////
-            // RESTORE PROFILE DATA
-            ////////////////////////////////////////////////////
-
-            profile = {
-
-                ...profile,
-
-                displayName:
-                    walletProfile.display_name ||
-                    profile.displayName,
-
-                username:
-                    walletProfile.username ||
-                    profile.username,
-
-                bio:
-                    walletProfile.bio ||
-                    profile.bio,
-
-                profileImage:
-                    walletProfile.profile_image ||
-                    profile.profileImage,
-
-                creatorLevel:
-                    walletProfile.creator_level ||
-                    profile.creatorLevel,
-
-                sparkPoints:
-                    Number(
-                        walletProfile.spark_points
-                    ) ||
-                    0,
-
-                memesCreated:
-                    Number(
-                        walletProfile.memes_created
-                    ) ||
-                    0,
-
-                missionsCompleted:
-                    Number(
-                        walletProfile.missions_completed
-                    ) ||
-                    0,
-
-                creatorRank:
-                    walletProfile.creator_rank ||
-                    profile.creatorRank,
-
-                joinedDate:
-                    walletProfile.joined_date ||
-                    profile.joinedDate
-
-            };
-
-
-            ////////////////////////////////////////////////////
-            // RESTORE LOCAL PROFILE
-            ////////////////////////////////////////////////////
-
-            localStorage.setItem(
-                PROFILE_KEY,
-                JSON.stringify(
-                    profile
-                )
+                existingCreatorID
             );
 
 
             console.log(
-                "🔐 SPARKD: Profile recovered from Phantom wallet."
+                "🔥 SPARKD: Creator ID recovered from wallet:",
+                existingCreatorID
             );
 
 
             console.log(
-                "👤 SPARKD: Recovered Creator ID:",
-                recoveredCreatorID
+                "👤 SPARKD: Recovered creator:",
+                walletCreator.display_name,
+                "@",
+                walletCreator.username
             );
 
 
-            console.log(
-                "🔥 SPARKD: Recovered profile:",
-                walletProfile.display_name,
-                "@"+walletProfile.username
-            );
+            ////////////////////////////////////////////////////
+            // LOAD COMPLETE PROFILE
+            ////////////////////////////////////////////////////
+
+            const recovered =
+                await recoverByCreatorID(
+                    existingCreatorID
+                );
 
 
-            return;
+            if (recovered) {
+
+                return;
+
+            }
 
         }
 
 
         ////////////////////////////////////////////////////
-        // NO PROFILE MATCH
+        // NO CREATOR FOUND BY WALLET
         ////////////////////////////////////////////////////
 
         console.log(
-            "SPARKD: No creator profile is linked to this Phantom wallet."
+            "SPARKD: No creator profile found for connected wallet."
         );
 
 
@@ -513,7 +595,7 @@ async function loadProfile() {
     catch (error) {
 
         console.error(
-            "SPARKD profile recovery failed:",
+            "SPARKD: loadProfile failed:",
             error
         );
 
