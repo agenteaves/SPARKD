@@ -1,0 +1,1723 @@
+/* =====================================================
+   SPARKD — MEME OF THE MONTH
+   MAIN PAGE STYLES
+   ===================================================== */
+
+
+/* =====================================================
+   RESET
+   ===================================================== */
+
+* {
+
+    box-sizing:
+        border-box;
+
+    margin:
+        0;
+
+    padding:
+        0;
+
+}
+
+
+html {
+
+    scroll-behavior:
+        smooth;
+
+}
+
+
+body {
+
+    min-height:
+        100vh;
+
+    background:
+        #050505;
+
+    color:
+        #ffffff;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    overflow-x:
+        hidden;
+
+}
+
+
+/* =====================================================
+   BACKGROUND
+   ===================================================== */
+
+.sparkd-background {
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    z-index:
+        -10;
+
+    overflow:
+        hidden;
+
+    background:
+
+        radial-gradient(
+            circle at 50% 10%,
+            rgba(255, 100, 0, 0.12),
+            transparent 35%
+        ),
+
+        radial-gradient(
+            circle at 10% 80%,
+            rgba(255, 60, 0, 0.08),
+            transparent 30%
+        ),
+
+        #050505;
+
+}
+
+
+.sparkd-glow {
+
+    position:
+        absolute;
+
+    width:
+        500px;
+
+    height:
+        500px;
+
+    border-radius:
+        50%;
+
+    filter:
+        blur(100px);
+
+    opacity:
+        0.25;
+
+    pointer-events:
+        none;
+
+}
+
+
+.glow-one {
+
+    top:
+        -250px;
+
+    left:
+        50%;
+
+    background:
+        rgba(255, 120, 0, 0.55);
+
+}
+
+
+.glow-two {
+
+    bottom:
+        -300px;
+
+    left:
+        -200px;
+
+    background:
+        rgba(255, 70, 0, 0.35);
+
+}
+
+
+.glow-three {
+
+    right:
+        -250px;
+
+    top:
+        40%;
+
+    background:
+        rgba(255, 160, 0, 0.25);
+
+}
+
+
+/* =====================================================
+   PAGE
+   ===================================================== */
+
+.motm-page {
+
+    width:
+        100%;
+
+    min-height:
+        100vh;
+
+    position:
+        relative;
+
+}
+
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+
+.motm-nav {
+
+    width:
+        100%;
+
+    min-height:
+        72px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    padding:
+        15px 30px;
+
+    border-bottom:
+        1px solid
+        rgba(255, 120, 0, 0.18);
+
+    background:
+        rgba(5, 5, 5, 0.75);
+
+    backdrop-filter:
+        blur(14px);
+
+    position:
+        sticky;
+
+    top:
+        0;
+
+    z-index:
+        100;
+
+}
+
+
+.motm-home-button {
+
+    border:
+        1px solid
+        rgba(255, 130, 0, 0.55);
+
+    border-radius:
+        999px;
+
+    padding:
+        10px 20px;
+
+    background:
+        rgba(255, 100, 0, 0.08);
+
+    color:
+        #ffffff;
+
+    font-size:
+        14px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.25s ease;
+
+}
+
+
+.motm-home-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255, 110, 0, 0.2);
+
+    box-shadow:
+        0 0 18px
+        rgba(255, 110, 0, 0.35);
+
+}
+
+
+.motm-nav-title {
+
+    color:
+        rgba(255, 180, 80, 0.8);
+
+    font-size:
+        12px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+/* =====================================================
+   HERO
+   ===================================================== */
+
+.motm-hero {
+
+    min-height:
+        500px;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    text-align:
+        center;
+
+    padding:
+        80px 20px 60px;
+
+}
+
+
+.hero-badge {
+
+    padding:
+        8px 18px;
+
+    border:
+        1px solid
+        rgba(255, 160, 0, 0.6);
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255, 120, 0, 0.08);
+
+    color:
+        #ffb347;
+
+    font-size:
+        12px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        2px;
+
+    box-shadow:
+        0 0 20px
+        rgba(255, 110, 0, 0.18);
+
+    margin-bottom:
+        25px;
+
+}
+
+
+.motm-hero h1 {
+
+    font-size:
+        clamp(48px, 10vw, 105px);
+
+    line-height:
+        0.9;
+
+    font-weight:
+        1000;
+
+    letter-spacing:
+        -4px;
+
+    text-shadow:
+        0 0 15px
+        rgba(255, 130, 0, 0.35),
+
+        0 0 50px
+        rgba(255, 80, 0, 0.18);
+
+}
+
+
+.motm-hero h1 span {
+
+    display:
+        block;
+
+    color:
+        #ff8500;
+
+    text-shadow:
+
+        0 0 10px
+        rgba(255, 150, 0, 0.8),
+
+        0 0 35px
+        rgba(255, 80, 0, 0.5),
+
+        0 0 80px
+        rgba(255, 60, 0, 0.25);
+
+}
+
+
+.hero-subtitle {
+
+    margin-top:
+        28px;
+
+    font-size:
+        clamp(20px, 3vw, 28px);
+
+    font-weight:
+        800;
+
+    color:
+        #ffffff;
+
+}
+
+
+.hero-description {
+
+    max-width:
+        600px;
+
+    margin-top:
+        12px;
+
+    color:
+        rgba(255, 255, 255, 0.55);
+
+    font-size:
+        15px;
+
+    line-height:
+        1.7;
+
+}
+
+
+.hero-energy {
+
+    display:
+        flex;
+
+    gap:
+        8px;
+
+    margin-top:
+        35px;
+
+}
+
+
+.hero-energy span {
+
+    width:
+        7px;
+
+    height:
+        7px;
+
+    border-radius:
+        50%;
+
+    background:
+        #ff8500;
+
+    box-shadow:
+        0 0 12px
+        rgba(255, 120, 0, 0.8);
+
+    animation:
+        energyPulse
+        1.5s
+        ease-in-out
+        infinite;
+
+}
+
+
+.hero-energy span:nth-child(2) {
+
+    animation-delay:
+        0.2s;
+
+}
+
+
+.hero-energy span:nth-child(3) {
+
+    animation-delay:
+        0.4s;
+
+}
+
+
+@keyframes energyPulse {
+
+    0%,
+    100% {
+
+        opacity:
+            0.25;
+
+        transform:
+            scale(0.7);
+
+    }
+
+    50% {
+
+        opacity:
+            1;
+
+        transform:
+            scale(1.25);
+
+    }
+
+}
+
+
+/* =====================================================
+   SECTIONS
+   ===================================================== */
+
+.motm-winner-section,
+.motm-voting-section,
+.motm-hall-section {
+
+    width:
+        min(1180px, 92%);
+
+    margin:
+        0 auto;
+
+    padding:
+        70px 0;
+
+}
+
+
+.section-label {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        10px;
+
+    color:
+        #ff9d32;
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        3px;
+
+    text-align:
+        center;
+
+}
+
+
+.section-label span {
+
+    color:
+        #ff6a00;
+
+}
+
+
+.motm-voting-section h2,
+.motm-hall-section h2 {
+
+    margin-top:
+        15px;
+
+    text-align:
+        center;
+
+    font-size:
+        clamp(30px, 6vw, 55px);
+
+    font-weight:
+        1000;
+
+    letter-spacing:
+        -1px;
+
+}
+
+
+.motm-voting-section h2 span,
+.motm-hall-section h2 span {
+
+    color:
+        #ff8500;
+
+    text-shadow:
+        0 0 25px
+        rgba(255, 100, 0, 0.45);
+
+}
+
+
+.section-description {
+
+    margin:
+        12px auto 35px;
+
+    max-width:
+        600px;
+
+    text-align:
+        center;
+
+    color:
+        rgba(255, 255, 255, 0.5);
+
+    font-size:
+        15px;
+
+}
+
+
+/* =====================================================
+   WINNER CARD
+   ===================================================== */
+
+.winner-card {
+
+    margin-top:
+        30px;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        minmax(300px, 1fr)
+        minmax(300px, 0.8fr);
+
+    gap:
+        50px;
+
+    align-items:
+        center;
+
+    padding:
+        40px;
+
+    border:
+        1px solid
+        rgba(255, 130, 0, 0.55);
+
+    border-radius:
+        30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 110, 0, 0.09),
+            rgba(20, 20, 25, 0.9)
+        );
+
+    box-shadow:
+
+        0 0 30px
+        rgba(255, 100, 0, 0.18),
+
+        inset 0 0 50px
+        rgba(255, 100, 0, 0.04);
+
+    position:
+        relative;
+
+    overflow:
+        hidden;
+
+}
+
+
+.winner-card::before {
+
+    content:
+        "";
+
+    position:
+        absolute;
+
+    width:
+        300px;
+
+    height:
+        300px;
+
+    top:
+        -180px;
+
+    left:
+        50%;
+
+    transform:
+        translateX(-50%);
+
+    background:
+        rgba(255, 140, 0, 0.18);
+
+    filter:
+        blur(80px);
+
+    pointer-events:
+        none;
+
+}
+
+
+/* =====================================================
+   WINNER ART
+   ===================================================== */
+
+.winner-art {
+
+    position:
+        relative;
+
+    display:
+        flex;
+
+    justify-content:
+        center;
+
+    align-items:
+        center;
+
+}
+
+
+.winner-crown {
+
+    position:
+        absolute;
+
+    top:
+        -25px;
+
+    right:
+        5%;
+
+    z-index:
+        5;
+
+    font-size:
+        45px;
+
+    filter:
+        drop-shadow(
+            0 0 15px
+            rgba(255, 180, 0, 0.8)
+        );
+
+    animation:
+        crownFloat
+        3s
+        ease-in-out
+        infinite;
+
+}
+
+
+@keyframes crownFloat {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0)
+            rotate(-4deg);
+
+    }
+
+    50% {
+
+        transform:
+            translateY(-8px)
+            rotate(4deg);
+
+    }
+
+}
+
+
+.winner-image-frame {
+
+    width:
+        min(500px, 100%);
+
+    aspect-ratio:
+        1 / 1;
+
+    padding:
+        10px;
+
+    border-radius:
+        25px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffb300,
+            #ff6a00,
+            #7a2100
+        );
+
+    box-shadow:
+
+        0 0 25px
+        rgba(255, 140, 0, 0.5),
+
+        0 0 70px
+        rgba(255, 70, 0, 0.2);
+
+}
+
+
+.winner-placeholder {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        18px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 130, 0, 0.14),
+            rgba(5, 5, 8, 0.98) 70%
+        );
+
+    color:
+        #ff8500;
+
+    text-shadow:
+        0 0 20px
+        rgba(255, 100, 0, 0.7);
+
+}
+
+
+.winner-placeholder span {
+
+    font-size:
+        18px;
+
+    letter-spacing:
+        5px;
+
+    opacity:
+        0.7;
+
+}
+
+
+.winner-placeholder strong {
+
+    margin-top:
+        8px;
+
+    font-size:
+        clamp(40px, 7vw, 65px);
+
+    font-weight:
+        1000;
+
+}
+
+
+.winner-placeholder small {
+
+    margin-top:
+        10px;
+
+    color:
+        rgba(255, 255, 255, 0.4);
+
+    letter-spacing:
+        2px;
+
+}
+
+
+/* =====================================================
+   WINNER INFO
+   ===================================================== */
+
+.winner-month {
+
+    color:
+        #ff9d32;
+
+    font-size:
+        12px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+.winner-info h2 {
+
+    margin-top:
+        10px;
+
+    font-size:
+        clamp(30px, 5vw, 48px);
+
+    font-weight:
+        1000;
+
+    line-height:
+        1;
+
+}
+
+
+.winner-creator {
+
+    margin-top:
+        15px;
+
+    color:
+        rgba(255, 255, 255, 0.55);
+
+}
+
+
+.winner-creator strong {
+
+    color:
+        #ffffff;
+
+}
+
+
+.winner-stats {
+
+    display:
+        flex;
+
+    gap:
+        15px;
+
+    margin-top:
+        30px;
+
+}
+
+
+.winner-stat {
+
+    flex:
+        1;
+
+    padding:
+        18px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    border-radius:
+        15px;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+
+}
+
+
+.winner-stat strong {
+
+    display:
+        block;
+
+    color:
+        #ff8500;
+
+    font-size:
+        25px;
+
+}
+
+
+.winner-stat span {
+
+    display:
+        block;
+
+    margin-top:
+        5px;
+
+    color:
+        rgba(255, 255, 255, 0.4);
+
+    font-size:
+        9px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+
+}
+
+
+.champion-badge {
+
+    display:
+        inline-block;
+
+    margin-top:
+        25px;
+
+    padding:
+        10px 18px;
+
+    border:
+        1px solid
+        rgba(255, 170, 0, 0.6);
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255, 140, 0, 0.08);
+
+    color:
+        #ffb347;
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+
+    box-shadow:
+        0 0 18px
+        rgba(255, 120, 0, 0.15);
+
+}
+
+
+/* =====================================================
+   NOMINEE GRID
+   ===================================================== */
+
+.nominee-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        22px;
+
+    margin-top:
+        30px;
+
+}
+
+
+.nominee-card {
+
+    padding:
+        15px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    border-radius:
+        22px;
+
+    background:
+        rgba(18, 18, 22, 0.75);
+
+    transition:
+        0.3s ease;
+
+    position:
+        relative;
+
+    overflow:
+        hidden;
+
+}
+
+
+.nominee-card:hover {
+
+    transform:
+        translateY(-7px);
+
+    border-color:
+        rgba(255, 130, 0, 0.55);
+
+    box-shadow:
+        0 15px 35px
+        rgba(0, 0, 0, 0.35),
+
+        0 0 25px
+        rgba(255, 100, 0, 0.12);
+
+}
+
+
+.nominee-rank {
+
+    position:
+        absolute;
+
+    top:
+        12px;
+
+    left:
+        12px;
+
+    z-index:
+        3;
+
+    width:
+        34px;
+
+    height:
+        34px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(5, 5, 5, 0.85);
+
+    border:
+        1px solid
+        rgba(255, 130, 0, 0.5);
+
+    color:
+        #ff9d32;
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+}
+
+
+.nominee-image {
+
+    aspect-ratio:
+        1 / 1;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        15px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 110, 0, 0.13),
+            rgba(5, 5, 8, 1)
+        );
+
+    color:
+        rgba(255, 130, 0, 0.5);
+
+    font-size:
+        30px;
+
+    font-weight:
+        1000;
+
+    letter-spacing:
+        5px;
+
+}
+
+
+.nominee-info {
+
+    padding:
+        15px 5px 10px;
+
+}
+
+
+.nominee-info h3 {
+
+    font-size:
+        16px;
+
+    font-weight:
+        900;
+
+}
+
+
+.nominee-info p {
+
+    margin-top:
+        5px;
+
+    color:
+        rgba(255, 255, 255, 0.4);
+
+    font-size:
+        12px;
+
+}
+
+
+.nominee-footer {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    padding:
+        10px 5px 3px;
+
+}
+
+
+.nominee-footer span {
+
+    color:
+        rgba(255, 180, 100, 0.65);
+
+    font-size:
+        11px;
+
+}
+
+
+.vote-button {
+
+    padding:
+        9px 18px;
+
+    border:
+        1px solid
+        rgba(255, 130, 0, 0.6);
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255, 110, 0, 0.12);
+
+    color:
+        #ffffff;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.25s ease;
+
+}
+
+
+.vote-button:hover {
+
+    background:
+        rgba(255, 110, 0, 0.3);
+
+    box-shadow:
+        0 0 15px
+        rgba(255, 110, 0, 0.3);
+
+    transform:
+        scale(1.05);
+
+}
+
+
+/* =====================================================
+   HALL OF FAME
+   ===================================================== */
+
+.motm-hall-section {
+
+    padding-bottom:
+        100px;
+
+}
+
+
+.hall-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        20px;
+
+    margin-top:
+        35px;
+
+}
+
+
+.hall-card {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        15px;
+
+    padding:
+        18px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+
+    transition:
+        0.3s ease;
+
+}
+
+
+.hall-card:hover {
+
+    border-color:
+        rgba(255, 130, 0, 0.4);
+
+    transform:
+        translateY(-4px);
+
+}
+
+
+.hall-placeholder {
+
+    width:
+        55px;
+
+    height:
+        55px;
+
+    flex-shrink:
+        0;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        14px;
+
+    background:
+        rgba(255, 110, 0, 0.08);
+
+    border:
+        1px solid
+        rgba(255, 130, 0, 0.3);
+
+    font-size:
+        25px;
+
+}
+
+
+.hall-card strong,
+.hall-card span {
+
+    display:
+        block;
+
+}
+
+
+.hall-card strong {
+
+    color:
+        #ff9d32;
+
+    font-size:
+        12px;
+
+}
+
+
+.hall-card span {
+
+    margin-top:
+        4px;
+
+    color:
+        rgba(255, 255, 255, 0.35);
+
+    font-size:
+        10px;
+
+}
+
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+
+.motm-footer {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        8px;
+
+    padding:
+        50px 20px;
+
+    border-top:
+        1px solid
+        rgba(255, 120, 0, 0.12);
+
+    color:
+        rgba(255, 255, 255, 0.35);
+
+}
+
+
+.footer-spark {
+
+    color:
+        #ff8500;
+
+    font-size:
+        25px;
+
+    filter:
+        drop-shadow(
+            0 0 10px
+            rgba(255, 100, 0, 0.7)
+        );
+
+}
+
+
+.motm-footer strong {
+
+    color:
+        #ffffff;
+
+    font-size:
+        15px;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+.motm-footer span {
+
+    font-size:
+        9px;
+
+    letter-spacing:
+        2px;
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 800px) {
+
+    .motm-nav {
+
+        padding:
+            12px 15px;
+
+    }
+
+
+    .motm-nav-title {
+
+        display:
+            none;
+
+    }
+
+
+    .motm-hero {
+
+        min-height:
+            420px;
+
+        padding:
+            60px 15px 40px;
+
+    }
+
+
+    .motm-hero h1 {
+
+        letter-spacing:
+            -2px;
+
+    }
+
+
+    .winner-card {
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            30px;
+
+        padding:
+            22px;
+
+    }
+
+
+    .winner-info {
+
+        text-align:
+            center;
+
+    }
+
+
+    .winner-stats {
+
+        justify-content:
+            center;
+
+    }
+
+
+    .champion-badge {
+
+        margin-left:
+            auto;
+
+        margin-right:
+            auto;
+
+    }
+
+
+    .nominee-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .hall-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .motm-winner-section,
+    .motm-voting-section,
+    .motm-hall-section {
+
+        width:
+            94%;
+
+        padding:
+            50px 0;
+
+    }
+
+
+    .winner-stats {
+
+        flex-direction:
+            column;
+
+    }
+
+
+    .winner-stat {
+
+        text-align:
+            center;
+
+    }
+
+
+    .winner-crown {
+
+        font-size:
+            35px;
+
+    }
+
+
+    .motm-home-button {
+
+        padding:
+            9px 15px;
+
+        font-size:
+            12px;
+
+    }
+
+}
+
