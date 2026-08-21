@@ -51,22 +51,22 @@
 
 
 ////////////////////////////////////////////////////
-// LOAD SAVED PROFILE
+// LOAD SAVED / RECOVERED PROFILE
 ////////////////////////////////////////////////////
 
 async function loadProfile() {
 
     try {
 
+        ////////////////////////////////////////////////////
+        // CHECK LOCAL PROFILE FIRST
+        ////////////////////////////////////////////////////
+
         const saved =
             localStorage.getItem(
                 PROFILE_KEY
             );
 
-
-        ////////////////////////////////////////////////////
-        // LOAD LOCAL PROFILE IF AVAILABLE
-        ////////////////////////////////////////////////////
 
         if (saved) {
 
@@ -94,28 +94,17 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // RECOVER USING CREATOR ID
+        // CHECK EXISTING CREATOR ID
         ////////////////////////////////////////////////////
 
-        const creatorID =
+        const existingCreatorID =
             localStorage.getItem(
                 "sparkdCreatorID"
             );
 
 
-        if (!creatorID) {
-
-            console.log(
-                "SPARKD: No Creator ID available."
-            );
-
-            return;
-
-        }
-
-
         ////////////////////////////////////////////////////
-        // CHECK SUPABASE
+        // SUPABASE CHECK
         ////////////////////////////////////////////////////
 
         if (
@@ -131,6 +120,10 @@ async function loadProfile() {
 
         }
 
+
+        ////////////////////////////////////////////////////
+        // SUPABASE CONFIG
+        ////////////////////////////////////////////////////
 
         const SUPABASE_URL =
             "https://uxpbgzksfizkyxubctep.supabase.co";
@@ -148,31 +141,168 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // FIND EXISTING CREATOR
+        // RECOVERY BY EXISTING CREATOR ID
         ////////////////////////////////////////////////////
 
-        const {
-            data,
-            error
-        } =
-            await recoveryClient
-                .from("creator_profiles")
-                .select(
-                    "creator_id,display_name,username,bio,profile_image,creator_level,spark_points,memes_created,missions_completed,creator_rank,joined_date"
-                )
-                .eq(
-                    "creator_id",
-                    creatorID
-                )
-                .maybeSingle();
+        if (existingCreatorID) {
 
-
-        if (error) {
-
-            console.error(
-                "SPARKD Creator Profile recovery error:",
-                error
+            console.log(
+                "SPARKD: Creator ID found:",
+                existingCreatorID
             );
+
+
+            const {
+                data,
+                error
+            } =
+                await recoveryClient
+                    .from("creator_profiles")
+                    .select(
+                        "creator_id,display_name,username,bio,profile_image,creator_level,spark_points,memes_created,missions_completed,creator_rank,joined_date"
+                    )
+                    .eq(
+                        "creator_id",
+                        existingCreatorID
+                    )
+                    .maybeSingle();
+
+
+            if (error) {
+
+                console.error(
+                    "SPARKD Creator Profile recovery error:",
+                    error
+                );
+
+                return;
+
+            }
+
+
+            if (data) {
+
+                profile = {
+
+                    ...profile,
+
+                    displayName:
+                        data.display_name ||
+                        profile.displayName,
+
+                    username:
+                        data.username ||
+                        profile.username,
+
+                    bio:
+                        data.bio ||
+                        profile.bio,
+
+                    profileImage:
+                        data.profile_image ||
+                        profile.profileImage,
+
+                    creatorLevel:
+                        data.creator_level ||
+                        profile.creatorLevel,
+
+                    sparkPoints:
+                        Number(
+                            data.spark_points
+                        ) ||
+                        0,
+
+                    memesCreated:
+                        Number(
+                            data.memes_created
+                        ) ||
+                        0,
+
+                    missionsCompleted:
+                        Number(
+                            data.missions_completed
+                        ) ||
+                        0,
+
+                    creatorRank:
+                        data.creator_rank ||
+                        profile.creatorRank,
+
+                    joinedDate:
+                        data.joined_date ||
+                        profile.joinedDate
+
+                };
+
+
+                localStorage.setItem(
+                    PROFILE_KEY,
+                    JSON.stringify(
+                        profile
+                    )
+                );
+
+
+                console.log(
+                    "🔥 SPARKD: Creator profile recovered:",
+                    existingCreatorID
+                );
+
+
+                return;
+
+            }
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // WALLET RECOVERY
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🔐 SPARKD: Attempting wallet-based profile recovery..."
+        );
+
+
+        let provider = null;
+
+
+        if (
+            window.phantom &&
+            window.phantom.solana
+        ) {
+
+            provider =
+                window.phantom.solana;
+
+        }
+        else if (
+            window.solana &&
+            window.solana.isPhantom
+        ) {
+
+            provider =
+                window.solana;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // NO PHANTOM AVAILABLE
+        ////////////////////////////////////////////////////
+
+        if (!provider) {
+
+            console.log(
+                "SPARKD: Phantom wallet not available for recovery."
+            );
+
+
+            console.log(
+                "SPARKD: No Creator ID available."
+            );
+
 
             return;
 
@@ -180,59 +310,152 @@ async function loadProfile() {
 
 
         ////////////////////////////////////////////////////
-        // PROFILE FOUND
+        // WALLET MUST ALREADY BE CONNECTED
         ////////////////////////////////////////////////////
 
-        if (data) {
+        if (
+            !provider.isConnected ||
+            !provider.publicKey
+        ) {
+
+            console.log(
+                "SPARKD: Phantom wallet is not connected. Wallet recovery skipped."
+            );
+
+
+            console.log(
+                "SPARKD: No Creator ID available."
+            );
+
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // GET WALLET ADDRESS
+        ////////////////////////////////////////////////////
+
+        const walletAddress =
+            provider.publicKey.toString();
+
+
+        console.log(
+            "🔐 SPARKD: Phantom wallet detected:",
+            walletAddress
+        );
+
+
+        ////////////////////////////////////////////////////
+        // FIND CREATOR BY WALLET
+        ////////////////////////////////////////////////////
+
+        const {
+            data: walletProfile,
+            error: walletError
+        } =
+            await recoveryClient
+                .from("creator_profiles")
+                .select(
+                    "creator_id,display_name,username,bio,profile_image,creator_level,spark_points,memes_created,missions_completed,creator_rank,joined_date,wallet_address"
+                )
+                .eq(
+                    "wallet_address",
+                    walletAddress
+                )
+                .maybeSingle();
+
+
+        ////////////////////////////////////////////////////
+        // WALLET LOOKUP ERROR
+        ////////////////////////////////////////////////////
+
+        if (walletError) {
+
+            console.error(
+                "SPARKD Wallet Profile Recovery Error:",
+                walletError
+            );
+
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // PROFILE FOUND BY WALLET
+        ////////////////////////////////////////////////////
+
+        if (walletProfile) {
+
+            const recoveredCreatorID =
+                walletProfile.creator_id;
+
+
+            ////////////////////////////////////////////////////
+            // RESTORE CREATOR ID
+            ////////////////////////////////////////////////////
+
+            localStorage.setItem(
+                "sparkdCreatorID",
+                recoveredCreatorID
+            );
+
+
+            ////////////////////////////////////////////////////
+            // RESTORE PROFILE DATA
+            ////////////////////////////////////////////////////
 
             profile = {
 
                 ...profile,
 
                 displayName:
-                    data.display_name ||
+                    walletProfile.display_name ||
                     profile.displayName,
 
                 username:
-                    data.username ||
+                    walletProfile.username ||
                     profile.username,
 
                 bio:
-                    data.bio ||
+                    walletProfile.bio ||
                     profile.bio,
 
                 profileImage:
-                    data.profile_image ||
+                    walletProfile.profile_image ||
                     profile.profileImage,
 
                 creatorLevel:
-                    data.creator_level ||
+                    walletProfile.creator_level ||
                     profile.creatorLevel,
 
                 sparkPoints:
                     Number(
-                        data.spark_points
+                        walletProfile.spark_points
                     ) ||
                     0,
 
                 memesCreated:
                     Number(
-                        data.memes_created
+                        walletProfile.memes_created
                     ) ||
                     0,
 
                 missionsCompleted:
                     Number(
-                        data.missions_completed
+                        walletProfile.missions_completed
                     ) ||
                     0,
 
                 creatorRank:
-                    data.creator_rank ||
+                    walletProfile.creator_rank ||
                     profile.creatorRank,
 
                 joinedDate:
-                    data.joined_date ||
+                    walletProfile.joined_date ||
                     profile.joinedDate
 
             };
@@ -251,61 +474,52 @@ async function loadProfile() {
 
 
             console.log(
-                "🔥 SPARKD: Creator profile recovered from community database:",
-                creatorID
+                "🔐 SPARKD: Profile recovered from Phantom wallet."
             );
 
-        }
-        else {
 
             console.log(
-                "SPARKD: No community profile found for:",
-                creatorID
+                "👤 SPARKD: Recovered Creator ID:",
+                recoveredCreatorID
             );
 
+
+            console.log(
+                "🔥 SPARKD: Recovered profile:",
+                walletProfile.display_name,
+                "@"+walletProfile.username
+            );
+
+
+            return;
+
         }
+
+
+        ////////////////////////////////////////////////////
+        // NO PROFILE MATCH
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "SPARKD: No creator profile is linked to this Phantom wallet."
+        );
+
+
+        console.log(
+            "SPARKD: No Creator ID available."
+        );
 
     }
     catch (error) {
 
-        console.warn(
-            "SPARKD profile could not be loaded:",
+        console.error(
+            "SPARKD profile recovery failed:",
             error
         );
 
     }
 
 }
-
-
-    ////////////////////////////////////////////////////
-    // SAVE PROFILE
-    ////////////////////////////////////////////////////
-
-    function saveProfile() {
-
-        try {
-
-            localStorage.setItem(
-
-                PROFILE_KEY,
-
-                JSON.stringify(profile)
-
-            );
-
-        }
-        catch (error) {
-
-            console.error(
-                "SPARKD profile could not be saved:",
-                error
-            );
-
-        }
-
-    }
-
 
     ////////////////////////////////////////////////////
     // CREATE PROFILE INTERFACE
