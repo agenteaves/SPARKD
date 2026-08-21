@@ -9,10 +9,22 @@
 
 
     ////////////////////////////////////////////////////
+    // SUPABASE CONFIG
+    ////////////////////////////////////////////////////
+
+    const SUPABASE_URL =
+        "https://uxpbgzksfizkyxubctep.supabase.co";
+
+
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+
+
+    ////////////////////////////////////////////////////
     // INITIALIZE WALLET
     ////////////////////////////////////////////////////
 
-    function initializeWallet() {
+    async function initializeWallet() {
 
 
         ////////////////////////////////////////////////////
@@ -42,8 +54,44 @@
         }
 
 
+        if (!holderStatus) {
+
+            console.warn(
+                "SPARKD Wallet: Holder status element not found."
+            );
+
+            return;
+
+        }
+
+
         ////////////////////////////////////////////////////
-        // PHANTOM PROVIDER
+        // SUPABASE CHECK
+        ////////////////////////////////////////////////////
+
+        if (
+            typeof window.supabase === "undefined" ||
+            typeof window.supabase.createClient !== "function"
+        ) {
+
+            console.error(
+                "SPARKD Wallet: Supabase is not available."
+            );
+
+            return;
+
+        }
+
+
+        const walletSupabase =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY
+            );
+
+
+        ////////////////////////////////////////////////////
+        // GET PHANTOM PROVIDER
         ////////////////////////////////////////////////////
 
         function getProvider() {
@@ -69,6 +117,19 @@
 
 
             return null;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // GET CURRENT CREATOR ID
+        ////////////////////////////////////////////////////
+
+        function getCreatorID() {
+
+            return localStorage.getItem(
+                "sparkdCreatorID"
+            );
 
         }
 
@@ -109,6 +170,192 @@
 
 
         ////////////////////////////////////////////////////
+        // DISPLAY NOT CONNECTED
+        ////////////////////////////////////////////////////
+
+        function showDisconnected() {
+
+            holderStatus.innerHTML = `
+
+                <strong>
+                    🔌 Wallet Not Connected
+                </strong>
+
+                <span>
+                    Connect your Phantom wallet to secure your SPARKD creator profile.
+                </span>
+
+            `;
+
+
+            connectButton.innerHTML =
+                "🔗 Connect SPARKD Wallet";
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // SAVE WALLET TO CREATOR PROFILE
+        ////////////////////////////////////////////////////
+
+        async function saveWalletToProfile(
+            walletAddress
+        ) {
+
+            const creatorID =
+                getCreatorID();
+
+
+            if (!creatorID) {
+
+                console.error(
+                    "SPARKD Wallet: Creator ID not found."
+                );
+
+
+                alert(
+                    "⚠️ Creator ID not found. Please create or load your SPARKD creator profile first."
+                );
+
+
+                return false;
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // FIND CREATOR PROFILE
+            ////////////////////////////////////////////////////
+
+            const {
+                data: creator,
+                error: creatorError
+            } =
+                await walletSupabase
+                    .from("creator_profiles")
+                    .select(
+                        "creator_id,wallet_address"
+                    )
+                    .eq(
+                        "creator_id",
+                        creatorID
+                    )
+                    .maybeSingle();
+
+
+            if (creatorError) {
+
+                console.error(
+                    "SPARKD Wallet: Could not find creator profile:",
+                    creatorError
+                );
+
+
+                alert(
+                    "⚠️ Could not verify your SPARKD creator profile."
+                );
+
+
+                return false;
+
+            }
+
+
+            if (!creator) {
+
+                console.error(
+                    "SPARKD Wallet: Creator profile does not exist:",
+                    creatorID
+                );
+
+
+                alert(
+                    "⚠️ Your SPARKD creator profile could not be found."
+                );
+
+
+                return false;
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // CHECK EXISTING WALLET
+            ////////////////////////////////////////////////////
+
+            if (
+                creator.wallet_address &&
+                creator.wallet_address !== walletAddress
+            ) {
+
+                console.warn(
+                    "SPARKD Wallet: Profile already belongs to another wallet."
+                );
+
+
+                alert(
+                    "🔒 This creator profile is already linked to a different wallet."
+                );
+
+
+                return false;
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // SAVE WALLET
+            ////////////////////////////////////////////////////
+
+            const {
+                error: updateError
+            } =
+                await walletSupabase
+                    .from("creator_profiles")
+                    .update({
+                        wallet_address:
+                            walletAddress,
+
+                        updated_at:
+                            new Date().toISOString()
+
+                    })
+                    .eq(
+                        "creator_id",
+                        creatorID
+                    );
+
+
+            if (updateError) {
+
+                console.error(
+                    "SPARKD Wallet: Could not save wallet:",
+                    updateError
+                );
+
+
+                alert(
+                    "⚠️ Wallet connected, but SPARKD could not save the wallet association."
+                );
+
+
+                return false;
+
+            }
+
+
+            console.log(
+                "🔐 SPARKD Wallet: Wallet linked to creator profile:",
+                creatorID
+            );
+
+
+            return true;
+
+        }
+
+
+        ////////////////////////////////////////////////////
         // CONNECT WALLET
         ////////////////////////////////////////////////////
 
@@ -140,9 +387,32 @@
                     response.publicKey
                 ) {
 
+                    const walletAddress =
+                        response.publicKey.toString();
+
+
                     showWallet(
                         response.publicKey
                     );
+
+
+                    ////////////////////////////////////////////////////
+                    // LINK WALLET TO CREATOR
+                    ////////////////////////////////////////////////////
+
+                    const saved =
+                        await saveWalletToProfile(
+                            walletAddress
+                        );
+
+
+                    if (saved) {
+
+                        console.log(
+                            "🔐 SPARKD Wallet: Creator profile secured."
+                        );
+
+                    }
 
                 }
 
@@ -188,6 +458,11 @@
             );
 
         }
+        else {
+
+            showDisconnected();
+
+        }
 
 
         ////////////////////////////////////////////////////
@@ -198,15 +473,27 @@
 
             provider.on(
                 "connect",
-                function (publicKey) {
+                async function (publicKey) {
 
-                    if (publicKey) {
+                    if (!publicKey) {
 
-                        showWallet(
-                            publicKey
-                        );
+                        return;
 
                     }
+
+
+                    showWallet(
+                        publicKey
+                    );
+
+
+                    const walletAddress =
+                        publicKey.toString();
+
+
+                    await saveWalletToProfile(
+                        walletAddress
+                    );
 
                 }
             );
@@ -224,26 +511,17 @@
                 "disconnect",
                 function () {
 
-                    holderStatus.innerHTML = `
-
-                        <strong>
-                            Wallet Not Connected
-                        </strong>
-
-                        <span>
-                            Connect your wallet to verify SPARKD ownership.
-                        </span>
-
-                    `;
-
-
-                    connectButton.innerHTML =
-                        "🔗 Connect SPARKD Wallet";
+                    showDisconnected();
 
                 }
             );
 
         }
+
+
+        console.log(
+            "🔐 SPARKD Creator Wallet initialized."
+        );
 
     }
 
@@ -253,7 +531,8 @@
     ////////////////////////////////////////////////////
 
     if (
-        document.readyState === "loading"
+        document.readyState ===
+        "loading"
     ) {
 
         document.addEventListener(
@@ -270,3 +549,4 @@
 
 
 })();
+
