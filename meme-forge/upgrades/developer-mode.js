@@ -53,7 +53,7 @@ window.addEventListener("load", function () {
 
 
 
-        if(clicks >= 8){
+        if(clicks >= 12){
 
 
 
