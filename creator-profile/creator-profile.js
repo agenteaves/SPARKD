@@ -1570,6 +1570,37 @@ async function loadProfile() {
 
 async function saveEditedProfile() {
 
+    ////////////////////////////////////////////////////
+    // REQUIRE PHANTOM WALLET BEFORE SAVING
+    ////////////////////////////////////////////////////
+
+    const phantom =
+        window.phantom?.solana;
+
+    if (
+        !phantom ||
+        !phantom.isPhantom ||
+        !phantom.isConnected ||
+        !phantom.publicKey
+    ) {
+
+        console.warn(
+            "SPARKD: Phantom wallet must be connected before saving a creator profile."
+        );
+
+        alert(
+            "Please connect your Phantom wallet before saving your creator profile."
+        );
+
+        return;
+
+    }
+
+    console.log(
+        "🔐 SPARKD: Phantom wallet verified. Saving creator profile..."
+    );
+
+
     const displayName =
         document.getElementById(
             "displayNameInput"
@@ -1668,7 +1699,7 @@ async function saveEditedProfile() {
 
     }
 
-
+    
     ////////////////////////////////////////////////////
     // SUPABASE CONNECTION
     ////////////////////////////////////////////////////
