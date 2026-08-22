@@ -243,7 +243,229 @@ line-height:1.6;
 
 }
 
+/* =====================================================
+   MEME OF THE WEEK
+   ===================================================== */
 
+.meme-of-week {
+
+    width:
+        min(760px, 92vw);
+
+    margin:
+        8px auto 25px;
+
+    text-align:
+        center;
+
+}
+
+
+.meme-week-label {
+
+    font-size:
+        18px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        3px;
+
+    color:
+        #ff9b35;
+
+    margin-bottom:
+        10px;
+
+    text-shadow:
+        0 0 10px #ff7a00,
+        0 0 25px #ff7a00;
+
+}
+
+
+.meme-week-box {
+
+    width:
+        100%;
+
+    min-height:
+        330px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    padding:
+        35px;
+
+    border-radius:
+        28px;
+
+    background:
+        rgba(255, 255, 255, 0.06);
+
+    border:
+        2px solid
+        rgba(255, 120, 0, 0.55);
+
+    backdrop-filter:
+        blur(12px);
+
+    box-shadow:
+
+        0 0 25px
+        rgba(255, 120, 0, 0.35),
+
+        0 0 70px
+        rgba(255, 80, 0, 0.18);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+
+}
+
+
+.meme-week-box:hover {
+
+    transform:
+        translateY(-5px);
+
+    box-shadow:
+
+        0 0 35px
+        rgba(255, 140, 0, 0.55),
+
+        0 0 90px
+        rgba(255, 80, 0, 0.25);
+
+}
+
+
+.meme-week-placeholder {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    gap:
+        14px;
+
+}
+
+
+.meme-week-placeholder strong {
+
+    max-width:
+        600px;
+
+    font-size:
+        clamp(24px, 4vw, 42px);
+
+    font-weight:
+        900;
+
+    line-height:
+        1.15;
+
+    color:
+        white;
+
+    text-shadow:
+
+        0 0 10px
+        #ff7a00,
+
+        0 0 30px
+        rgba(255, 120, 0, 0.7);
+
+}
+
+
+.meme-week-placeholder span {
+
+    font-size:
+        15px;
+
+    color:
+        #cccccc;
+
+    opacity:
+        0.85;
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media(max-width:700px) {
+
+    .meme-of-week {
+
+        width:
+            94vw;
+
+        margin-top:
+            5px;
+
+    }
+
+
+    .meme-week-box {
+
+        min-height:
+            260px;
+
+        padding:
+            25px 15px;
+
+        border-radius:
+            20px;
+
+    }
+
+
+    .meme-week-label {
+
+        font-size:
+            15px;
+
+        letter-spacing:
+            2px;
+
+    }
+
+
+    .meme-week-placeholder strong {
+
+        font-size:
+            25px;
+
+    }
+
+
+    .meme-week-placeholder span {
+
+        font-size:
+            13px;
+
+    }
+
+}
 
 
 
