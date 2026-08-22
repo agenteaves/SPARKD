@@ -199,11 +199,11 @@ transform:translateY(0);
 
 .hero h1{
 
-font-size:90px;
+font-size:55px;
 
 font-weight:900;
 
-letter-spacing:5px;
+letter-spacing:4px;
 
 color:white;
 
@@ -211,7 +211,7 @@ text-shadow:
 
 0 0 10px #ff7a00,
 
-0 0 40px #ff7a00;
+0 0 35px #ff7a00;
 
 }
 
@@ -574,7 +574,7 @@ font-size:14px;
 
 .hero h1{
 
-font-size:55px;
+font-size:38px;
 
 }
 
