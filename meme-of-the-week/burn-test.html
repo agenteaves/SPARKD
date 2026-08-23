@@ -547,3 +547,47 @@ balanceElement.textContent =
     ) +
     " SPARKD";
 
+          
+info.style.display =
+    "grid";
+
+
+status.textContent =
+    "Phantom connected successfully.\n\n" +
+    "Wallet detected.\n" +
+    "SPARKD balance retrieved.\n\n" +
+    "NO TRANSACTION CREATED.\n" +
+    "NO TOKENS BURNED.";
+
+
+connectButton.textContent =
+    "PHANTOM CONNECTED";
+
+
+}
+catch (error) {
+
+
+    console.error(
+        error
+    );
+
+
+    status.textContent =
+        "ERROR:\n\n" +
+        error.message;
+
+
+}
+
+
+}
+);
+    </script>
+
+</body>
+
+</html>
+
+    
+
