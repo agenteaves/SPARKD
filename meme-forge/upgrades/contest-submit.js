@@ -597,3 +597,320 @@ window.SPARKD_CONTEST = {
     }
 
 };
+
+
+////////////////////////////////////////////////////
+// SPARKD MEME OF THE WEEK
+// REAL SUBMISSION TEST v0.1
+//
+// PURPOSE:
+// - Verify wallet
+// - Verify SPARKD Forge DNA
+// - Upload verified PNG
+// - Create meme_week_submissions row
+//
+// IMPORTANT:
+// - NO TOKEN BURN
+// - NO SOL TRANSFER
+////////////////////////////////////////////////////
+
+window.SPARKD_CONTEST.submitMemeTest = async function (
+    file,
+    forgeData,
+    memeTitle
+) {
+
+    ////////////////////////////////////////////////////
+    // BASIC CHECKS
+    ////////////////////////////////////////////////////
+
+    if (!file) {
+        throw new Error(
+            "No meme image was provided."
+        );
+    }
+
+
+    if (file.type !== "image/png") {
+        throw new Error(
+            "Contest submissions must be PNG images."
+        );
+    }
+
+
+    if (file.size > 10 * 1024 * 1024) {
+        throw new Error(
+            "PNG is larger than the 10 MB limit."
+        );
+    }
+
+
+    ////////////////////////////////////////////////////
+    // WALLET CHECK
+    ////////////////////////////////////////////////////
+
+    if (
+        typeof currentWallet !== "string" ||
+        !currentWallet
+    ) {
+
+        throw new Error(
+            "Please connect your Phantom wallet first."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // FORGE DATA CHECK
+    ////////////////////////////////////////////////////
+
+    if (
+        !forgeData ||
+        typeof forgeData !== "object"
+    ) {
+
+        throw new Error(
+            "SPARKD Forge verification data is missing."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CONTEST CHECK
+    ////////////////////////////////////////////////////
+
+    if (
+        typeof currentContest === "undefined" ||
+        !currentContest
+    ) {
+
+        throw new Error(
+            "No active Meme of the Week contest."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // VERIFY CONTEST WINDOW
+    ////////////////////////////////////////////////////
+
+    const now =
+        Date.now();
+
+
+    const start =
+        new Date(
+            currentContest.week_start
+        ).getTime();
+
+
+    const end =
+        new Date(
+            currentContest.week_end
+        ).getTime();
+
+
+    if (
+        now < start ||
+        now > end
+    ) {
+
+        throw new Error(
+            "The Meme of the Week submission window is closed."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // VERIFY FORGE DNA
+    ////////////////////////////////////////////////////
+
+    if (
+        forgeData.forge !==
+        "SPARKD Meme Forge"
+    ) {
+
+        throw new Error(
+            "Image is not a valid SPARKD Forge image."
+        );
+
+    }
+
+
+    if (
+        !forgeData.memeID ||
+        !forgeData.DNA ||
+        !forgeData.imageLock ||
+        !forgeData.signature
+    ) {
+
+        throw new Error(
+            "SPARKD Forge integrity data is incomplete."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // UPLOAD IMAGE
+    ////////////////////////////////////////////////////
+
+    const filename =
+        currentContest.id +
+        "/" +
+        currentWallet +
+        "-" +
+        Date.now() +
+        ".png";
+
+
+    const {
+        data: uploadData,
+        error: uploadError
+    } =
+        await supabaseClient
+            .storage
+            .from(
+                "sparkd-contest-submissions"
+            )
+            .upload(
+                filename,
+                file,
+                {
+                    contentType:
+                        "image/png",
+
+                    upsert:
+                        false
+                }
+            );
+
+
+    if (uploadError) {
+
+        console.error(
+            "SPARKD contest upload failed:",
+            uploadError
+        );
+
+        throw new Error(
+            uploadError.message
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CREATE DATABASE SUBMISSION
+    ////////////////////////////////////////////////////
+
+    const {
+        data: submission,
+        error: submissionError
+    } =
+        await supabaseClient
+            .from(
+                "meme_week_submissions"
+            )
+            .insert({
+
+                contest_id:
+                    currentContest.id,
+
+                creator_id:
+                    forgeData.creatorID,
+
+                wallet_address:
+                    currentWallet,
+
+                meme_title:
+                    memeTitle ||
+                    "Untitled SPARKD Meme",
+
+                meme_image_url:
+                    uploadData.path,
+
+                dna_verified:
+                    true,
+
+                dna_verification_data:
+                    forgeData,
+
+                burn_amount:
+                    0,
+
+                burn_transaction:
+                    null,
+
+                burn_verified:
+                    false,
+
+                status:
+                    "pending"
+
+            })
+            .select()
+            .single();
+
+
+    if (submissionError) {
+
+        console.error(
+            "SPARKD submission database error:",
+            submissionError
+        );
+
+        /*
+         * IMPORTANT:
+         * If the database insert fails,
+         * remove the uploaded image so
+         * we don't leave an orphaned file.
+         */
+
+        await supabaseClient
+            .storage
+            .from(
+                "sparkd-contest-submissions"
+            )
+            .remove([
+                filename
+            ]);
+
+
+        throw new Error(
+            submissionError.message
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // SUCCESS
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🔥 SPARKD MEME OF THE WEEK TEST SUBMISSION SUCCESS:",
+        submission
+    );
+
+
+    return {
+
+        success:
+            true,
+
+        test:
+            true,
+
+        submission:
+            submission
+
+    };
+
+};
+
+
