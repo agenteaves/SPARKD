@@ -431,62 +431,119 @@ connectButton.addEventListener(
                 wallet;
 
 
-            /*
-             * For this diagnostic page we are
-             * deliberately NOT querying the
-             * blockchain yet.
-             *
-             * The next step will connect this
-             * page to a proper Solana RPC/backend
-             * and retrieve the Token-2022 balance.
-             */
+        
+/*
+ * READ-ONLY SPARKD BALANCE CHECK
+ *
+ * This does NOT create a transaction.
+ * This does NOT burn tokens.
+ */
+
+const RPC_ENDPOINT =
+    "https://api.mainnet-beta.solana.com";
 
 
-            balanceElement.textContent =
-                "RPC CHECK PENDING";
+const rpcResponse =
+    await fetch(
+        RPC_ENDPOINT,
+        {
 
+            method: "POST",
 
-            info.style.display =
-                "grid";
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
 
+            body: JSON.stringify({
 
-            status.textContent =
-                "Phantom connected successfully.\n\n" +
-                "Wallet detected.\n" +
-                "No transaction has been created.\n" +
-                "No tokens have been burned.";
+                jsonrpc: "2.0",
 
+                id: 1,
 
-            connectButton.textContent =
-                "PHANTOM CONNECTED";
+                method:
+                    "getTokenAccountsByOwner",
 
+                params: [
+
+                    wallet,
+
+                    {
+                        mint:
+                            SPARKD_MINT
+                    },
+
+                    {
+                        encoding:
+                            "jsonParsed",
+
+                        commitment:
+                            "confirmed"
+                    }
+
+                ]
+
+            })
 
         }
-        catch (error) {
+    );
 
 
-            console.error(
-                error
-            );
+if (!rpcResponse.ok) {
+
+    throw new Error(
+        "Solana RPC returned HTTP " +
+        rpcResponse.status
+    );
+
+}
 
 
-            status.textContent =
-                "ERROR:\n\n" +
-                error.message;
+const rpcData =
+    await rpcResponse.json();
 
 
+if (rpcData.error) {
+
+    throw new Error(
+        "Solana RPC error: " +
+        JSON.stringify(
+            rpcData.error
+        )
+    );
+
+}
+
+
+const accounts =
+    rpcData.result.value;
+
+
+let sparkdBalance =
+    0;
+
+
+for (
+    const account
+    of accounts
+) {
+
+    const amount =
+        account.account.data.parsed
+            .info.tokenAmount.uiAmount;
+
+    sparkdBalance +=
+        Number(amount || 0);
+
+}
+
+
+balanceElement.textContent =
+    sparkdBalance.toLocaleString(
+        "en-US",
+        {
+            maximumFractionDigits: 6
         }
-
-
-    }
-);
-
-
-</script>
-
-
-</body>
-
-</html>
-
+    ) +
+    " SPARKD";
 
