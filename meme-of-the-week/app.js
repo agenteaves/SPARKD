@@ -78,7 +78,7 @@ let currentContest =
 
 
 ////////////////////////////////////////////////////
-// LOAD CURRENT CONTEST
+// LOAD CURRENT OR NEXT CONTEST
 ////////////////////////////////////////////////////
 
 async function loadCurrentContest() {
@@ -96,7 +96,12 @@ async function loadCurrentContest() {
             new Date().toISOString();
 
 
-        const {
+
+        ////////////////////////////////////////////////////
+        // FIRST: LOOK FOR ACTIVE CONTEST
+        ////////////////////////////////////////////////////
+
+        let {
             data,
             error
         } =
@@ -135,20 +140,80 @@ async function loadCurrentContest() {
         }
 
 
+
+        ////////////////////////////////////////////////////
+        // IF NO ACTIVE CONTEST,
+        // FIND THE NEXT UPCOMING CONTEST
+        ////////////////////////////////////////////////////
+
+        if (!data) {
+
+
+            const upcomingResult =
+                await supabaseClient
+                    .from(
+                        "meme_week_contests"
+                    )
+                    .select(
+                        "*"
+                    )
+                    .gt(
+                        "week_start",
+                        now
+                    )
+                    .order(
+                        "week_start",
+                        {
+                            ascending:
+                                true
+                        }
+                    )
+                    .limit(
+                        1
+                    )
+                    .maybeSingle();
+
+
+            if (
+                upcomingResult.error
+            ) {
+
+                throw upcomingResult.error;
+
+            }
+
+
+            data =
+                upcomingResult.data;
+
+
+        }
+
+
+
+        ////////////////////////////////////////////////////
+        // SAVE CONTEST
+        ////////////////////////////////////////////////////
+
         currentContest =
             data;
 
+
+
+        ////////////////////////////////////////////////////
+        // NOTHING FOUND
+        ////////////////////////////////////////////////////
 
         if (!currentContest) {
 
 
             console.warn(
-                "No active SPARKD Meme of the Week contest found."
+                "No current or upcoming SPARKD Meme of the Week contest found."
             );
 
 
             winnerWeek.textContent =
-                "NO ACTIVE CONTEST";
+                "NO CONTEST SCHEDULED";
 
 
             submitMemeButton.disabled =
@@ -156,7 +221,7 @@ async function loadCurrentContest() {
 
 
             submitMemeButton.textContent =
-                "NO ACTIVE CONTEST";
+                "NO CONTEST SCHEDULED";
 
 
             return;
@@ -164,8 +229,13 @@ async function loadCurrentContest() {
         }
 
 
+
+        ////////////////////////////////////////////////////
+        // CONTEST FOUND
+        ////////////////////////////////////////////////////
+
         console.log(
-            "🔥 Current SPARKD contest:",
+            "🔥 SPARKD Meme of the Week contest:",
             currentContest
         );
 
