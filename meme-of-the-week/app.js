@@ -645,4 +645,270 @@ document.addEventListener(
     }
 );
 
+////////////////////////////////////////////////////
+// TEMPORARY MEME OF THE WEEK SUBMISSION TEST
+//
+// NO TOKEN BURN
+// NO SOL TRANSFER
+////////////////////////////////////////////////////
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const testButton =
+            document.getElementById(
+                "testSubmitButton"
+            );
+
+        const testFile =
+            document.getElementById(
+                "testMemeFile"
+            );
+
+        const testTitle =
+            document.getElementById(
+                "testMemeTitle"
+            );
+
+
+        if (
+            !testButton ||
+            !testFile
+        ) {
+
+            console.warn(
+                "SPARKD test submission controls not found."
+            );
+
+            return;
+
+        }
+
+
+        testButton.addEventListener(
+            "click",
+            async function () {
+
+                try {
+
+                    ////////////////////////////////////////////////////
+                    // FILE CHECK
+                    ////////////////////////////////////////////////////
+
+                    const file =
+                        testFile.files[0];
+
+
+                    if (!file) {
+
+                        alert(
+                            "Select a SPARKD Forge PNG first."
+                        );
+
+                        return;
+
+                    }
+
+
+                    ////////////////////////////////////////////////////
+                    // WALLET CHECK
+                    ////////////////////////////////////////////////////
+
+                    if (
+                        typeof currentWallet !==
+                            "string" ||
+                        !currentWallet
+                    ) {
+
+                        alert(
+                            "Connect your Phantom wallet first."
+                        );
+
+                        return;
+
+                    }
+
+
+                    ////////////////////////////////////////////////////
+                    // READ FORGE DNA
+                    ////////////////////////////////////////////////////
+
+                    const reader =
+                        new FileReader();
+
+
+                    reader.onload =
+                        async function (event) {
+
+                            try {
+
+                                const bytes =
+                                    new Uint8Array(
+                                        event.target.result
+                                    );
+
+
+                                const text =
+                                    new TextDecoder()
+                                        .decode(bytes);
+
+
+                                const marker =
+                                    "SPARKD-FORGE";
+
+
+                                const markerPosition =
+                                    text.indexOf(
+                                        marker
+                                    );
+
+
+                                if (
+                                    markerPosition ===
+                                    -1
+                                ) {
+
+                                    throw new Error(
+                                        "No SPARKD Forge DNA found in this PNG."
+                                    );
+
+                                }
+
+
+                                const jsonStart =
+                                    text.indexOf(
+                                        "{",
+                                        markerPosition
+                                    );
+
+
+                                const jsonEnd =
+                                    text.indexOf(
+                                        "}",
+                                        jsonStart
+                                    );
+
+
+                                if (
+                                    jsonStart === -1 ||
+                                    jsonEnd === -1
+                                ) {
+
+                                    throw new Error(
+                                        "SPARKD Forge metadata could not be read."
+                                    );
+
+                                }
+
+
+                                const forgeData =
+                                    JSON.parse(
+                                        text.substring(
+                                            jsonStart,
+                                            jsonEnd + 1
+                                        )
+                                    );
+
+
+                                console.log(
+                                    "🔥 TEST Forge data:",
+                                    forgeData
+                                );
+
+
+                                ////////////////////////////////////////////////////
+                                // SUBMIT TEST
+                                ////////////////////////////////////////////////////
+
+                                testButton.disabled =
+                                    true;
+
+
+                                testButton.textContent =
+                                    "⏳ TESTING...";
+
+
+                                const result =
+                                    await window.SPARKD_CONTEST
+                                        .submitMemeTest(
+                                            file,
+                                            forgeData,
+                                            testTitle
+                                                ? testTitle.value
+                                                : "Test SPARKD Meme"
+                                        );
+
+
+                                console.log(
+                                    "🔥 TEST SUBMISSION RESULT:",
+                                    result
+                                );
+
+
+                                alert(
+                                    "🔥 TEST SUBMISSION SUCCESS!\n\n" +
+                                    "Submission ID:\n" +
+                                    result.submission.id +
+                                    "\n\n" +
+                                    "NO SPARKD WAS BURNED."
+                                );
+
+
+                            }
+                            catch (error) {
+
+                                console.error(
+                                    "❌ TEST SUBMISSION FAILED:",
+                                    error
+                                );
+
+
+                                alert(
+                                    "❌ TEST SUBMISSION FAILED\n\n" +
+                                    error.message
+                                );
+
+                            }
+                            finally {
+
+                                testButton.disabled =
+                                    false;
+
+
+                                testButton.textContent =
+                                    "🧪 TEST SUBMISSION";
+
+                            }
+
+                        };
+
+
+                    reader.readAsArrayBuffer(
+                        file
+                    );
+
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "❌ Test submission error:",
+                        error
+                    );
+
+
+                    alert(
+                        "❌ TEST SUBMISSION FAILED\n\n" +
+                        error.message
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
+
 
