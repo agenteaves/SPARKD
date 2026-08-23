@@ -431,118 +431,89 @@ connectButton.addEventListener(
                 wallet;
 
 
-        
 /*
  * READ-ONLY SPARKD BALANCE CHECK
  *
- * This does NOT create a transaction.
- * This does NOT burn tokens.
+ * The browser calls our Supabase Edge Function.
+ *
+ * The Edge Function handles the RPC request.
+ *
+ * NO TRANSACTION IS CREATED.
+ * NO TOKENS ARE BURNED.
  */
 
-const RPC_ENDPOINT =
-    "https://api.mainnet-beta.solana.com";
+
+const SUPABASE_FUNCTION_URL =
+    "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler";
 
 
-const rpcResponse =
+const balanceResponse =
     await fetch(
-        RPC_ENDPOINT,
+        SUPABASE_FUNCTION_URL,
         {
 
-            method: "POST",
+            method:
+                "POST",
 
             headers: {
+
                 "Content-Type":
                     "application/json"
+
             },
 
-            body: JSON.stringify({
+            body:
+                JSON.stringify({
 
-                jsonrpc: "2.0",
+                    wallet:
+                        wallet
 
-                id: 1,
-
-                method:
-                    "getTokenAccountsByOwner",
-
-                params: [
-
-                    wallet,
-
-                    {
-                        mint:
-                            SPARKD_MINT
-                    },
-
-                    {
-                        encoding:
-                            "jsonParsed",
-
-                        commitment:
-                            "confirmed"
-                    }
-
-                ]
-
-            })
+                })
 
         }
     );
 
 
-if (!rpcResponse.ok) {
-
-    throw new Error(
-        "Solana RPC returned HTTP " +
-        rpcResponse.status
-    );
-
-}
-
-
-const rpcData =
-    await rpcResponse.json();
-
-
-if (rpcData.error) {
-
-    throw new Error(
-        "Solana RPC error: " +
-        JSON.stringify(
-            rpcData.error
-        )
-    );
-
-}
-
-
-const accounts =
-    rpcData.result.value;
-
-
-let sparkdBalance =
-    0;
-
-
-for (
-    const account
-    of accounts
+if (
+    !balanceResponse.ok
 ) {
 
-    const amount =
-        account.account.data.parsed
-            .info.tokenAmount.uiAmount;
-
-    sparkdBalance +=
-        Number(amount || 0);
+    throw new Error(
+        "SPARKD balance service returned HTTP " +
+        balanceResponse.status
+    );
 
 }
+
+
+const balanceData =
+    await balanceResponse.json();
+
+
+if (
+    !balanceData.success
+) {
+
+    throw new Error(
+        balanceData.error ||
+        "Unable to retrieve SPARKD balance."
+    );
+
+}
+
+
+const sparkdBalance =
+    Number(
+        balanceData.balance || 0
+    );
 
 
 balanceElement.textContent =
     sparkdBalance.toLocaleString(
         "en-US",
         {
-            maximumFractionDigits: 6
+            maximumFractionDigits:
+                6
         }
     ) +
     " SPARKD";
