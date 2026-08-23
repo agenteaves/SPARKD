@@ -1,1 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        SPARKD — Burn Test
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 50% 20%,
+                    rgba(255, 120, 0, 0.18),
+                    transparent 35%
+                ),
+                #050505;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            padding: 30px;
+
+        }
+
+
+        .panel {
+
+            width: min(650px, 95vw);
+
+            padding: 35px;
+
+            border-radius: 25px;
+
+            background:
+                rgba(255, 255, 255, 0.06);
+
+            border:
+                1px solid
+                rgba(255, 120, 0, 0.4);
+
+            backdrop-filter: blur(15px);
+
+            box-shadow:
+                0 0 40px
+                rgba(255, 120, 0, 0.2);
+
+        }
+
+
+        h1 {
+
+            text-align: center;
+
+            color: #ff7a00;
+
+            text-shadow:
+                0 0 20px #ff7a00;
+
+            margin-top: 0;
+
+        }
+
+
+        .warning {
+
+            padding: 15px;
+
+            margin-bottom: 25px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255, 170, 0, 0.1);
+
+            border:
+                1px solid
+                rgba(255, 170, 0, 0.4);
+
+            color: #ffcc80;
+
+            text-align: center;
+
+            font-weight: bold;
+
+        }
+
+
+        button {
+
+            width: 100%;
+
+            padding: 15px;
+
+            border: none;
+
+            border-radius: 12px;
+
+            background: #ff7a00;
+
+            color: white;
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 0 20px
+                rgba(255, 120, 0, 0.4);
+
+        }
+
+
+        button:hover {
+
+            transform: translateY(-2px);
+
+        }
+
+
+        .status {
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            border-radius: 12px;
+
+            background: #000;
+
+            white-space: pre-wrap;
+
+            word-break: break-word;
+
+            color: #ccc;
+
+            min-height: 80px;
+
+        }
+
+
+        .info {
+
+            margin-top: 20px;
+
+            display: grid;
+
+            gap: 10px;
+
+        }
+
+
+        .row {
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+
+        }
+
+
+        .label {
+
+            color: #ff9b35;
+
+            font-weight: bold;
+
+        }
+
+
+        .value {
+
+            margin-top: 5px;
+
+            word-break: break-all;
+
+        }
+
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="panel">
+
+
+    <h1>
+        ⚡ SPARKD BURN TEST
+    </h1>
+
+
+    <div class="warning">
+
+        DIAGNOSTIC MODE — NO TOKENS WILL BE BURNED
+
+    </div>
+
+
+    <button
+        id="connectButton"
+        type="button"
+    >
+
+        CONNECT PHANTOM
+
+    </button>
+
+
+    <div
+        class="status"
+        id="status"
+    >
+
+Waiting for Phantom...
+
+    </div>
+
+
+    <div
+        class="info"
+        id="info"
+        style="display:none;"
+    >
+
+
+        <div class="row">
+
+            <div class="label">
+                WALLET
+            </div>
+
+            <div
+                class="value"
+                id="wallet"
+            ></div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                SPARKD BALANCE
+            </div>
+
+            <div
+                class="value"
+                id="balance"
+            ></div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                REQUIRED ENTRY BURN
+            </div>
+
+            <div class="value">
+                2,000 SPARKD
+            </div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                MINT
+            </div>
+
+            <div class="value">
+
+                BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump
+
+            </div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                DECIMALS
+            </div>
+
+            <div class="value">
+                6
+            </div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                TOKEN PROGRAM
+            </div>
+
+            <div class="value">
+
+                Token-2022
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+
+const SPARKD_MINT =
+    "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
+
+
+const REQUIRED_SPARKD =
+    2000;
+
+
+const status =
+    document.getElementById(
+        "status"
+    );
+
+
+const connectButton =
+    document.getElementById(
+        "connectButton"
+    );
+
+
+const info =
+    document.getElementById(
+        "info"
+    );
+
+
+const walletElement =
+    document.getElementById(
+        "wallet"
+    );
+
+
+const balanceElement =
+    document.getElementById(
+        "balance"
+    );
+
+
+
+connectButton.addEventListener(
+    "click",
+    async function () {
+
+
+        try {
+
+
+            if (
+                !window.solana ||
+                !window.solana.isPhantom
+            ) {
+
+                throw new Error(
+                    "Phantom wallet was not detected."
+                );
+
+            }
+
+
+            status.textContent =
+                "Connecting to Phantom...";
+
+
+            const response =
+                await window.solana.connect();
+
+
+            const wallet =
+                response.publicKey.toString();
+
+
+            walletElement.textContent =
+                wallet;
+
+
+            /*
+             * For this diagnostic page we are
+             * deliberately NOT querying the
+             * blockchain yet.
+             *
+             * The next step will connect this
+             * page to a proper Solana RPC/backend
+             * and retrieve the Token-2022 balance.
+             */
+
+
+            balanceElement.textContent =
+                "RPC CHECK PENDING";
+
+
+            info.style.display =
+                "grid";
+
+
+            status.textContent =
+                "Phantom connected successfully.\n\n" +
+                "Wallet detected.\n" +
+                "No transaction has been created.\n" +
+                "No tokens have been burned.";
+
+
+            connectButton.textContent =
+                "PHANTOM CONNECTED";
+
+
+        }
+        catch (error) {
+
+
+            console.error(
+                error
+            );
+
+
+            status.textContent =
+                "ERROR:\n\n" +
+                error.message;
+
+
+        }
+
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>
+
 
