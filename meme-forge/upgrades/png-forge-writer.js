@@ -64,10 +64,6 @@ window.SPARKD_PNG = {
             forgeRecord.signature,
 
 
-            imageLock:
-            forgeRecord.imageLock
-
-
         };
 
 
