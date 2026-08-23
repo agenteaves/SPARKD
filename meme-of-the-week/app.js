@@ -349,7 +349,7 @@ async function loadContestStatistics() {
         } =
             await supabaseClient
                 .from(
-                    "meme_submissions"
+                    "meme_week_submissions"
                 )
                 .select(
                     "id",
