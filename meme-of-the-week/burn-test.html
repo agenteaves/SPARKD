@@ -517,6 +517,41 @@ balanceElement.textContent =
         }
     ) +
     " SPARKD";
+            
+
+const REQUIRED_SPARKD =
+    2000;
+
+
+const eligible =
+    sparkdBalance >=
+    REQUIRED_SPARKD;
+
+
+const entryRequirementElement =
+    document.getElementById(
+        "entryRequirement"
+    );
+
+
+if (
+    entryRequirementElement
+) {
+
+    if (eligible) {
+
+        entryRequirementElement.textContent =
+            "ELIGIBLE — 2,000+ SPARKD HELD";
+
+    }
+    else {
+
+        entryRequirementElement.textContent =
+            "NOT ELIGIBLE — 2,000 SPARKD REQUIRED";
+
+    }
+
+}
 
           
 info.style.display =
