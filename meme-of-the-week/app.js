@@ -911,4 +911,314 @@ document.addEventListener(
     }
 );
 
+////////////////////////////////////////////////////
+// SPARKD MEME OF THE WEEK
+// PHANTOM WALLET CONNECTION
+////////////////////////////////////////////////////
 
+let currentWallet = null;
+
+
+////////////////////////////////////////////////////
+// GET PHANTOM PROVIDER
+////////////////////////////////////////////////////
+
+function getContestWalletProvider() {
+
+    if (
+        window.solana &&
+        window.solana.isPhantom
+    ) {
+
+        return window.solana;
+
+    }
+
+    return null;
+
+}
+
+
+////////////////////////////////////////////////////
+// SHOW CONNECTED WALLET
+////////////////////////////////////////////////////
+
+function showContestWallet(
+    publicKey
+) {
+
+    const status =
+        document.getElementById(
+            "contestWalletStatus"
+        );
+
+    const button =
+        document.getElementById(
+            "contestConnectWallet"
+        );
+
+
+    if (!publicKey) {
+
+        return;
+
+    }
+
+
+    currentWallet =
+        publicKey.toString();
+
+
+    if (status) {
+
+        status.textContent =
+            "🟢 Wallet Connected: " +
+            currentWallet.slice(0, 6) +
+            "..." +
+            currentWallet.slice(-4);
+
+    }
+
+
+    if (button) {
+
+        button.textContent =
+            "🔗 WALLET CONNECTED";
+
+    }
+
+
+    console.log(
+        "🔐 SPARKD Meme of the Week wallet:",
+        currentWallet
+    );
+
+}
+
+
+////////////////////////////////////////////////////
+// CONNECT PHANTOM WALLET
+////////////////////////////////////////////////////
+
+async function connectContestWallet() {
+
+    const provider =
+        getContestWalletProvider();
+
+
+    if (!provider) {
+
+        alert(
+            "👻 Phantom Wallet was not detected. Please install or open Phantom Wallet."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        console.log(
+            "🔗 SPARKD Meme of the Week: Connecting to Phantom..."
+        );
+
+
+        const response =
+            await provider.connect();
+
+
+        const publicKey =
+            response &&
+            response.publicKey
+                ? response.publicKey
+                : provider.publicKey;
+
+
+        if (!publicKey) {
+
+            throw new Error(
+                "Phantom connected but no wallet address was returned."
+            );
+
+        }
+
+
+        showContestWallet(
+            publicKey
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ SPARKD Meme of the Week wallet connection failed:",
+            error
+        );
+
+    }
+
+}
+
+
+////////////////////////////////////////////////////
+// CHECK EXISTING PHANTOM CONNECTION
+////////////////////////////////////////////////////
+
+async function checkContestWallet() {
+
+    const provider =
+        getContestWalletProvider();
+
+
+    if (!provider) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await provider.connect({
+                onlyIfTrusted:
+                    true
+            });
+
+
+        if (
+            response &&
+            response.publicKey
+        ) {
+
+            showContestWallet(
+                response.publicKey
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        // No trusted connection is normal.
+        console.log(
+            "🔌 No existing trusted Phantom connection."
+        );
+
+    }
+
+}
+
+
+////////////////////////////////////////////////////
+// WALLET EVENTS
+////////////////////////////////////////////////////
+
+function setupContestWallet() {
+
+    const button =
+        document.getElementById(
+            "contestConnectWallet"
+        );
+
+
+    if (!button) {
+
+        console.warn(
+            "⚠️ Contest wallet button not found."
+        );
+
+        return;
+
+    }
+
+
+    button.addEventListener(
+        "click",
+        connectContestWallet
+    );
+
+
+    const provider =
+        getContestWalletProvider();
+
+
+    if (provider) {
+
+        provider.on(
+            "connect",
+            function (publicKey) {
+
+                showContestWallet(
+                    publicKey
+                );
+
+            }
+        );
+
+
+        provider.on(
+            "disconnect",
+            function () {
+
+                currentWallet =
+                    null;
+
+
+                const status =
+                    document.getElementById(
+                        "contestWalletStatus"
+                    );
+
+
+                const button =
+                    document.getElementById(
+                        "contestConnectWallet"
+                    );
+
+
+                if (status) {
+
+                    status.textContent =
+                        "🔌 Wallet Not Connected";
+
+                }
+
+
+                if (button) {
+
+                    button.textContent =
+                        "🔗 CONNECT SPARKD WALLET";
+
+                }
+
+
+                console.log(
+                    "🔌 SPARKD Meme of the Week wallet disconnected."
+                );
+
+            }
+        );
+
+    }
+
+
+    checkContestWallet();
+
+}
+
+
+////////////////////////////////////////////////////
+// INITIALIZE CONTEST WALLET
+////////////////////////////////////////////////////
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        setupContestWallet();
+
+    }
+);
