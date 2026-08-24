@@ -861,10 +861,8 @@ if (submissionError) {
 
 
     /*
-     * IMPORTANT:
-     * If the database insert fails,
-     * remove the uploaded image so
-     * we don't leave an orphaned file.
+     * Remove uploaded image if
+     * database insertion fails.
      */
 
     await supabaseClient
@@ -887,15 +885,9 @@ if (submissionError) {
 /*
  * The INSERT succeeded.
  *
- * We intentionally do NOT use:
- *
- * .select()
- *
- * because pending submissions are not
- * visible through the public SELECT policy.
- *
- * We already generated the submission ID
- * locally, so we can safely return it.
+ * We intentionally do NOT use
+ * .select() because pending rows
+ * are not publicly readable.
  */
 
 const submission = {
@@ -930,4 +922,9 @@ return {
         submission
 
 };
+
+
+};
+
+
 
