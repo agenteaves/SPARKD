@@ -694,36 +694,22 @@ window.SPARKD_CONTEST.submitMemeTest = async function (
 
 
     ////////////////////////////////////////////////////
-    // VERIFY CONTEST WINDOW
-    ////////////////////////////////////////////////////
+// VERIFY CONTEST WINDOW
+////////////////////////////////////////////////////
 
-    const now =
-        Date.now();
+// TEMPORARY TEST BYPASS
+//
+// The real contest schedule remains enforced
+// elsewhere. This bypass exists ONLY so we
+// can test the upload/database pipeline before
+// the first contest opens.
+//
+// NO TOKEN BURN
+// NO SOL TRANSFER
 
-
-    const start =
-        new Date(
-            currentContest.week_start
-        ).getTime();
-
-
-    const end =
-        new Date(
-            currentContest.week_end
-        ).getTime();
-
-
-    if (
-        now < start ||
-        now > end
-    ) {
-
-        throw new Error(
-            "The Meme of the Week submission window is closed."
-        );
-
-    }
-
+console.log(
+    "🧪 TEST MODE: Contest window check bypassed."
+);
 
     ////////////////////////////////////////////////////
     // VERIFY FORGE DNA
