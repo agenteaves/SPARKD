@@ -660,6 +660,36 @@ window.SPARKD_CONTEST.submitMemeTest = async function (
 
     }
 
+    ////////////////////////////////////////////////////
+// VERIFY SPARKD BALANCE
+////////////////////////////////////////////////////
+
+console.log(
+    "🪙 TEST MODE: Checking SPARKD balance..."
+);
+
+
+const balance =
+    await this.checkBalance(
+        currentWallet
+    );
+
+
+console.log(
+    "🔥 TEST SPARKD balance verified:",
+    balance.balance
+);
+
+
+if (
+    !balance.canSubmit
+) {
+
+    throw new Error(
+        "SPARKD balance verification failed."
+    );
+
+}
 
     ////////////////////////////////////////////////////
     // FORGE DATA CHECK
