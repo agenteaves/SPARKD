@@ -790,113 +790,144 @@ console.log(
     }
 
 
-    ////////////////////////////////////////////////////
-    // CREATE DATABASE SUBMISSION
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// CREATE DATABASE SUBMISSION
+////////////////////////////////////////////////////
 
-    const {
-        data: submission,
-        error: submissionError
-    } =
-        await supabaseClient
-            .from(
-                "meme_week_submissions"
-            )
-            .insert({
-
-                contest_id:
-                    currentContest.id,
-
-                creator_id:
-                    forgeData.creatorID,
-
-                wallet_address:
-                    currentWallet,
-
-                meme_title:
-                    memeTitle ||
-                    "Untitled SPARKD Meme",
-
-                meme_image_url:
-                    uploadData.path,
-
-                dna_verified:
-                    true,
-
-                dna_verification_data:
-                    forgeData,
-
-                burn_amount:
-                    0,
-
-                burn_transaction:
-                    null,
-
-                burn_verified:
-                    false,
-
-                status:
-                    "pending"
-
-            })
-            .select()
-            .single();
+const submissionId =
+    crypto.randomUUID();
 
 
-    if (submissionError) {
+const submissionData = {
 
-        console.error(
-            "SPARKD submission database error:",
-            submissionError
-        );
+    id:
+        submissionId,
 
-        /*
-         * IMPORTANT:
-         * If the database insert fails,
-         * remove the uploaded image so
-         * we don't leave an orphaned file.
-         */
+    contest_id:
+        currentContest.id,
 
-        await supabaseClient
-            .storage
-            .from(
-                "sparkd-contest-submissions"
-            )
-            .remove([
-                filename
-            ]);
+    creator_id:
+        forgeData.creatorID,
 
+    wallet_address:
+        currentWallet,
 
-        throw new Error(
-            submissionError.message
-        );
+    meme_title:
+        memeTitle ||
+        "Untitled SPARKD Meme",
 
-    }
+    meme_image_url:
+        uploadData.path,
 
+    dna_verified:
+        true,
 
-    ////////////////////////////////////////////////////
-    // SUCCESS
-    ////////////////////////////////////////////////////
+    dna_verification_data:
+        forgeData,
 
-    console.log(
-        "🔥 SPARKD MEME OF THE WEEK TEST SUBMISSION SUCCESS:",
-        submission
-    );
+    burn_amount:
+        0,
 
+    burn_transaction:
+        null,
 
-    return {
+    burn_verified:
+        false,
 
-        success:
-            true,
-
-        test:
-            true,
-
-        submission:
-            submission
-
-    };
+    status:
+        "pending"
 
 };
 
+
+const {
+    error: submissionError
+} =
+    await supabaseClient
+        .from(
+            "meme_week_submissions"
+        )
+        .insert(
+            submissionData
+        );
+
+
+if (submissionError) {
+
+    console.error(
+        "SPARKD submission database error:",
+        submissionError
+    );
+
+
+    /*
+     * IMPORTANT:
+     * If the database insert fails,
+     * remove the uploaded image so
+     * we don't leave an orphaned file.
+     */
+
+    await supabaseClient
+        .storage
+        .from(
+            "sparkd-contest-submissions"
+        )
+        .remove([
+            filename
+        ]);
+
+
+    throw new Error(
+        submissionError.message
+    );
+
+}
+
+
+/*
+ * The INSERT succeeded.
+ *
+ * We intentionally do NOT use:
+ *
+ * .select()
+ *
+ * because pending submissions are not
+ * visible through the public SELECT policy.
+ *
+ * We already generated the submission ID
+ * locally, so we can safely return it.
+ */
+
+const submission = {
+
+    id:
+        submissionId,
+
+    ...submissionData
+
+};
+
+
+////////////////////////////////////////////////////
+// SUCCESS
+////////////////////////////////////////////////////
+
+console.log(
+    "🔥 SPARKD MEME OF THE WEEK TEST SUBMISSION SUCCESS:",
+    submission
+);
+
+
+return {
+
+    success:
+        true,
+
+    test:
+        true,
+
+    submission:
+        submission
+
+};
 
