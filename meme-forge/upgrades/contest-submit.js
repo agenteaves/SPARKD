@@ -147,7 +147,7 @@ if (!client) {
             data,
             error
         } =
-            await supabaseClient
+            await client
 
                 .from(
                     "meme_week_contests"
@@ -643,7 +643,7 @@ if (!client) {
             data,
             error
         } =
-            await supabaseClient
+            await Client
 
                 .storage
 
@@ -1145,7 +1145,7 @@ if (!client) {
         const {
             error: submissionError
         } =
-            await supabaseClient
+            await client
 
                 .from(
                     "meme_week_submissions"
@@ -1183,7 +1183,7 @@ if (!client) {
                 error:
                     cleanupError
             } =
-                await supabaseClient
+                await client
 
                     .storage
 
