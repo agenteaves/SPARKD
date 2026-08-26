@@ -379,15 +379,12 @@ async function loadContestStatistics() {
                     },
 
                     body:
-                        JSON.stringify({
+    JSON.stringify({
 
-                            action:
-                                "check_submission_stats",
+        action:
+            "check_contest_statistics"
 
-                            contest_id:
-                                currentContest.id
-
-                        })
+    })
 
                 }
 
