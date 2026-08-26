@@ -136,101 +136,131 @@ window.SPARKD_CONTEST = {
     },
 
 
+   ////////////////////////////////////////////////////
+// GET ACTIVE CONTEST
+////////////////////////////////////////////////////
+
+async getCurrentContest() {
+
+
     ////////////////////////////////////////////////////
-    // GET ACTIVE CONTEST
+    // GET SHARED SUPABASE CLIENT
     ////////////////////////////////////////////////////
 
-    async getCurrentContest() {
+    const client =
+        window.SPARKD_WEBSITE_STATS &&
+        window.SPARKD_WEBSITE_STATS.supabaseClient;
 
 
-       const client =
-    window.SPARKD_WEBSITE_STATS &&
-    window.SPARKD_WEBSITE_STATS.supabaseClient;
+    if (!client) {
 
-if (!client) {
+        throw new Error(
+            "Supabase client is not available."
+        );
 
-    throw new Error(
-        "Supabase client is not available."
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CURRENT TIME
+    ////////////////////////////////////////////////////
+
+    const now =
+        new Date().toISOString();
+
+
+    ////////////////////////////////////////////////////
+    // FIND ACTIVE CONTEST
+    ////////////////////////////////////////////////////
+
+    const {
+        data,
+        error
+    } =
+        await client
+
+            .from(
+                "meme_week_contests"
+            )
+
+            .select(
+                "*"
+            )
+
+            .lte(
+                "week_start",
+                now
+            )
+
+            .gte(
+                "week_end",
+                now
+            )
+
+            .eq(
+                "status",
+                "submission"
+            )
+
+            .order(
+                "week_start",
+                {
+                    ascending:
+                        false
+                }
+            )
+
+            .limit(
+                1
+            )
+
+            .maybeSingle();
+
+
+    ////////////////////////////////////////////////////
+    // DATABASE ERROR
+    ////////////////////////////////////////////////////
+
+    if (error) {
+
+        console.error(
+            "SPARKD contest lookup error:",
+            error
+        );
+
+        throw new Error(
+            "Unable to retrieve the active contest."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // NO ACTIVE CONTEST
+    ////////////////////////////////////////////////////
+
+    if (!data) {
+
+        throw new Error(
+            "There is no active Meme of the Week submission period."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // SUCCESS
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🔥 SPARKD active contest found:",
+        data.id
     );
 
-}
 
+    return data;
 
-        const now =
-            new Date().toISOString();
-
-
-        const {
-            data,
-            error
-        } =
-            await client
-
-                .from(
-                    "meme_week_contests"
-                )
-
-                .select(
-                    "*"
-                )
-
-                .lte(
-                    "week_start",
-                    now
-                )
-
-                .gte(
-                    "week_end",
-                    now
-                )
-
-                .eq(
-                    "status",
-                    "submission"
-                )
-
-                .order(
-                    "week_start",
-                    {
-                        ascending:
-                            false
-                    }
-                )
-
-                .limit(
-                    1
-                )
-
-                .maybeSingle();
-
-
-        if (error) {
-
-            console.error(
-                "SPARKD contest lookup error:",
-                error
-            );
-
-            throw new Error(
-                "Unable to retrieve the active contest."
-            );
-
-        }
-
-
-        if (!data) {
-
-            throw new Error(
-                "There is no active Meme of the Week submission period."
-            );
-
-        }
-
-
-        return data;
-
-    },
-
+},
 
     ////////////////////////////////////////////////////
     // VERIFY SPARKD BALANCE
