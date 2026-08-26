@@ -1,198 +1,251 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE SCANNER v1.2
+// SPARKD FORGE SCANNER v1.3
 // DNA Detection + Signature Verification + Image Lock
+//
+// IMPORTANT:
+// - Extracts Forge data from PNG
+// - Verifies metadata signature
+// - Verifies image fingerprint
+// - Returns VERIFIED Forge data
 ////////////////////////////////////////////////////
 
 
 window.SPARKD_SCANNER = {
 
 
-    scan:function(file){
+    ////////////////////////////////////////////////////
+    // SCAN FORGE PNG
+    ////////////////////////////////////////////////////
 
+    scan: function(file) {
 
-        const reader =
-        new FileReader();
+        return new Promise(function(resolve) {
 
+            const reader =
+                new FileReader();
 
 
-        reader.onload =
-        async function(e){
+            reader.onload =
+                async function(e) {
 
+                    try {
 
-            const bytes =
-            new Uint8Array(
-                e.target.result
-            );
+                        const bytes =
+                            new Uint8Array(
+                                e.target.result
+                            );
 
 
-            const text =
-            new TextDecoder()
-            .decode(bytes);
+                        const text =
+                            new TextDecoder()
+                                .decode(bytes);
 
 
+                        const marker =
+                            "SPARKD-FORGE";
 
-            const marker =
-            "SPARKD-FORGE";
 
+                        ////////////////////////////////////////////////////
+                        // FIND FORGE MARKER
+                        ////////////////////////////////////////////////////
 
+                        if (
+                            !text.includes(marker)
+                        ) {
 
-            if(!text.includes(marker)){
+                            console.log(
+                                "❌ No SPARKD Forge DNA found"
+                            );
 
 
-                console.log(
-                    "❌ No SPARKD Forge DNA found"
-                );
+                            showForgeResult(
+                                false,
+                                "❌ UNVERIFIED IMAGE\n\nNo SPARKD Forge DNA signature detected."
+                            );
 
 
-                showForgeResult(
-                    false,
-                    "❌ UNVERIFIED IMAGE\n\nNo SPARKD Forge DNA signature detected."
-                );
+                            resolve({
 
+                                success:
+                                    false,
 
-                return;
+                                verified:
+                                    false,
 
-            }
+                                forgeData:
+                                    null
 
+                            });
 
 
-            const start =
-            text.indexOf(marker)
-            + marker.length
-            + 1;
+                            return;
 
+                        }
 
 
-            const jsonStart =
-            text.indexOf(
-                "{",
-                start
-            );
+                        ////////////////////////////////////////////////////
+                        // FIND FORGE JSON
+                        ////////////////////////////////////////////////////
 
+                        const start =
+                            text.indexOf(marker)
+                            + marker.length
+                            + 1;
 
 
-            const jsonEnd =
-            text.indexOf(
-                "}",
-                jsonStart
-            );
+                        const jsonStart =
+                            text.indexOf(
+                                "{",
+                                start
+                            );
 
 
+                        const jsonEnd =
+                            text.indexOf(
+                                "}",
+                                jsonStart
+                            );
 
-            if(
-                jsonStart === -1 ||
-                jsonEnd === -1
-            ){
 
+                        if (
+                            jsonStart === -1 ||
+                            jsonEnd === -1
+                        ) {
 
-                console.log(
-                    "❌ Forge JSON not found"
-                );
+                            console.log(
+                                "❌ Forge JSON not found"
+                            );
 
 
-                showForgeResult(
-                    false,
-                    "❌ FORGE DATA CORRUPTED"
-                );
+                            showForgeResult(
+                                false,
+                                "❌ FORGE DATA CORRUPTED"
+                            );
 
 
-                return;
+                            resolve({
 
-            }
+                                success:
+                                    false,
 
+                                verified:
+                                    false,
 
+                                forgeData:
+                                    null
 
-            let jsonText =
-            text.substring(
-                jsonStart,
-                jsonEnd + 1
-            );
+                            });
 
 
+                            return;
 
-            let forgeData;
+                        }
 
 
+                        const jsonText =
+                            text.substring(
+                                jsonStart,
+                                jsonEnd + 1
+                            );
 
-            try{
 
+                        let forgeData;
 
-                forgeData =
-                JSON.parse(
-                    jsonText
-                );
 
+                        ////////////////////////////////////////////////////
+                        // PARSE FORGE DATA
+                        ////////////////////////////////////////////////////
 
-            }
-            catch(error){
+                        try {
 
+                            forgeData =
+                                JSON.parse(
+                                    jsonText
+                                );
 
-                console.log(
-                    "❌ JSON parse failed",
-                    jsonText
-                );
+                        }
 
+                        catch(error) {
 
-                showForgeResult(
-                    false,
-                    "❌ FORGE DATA CORRUPTED"
-                );
+                            console.log(
+                                "❌ JSON parse failed",
+                                jsonText
+                            );
 
 
-                return;
+                            showForgeResult(
+                                false,
+                                "❌ FORGE DATA CORRUPTED"
+                            );
 
-            }
 
+                            resolve({
 
+                                success:
+                                    false,
 
-            console.log(
-                "🔥 SPARKD FORGE DATA:",
-                forgeData
-            );
+                                verified:
+                                    false,
 
+                                forgeData:
+                                    null
 
+                            });
 
-            ////////////////////////////////////////////////////
-            // SAVE ORIGINAL VALUES
-            ////////////////////////////////////////////////////
 
-            const originalSignature =
-            forgeData.signature;
+                            return;
 
+                        }
 
-            const originalImageLock =
-            forgeData.imageLock;
 
+                        console.log(
+                            "🔥 SPARKD FORGE DATA:",
+                            forgeData
+                        );
 
 
-            delete forgeData.signature;
+                        ////////////////////////////////////////////////////
+                        // SAVE ORIGINAL SIGNATURE
+                        ////////////////////////////////////////////////////
 
+                        const originalSignature =
+                            forgeData.signature;
 
 
-            ////////////////////////////////////////////////////
-            // VERIFY SIGNATURE
-            ////////////////////////////////////////////////////
+                        const originalImageLock =
+                            forgeData.imageLock;
 
-            const calculatedSignature =
-            createVerificationSignature(
-                forgeData
-            );
 
+                        ////////////////////////////////////////////////////
+                        // REMOVE SIGNATURE FOR VERIFICATION
+                        ////////////////////////////////////////////////////
 
+                        delete forgeData.signature;
 
-            if(
-                !originalSignature ||
-                originalSignature !== calculatedSignature
-            ){
 
+                        ////////////////////////////////////////////////////
+                        // VERIFY SIGNATURE
+                        ////////////////////////////////////////////////////
 
-                console.log(
-                    "⚠️ SIGNATURE FAILED"
-                );
+                        const calculatedSignature =
+                            createVerificationSignature(
+                                forgeData
+                            );
 
 
-                showForgeResult(
-                    false,
+                        if (
+                            !originalSignature ||
+                            originalSignature !==
+                                calculatedSignature
+                        ) {
+
+                            console.log(
+                                "⚠️ SIGNATURE FAILED"
+                            );
+
+
+                            showForgeResult(
+                                false,
 `
 ⚠️ SPARKD FORGE ALTERED
 
@@ -200,39 +253,59 @@ Signature mismatch.
 
 Metadata was changed.
 `
-                );
+                            );
 
 
-                return;
+                            resolve({
 
-            }
+                                success:
+                                    false,
 
+                                verified:
+                                    false,
 
+                                forgeData:
+                                    null
 
-            ////////////////////////////////////////////////////
-            // VERIFY IMAGE LOCK
-            ////////////////////////////////////////////////////
-
-            const currentImageHash =
-            await createScannerImageFingerprint(
-                file
-            );
+                            });
 
 
+                            return;
 
-            if(
-                originalImageLock &&
-                originalImageLock !== currentImageHash
-            ){
+                        }
 
 
-                console.log(
-                    "⚠️ IMAGE LOCK FAILED"
-                );
+                        ////////////////////////////////////////////////////
+                        // RESTORE ORIGINAL SIGNATURE
+                        ////////////////////////////////////////////////////
+
+                        forgeData.signature =
+                            originalSignature;
 
 
-                showForgeResult(
-                    false,
+                        ////////////////////////////////////////////////////
+                        // VERIFY IMAGE LOCK
+                        ////////////////////////////////////////////////////
+
+                        const currentImageHash =
+                            await createScannerImageFingerprint(
+                                file
+                            );
+
+
+                        if (
+                            originalImageLock &&
+                            originalImageLock !==
+                                currentImageHash
+                        ) {
+
+                            console.log(
+                                "⚠️ IMAGE LOCK FAILED"
+                            );
+
+
+                            showForgeResult(
+                                false,
 `
 ⚠️ SPARKD FORGE ALTERED
 
@@ -244,23 +317,53 @@ ${originalImageLock}
 Current:
 ${currentImageHash}
 `
-                );
+                            );
 
 
-                return;
+                            resolve({
 
-            }
+                                success:
+                                    false,
+
+                                verified:
+                                    false,
+
+                                forgeData:
+                                    null
+
+                            });
 
 
+                            return;
 
-            console.log(
-                "🔥 SIGNATURE VERIFIED"
-            );
-
+                        }
 
 
-            showForgeResult(
-                true,
+                        ////////////////////////////////////////////////////
+                        // COMPLETE VERIFICATION
+                        ////////////////////////////////////////////////////
+
+                        console.log(
+                            "🔥 SIGNATURE VERIFIED"
+                        );
+
+
+                        console.log(
+                            "🔒 IMAGE LOCK VERIFIED"
+                        );
+
+
+                        console.log(
+                            "✅ SPARKD FORGE INTEGRITY VERIFIED"
+                        );
+
+
+                        ////////////////////////////////////////////////////
+                        // DISPLAY SUCCESS
+                        ////////////////////////////////////////////////////
+
+                        showForgeResult(
+                            true,
 `
 🔥 SPARKD FORGE VERIFIED
 
@@ -274,7 +377,7 @@ DNA:
 ${forgeData.DNA}
 
 Signature:
-${originalSignature}
+${forgeData.signature}
 
 Image Lock:
 PASS
@@ -282,18 +385,96 @@ PASS
 Integrity:
 PASS
 `
+                        );
+
+
+                        ////////////////////////////////////////////////////
+                        // RETURN VERIFIED FORGE DATA
+                        ////////////////////////////////////////////////////
+
+                        resolve({
+
+                            success:
+                                true,
+
+                            verified:
+                                true,
+
+                            forgeData:
+                                forgeData
+
+                        });
+
+                    }
+
+                    catch(error) {
+
+                        console.error(
+                            "❌ SPARKD Forge scanner error:",
+                            error
+                        );
+
+
+                        showForgeResult(
+                            false,
+                            "❌ SPARKD Forge scanner error."
+                        );
+
+
+                        resolve({
+
+                            success:
+                                false,
+
+                            verified:
+                                false,
+
+                            forgeData:
+                                null
+
+                        });
+
+                    }
+
+                };
+
+
+            reader.onerror =
+                function(error) {
+
+                    console.error(
+                        "❌ SPARKD Forge file read failed:",
+                        error
+                    );
+
+
+                    showForgeResult(
+                        false,
+                        "❌ Unable to read Forge image."
+                    );
+
+
+                    resolve({
+
+                        success:
+                            false,
+
+                        verified:
+                            false,
+
+                        forgeData:
+                            null
+
+                    });
+
+                };
+
+
+            reader.readAsArrayBuffer(
+                file
             );
 
-
-
-        };
-
-
-
-        reader.readAsArrayBuffer(
-            file
-        );
-
+        });
 
     }
 
@@ -308,65 +489,55 @@ PASS
 // STABLE SIGNATURE VERIFICATION
 ////////////////////////////////////////////////////
 
-function createVerificationSignature(data){
+function createVerificationSignature(data) {
 
 
     const sorted = {};
 
 
-
     Object.keys(data)
-    .sort()
-    .forEach(function(key){
+        .sort()
+        .forEach(function(key) {
 
+            sorted[key] =
+                data[key];
 
-        sorted[key] =
-        data[key];
-
-
-    });
-
+        });
 
 
     const text =
-    JSON.stringify(sorted);
+        JSON.stringify(sorted);
 
 
+    let hash =
+        0;
 
-    let hash = 0;
 
-
-
-    for(
+    for (
         let i = 0;
         i < text.length;
         i++
-    ){
+    ) {
+
+        hash =
+            ((hash << 5) - hash)
+            + text.charCodeAt(i);
 
 
         hash =
-        ((hash<<5)-hash)
-        +text.charCodeAt(i);
-
-
-
-        hash =
-        hash & hash;
-
+            hash & hash;
 
     }
-
 
 
     return (
 
         "SIG-" +
         Math.abs(hash)
-        .toString(16)
-        .toUpperCase()
+            .toString(16)
+            .toUpperCase()
 
     );
-
 
 }
 
@@ -381,92 +552,85 @@ function createVerificationSignature(data){
 function showForgeResult(
     success,
     message
-){
+) {
 
 
     let box =
-    document.getElementById(
-        "sparkdForgeResult"
-    );
+        document.getElementById(
+            "sparkdForgeResult"
+        );
 
 
-
-    if(box){
+    if (box) {
 
         box.remove();
 
     }
 
 
-
     box =
-    document.createElement(
-        "div"
-    );
-
+        document.createElement(
+            "div"
+        );
 
 
     box.id =
-    "sparkdForgeResult";
-
+        "sparkdForgeResult";
 
 
     box.style.position =
-    "fixed";
+        "fixed";
 
 
     box.style.top =
-    "20px";
+        "20px";
 
 
     box.style.left =
-    "50%";
+        "50%";
 
 
     box.style.transform =
-    "translateX(-50%)";
+        "translateX(-50%)";
 
 
     box.style.background =
-    success
-    ? "#0b6623"
-    : "#8b0000";
+        success
+            ? "#0b6623"
+            : "#8b0000";
 
 
     box.style.color =
-    "white";
+        "white";
 
 
     box.style.padding =
-    "20px";
+        "20px";
 
 
     box.style.borderRadius =
-    "10px";
+        "10px";
 
 
     box.style.zIndex =
-    "99999";
+        "99999";
 
 
     box.style.whiteSpace =
-    "pre-line";
-
+        "pre-line";
 
 
     box.innerHTML =
-    message +
-    `<br><br>
-    <button onclick="this.parentElement.remove()">
-    ✖ Close
-    </button>`;
-
+        message +
+        `<br><br>
+        <button onclick="this.parentElement.remove()">
+        ✖ Close
+        </button>`;
 
 
     document.body.appendChild(
         box
     );
-
 
 }
 
@@ -479,110 +643,141 @@ function showForgeResult(
 // Pixel hash - ignores PNG metadata
 ////////////////////////////////////////////////////
 
-function createScannerImageFingerprint(file){
+function createScannerImageFingerprint(file) {
 
 
-    return new Promise(function(resolve){
+    return new Promise(function(resolve, reject) {
 
 
         const img =
-        new Image();
+            new Image();
 
+
+        const objectURL =
+            URL.createObjectURL(
+                file
+            );
 
 
         img.onload =
-        function(){
+            function() {
+
+                try {
+
+                    const tempCanvas =
+                        document.createElement(
+                            "canvas"
+                        );
 
 
-            const tempCanvas =
-            document.createElement(
-                "canvas"
-            );
+                    tempCanvas.width =
+                        img.width;
 
 
-            tempCanvas.width =
-            img.width;
+                    tempCanvas.height =
+                        img.height;
 
 
-            tempCanvas.height =
-            img.height;
+                    const ctx =
+                        tempCanvas.getContext(
+                            "2d"
+                        );
 
 
-
-            const ctx =
-            tempCanvas.getContext(
-                "2d"
-            );
-
-
-            ctx.drawImage(
-                img,
-                0,
-                0
-            );
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0
+                    );
 
 
-
-            const imageData =
-            ctx.getImageData(
-                0,
-                0,
-                tempCanvas.width,
-                tempCanvas.height
-            );
-
+                    const imageData =
+                        ctx.getImageData(
+                            0,
+                            0,
+                            tempCanvas.width,
+                            tempCanvas.height
+                        );
 
 
-            const data =
-            imageData.data;
+                    const data =
+                        imageData.data;
 
 
-
-            let hash = 0;
-
-
-
-            for(
-                let i = 0;
-                i < data.length;
-                i++
-            ){
+                    let hash =
+                        0;
 
 
-                hash =
-                ((hash << 5) - hash)
-                + data[i];
+                    for (
+                        let i = 0;
+                        i < data.length;
+                        i++
+                    ) {
+
+                        hash =
+                            ((hash << 5) - hash)
+                            + data[i];
 
 
-                hash =
-                hash & hash;
+                        hash =
+                            hash & hash;
+
+                    }
 
 
-            }
+                    URL.revokeObjectURL(
+                        objectURL
+                    );
 
 
+                    resolve(
 
-            resolve(
+                        "IMG-" +
+                        Math.abs(hash)
+                            .toString(16)
+                            .toUpperCase()
 
-                "IMG-" +
-                Math.abs(hash)
-                .toString(16)
-                .toUpperCase()
+                    );
 
-            );
+                }
+
+                catch(error) {
+
+                    URL.revokeObjectURL(
+                        objectURL
+                    );
 
 
-        };
+                    reject(
+                        error
+                    );
 
+                }
+
+            };
+
+
+        img.onerror =
+            function() {
+
+                URL.revokeObjectURL(
+                    objectURL
+                );
+
+
+                reject(
+                    new Error(
+                        "Unable to decode image."
+                    )
+                );
+
+            };
 
 
         img.src =
-        URL.createObjectURL(
-            file
-        );
-
+            objectURL;
 
     });
 
-
 }
+
