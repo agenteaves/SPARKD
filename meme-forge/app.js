@@ -35,23 +35,120 @@ window.addEventListener("load", function () {
 
     ];
 
-    function containsUnsafeContent(text) {
+  
+function containsUnsafeContent(text) {
 
-        if (!text) {
+    if (!text) {
+        return false;
+    }
+
+
+    ////////////////////////////////////////////////////
+    // NORMALIZE TEXT
+    ////////////////////////////////////////////////////
+
+    const normalizedText =
+        text
+            .toLowerCase()
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+
+    ////////////////////////////////////////////////////
+    // CREATE TWO VERSIONS
+    //
+    // spacedText:
+    // Keeps word boundaries for normal matching.
+    //
+    // compactText:
+    // Removes punctuation and spaces so simple
+    // character-separation tricks are detected.
+    ////////////////////////////////////////////////////
+
+    const spacedText =
+        normalizedText
+            .replace(/[^a-z0-9\s]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+
+    const compactText =
+        normalizedText
+            .replace(/[^a-z0-9]/g, "");
+
+
+    ////////////////////////////////////////////////////
+    // CHECK BLOCKED WORDS
+    ////////////////////////////////////////////////////
+
+    return blockedWords.some(function (word) {
+
+        const normalizedWord =
+            word
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "");
+
+
+        if (!normalizedWord) {
             return false;
         }
 
-        const cleanText = text
-            .toLowerCase()
-            .replace(/[^a-z0-9\s]/g, "");
 
-        return blockedWords.some(function (word) {
+        ////////////////////////////////////////////////////
+        // NORMAL WHOLE-WORD MATCH
+        ////////////////////////////////////////////////////
 
-            return cleanText.includes(word);
+        const wholeWordPattern =
+            new RegExp(
+                "(^|\\s)" +
+                normalizedWord.replace(
+                    /[.*+?^${}()|[\]\\]/g,
+                    "\\$&"
+                ) +
+                "(?=\\s|$)"
+            );
 
-        });
 
-    }
+        if (
+            wholeWordPattern.test(
+                spacedText
+            )
+        ) {
+
+            return true;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // COMPACT MATCH
+        //
+        // Detects simple attempts such as:
+        //
+        // p.o.r.n
+        // p-o-r-n
+        // p o r n
+        //
+        // while the normal whole-word check above
+        // handles ordinary text.
+        ////////////////////////////////////////////////////
+
+        if (
+            compactText.includes(
+                normalizedWord
+            )
+        ) {
+
+            return true;
+
+        }
+
+
+        return false;
+
+    });
+
+}
 
 
     ////////////////////////////////////////////////////
@@ -694,101 +791,140 @@ if (
 
 }
 
+  
+////////////////////////////////////////////////////
+// ADD TEXT
+// SPARKD TEXT CONTENT GUARD
+////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////
-    // ADD TEXT
-    ////////////////////////////////////////////////////
+const addTextBtn =
+    document.getElementById("addTextBtn");
 
-    const addTextBtn =
-        document.getElementById("addTextBtn");
-
-    const textInput =
-        document.getElementById("textInput");
-
-    if (addTextBtn) {
-
-        addTextBtn.onclick = function () {
-
-            const text =
-                textInput
-                    ? textInput.value.trim()
-                    : "";
-
-            const memeText =
-                new fabric.IText(
-                    text || "SPARKD",
-                    {
-                        left: 150,
-                        top: 50,
-                        fill: "#ffffff",
-                        stroke: "#000000",
-                        strokeWidth: 4,
-                        fontFamily: "Bangers",
-                        fontSize: 80
-                    }
-                );
+const textInput =
+    document.getElementById("textInput");
 
 
-            ////////////////////////////////////////////////////
-            // MARK AS MEME TEXT
-            ////////////////////////////////////////////////////
+if (addTextBtn) {
 
-            memeText.isMemeText = true;
+    addTextBtn.onclick = function () {
+
+        ////////////////////////////////////////////////////
+        // GET USER TEXT
+        ////////////////////////////////////////////////////
+
+        const text =
+            textInput
+                ? textInput.value.trim()
+                : "";
 
 
-            ////////////////////////////////////////////////////
-            // ADD TEXT
-            ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        // EMPTY TEXT
+        ////////////////////////////////////////////////////
 
-            canvas.add(memeText);
+        if (!text) {
+
+            alert(
+                "⚠️ Please enter some text first."
+            );
+
+            return;
+
+        }
 
 
-            ////////////////////////////////////////////////////
-            // SELECT TEXT
-            ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        // CHECK TEXT FOR UNSAFE CONTENT
+        ////////////////////////////////////////////////////
 
-            canvas.setActiveObject(
-                memeText
+        if (
+            containsUnsafeContent(text)
+        ) {
+
+            console.warn(
+                "🚫 SPARKD blocked unsafe meme text:",
+                text
+            );
+
+            alert(
+                "🚫 That text cannot be used in SPARKD Meme Forge."
+            );
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // CREATE SAFE MEME TEXT
+        ////////////////////////////////////////////////////
+
+        const memeText =
+            new fabric.IText(
+                text,
+                {
+                    left: 150,
+                    top: 50,
+                    fill: "#ffffff",
+                    stroke: "#000000",
+                    strokeWidth: 4,
+                    fontFamily: "Bangers",
+                    fontSize: 80
+                }
             );
 
 
-            canvas.renderAll();
+        ////////////////////////////////////////////////////
+        // MARK AS MEME TEXT
+        ////////////////////////////////////////////////////
 
-        };
-
-    }
+        memeText.isMemeText = true;
 
 
-    ////////////////////////////////////////////////////
-    // DELETE SELECTED OBJECT
-    ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        // ADD TEXT
+        ////////////////////////////////////////////////////
 
-    const deleteBtn =
-        document.getElementById("deleteBtn");
+        canvas.add(
+            memeText
+        );
 
-    if (deleteBtn) {
 
-        deleteBtn.onclick = function () {
+        ////////////////////////////////////////////////////
+        // SELECT TEXT
+        ////////////////////////////////////////////////////
 
-            const activeObject =
-                canvas.getActiveObject();
+        canvas.setActiveObject(
+            memeText
+        );
 
-            if (activeObject) {
 
-                canvas.remove(
-                    activeObject
-                );
+        ////////////////////////////////////////////////////
+        // REFRESH CANVAS
+        ////////////////////////////////////////////////////
 
-                canvas.discardActiveObject();
+        canvas.renderAll();
 
-                canvas.renderAll();
 
-            }
+        ////////////////////////////////////////////////////
+        // CLEAR INPUT AFTER SUCCESSFUL ADD
+        ////////////////////////////////////////////////////
 
-        };
+        if (textInput) {
 
-    }
+            textInput.value = "";
 
+        }
+
+
+        console.log(
+            "✅ SPARKD safe text added:",
+            text
+        );
+
+    };
+
+}
 
     ////////////////////////////////////////////////////
     // EXPORT PNG
