@@ -5,35 +5,122 @@
 
 window.addEventListener("load", function () {
 
+  
+////////////////////////////////////////////////////
+// CONTENT SAFETY FILTER
+////////////////////////////////////////////////////
+
+const blockedWords = [
+
     ////////////////////////////////////////////////////
-    // CONTENT SAFETY FILTER
+    // SEXUAL / EXPLICIT CONTENT
     ////////////////////////////////////////////////////
 
-    const blockedWords = [
+    "porn",
+    "porno",
+    "pornography",
+    "nude",
+    "nudes",
+    "nudity",
+    "sex",
+    "sexual",
+    "xxx",
+    "nsfw",
 
-        // Sexual content
-        "porn",
-        "nude",
-        "nudes",
-        "sex",
-        "sexual",
-        "xxx",
+    // Common explicit profanity
+    "fuck",
+    "fucking",
+    "fucked",
+    "fucker",
+    "fuckers",
+    "motherfucker",
+    "motherfuckers",
+    "shit",
+    "shitty",
+    "bullshit",
+    "bitch",
+    "bitches",
+    "bitching",
+    "asshole",
+    "assholes",
+    "dick",
+    "dicks",
+    "dickhead",
+    "pussy",
+    "cock",
+    "cocks",
+    "cocksucker",
+    "cocksuckers",
+    "cunt",
+    "twat",
+    "whore",
+    "whores",
+    "slut",
+    "sluts",
+    "slutty",
 
-        // Harassment / threats
-        "kill",
-        "murder",
-        "die",
-        "hurt",
-        "attack",
-        "threat",
+    ////////////////////////////////////////////////////
+    // SEXUAL ACTIVITY / EXPLICIT TERMS
+    ////////////////////////////////////////////////////
 
-        // Animal harm
-        "torture",
-        "abuse",
-        "animal abuse",
-        "animal cruelty"
+    "blowjob",
+    "blowjobs",
+    "handjob",
+    "handjobs",
+    "orgasm",
+    "orgasms",
+    "masturbate",
+    "masturbation",
+    "dildo",
+    "dildos",
+    "anal",
+    "cum",
+    "semen",
 
-    ];
+    ////////////////////////////////////////////////////
+    // VIOLENCE / THREATS
+    ////////////////////////////////////////////////////
+
+    "kill",
+    "killing",
+    "killed",
+    "murder",
+    "murderer",
+    "murdering",
+    "die",
+    "death",
+    "dead",
+    "hurt",
+    "attack",
+    "attacking",
+    "attacked",
+    "threat",
+    "threaten",
+    "threatening",
+
+    ////////////////////////////////////////////////////
+    // ABUSE / TORTURE
+    ////////////////////////////////////////////////////
+
+    "torture",
+    "torturing",
+    "abuse",
+    "abusing",
+    "abused",
+    "animal abuse",
+    "animal cruelty",
+
+    ////////////////////////////////////////////////////
+    // EXTREME HARASSMENT
+    ////////////////////////////////////////////////////
+
+    "rapist",
+    "rapists",
+    "rape",
+    "raped",
+    "raping",
+
+];
 
   
 function containsUnsafeContent(text) {
