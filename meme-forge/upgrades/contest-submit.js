@@ -378,6 +378,9 @@ window.SPARKD_CONTEST = {
     },
 
 
+  # SPARKD Forge DNA Verification
+
+
     ////////////////////////////////////////////////////
     // VERIFY FORGE DNA
     //
@@ -444,13 +447,17 @@ window.SPARKD_CONTEST = {
                                 "verify_dna",
 
                             forgeData:
-                                forgeData
+                                forgeData,
+
+                            mint:
+                                "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
 
                         })
 
                 }
 
             );
+
 
 
         if (
