@@ -126,17 +126,17 @@ window.SPARKD_CONTEST = {
     async getCurrentContest() {
 
 
-        if (
-            typeof supabaseClient ===
-                "undefined" ||
-            !supabaseClient
-        ) {
+       const client =
+    window.SPARKD_WEBSITE_STATS &&
+    window.SPARKD_WEBSITE_STATS.supabaseClient;
 
-            throw new Error(
-                "Supabase client is not available."
-            );
+if (!client) {
 
-        }
+    throw new Error(
+        "Supabase client is not available."
+    );
+
+}
 
 
         const now =
