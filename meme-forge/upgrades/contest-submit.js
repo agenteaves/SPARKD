@@ -900,28 +900,28 @@ window.SPARKD_CONTEST = {
         );
 
 
+       
         ////////////////////////////////////////////////////
-        // STEP 2 — SHARED FORGE WALLET
+        // STEP 2 — CONNECTED PHANTOM WALLET
+        //
+        // Uses the wallet already connected by
+        // the Meme of the Week contest wallet system.
+        //
+        // NO TOKEN TRANSACTION
+        // NO TOKEN BURN
+        // NO SOL TRANSFER
         ////////////////////////////////////////////////////
-
-        if (
-            typeof SPARKD_FORGE ===
-                "undefined" ||
-            !SPARKD_FORGE ||
-            typeof SPARKD_FORGE.getConnectedWallet !==
-                "function"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge wallet provider is unavailable."
-            );
-
-        }
-
 
         const wallet =
-            SPARKD_FORGE.getConnectedWallet();
+            typeof currentWallet !==
+                "undefined"
+                ? currentWallet
+                : null;
 
+
+        ////////////////////////////////////////////////////
+        // WALLET CHECK
+        ////////////////////////////////////////////////////
 
         if (
             typeof wallet !==
@@ -936,6 +936,10 @@ window.SPARKD_CONTEST = {
         }
 
 
+        ////////////////////////////////////////////////////
+        // VALIDATE WALLET
+        ////////////////////////////////////////////////////
+
         this.validateWallet(
             wallet
         );
@@ -945,6 +949,7 @@ window.SPARKD_CONTEST = {
             "🔑 TEST wallet:",
             wallet
         );
+
 
 
         ////////////////////////////////////////////////////
