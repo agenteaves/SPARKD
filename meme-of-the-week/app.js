@@ -339,68 +339,154 @@ function updateContestDisplay() {
 
 async function loadContestStatistics() {
 
-
     try {
 
+        if (!currentContest) {
 
-        const {
-            count,
-            error
-        } =
-            await supabaseClient
-                .from(
-                    "meme_week_submissions"
-                )
-                .select(
-                    "id",
-                    {
-                        count:
-                            "exact",
+            submissionCount.textContent =
+                "0";
 
-                        head:
-                            true
-                    }
-                )
-                .eq(
-                    "contest_id",
-                    currentContest.id
-                );
+            totalBurned.textContent =
+                "0";
 
-
-        if (error) {
-
-            throw error;
+            return;
 
         }
 
 
+        ////////////////////////////////////////////////////
+        // ASK SECURE SUPER-HANDLER FOR STATISTICS
+        //
+        // DO NOT QUERY meme_week_submissions DIRECTLY
+        // FROM THE BROWSER.
+        ////////////////////////////////////////////////////
+
+        const response =
+            await fetch(
+
+                "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler",
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:
+                                "check_submission_stats",
+
+                            contest_id:
+                                currentContest.id
+
+                        })
+
+                }
+
+            );
+
+
+        ////////////////////////////////////////////////////
+        // CHECK HTTP RESPONSE
+        ////////////////////////////////////////////////////
+
+        if (
+            !response.ok
+        ) {
+
+            throw new Error(
+
+                "Statistics request failed: HTTP " +
+                response.status
+
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // READ RESPONSE
+        ////////////////////////////////////////////////////
+
+        const data =
+            await response.json();
+
+
+        ////////////////////////////////////////////////////
+        // CHECK SERVER RESULT
+        ////////////////////////////////////////////////////
+
+        if (
+            !data.success
+        ) {
+
+            throw new Error(
+
+                data.error ||
+                "Unable to load contest statistics."
+
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // UPDATE SUBMISSION COUNT
+        ////////////////////////////////////////////////////
+
         submissionCount.textContent =
             Number(
-                count || 0
+                data.submissionCount ||
+                0
             ).toLocaleString(
                 "en-US"
             );
 
 
+        ////////////////////////////////////////////////////
+        // UPDATE TOTAL BURNED
+        ////////////////////////////////////////////////////
+
         totalBurned.textContent =
             Number(
-                currentContest.prize_sol || 0
+                currentContest.prize_sol ||
+                0
             ).toLocaleString(
+
                 "en-US",
+
                 {
+
                     maximumFractionDigits:
                         6
+
                 }
+
             );
+
+
+        console.log(
+            "🔥 SPARKD contest statistics loaded:",
+            data
+        );
 
 
     }
     catch (error) {
 
-
         console.error(
+
             "Could not load contest statistics:",
             error
+
         );
 
 
@@ -410,7 +496,6 @@ async function loadContestStatistics() {
 
         totalBurned.textContent =
             "0";
-
 
     }
 
@@ -423,8 +508,9 @@ async function loadContestStatistics() {
 
 function submissionsAreOpen() {
 
-
-    if (!currentContest) {
+    if (
+        !currentContest
+    ) {
 
         return false;
 
@@ -448,8 +534,10 @@ function submissionsAreOpen() {
 
 
     return (
+
         now >= start &&
         now <= end
+
     );
 
 }
@@ -461,11 +549,9 @@ function submissionsAreOpen() {
 
 function updateSubmitButton() {
 
-
     if (
         submissionsAreOpen()
     ) {
-
 
         submitMemeButton.disabled =
             false;
@@ -474,10 +560,8 @@ function updateSubmitButton() {
         submitMemeButton.textContent =
             "🔥 ENTER MEME OF THE WEEK";
 
-
     }
     else {
-
 
         submitMemeButton.disabled =
             true;
@@ -485,7 +569,6 @@ function updateSubmitButton() {
 
         submitMemeButton.textContent =
             "SUBMISSIONS CLOSED";
-
 
     }
 
