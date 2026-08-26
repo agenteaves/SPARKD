@@ -1262,6 +1262,9 @@ const submissionData = {
 };
 
 
+# Database Insert and Error Cleanup
+
+
 ////////////////////////////////////////////////////
 // INSERT DATABASE ROW
 ////////////////////////////////////////////////////
@@ -1285,66 +1288,66 @@ const {
         );
 
 
+////////////////////////////////////////////////////
+// DATABASE ERROR
+////////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////////
-        // DATABASE ERROR
-        ////////////////////////////////////////////////////
+if (
+    submissionError
+) {
 
-        if (
-            submissionError
-        ) {
-
-            console.error(
-                "SPARKD submission database error:",
-                submissionError
-            );
-
-
-            ////////////////////////////////////////////////////
-            // CLEAN UP UPLOADED IMAGE
-            ////////////////////////////////////////////////////
-
-            console.log(
-                "🧹 Removing uploaded image because database insert failed..."
-            );
+    console.error(
+        "SPARKD submission database error:",
+        submissionError
+    );
 
 
-            const {
-                error:
-                    cleanupError
-            } =
-                await client
+    ////////////////////////////////////////////////////
+    // CLEAN UP UPLOADED IMAGE
+    ////////////////////////////////////////////////////
 
-                    .storage
-
-                    .from(
-                        this.BUCKET
-                    )
-
-                    .remove([
-                        upload.path
-                    ]);
+    console.log(
+        "🧹 Removing uploaded image because database insert failed..."
+    );
 
 
-            if (
-                cleanupError
-            ) {
+    const {
+        error:
+            cleanupError
+    } =
+        await client
 
-                console.error(
-                    "⚠️ Image cleanup also failed:",
-                    cleanupError
-                );
+            .storage
 
-            }
+            .from(
+                this.BUCKET
+            )
 
-
-            throw new Error(
-                submissionError.message
-            );
-
-        }
+            .remove([
+                upload.path
+            ]);
 
 
+    if (
+        cleanupError
+    ) {
+
+        console.error(
+            "⚠️ Image cleanup also failed:",
+            cleanupError
+        );
+
+    }
+
+
+    throw new Error(
+        submissionError.message
+    );
+
+}
+
+
+        
         ////////////////////////////////////////////////////
         // SUCCESS
         ////////////////////////////////////////////////////
