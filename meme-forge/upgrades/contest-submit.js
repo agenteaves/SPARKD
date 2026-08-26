@@ -26,6 +26,23 @@
 // - It does NOT transfer SOL.
 ////////////////////////////////////////////////////
 
+getSupabaseClient() {
+
+    const client =
+        window.SPARKD_WEBSITE_STATS &&
+        window.SPARKD_WEBSITE_STATS.supabaseClient;
+
+    if (!client) {
+
+        throw new Error(
+            "Supabase client is not available."
+        );
+
+    }
+
+    return client;
+
+},
 
 window.SPARKD_CONTEST = {
 
