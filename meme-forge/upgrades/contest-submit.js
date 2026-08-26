@@ -1182,74 +1182,108 @@ async uploadMeme(
         );
 
 
-        ////////////////////////////////////////////////////
-        // STEP 9 — CREATE DATABASE SUBMISSION
-        ////////////////////////////////////////////////////
-
-        const submissionId =
-            crypto.randomUUID();
+       # STEP 9 — Create Database Submission
 
 
-        const submissionData = {
+////////////////////////////////////////////////////
+// STEP 9 — CREATE DATABASE SUBMISSION
+////////////////////////////////////////////////////
 
-            id:
-                submissionId,
+////////////////////////////////////////////////////
+// GET SHARED SUPABASE CLIENT
+////////////////////////////////////////////////////
 
-            contest_id:
-                contest.id,
-
-            creator_id:
-                forgeVerification.creatorID ||
-                forgeData.creatorID,
-
-            wallet_address:
-                wallet,
-
-            meme_title:
-                memeTitle ||
-                "Untitled SPARKD Meme",
-
-            meme_image_url:
-                upload.path,
-
-            dna_verified:
-                true,
-
-            dna_verification_data:
-                forgeData,
-
-            burn_amount:
-                0,
-
-            burn_transaction:
-                null,
-
-            burn_verified:
-                false,
-
-            status:
-                "pending"
-
-        };
+const client =
+    window.SPARKD_WEBSITE_STATS &&
+    window.SPARKD_WEBSITE_STATS.supabaseClient;
 
 
-        console.log(
-            "💾 TEST inserting submission row..."
+if (!client) {
+
+    throw new Error(
+        "Supabase client is not available."
+    );
+
+}
+
+
+////////////////////////////////////////////////////
+// CREATE SUBMISSION ID
+////////////////////////////////////////////////////
+
+const submissionId =
+    crypto.randomUUID();
+
+
+////////////////////////////////////////////////////
+// BUILD SUBMISSION DATA
+////////////////////////////////////////////////////
+
+const submissionData = {
+
+    id:
+        submissionId,
+
+    contest_id:
+        contest.id,
+
+    creator_id:
+        forgeVerification.creatorID ||
+        forgeData.creatorID,
+
+    wallet_address:
+        wallet,
+
+    meme_title:
+        memeTitle ||
+        "Untitled SPARKD Meme",
+
+    meme_image_url:
+        upload.path,
+
+    dna_verified:
+        true,
+
+    dna_verification_data:
+        forgeData,
+
+    burn_amount:
+        0,
+
+    burn_transaction:
+        null,
+
+    burn_verified:
+        false,
+
+    status:
+        "pending"
+
+};
+
+
+////////////////////////////////////////////////////
+// INSERT DATABASE ROW
+////////////////////////////////////////////////////
+
+console.log(
+    "💾 TEST inserting submission row..."
+);
+
+
+const {
+    error: submissionError
+} =
+    await client
+
+        .from(
+            "meme_week_submissions"
+        )
+
+        .insert(
+            submissionData
         );
 
-
-        const {
-            error: submissionError
-        } =
-            await client
-
-                .from(
-                    "meme_week_submissions"
-                )
-
-                .insert(
-                    submissionData
-                );
 
 
         ////////////////////////////////////////////////////
