@@ -643,7 +643,7 @@ if (!client) {
             data,
             error
         } =
-            await Client
+            await client
 
                 .storage
 
