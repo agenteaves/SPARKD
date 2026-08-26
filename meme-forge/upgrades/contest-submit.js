@@ -622,132 +622,181 @@ async getCurrentContest() {
     },
 
 
+  # `uploadMeme()` Drop-In
+
+
+////////////////////////////////////////////////////
+// UPLOAD VERIFIED MEME
+////////////////////////////////////////////////////
+
+async uploadMeme(
+    file,
+    wallet,
+    contestId
+) {
+
+
     ////////////////////////////////////////////////////
-    // UPLOAD VERIFIED MEME
+    // GET SHARED SUPABASE CLIENT
     ////////////////////////////////////////////////////
 
-    async uploadMeme(
-        file,
-        wallet,
-        contestId
+    const client =
+        window.SPARKD_WEBSITE_STATS &&
+        window.SPARKD_WEBSITE_STATS.supabaseClient;
+
+
+    if (!client) {
+
+        throw new Error(
+            "Supabase client is not available."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // VALIDATE FILE
+    ////////////////////////////////////////////////////
+
+    this.validateFile(
+        file
+    );
+
+
+    ////////////////////////////////////////////////////
+    // VALIDATE WALLET
+    ////////////////////////////////////////////////////
+
+    this.validateWallet(
+        wallet
+    );
+
+
+    ////////////////////////////////////////////////////
+    // VALIDATE CONTEST
+    ////////////////////////////////////////////////////
+
+    if (
+        !contestId
     ) {
 
+        throw new Error(
+            "Contest ID is missing."
+        );
 
-        this.validateFile(
-            file
+    }
+
+
+    ////////////////////////////////////////////////////
+    // CREATE SAFE STORAGE FILENAME
+    ////////////////////////////////////////////////////
+
+    /*
+     * Use only the first 12 characters of
+     * the wallet in the filename.
+     *
+     * This keeps the storage path shorter
+     * and avoids unnecessarily exposing the
+     * complete wallet address in the filename.
+     */
+
+    const safeWallet =
+        wallet.slice(
+            0,
+            12
         );
 
 
-        this.validateWallet(
-            wallet
-        );
+    const filename =
+
+        contestId +
+        "/" +
+        safeWallet +
+        "-" +
+        Date.now() +
+        ".png";
 
 
-        if (
-            !contestId
-        ) {
-
-            throw new Error(
-                "Contest ID is missing."
-            );
-
-        }
+    console.log(
+        "📤 SPARKD uploading verified meme:",
+        filename
+    );
 
 
-        /*
-         * Use only the first 12 characters of
-         * the wallet in the filename.
-         *
-         * This keeps the storage path shorter
-         * and avoids unnecessarily exposing the
-         * complete wallet address in the filename.
-         */
+    ////////////////////////////////////////////////////
+    // UPLOAD TO SUPABASE STORAGE
+    ////////////////////////////////////////////////////
 
-        const safeWallet =
-            wallet.slice(
-                0,
-                12
-            );
+    const {
+        data,
+        error
+    } =
+        await client
 
+            .storage
 
-        const filename =
-
-            contestId +
-            "/" +
-            safeWallet +
-            "-" +
-            Date.now() +
-            ".png";
-
-
-        console.log(
-            "📤 SPARKD uploading verified meme:",
-            filename
-        );
-
-
-        const {
-            data,
-            error
-        } =
-            await client
-
-                .storage
-
-                .from(
-                    this.BUCKET
-                )
-
-                .upload(
-
-                    filename,
-
-                    file,
-
-                    {
-
-                        contentType:
-                            "image/png",
-
-                        upsert:
-                            false
-
-                    }
-
-                );
-
-
-        if (error) {
-
-            console.error(
-                "SPARKD meme upload failed:",
-                error
-            );
-
-            throw new Error(
-                error.message
-            );
-
-        }
-
-
-        console.log(
-            "🔥 SPARKD MEME UPLOAD SUCCESS:",
-            data
-        );
-
-
-        return {
-
-            path:
-                data.path,
-
-            bucket:
+            .from(
                 this.BUCKET
+            )
 
-        };
+            .upload(
 
-    },
+                filename,
+
+                file,
+
+                {
+
+                    contentType:
+                        "image/png",
+
+                    upsert:
+                        false
+
+                }
+
+            );
+
+
+    ////////////////////////////////////////////////////
+    // HANDLE UPLOAD ERROR
+    ////////////////////////////////////////////////////
+
+    if (error) {
+
+        console.error(
+            "SPARKD meme upload failed:",
+            error
+        );
+
+        throw new Error(
+            error.message
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // UPLOAD SUCCESS
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🔥 SPARKD MEME UPLOAD SUCCESS:",
+        data
+    );
+
+
+    return {
+
+        path:
+            data.path,
+
+        bucket:
+            this.BUCKET
+
+    };
+
+},
 
 
     ////////////////////////////////////////////////////
