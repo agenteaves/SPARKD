@@ -378,9 +378,6 @@ window.SPARKD_CONTEST = {
     },
 
 
-  # SPARKD Forge DNA Verification
-
-
     ////////////////////////////////////////////////////
     // VERIFY FORGE DNA
     //
