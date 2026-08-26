@@ -18,34 +18,15 @@
 // - burn_verified = false
 //
 // IMPORTANT:
-// - This version uses the shared SPARKD Forge wallet
-//   provider.
-// - It does NOT depend on a global currentWallet.
-// - It does NOT perform token transactions.
-// - It does NOT burn SPARKD.
-// - It does NOT transfer SOL.
+// - Uses the shared SPARKD Forge wallet provider.
+// - Does NOT depend on a global currentWallet.
+// - Does NOT perform token transactions.
+// - Does NOT burn SPARKD.
+// - Does NOT transfer SOL.
 ////////////////////////////////////////////////////
 
-getSupabaseClient() {
-
-    const client =
-        window.SPARKD_WEBSITE_STATS &&
-        window.SPARKD_WEBSITE_STATS.supabaseClient;
-
-    if (!client) {
-
-        throw new Error(
-            "Supabase client is not available."
-        );
-
-    }
-
-    return client;
-
-},
 
 window.SPARKD_CONTEST = {
-
 
     ////////////////////////////////////////////////////
     // CONFIGURATION
@@ -59,6 +40,31 @@ window.SPARKD_CONTEST = {
 
     SUPER_HANDLER_URL:
         "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler",
+
+
+    ////////////////////////////////////////////////////
+    // SHARED SUPABASE CLIENT
+    ////////////////////////////////////////////////////
+
+    getSupabaseClient() {
+
+        const client =
+            window.SPARKD_WEBSITE_STATS &&
+            window.SPARKD_WEBSITE_STATS.supabaseClient;
+
+
+        if (!client) {
+
+            throw new Error(
+                "Supabase client is not available."
+            );
+
+        }
+
+
+        return client;
+
+    },
 
 
     ////////////////////////////////////////////////////
@@ -136,131 +142,98 @@ window.SPARKD_CONTEST = {
     },
 
 
-   ////////////////////////////////////////////////////
-// GET ACTIVE CONTEST
-////////////////////////////////////////////////////
-
-async getCurrentContest() {
-
-
     ////////////////////////////////////////////////////
-    // GET SHARED SUPABASE CLIENT
+    // GET ACTIVE CONTEST
     ////////////////////////////////////////////////////
 
-    const client =
-        window.SPARKD_WEBSITE_STATS &&
-        window.SPARKD_WEBSITE_STATS.supabaseClient;
+    async getCurrentContest() {
 
 
-    if (!client) {
-
-        throw new Error(
-            "Supabase client is not available."
-        );
-
-    }
+        const client =
+            this.getSupabaseClient();
 
 
-    ////////////////////////////////////////////////////
-    // CURRENT TIME
-    ////////////////////////////////////////////////////
-
-    const now =
-        new Date().toISOString();
+        const now =
+            new Date().toISOString();
 
 
-    ////////////////////////////////////////////////////
-    // FIND ACTIVE CONTEST
-    ////////////////////////////////////////////////////
-
-    const {
-        data,
-        error
-    } =
-        await client
-
-            .from(
-                "meme_week_contests"
-            )
-
-            .select(
-                "*"
-            )
-
-            .lte(
-                "week_start",
-                now
-            )
-
-            .gte(
-                "week_end",
-                now
-            )
-
-            .eq(
-                "status",
-                "submission"
-            )
-
-            .order(
-                "week_start",
-                {
-                    ascending:
-                        false
-                }
-            )
-
-            .limit(
-                1
-            )
-
-            .maybeSingle();
-
-
-    ////////////////////////////////////////////////////
-    // DATABASE ERROR
-    ////////////////////////////////////////////////////
-
-    if (error) {
-
-        console.error(
-            "SPARKD contest lookup error:",
+        const {
+            data,
             error
+        } =
+            await client
+
+                .from(
+                    "meme_week_contests"
+                )
+
+                .select(
+                    "*"
+                )
+
+                .lte(
+                    "week_start",
+                    now
+                )
+
+                .gte(
+                    "week_end",
+                    now
+                )
+
+                .eq(
+                    "status",
+                    "submission"
+                )
+
+                .order(
+                    "week_start",
+                    {
+                        ascending:
+                            false
+                    }
+                )
+
+                .limit(
+                    1
+                )
+
+                .maybeSingle();
+
+
+        if (error) {
+
+            console.error(
+                "SPARKD contest lookup error:",
+                error
+            );
+
+            throw new Error(
+                "Unable to retrieve the active contest."
+            );
+
+        }
+
+
+        if (!data) {
+
+            throw new Error(
+                "There is no active Meme of the Week submission period."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 SPARKD active contest found:",
+            data.id
         );
 
-        throw new Error(
-            "Unable to retrieve the active contest."
-        );
 
-    }
+        return data;
 
+    },
 
-    ////////////////////////////////////////////////////
-    // NO ACTIVE CONTEST
-    ////////////////////////////////////////////////////
-
-    if (!data) {
-
-        throw new Error(
-            "There is no active Meme of the Week submission period."
-        );
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // SUCCESS
-    ////////////////////////////////////////////////////
-
-    console.log(
-        "🔥 SPARKD active contest found:",
-        data.id
-    );
-
-
-    return data;
-
-},
 
     ////////////////////////////////////////////////////
     // VERIFY SPARKD BALANCE
@@ -622,181 +595,135 @@ async getCurrentContest() {
     },
 
 
-  # `uploadMeme()` Drop-In
-
-
-////////////////////////////////////////////////////
-// UPLOAD VERIFIED MEME
-////////////////////////////////////////////////////
-
-async uploadMeme(
-    file,
-    wallet,
-    contestId
-) {
-
-
     ////////////////////////////////////////////////////
-    // GET SHARED SUPABASE CLIENT
+    // UPLOAD VERIFIED MEME
     ////////////////////////////////////////////////////
 
-    const client =
-        window.SPARKD_WEBSITE_STATS &&
-        window.SPARKD_WEBSITE_STATS.supabaseClient;
-
-
-    if (!client) {
-
-        throw new Error(
-            "Supabase client is not available."
-        );
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // VALIDATE FILE
-    ////////////////////////////////////////////////////
-
-    this.validateFile(
-        file
-    );
-
-
-    ////////////////////////////////////////////////////
-    // VALIDATE WALLET
-    ////////////////////////////////////////////////////
-
-    this.validateWallet(
-        wallet
-    );
-
-
-    ////////////////////////////////////////////////////
-    // VALIDATE CONTEST
-    ////////////////////////////////////////////////////
-
-    if (
-        !contestId
+    async uploadMeme(
+        file,
+        wallet,
+        contestId
     ) {
 
-        throw new Error(
-            "Contest ID is missing."
-        );
 
-    }
+        const client =
+            this.getSupabaseClient();
 
 
-    ////////////////////////////////////////////////////
-    // CREATE SAFE STORAGE FILENAME
-    ////////////////////////////////////////////////////
-
-    /*
-     * Use only the first 12 characters of
-     * the wallet in the filename.
-     *
-     * This keeps the storage path shorter
-     * and avoids unnecessarily exposing the
-     * complete wallet address in the filename.
-     */
-
-    const safeWallet =
-        wallet.slice(
-            0,
-            12
+        this.validateFile(
+            file
         );
 
 
-    const filename =
-
-        contestId +
-        "/" +
-        safeWallet +
-        "-" +
-        Date.now() +
-        ".png";
+        this.validateWallet(
+            wallet
+        );
 
 
-    console.log(
-        "📤 SPARKD uploading verified meme:",
-        filename
-    );
+        if (
+            !contestId
+        ) {
+
+            throw new Error(
+                "Contest ID is missing."
+            );
+
+        }
 
 
-    ////////////////////////////////////////////////////
-    // UPLOAD TO SUPABASE STORAGE
-    ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        // CREATE SAFE STORAGE FILENAME
+        ////////////////////////////////////////////////////
 
-    const {
-        data,
-        error
-    } =
-        await client
-
-            .storage
-
-            .from(
-                this.BUCKET
-            )
-
-            .upload(
-
-                filename,
-
-                file,
-
-                {
-
-                    contentType:
-                        "image/png",
-
-                    upsert:
-                        false
-
-                }
-
+        const safeWallet =
+            wallet.slice(
+                0,
+                12
             );
 
 
-    ////////////////////////////////////////////////////
-    // HANDLE UPLOAD ERROR
-    ////////////////////////////////////////////////////
+        const filename =
 
-    if (error) {
+            contestId +
+            "/" +
+            safeWallet +
+            "-" +
+            Date.now() +
+            ".png";
 
-        console.error(
-            "SPARKD meme upload failed:",
+
+        console.log(
+            "📤 SPARKD uploading verified meme:",
+            filename
+        );
+
+
+        ////////////////////////////////////////////////////
+        // UPLOAD TO SUPABASE STORAGE
+        ////////////////////////////////////////////////////
+
+        const {
+            data,
             error
+        } =
+            await client
+
+                .storage
+
+                .from(
+                    this.BUCKET
+                )
+
+                .upload(
+
+                    filename,
+
+                    file,
+
+                    {
+
+                        contentType:
+                            "image/png",
+
+                        upsert:
+                            false
+
+                    }
+
+                );
+
+
+        if (error) {
+
+            console.error(
+                "SPARKD meme upload failed:",
+                error
+            );
+
+            throw new Error(
+                error.message
+            );
+
+        }
+
+
+        console.log(
+            "🔥 SPARKD MEME UPLOAD SUCCESS:",
+            data
         );
 
-        throw new Error(
-            error.message
-        );
 
-    }
+        return {
 
+            path:
+                data.path,
 
-    ////////////////////////////////////////////////////
-    // UPLOAD SUCCESS
-    ////////////////////////////////////////////////////
+            bucket:
+                this.BUCKET
 
-    console.log(
-        "🔥 SPARKD MEME UPLOAD SUCCESS:",
-        data
-    );
+        };
 
-
-    return {
-
-        path:
-            data.path,
-
-        bucket:
-            this.BUCKET
-
-    };
-
-},
+    },
 
 
     ////////////////////////////////////////////////////
@@ -1024,14 +951,6 @@ async uploadMeme(
             null;
 
 
-        /*
-         * Prefer the currentContest variable if
-         * the contest page already loaded it.
-         *
-         * Otherwise retrieve the active contest
-         * directly from Supabase.
-         */
-
         if (
             typeof currentContest !==
                 "undefined" &&
@@ -1182,172 +1101,144 @@ async uploadMeme(
         );
 
 
-       # STEP 9 — Create Database Submission
+        ////////////////////////////////////////////////////
+        // STEP 9 — CREATE DATABASE SUBMISSION
+        ////////////////////////////////////////////////////
+
+        const client =
+            this.getSupabaseClient();
 
 
-////////////////////////////////////////////////////
-// STEP 9 — CREATE DATABASE SUBMISSION
-////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////
-// GET SHARED SUPABASE CLIENT
-////////////////////////////////////////////////////
-
-const client =
-    window.SPARKD_WEBSITE_STATS &&
-    window.SPARKD_WEBSITE_STATS.supabaseClient;
+        const submissionId =
+            crypto.randomUUID();
 
 
-if (!client) {
+        const submissionData = {
 
-    throw new Error(
-        "Supabase client is not available."
-    );
+            id:
+                submissionId,
 
-}
+            contest_id:
+                contest.id,
 
+            creator_id:
+                forgeVerification.creatorID ||
+                forgeData.creatorID,
 
-////////////////////////////////////////////////////
-// CREATE SUBMISSION ID
-////////////////////////////////////////////////////
+            wallet_address:
+                wallet,
 
-const submissionId =
-    crypto.randomUUID();
+            meme_title:
+                memeTitle ||
+                "Untitled SPARKD Meme",
 
+            meme_image_url:
+                upload.path,
 
-////////////////////////////////////////////////////
-// BUILD SUBMISSION DATA
-////////////////////////////////////////////////////
+            dna_verified:
+                true,
 
-const submissionData = {
+            dna_verification_data:
+                forgeData,
 
-    id:
-        submissionId,
+            burn_amount:
+                0,
 
-    contest_id:
-        contest.id,
+            burn_transaction:
+                null,
 
-    creator_id:
-        forgeVerification.creatorID ||
-        forgeData.creatorID,
+            burn_verified:
+                false,
 
-    wallet_address:
-        wallet,
+            status:
+                "pending"
 
-    meme_title:
-        memeTitle ||
-        "Untitled SPARKD Meme",
-
-    meme_image_url:
-        upload.path,
-
-    dna_verified:
-        true,
-
-    dna_verification_data:
-        forgeData,
-
-    burn_amount:
-        0,
-
-    burn_transaction:
-        null,
-
-    burn_verified:
-        false,
-
-    status:
-        "pending"
-
-};
+        };
 
 
-# Database Insert and Error Cleanup
+        ////////////////////////////////////////////////////
+        // INSERT DATABASE ROW
+        ////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////
-// INSERT DATABASE ROW
-////////////////////////////////////////////////////
-
-console.log(
-    "💾 TEST inserting submission row..."
-);
-
-
-const {
-    error: submissionError
-} =
-    await client
-
-        .from(
-            "meme_week_submissions"
-        )
-
-        .insert(
-            submissionData
+        console.log(
+            "💾 TEST inserting submission row..."
         );
 
 
-////////////////////////////////////////////////////
-// DATABASE ERROR
-////////////////////////////////////////////////////
+        const {
+            error:
+                submissionError
+        } =
+            await client
 
-if (
-    submissionError
-) {
+                .from(
+                    "meme_week_submissions"
+                )
 
-    console.error(
-        "SPARKD submission database error:",
-        submissionError
-    );
-
-
-    ////////////////////////////////////////////////////
-    // CLEAN UP UPLOADED IMAGE
-    ////////////////////////////////////////////////////
-
-    console.log(
-        "🧹 Removing uploaded image because database insert failed..."
-    );
+                .insert(
+                    submissionData
+                );
 
 
-    const {
-        error:
-            cleanupError
-    } =
-        await client
+        ////////////////////////////////////////////////////
+        // DATABASE ERROR
+        ////////////////////////////////////////////////////
 
-            .storage
+        if (
+            submissionError
+        ) {
 
-            .from(
-                this.BUCKET
-            )
-
-            .remove([
-                upload.path
-            ]);
+            console.error(
+                "SPARKD submission database error:",
+                submissionError
+            );
 
 
-    if (
-        cleanupError
-    ) {
+            ////////////////////////////////////////////////////
+            // CLEAN UP UPLOADED IMAGE
+            ////////////////////////////////////////////////////
 
-        console.error(
-            "⚠️ Image cleanup also failed:",
-            cleanupError
-        );
-
-    }
+            console.log(
+                "🧹 Removing uploaded image because database insert failed..."
+            );
 
 
-    throw new Error(
-        submissionError.message
-    );
+            const {
+                error:
+                    cleanupError
+            } =
+                await client
 
-}
+                    .storage
+
+                    .from(
+                        this.BUCKET
+                    )
+
+                    .remove([
+                        upload.path
+                    ]);
 
 
-        
+            if (
+                cleanupError
+            ) {
+
+                console.error(
+                    "⚠️ Image cleanup also failed:",
+                    cleanupError
+                );
+
+            }
+
+
+            throw new Error(
+                submissionError.message
+            );
+
+        }
+
+
         ////////////////////////////////////////////////////
         // SUCCESS
         ////////////////////////////////////////////////////
@@ -1388,16 +1279,6 @@ if (
 
 ////////////////////////////////////////////////////
 // OPTIONAL GLOBAL TEST HELPER
-//
-// Allows console testing with:
-//
-// await SPARKD_CONTEST_TEST(
-//     file,
-//     forgeData,
-//     "Test"
-// )
-//
-// This does not perform any transaction.
 ////////////////////////////////////////////////////
 
 window.SPARKD_CONTEST_TEST =
