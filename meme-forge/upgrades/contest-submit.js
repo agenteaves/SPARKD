@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD CONTEST SUBMISSION
-// Submission Preparation Engine v0.3
+// Submission Preparation Engine v0.4
 //
 // PURPOSE:
 // - Validate PNG
@@ -18,8 +18,9 @@
 // - burn_verified = false
 //
 // IMPORTANT:
-// - This file is designed to replace the existing
-//   SPARKD contest submission engine.
+// - This version uses the shared SPARKD Forge wallet
+//   provider.
+// - It does NOT depend on a global currentWallet.
 // - It does NOT perform token transactions.
 // - It does NOT burn SPARKD.
 // - It does NOT transfer SOL.
@@ -394,23 +395,6 @@ window.SPARKD_CONTEST = {
         console.log(
             "🧬 SPARKD verifying Forge DNA..."
         );
-
-
-        /*
-         * IMPORTANT:
-         *
-         * The server verifies that:
-         *
-         * forgeData.wallet === wallet
-         *
-         * Therefore a Forge payload containing
-         * "NOT_CONNECTED" will correctly fail.
-         *
-         * We do NOT silently replace the value here.
-         *
-         * The Forge image must contain the wallet
-         * that actually created/owns the submission.
-         */
 
 
         const response =
@@ -890,13 +874,32 @@ window.SPARKD_CONTEST = {
 
 
         ////////////////////////////////////////////////////
-        // STEP 2 — WALLET CHECK
+        // STEP 2 — SHARED FORGE WALLET
         ////////////////////////////////////////////////////
 
         if (
-            typeof currentWallet !==
+            typeof SPARKD_FORGE ===
+                "undefined" ||
+            !SPARKD_FORGE ||
+            typeof SPARKD_FORGE.getConnectedWallet !==
+                "function"
+        ) {
+
+            throw new Error(
+                "SPARKD Forge wallet provider is unavailable."
+            );
+
+        }
+
+
+        const wallet =
+            SPARKD_FORGE.getConnectedWallet();
+
+
+        if (
+            typeof wallet !==
                 "string" ||
-            !currentWallet
+            !wallet
         ) {
 
             throw new Error(
@@ -907,13 +910,13 @@ window.SPARKD_CONTEST = {
 
 
         this.validateWallet(
-            currentWallet
+            wallet
         );
 
 
         console.log(
             "🔑 TEST wallet:",
-            currentWallet
+            wallet
         );
 
 
@@ -975,7 +978,7 @@ window.SPARKD_CONTEST = {
 
         const existing =
             await this.checkExistingSubmission(
-                currentWallet
+                wallet
             );
 
 
@@ -1004,7 +1007,7 @@ window.SPARKD_CONTEST = {
 
         const balance =
             await this.checkBalance(
-                currentWallet
+                wallet
             );
 
 
@@ -1049,7 +1052,7 @@ window.SPARKD_CONTEST = {
         const forgeVerification =
             await this.verifyForge(
 
-                currentWallet,
+                wallet,
 
                 forgeData
 
@@ -1070,7 +1073,7 @@ window.SPARKD_CONTEST = {
 
                 file,
 
-                currentWallet,
+                wallet,
 
                 contest.id
 
@@ -1104,7 +1107,7 @@ window.SPARKD_CONTEST = {
                 forgeData.creatorID,
 
             wallet_address:
-                currentWallet,
+                wallet,
 
             meme_title:
                 memeTitle ||
@@ -1255,10 +1258,14 @@ window.SPARKD_CONTEST = {
 //
 // Allows console testing with:
 //
-// await SPARKD_CONTEST_TEST(file, forgeData, "Test")
+// await SPARKD_CONTEST_TEST(
+//     file,
+//     forgeData,
+//     "Test"
+// )
 //
 // This does not perform any transaction.
-// ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 
 window.SPARKD_CONTEST_TEST =
     async function (
@@ -1285,7 +1292,7 @@ window.SPARKD_CONTEST_TEST =
 ////////////////////////////////////////////////////
 
 console.log(
-    "🔥 SPARKD Contest Submission Engine v0.3 loaded."
+    "🔥 SPARKD Contest Submission Engine v0.4 loaded."
 );
 
 console.log(
@@ -1296,3 +1303,4 @@ console.log(
 console.log(
     "🛡️ TEST MODE: No token burns. No SOL transfers."
 );
+
