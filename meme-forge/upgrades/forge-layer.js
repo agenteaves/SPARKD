@@ -1,13 +1,16 @@
 ////////////////////////////////////////////////////
-// SPARKD FORGE LAYER v0.5
+// SPARKD FORGE LAYER v0.6
 // Meme Identity + Creator Identity + Wallet Identity
-// + Image Fingerprint + Signature System
+// + Shared Phantom Wallet + Image Fingerprint
+// + Signature System
 //
 // IMPORTANT:
 // - READ ONLY with respect to blockchain
 // - NO TOKEN TRANSFER
 // - NO TOKEN BURN
 // - NO SOL TRANSFER
+// - DOES NOT CALL Phantom.connect()
+// - USES THE EXISTING CREATOR PROFILE WALLET
 ////////////////////////////////////////////////////
 
 
@@ -29,6 +32,206 @@ window.SPARKD_FORGE = {
 
     contract:
         "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
+
+
+
+    ////////////////////////////////////////////////////
+    // GET PHANTOM PROVIDER
+    //
+    // SAME PROVIDER USED BY CREATOR PROFILE
+    //
+    // READ ONLY.
+    //
+    // We NEVER call:
+    //
+    // provider.connect()
+    //
+    ////////////////////////////////////////////////////
+
+    getProvider:
+        function () {
+
+
+            ////////////////////////////////////////////////////
+            // PRIMARY PHANTOM PROVIDER
+            ////////////////////////////////////////////////////
+
+            if (
+                window.phantom &&
+                window.phantom.solana
+            ) {
+
+                return window.phantom.solana;
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // STANDARD PHANTOM PROVIDER
+            ////////////////////////////////////////////////////
+
+            if (
+                window.solana &&
+                window.solana.isPhantom
+            ) {
+
+                return window.solana;
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // NO PROVIDER
+            ////////////////////////////////////////////////////
+
+            return null;
+
+        },
+
+
+
+    ////////////////////////////////////////////////////
+    // GET CONNECTED WALLET
+    //
+    // IMPORTANT:
+    //
+    // This DOES NOT connect Phantom.
+    //
+    // It only reads the wallet that is already connected
+    // through the Creator Profile wallet system.
+    ////////////////////////////////////////////////////
+
+    getConnectedWallet:
+        function () {
+
+
+            ////////////////////////////////////////////////////
+            // GET SAME PROVIDER AS CREATOR PROFILE
+            ////////////////////////////////////////////////////
+
+            const provider =
+                this.getProvider();
+
+
+
+            if (
+                !provider
+            ) {
+
+                console.warn(
+                    "⚠️ SPARKD Forge: Phantom provider not available."
+                );
+
+                return null;
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // CHECK EXISTING CONNECTION
+            ////////////////////////////////////////////////////
+
+            if (
+                !provider.isConnected ||
+                !provider.publicKey
+            ) {
+
+                console.warn(
+                    "⚠️ SPARKD Forge: Phantom is not currently connected."
+                );
+
+                return null;
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // READ PUBLIC KEY
+            ////////////////////////////////////////////////////
+
+            let wallet =
+                null;
+
+
+            try {
+
+                wallet =
+                    provider.publicKey.toString();
+
+            }
+            catch (
+                error
+            ) {
+
+                console.error(
+                    "❌ SPARKD Forge: unable to read Phantom publicKey:",
+                    error
+                );
+
+                return null;
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // NORMALIZE
+            ////////////////////////////////////////////////////
+
+            if (
+                typeof wallet ===
+                "string"
+            ) {
+
+                wallet =
+                    wallet.trim();
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // BASIC VALIDATION
+            //
+            // Server remains authoritative.
+            ////////////////////////////////////////////////////
+
+            if (
+                typeof wallet !==
+                    "string" ||
+                wallet.length <
+                    32 ||
+                wallet.length >
+                    50
+            ) {
+
+                console.warn(
+                    "⚠️ SPARKD Forge: Phantom returned an invalid wallet address."
+                );
+
+                return null;
+
+            }
+
+
+
+            ////////////////////////////////////////////////////
+            // SUCCESS
+            ////////////////////////////////////////////////////
+
+            console.log(
+                "🔐 SPARKD Forge connected wallet:",
+                wallet
+            );
+
+
+            return wallet;
+
+        },
 
 
 
@@ -154,128 +357,6 @@ window.SPARKD_FORGE = {
                     .toUpperCase()
 
             );
-
-        },
-
-
-
-    ////////////////////////////////////////////////////
-    // GET CONNECTED WALLET
-    //
-    // IMPORTANT:
-    // This does NOT connect a wallet.
-    //
-    // It only reads the wallet that the existing
-    // SPARKD wallet system has already connected.
-    ////////////////////////////////////////////////////
-
-    getConnectedWallet:
-        function () {
-
-
-            let wallet =
-                null;
-
-
-            ////////////////////////////////////////////////////
-            // PRIMARY SPARKD WALLET VARIABLE
-            ////////////////////////////////////////////////////
-
-            try {
-
-
-                if (
-                    typeof currentWallet !==
-                    "undefined"
-                ) {
-
-                    wallet =
-                        currentWallet;
-
-                }
-
-            }
-            catch (
-                error
-            ) {
-
-                console.warn(
-                    "⚠️ Unable to read currentWallet:",
-                    error
-                );
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // WINDOW FALLBACK
-            ////////////////////////////////////////////////////
-
-            if (
-                !wallet &&
-                typeof window.currentWallet !==
-                "undefined"
-            ) {
-
-                wallet =
-                    window.currentWallet;
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // NORMALIZE STRING
-            ////////////////////////////////////////////////////
-
-            if (
-                typeof wallet ===
-                "string"
-            ) {
-
-                wallet =
-                    wallet.trim();
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // VALIDATE SOLANA WALLET FORMAT
-            //
-            // This is intentionally a basic validation.
-            // The server performs the authoritative check.
-            ////////////////////////////////////////////////////
-
-            if (
-                typeof wallet !==
-                    "string" ||
-                wallet.length <
-                    32 ||
-                wallet.length >
-                    50
-            ) {
-
-
-                console.warn(
-                    "⚠️ SPARKD Forge: no valid connected wallet found."
-                );
-
-
-                return null;
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // WALLET FOUND
-            ////////////////////////////////////////////////////
-
-            console.log(
-                "🔐 SPARKD Forge connected wallet:",
-                wallet
-            );
-
-
-            return wallet;
 
         },
 
@@ -457,7 +538,7 @@ window.SPARKD_FORGE = {
 
 
             ////////////////////////////////////////////////////
-            // GET CONNECTED WALLET
+            // GET EXISTING CONNECTED WALLET
             ////////////////////////////////////////////////////
 
             const connectedWallet =
@@ -477,7 +558,7 @@ window.SPARKD_FORGE = {
 
 
             ////////////////////////////////////////////////////
-            // BUILD RECORD
+            // BUILD FORGE RECORD
             ////////////////////////////////////////////////////
 
             const record = {
@@ -508,15 +589,6 @@ window.SPARKD_FORGE = {
 
                 ////////////////////////////////////////////////////
                 // WALLET IDENTITY
-                //
-                // THIS IS THE IMPORTANT FIX.
-                //
-                // Previously this was permanently:
-                //
-                // wallet: "NOT_CONNECTED"
-                //
-                // Now it records the wallet that was actually
-                // connected when the meme was exported.
                 ////////////////////////////////////////////////////
 
                 wallet:
@@ -560,6 +632,7 @@ window.SPARKD_FORGE = {
                     imageFingerprint,
 
 
+
                 ////////////////////////////////////////////////////
                 // IMAGE LOCK
                 ////////////////////////////////////////////////////
@@ -570,7 +643,7 @@ window.SPARKD_FORGE = {
 
 
                 ////////////////////////////////////////////////////
-                // SPARKD CONTRACT
+                // CONTRACT
                 ////////////////////////////////////////////////////
 
                 contract:
@@ -633,7 +706,7 @@ window.SPARKD_FORGE = {
 
 
             ////////////////////////////////////////////////////
-            // WARN IF WALLET IS NOT CONNECTED
+            // WALLET WARNING
             ////////////////////////////////////////////////////
 
             if (
@@ -643,16 +716,20 @@ window.SPARKD_FORGE = {
 
 
                 console.warn(
-
                     "⚠️ SPARKD Forge record created without a connected wallet."
-
                 );
 
 
                 console.warn(
+                    "⚠️ Connect Phantom through Creator Profile before exporting the final contest meme."
+                );
 
-                    "⚠️ Connect Phantom before exporting the final contest meme."
+            }
+            else {
 
+
+                console.log(
+                    "✅ SPARKD Forge wallet identity attached."
                 );
 
             }
@@ -660,7 +737,7 @@ window.SPARKD_FORGE = {
 
 
             ////////////////////////////////////////////////////
-            // RETURN COMPLETE RECORD
+            // RETURN RECORD
             ////////////////////////////////////////////////////
 
             return record;
@@ -669,4 +746,24 @@ window.SPARKD_FORGE = {
 
 
 };
+
+
+
+////////////////////////////////////////////////////
+// READY
+////////////////////////////////////////////////////
+
+console.log(
+    "🔥 SPARKD Forge Layer v0.6 loaded."
+);
+
+
+console.log(
+    "🔗 SPARKD Forge is using the shared Creator Profile Phantom provider."
+);
+
+
+console.log(
+    "🛡️ Forge wallet access is READ ONLY."
+);
 
