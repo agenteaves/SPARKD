@@ -42,29 +42,22 @@ window.SPARKD_CONTEST = {
         "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler",
 
 
-    ////////////////////////////////////////////////////
-    // SHARED SUPABASE CLIENT
-    ////////////////////////////////////////////////////
-
     getSupabaseClient() {
 
-        const client =
-            window.SPARKD_WEBSITE_STATS &&
-            window.SPARKD_WEBSITE_STATS.supabaseClient;
+    const client =
+        window.SPARKD_CONTEST_SUPABASE;
 
+    if (!client) {
 
-        if (!client) {
+        throw new Error(
+            "Supabase client is not available."
+        );
 
-            throw new Error(
-                "Supabase client is not available."
-            );
+    }
 
-        }
+    return client;
 
-
-        return client;
-
-    },
+},
 
 
     ////////////////////////////////////////////////////
