@@ -607,17 +607,25 @@ async function loadCommunitySubmissions() {
         ) {
 
 
-            const imageUrl =
-                supabaseClient
-                    .storage
-                    .from(
-                        "sparkd-contest-submissions"
-                    )
-                    .getPublicUrl(
-                        submission.meme_image_url
-                    )
-                    .data
-                    .publicUrl;
+           const {
+    data: publicUrlData
+} =
+    supabaseClient
+        .storage
+        .from(
+            "sparkd-contest-submissions"
+        )
+        .getPublicUrl(
+            submission.meme_image_url
+        );
+
+const imageUrl =
+    publicUrlData.publicUrl;
+
+console.log(
+    "🖼️ SPARKD submission image URL:",
+    imageUrl
+);
 
 
             const card =
