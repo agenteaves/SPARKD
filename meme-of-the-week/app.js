@@ -235,13 +235,13 @@ async function loadCurrentContest() {
         );
 
 
-        updateContestDisplay();
+       updateContestDisplay();
 
+await loadContestStatistics();
 
-        await loadContestStatistics();
+await loadCommunitySubmissions();
 
-
-        updateSubmitButton();
+updateSubmitButton();
 
 
         startCountdown();
