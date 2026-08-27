@@ -1,29 +1,8 @@
 ////////////////////////////////////////////////////
 // SPARKD CONTEST SUBMISSION
 // Submission Preparation Engine v0.4
-//
-// PURPOSE:
-// - Validate PNG
-// - Find active Meme of the Week contest
-// - Verify SPARKD balance through super-handler
-// - Verify Forge DNA through super-handler
-// - Upload verified PNG
-// - Create meme_week_submissions row
-//
-// TEST MODE:
-// - NO TOKEN BURN
-// - NO SOL TRANSFER
-// - burn_amount = 0
-// - burn_transaction = null
-// - burn_verified = false
-//
-// IMPORTANT:
-// - Uses the shared SPARKD Forge wallet provider.
-// - Does NOT depend on a global currentWallet.
-// - Does NOT perform token transactions.
-// - Does NOT burn SPARKD.
-// - Does NOT transfer SOL.
-////////////////////////////////////////////////////
+///////////////////////////////////////////////////
+
 
 
 window.SPARKD_CONTEST = {
