@@ -932,3 +932,99 @@ section h2 {
 
     padding: 12px;
 }
+
+////////////////////////////////////////////////////
+// SPARKD MEME SUBMISSION VIEWER
+////////////////////////////////////////////////////
+
+#submissionViewer {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+}
+
+
+.submission-viewer-backdrop {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    background: rgba(0, 0, 0, 0.88);
+
+    cursor: zoom-out;
+}
+
+
+.submission-viewer-content {
+    position: relative;
+
+    max-width: 90vw;
+    max-height: 90vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    cursor: default;
+}
+
+
+.submission-viewer-content img {
+    display: block;
+
+    max-width: 85vw;
+    max-height: 80vh;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+
+    border-radius: 12px;
+}
+
+
+.submission-viewer-close {
+    position: absolute;
+
+    top: -18px;
+    right: -18px;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #111;
+    color: white;
+
+    font-size: 22px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    z-index: 2;
+}
+
+
+.submission-viewer-close:hover {
+    transform: scale(1.08);
+}
+
+
+.submission-viewer-title {
+    margin-top: 12px;
+
+    color: white;
+
+    font-size: 18px;
+    font-weight: 600;
+
+    text-align: center;
+}
