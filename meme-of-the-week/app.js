@@ -72,12 +72,12 @@ let currentContest =
     null;
 
 
+
 ////////////////////////////////////////////////////
 // LOAD CURRENT OR NEXT CONTEST
 ////////////////////////////////////////////////////
 
 async function loadCurrentContest() {
-
 
     console.log(
         "🔥 SPARKD Meme of the Week loading..."
@@ -86,14 +86,12 @@ async function loadCurrentContest() {
 
     try {
 
-
         const now =
             new Date().toISOString();
 
 
-
         ////////////////////////////////////////////////////
-        // FIRST: LOOK FOR ACTIVE CONTEST
+        // FIRST: LOOK FOR ACTIVE SUBMISSION CONTEST
         ////////////////////////////////////////////////////
 
         let {
@@ -106,6 +104,10 @@ async function loadCurrentContest() {
                 )
                 .select(
                     "*"
+                )
+                .eq(
+                    "status",
+                    "submission"
                 )
                 .lte(
                     "week_start",
@@ -135,14 +137,12 @@ async function loadCurrentContest() {
         }
 
 
-
         ////////////////////////////////////////////////////
-        // IF NO ACTIVE CONTEST,
-        // FIND THE NEXT UPCOMING CONTEST
+        // IF NO ACTIVE SUBMISSION CONTEST,
+        // FIND THE NEXT UPCOMING SUBMISSION CONTEST
         ////////////////////////////////////////////////////
 
         if (!data) {
-
 
             const upcomingResult =
                 await supabaseClient
@@ -151,6 +151,10 @@ async function loadCurrentContest() {
                     )
                     .select(
                         "*"
+                    )
+                    .eq(
+                        "status",
+                        "upcoming"
                     )
                     .gt(
                         "week_start",
@@ -181,9 +185,7 @@ async function loadCurrentContest() {
             data =
                 upcomingResult.data;
 
-
         }
-
 
 
         ////////////////////////////////////////////////////
@@ -194,13 +196,11 @@ async function loadCurrentContest() {
             data;
 
 
-
         ////////////////////////////////////////////////////
         // NOTHING FOUND
         ////////////////////////////////////////////////////
 
         if (!currentContest) {
-
 
             console.warn(
                 "No current or upcoming SPARKD Meme of the Week contest found."
@@ -224,7 +224,6 @@ async function loadCurrentContest() {
         }
 
 
-
         ////////////////////////////////////////////////////
         // CONTEST FOUND
         ////////////////////////////////////////////////////
@@ -235,21 +234,22 @@ async function loadCurrentContest() {
         );
 
 
-       updateContestDisplay();
+        updateContestDisplay();
 
-await loadContestStatistics();
 
-await loadCommunitySubmissions();
+        await loadContestStatistics();
 
-updateSubmitButton();
+
+        await loadCommunitySubmissions();
+
+
+        updateSubmitButton();
 
 
         startCountdown();
 
-
     }
     catch (error) {
-
 
         console.error(
             "SPARKD contest loading error:",
@@ -268,10 +268,10 @@ updateSubmitButton();
         submitMemeButton.textContent =
             "CONTEST UNAVAILABLE";
 
-
     }
 
 }
+
 
 
 ////////////////////////////////////////////////////
@@ -592,10 +592,6 @@ console.log(
 
 }
 
-
-console.log(
-    "🏆 SPARKD Hall of Fame cards built."
-);
 
 
         ////////////////////////////////////////////////////
