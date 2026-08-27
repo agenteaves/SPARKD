@@ -72,7 +72,6 @@ let currentContest =
     null;
 
 
-
 ////////////////////////////////////////////////////
 // LOAD CURRENT OR NEXT CONTEST
 ////////////////////////////////////////////////////
@@ -138,8 +137,59 @@ async function loadCurrentContest() {
 
 
         ////////////////////////////////////////////////////
-        // IF NO ACTIVE SUBMISSION CONTEST,
-        // FIND THE NEXT UPCOMING SUBMISSION CONTEST
+        // IF NO ACTIVE CONTEST,
+        // FIND NEXT SUBMISSION CONTEST
+        ////////////////////////////////////////////////////
+
+        if (!data) {
+
+            const nextSubmissionResult =
+                await supabaseClient
+                    .from(
+                        "meme_week_contests"
+                    )
+                    .select(
+                        "*"
+                    )
+                    .eq(
+                        "status",
+                        "submission"
+                    )
+                    .gt(
+                        "week_start",
+                        now
+                    )
+                    .order(
+                        "week_start",
+                        {
+                            ascending:
+                                true
+                        }
+                    )
+                    .limit(
+                        1
+                    )
+                    .maybeSingle();
+
+
+            if (
+                nextSubmissionResult.error
+            ) {
+
+                throw nextSubmissionResult.error;
+
+            }
+
+
+            data =
+                nextSubmissionResult.data;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // IF STILL NOTHING,
+        // FIND NEXT UPCOMING CONTEST
         ////////////////////////////////////////////////////
 
         if (!data) {
@@ -271,8 +321,6 @@ async function loadCurrentContest() {
     }
 
 }
-
-
 
 ////////////////////////////////////////////////////
 // DISPLAY CONTEST INFORMATION
