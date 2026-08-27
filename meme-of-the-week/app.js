@@ -1,18 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD MEME OF THE WEEK
 // Contest Engine v0.1
-//
-// READ-ONLY CONTEST DISPLAY
-//
-// This version:
-// - Reads the current weekly contest
-// - Displays contest dates
-// - Displays submission statistics
-// - Calculates time remaining
-//
-// NO TOKEN TRANSACTION
-// NO TOKEN BURN
-// NO CONTEST SUBMISSION
 ////////////////////////////////////////////////////
 
 
