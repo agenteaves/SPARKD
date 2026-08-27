@@ -899,14 +899,14 @@ section h2 {
 /* SPARKD MEME OF THE WEEK - COMMUNITY SUBMISSIONS */
 
 .submission-card {
-    width: 85px;
+    width: 70px;
     max-width: 100%;
     margin: 0 auto;
 }
 
 .submission-image {
     width: 100%;
-    max-height: 70px;
+    max-height: 85px;
     overflow: hidden;
     border-radius: 8px;
 }
