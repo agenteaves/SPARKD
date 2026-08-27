@@ -583,28 +583,174 @@ console.log(
         ////////////////////////////////////////////////////
 
         if (
-            !data ||
-            data.length === 0
-        ) {
+    !data ||
+    data.length === 0
+) {
 
-            grid.innerHTML = `
+    console.log(
+        "🏆 No previous champions yet."
+    );
 
-                <div class="empty-submissions">
+    return;
 
-                    <span>🖼️</span>
+}
 
-                    <p>
-                        No memes have entered
-                        the competition yet.
-                    </p>
 
-                </div>
+/*
+ * Build Hall of Fame cards
+ */
 
-            `;
+hall.innerHTML = "";
 
-            return;
 
-        }
+for (
+    const contest
+    of data
+) {
+
+    if (
+        !contest.winner_submission_id
+    ) {
+
+        continue;
+
+    }
+
+
+    const {
+        data: submission,
+        error: submissionError
+    } =
+        await supabaseClient
+            .from(
+                "meme_week_submissions"
+            )
+            .select(
+                "id,meme_title,meme_image_url,wallet_address"
+            )
+            .eq(
+                "id",
+                contest.winner_submission_id
+            )
+            .maybeSingle();
+
+
+    if (submissionError) {
+
+        console.error(
+            "❌ Could not load champion submission:",
+            submissionError
+        );
+
+        continue;
+
+    }
+
+
+    if (!submission) {
+
+        console.warn(
+            "⚠️ Champion submission not found:",
+            contest.winner_submission_id
+        );
+
+        continue;
+
+    }
+
+
+    const imageUrl =
+        supabaseClient
+            .storage
+            .from(
+                "sparkd-contest-submissions"
+            )
+            .getPublicUrl(
+                submission.meme_image_url
+            )
+            .data
+            .publicUrl;
+
+
+    const card =
+        document.createElement(
+            "div"
+        );
+
+
+    card.className =
+        "hall-card";
+
+
+    card.innerHTML = `
+
+        <div class="hall-image">
+
+            <img
+                src="${imageUrl}"
+                alt="${escapeHtml(
+                    submission.meme_title ||
+                    "SPARKD Champion"
+                )}"
+                loading="lazy"
+            >
+
+        </div>
+
+
+        <div class="hall-info">
+
+            <div class="hall-title">
+                🏆 ${escapeHtml(
+                    submission.meme_title ||
+                    "Untitled Champion"
+                )}
+            </div>
+
+
+            <div class="hall-week">
+
+                ${new Date(
+                    contest.week_start
+                ).toLocaleDateString(
+                    "en-US",
+                    {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric"
+                    }
+                )}
+
+            </div>
+
+
+            <div class="hall-wallet">
+
+                👻 ${
+                    submission.wallet_address
+                        ? submission.wallet_address.slice(0, 6) +
+                          "..." +
+                          submission.wallet_address.slice(-4)
+                        : "Unknown Wallet"
+                }
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    hall.appendChild(
+        card
+    );
+
+}
+
+
+console.log(
+    "🏆 SPARKD Hall of Fame cards built."
+);
 
 
         ////////////////////////////////////////////////////
