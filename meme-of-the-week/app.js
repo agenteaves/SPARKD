@@ -527,6 +527,9 @@ async function loadCommunitySubmissions() {
         "🖼️ SPARKD loading community submissions..."
     );
 
+    console.log(
+    "🧪 COMMUNITY QUERY STARTING..."
+);
 
     try {
 
