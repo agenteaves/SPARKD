@@ -53,29 +53,28 @@
 
 
     <!-- =====================================================
-         CURRENT WINNER
+         MAIN CONTENT
          ===================================================== -->
 
     <main>
 
+
+        <!-- =================================================
+             CURRENT WINNER
+             ================================================= -->
 
         <section
             id="currentWinner"
             class="winner-section"
         >
 
-
             <div class="section-label">
-
                 🏆 CURRENT MEME OF THE WEEK
-
             </div>
 
 
             <h2 id="winnerWeek">
-
                 CURRENT WEEK
-
             </h2>
 
 
@@ -84,34 +83,24 @@
                 class="winner-display"
             >
 
-
                 <div class="winner-placeholder">
 
-
                     <div class="winner-icon">
-
                         🏆
-
                     </div>
 
 
                     <h3>
-
                         THE FIRST MEME OF THE WEEK
-
                     </h3>
 
 
                     <p>
-
                         The SPARKD community's first
                         weekly champion will appear here.
-
                     </p>
 
-
                 </div>
-
 
             </div>
 
@@ -121,23 +110,16 @@
                 class="winner-info"
             >
 
-
                 <span>
-
                     🏆 Winner
-
                 </span>
 
 
                 <strong id="winnerName">
-
                     Awaiting Champion
-
                 </strong>
 
-
             </div>
-
 
         </section>
 
@@ -151,16 +133,12 @@
 
 
             <div class="section-label">
-
                 🔥 CURRENT COMPETITION
-
             </div>
 
 
             <h2>
-
                 Submit Your Meme
-
             </h2>
 
 
@@ -183,20 +161,14 @@
 
                 <div class="schedule-card">
 
-
                     <span class="schedule-label">
-
                         🟢 SUBMISSIONS OPEN
-
                     </span>
 
 
                     <strong>
-
                         MONDAY — 8:00 AM
-
                     </strong>
-
 
                 </div>
 
@@ -204,23 +176,16 @@
 
                 <div class="schedule-card">
 
-
                     <span class="schedule-label">
-
                         🔴 SUBMISSIONS CLOSE
-
                     </span>
 
 
                     <strong>
-
                         SATURDAY — 8:00 PM
-
                     </strong>
 
-
                 </div>
-
 
             </div>
 
@@ -235,47 +200,35 @@
 
                 <div class="stat-card">
 
-
                     <span
                         class="stat-number"
                         id="submissionCount"
                     >
-
                         0
-
                     </span>
 
 
                     <span class="stat-label">
-
                         SUBMISSIONS
-
                     </span>
-
 
                 </div>
 
 
 
                 <div class="stat-card">
-
 
                     <span
                         class="stat-number"
                         id="totalBurned"
                     >
-
                         0
-
                     </span>
 
 
                     <span class="stat-label">
-
                         SPARKD BURNED
-
                     </span>
-
 
                 </div>
 
@@ -283,22 +236,161 @@
 
                 <div class="stat-card">
 
-
                     <span
                         class="stat-number"
                         id="daysRemaining"
                     >
-
                         --
-
                     </span>
 
 
                     <span class="stat-label">
-
                         TIME REMAINING
-
                     </span>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 WALLET CONNECTION
+                 ================================================= -->
+
+            <div class="contest-wallet">
+
+                <div
+                    id="contestWalletStatus"
+                    class="wallet-status"
+                >
+                    🔌 Wallet Not Connected
+                </div>
+
+
+                <button
+                    id="contestConnectWallet"
+                    class="motm-button"
+                    type="button"
+                >
+                    🔗 CONNECT SPARKD WALLET
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ENTER MEME OF THE WEEK
+                 ================================================= -->
+
+            <div
+                id="motmSubmissionArea"
+                style="margin-top:20px;"
+            >
+
+
+                <button
+                    id="submitMemeButton"
+                    class="motm-button"
+                    type="button"
+                >
+                    🔥 ENTER MEME OF THE WEEK
+                </button>
+
+
+
+                <!-- =================================================
+                     SUBMISSION FORM
+                     ================================================= -->
+
+                <div
+                    id="motmSubmissionForm"
+                    style="
+                        display:none;
+                        margin-top:20px;
+                    "
+                >
+
+
+                    <label
+                        for="motmMemeFile"
+                        style="
+                            display:block;
+                            margin-bottom:8px;
+                        "
+                    >
+                        🖼️ Select your SPARKD Forge PNG
+                    </label>
+
+
+                    <input
+                        id="motmMemeFile"
+                        type="file"
+                        accept="image/png"
+                    >
+
+
+
+                    <label
+                        for="motmMemeTitle"
+                        style="
+                            display:block;
+                            margin-top:15px;
+                            margin-bottom:8px;
+                        "
+                    >
+                        🏆 Meme Title
+                    </label>
+
+
+                    <input
+                        id="motmMemeTitle"
+                        type="text"
+                        maxlength="100"
+                        placeholder="Enter your meme title"
+                        style="
+                            width:100%;
+                            max-width:500px;
+                            padding:10px;
+                        "
+                    >
+
+
+
+                    <div style="margin-top:15px;">
+
+
+                        <button
+                            id="motmSubmitFinalButton"
+                            class="motm-button"
+                            type="button"
+                        >
+                            🚀 SUBMIT MEME
+                        </button>
+
+
+                        <button
+                            id="motmCancelButton"
+                            type="button"
+                            style="
+                                margin-left:10px;
+                                padding:10px 15px;
+                            "
+                        >
+                            CANCEL
+                        </button>
+
+
+                    </div>
+
+
+
+                    <p
+                        id="motmSubmissionStatus"
+                        style="margin-top:15px;"
+                    ></p>
 
 
                 </div>
@@ -306,91 +398,66 @@
 
             </div>
 
-<!-- =================================================
-     WALLET CONNECTION
-     ================================================= -->
-
-<div class="contest-wallet">
-
-    <div
-        id="contestWalletStatus"
-        class="wallet-status"
-    >
-        🔌 Wallet Not Connected
-    </div>
-
-    <button
-        id="contestConnectWallet"
-        class="motm-button"
-        type="button"
-    >
-        🔗 CONNECT SPARKD WALLET
-    </button>
-
-</div>
 
 
             <!-- =================================================
-                 ENTER BUTTON
+                 TEMPORARY DATABASE TEST
                  ================================================= -->
 
-            <button
-                id="submitMemeButton"
-                class="motm-button"
-                type="button"
+            <div
+                id="temporaryTestArea"
+                style="
+                    margin-top:30px;
+                    padding:20px;
+                    border:1px dashed rgba(255,255,255,0.25);
+                "
             >
 
-                🔥 ENTER MEME OF THE WEEK
-
-            </button>
-
-   
-
-<div style="margin-top:20px;">
-
-    <button
-        id="connectWalletBtn"
-        class="motm-button"
-        type="button"
-    >
-        👻 CONNECT PHANTOM WALLET
-    </button>
-
-    <p
-        id="walletStatus"
-        style="margin-top:10px;"
-    >
-        Wallet not connected
-    </p>
-
-</div>
+                <h3>
+                    🧪 DEVELOPMENT TEST
+                </h3>
 
 
+                <p>
+                    Temporary database submission test.
+                    No SPARKD burn. No SOL transfer.
+                </p>
 
-            <div style="margin-top:20px;">
 
-    <input
-        type="file"
-        id="testMemeFile"
-        accept="image/png"
-    >
+                <input
+                    type="file"
+                    id="testMemeFile"
+                    accept="image/png"
+                >
 
-    <input
-        type="text"
-        id="testMemeTitle"
-        placeholder="Test meme title"
-    >
 
-    <button
-        id="testSubmitButton"
-        class="motm-button"
-        type="button"
-    >
-        🧪 TEST SUBMISSION
-    </button>
+                <input
+                    type="text"
+                    id="testMemeTitle"
+                    placeholder="Test meme title"
+                    style="
+                        margin-left:10px;
+                        padding:8px;
+                    "
+                >
 
-</div>
 
+                <button
+                    id="testSubmitButton"
+                    class="motm-button"
+                    type="button"
+                    style="margin-left:10px;"
+                >
+                    🧪 TEST SUBMISSION
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ENTRY REQUIREMENT
+                 ================================================= -->
 
             <p class="burn-note">
 
@@ -405,23 +472,19 @@
 
 
         <!-- =================================================
-             SUBMISSIONS
+             COMMUNITY SUBMISSIONS
              ================================================= -->
 
         <section class="submissions-section">
 
 
             <div class="section-label">
-
                 🖼️ COMMUNITY SUBMISSIONS
-
             </div>
 
 
             <h2>
-
                 This Week's Contenders
-
             </h2>
 
 
@@ -433,21 +496,15 @@
 
                 <div class="empty-submissions">
 
-
                     <span>
-
                         🖼️
-
                     </span>
 
 
                     <p>
-
                         No memes have entered
                         the competition yet.
-
                     </p>
-
 
                 </div>
 
@@ -467,16 +524,12 @@
 
 
             <div class="section-label">
-
                 🏅 SPARKD MEME HALL OF FAME
-
             </div>
 
 
             <h2>
-
                 Previous Champions
-
             </h2>
 
 
@@ -488,17 +541,13 @@
 
                 <div class="empty-hall">
 
-
                     🏆
 
 
                     <p>
-
                         The Hall of Fame will grow
                         with every weekly champion.
-
                     </p>
-
 
                 </div>
 
@@ -521,45 +570,41 @@
 
 
         <p>
-
             ⚡ SPARKD — Create. Compete. Burn.
-
         </p>
 
 
         <a href="../index.html">
-
             Return to SPARKD
-
         </a>
 
 
     </footer>
 
 
-```html
-<!-- =====================================================
-     SCRIPTS
-     ===================================================== -->
 
-<!-- Supabase browser library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- =====================================================
+         SCRIPTS
+         ===================================================== -->
 
-
-<!-- Solana Web3.js -->
-<script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
+    <!-- Supabase browser library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-<!-- Solana SPL Token -->
-<script src="https://unpkg.com/@solana/spl-token@0.4.13/lib/index.iife.min.js"></script>
+    <!-- Solana Web3.js -->
+    <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
 
 
-<!-- Meme of the Week contest engine -->
-<script src="app.js"></script>
+    <!-- Solana SPL Token -->
+    <script src="https://unpkg.com/@solana/spl-token@0.4.13/lib/index.iife.min.js"></script>
 
 
-<!-- SPARKD contest submission system -->
-<script src="../meme-forge/upgrades/contest-submit.js"></script>
+    <!-- Meme of the Week contest engine -->
+    <script src="app.js"></script>
+
+
+    <!-- SPARKD contest submission system -->
+    <script src="../meme-forge/upgrades/contest-submit.js"></script>
 
 
 </body>
