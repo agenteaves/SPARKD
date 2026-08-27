@@ -686,10 +686,6 @@ console.log(
                     </p>
 
 
-                    <p>
-                        🧬 DNA VERIFIED
-                    </p>
-
                 </div>
 
             `;
