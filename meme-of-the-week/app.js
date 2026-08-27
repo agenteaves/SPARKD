@@ -527,12 +527,14 @@ async function loadCommunitySubmissions() {
         "🖼️ SPARKD loading community submissions..."
     );
 
-    console.log(
-    "🧪 COMMUNITY QUERY STARTING..."
-);
+    
 
     try {
-
+        
+console.log(
+    "🧪 COMMUNITY QUERY STARTING..."
+);
+        
         const {
             data,
             error
@@ -559,6 +561,14 @@ async function loadCommunitySubmissions() {
                             false
                     }
                 );
+
+        console.log(
+    "🧪 COMMUNITY QUERY FINISHED:",
+    {
+        data: data,
+        error: error
+    }
+);
 
 
         if (error) {
