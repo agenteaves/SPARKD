@@ -896,29 +896,25 @@ section h2 {
 
 }
 
-////////////////////////////////////////////////////
-// SPARKD MEME OF THE WEEK
-// COMMUNITY SUBMISSIONS
-////////////////////////////////////////////////////
+/* SPARKD MEME OF THE WEEK - COMMUNITY SUBMISSIONS */
 
 .submission-card {
-    width: 280px;
+    width: 140px;
     max-width: 100%;
     margin: 0 auto;
 }
 
 .submission-image {
     width: 100%;
-    max-height: 280px;
+    max-height: 140px;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 .submission-image img {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 280px;
+    max-height: 140px;
     object-fit: contain;
 }
-
