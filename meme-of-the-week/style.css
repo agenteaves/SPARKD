@@ -899,22 +899,22 @@ section h2 {
 /* SPARKD MEME OF THE WEEK - COMMUNITY SUBMISSIONS */
 
 .submission-card {
-    width: 140px;
+    width: 70px;
     max-width: 100%;
     margin: 0 auto;
 }
 
 .submission-image {
     width: 100%;
-    max-height: 140px;
+    max-height: 70px;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 .submission-image img {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 140px;
+    max-height: 70px;
     object-fit: contain;
 }
