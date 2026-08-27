@@ -653,18 +653,27 @@ console.log(
 
             card.innerHTML = `
 
-                <div class="submission-image">
+               <div
+    class="submission-image"
+    onclick="openSubmissionViewer(
+        '${imageUrl}',
+        '${escapeHtml(
+            submission.meme_title ||
+            "SPARKD Meme"
+        )}'
+    )"
+>
 
-                    <img
-                        src="${imageUrl}"
-                        alt="${escapeHtml(
-                            submission.meme_title ||
-                            "SPARKD Meme"
-                        )}"
-                        loading="lazy"
-                    >
+    <img
+        src="${imageUrl}"
+        alt="${escapeHtml(
+            submission.meme_title ||
+            "SPARKD Meme"
+        )}"
+        loading="lazy"
+    >
 
-                </div>
+</div>
 
 
                 <div class="submission-info">
