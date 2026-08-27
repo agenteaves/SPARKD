@@ -1022,9 +1022,9 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-
         loadCurrentContest();
 
+        loadHallOfFame();
 
     }
 );
