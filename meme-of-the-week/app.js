@@ -694,6 +694,34 @@ console.log(
 
             `;
 
+            // MAKE SUBMISSION IMAGE CLICKABLE
+
+const submissionImage =
+    card.querySelector(
+        ".submission-image img"
+    );
+
+
+if (submissionImage) {
+
+    submissionImage.style.cursor =
+        "pointer";
+
+
+    submissionImage.addEventListener(
+        "click",
+        function () {
+
+            openSubmissionViewer(
+                imageUrl,
+                submission.meme_title ||
+                "SPARKD Meme"
+            );
+
+        }
+    );
+
+}
 
             grid.appendChild(
                 card
