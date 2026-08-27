@@ -493,6 +493,261 @@ async function loadContestStatistics() {
 
 }
 
+////////////////////////////////////////////////////
+// LOAD COMMUNITY SUBMISSIONS
+////////////////////////////////////////////////////
+
+async function loadCommunitySubmissions() {
+
+    const grid =
+        document.getElementById(
+            "submissionsGrid"
+        );
+
+
+    if (!grid) {
+
+        console.warn(
+            "⚠️ submissionsGrid not found."
+        );
+
+        return;
+
+    }
+
+
+    if (!currentContest) {
+
+        return;
+
+    }
+
+
+    console.log(
+        "🖼️ SPARKD loading community submissions..."
+    );
+
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "meme_week_submissions"
+                )
+                .select(
+                    "id,meme_title,meme_image_url,wallet_address,dna_verified,status,created_at"
+                )
+                .eq(
+                    "contest_id",
+                    currentContest.id
+                )
+                .eq(
+                    "dna_verified",
+                    true
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:
+                            false
+                    }
+                );
+
+
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // NO SUBMISSIONS
+        ////////////////////////////////////////////////////
+
+        if (
+            !data ||
+            data.length === 0
+        ) {
+
+            grid.innerHTML = `
+
+                <div class="empty-submissions">
+
+                    <span>🖼️</span>
+
+                    <p>
+                        No memes have entered
+                        the competition yet.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // BUILD SUBMISSION CARDS
+        ////////////////////////////////////////////////////
+
+        grid.innerHTML = "";
+
+
+        for (
+            const submission
+            of data
+        ) {
+
+
+            const imageUrl =
+                supabaseClient
+                    .storage
+                    .from(
+                        "sparkd-contest-submissions"
+                    )
+                    .getPublicUrl(
+                        submission.meme_image_url
+                    )
+                    .data
+                    .publicUrl;
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "submission-card";
+
+
+            card.innerHTML = `
+
+                <div class="submission-image">
+
+                    <img
+                        src="${imageUrl}"
+                        alt="${escapeHtml(
+                            submission.meme_title ||
+                            "SPARKD Meme"
+                        )}"
+                        loading="lazy"
+                    >
+
+                </div>
+
+
+                <div class="submission-info">
+
+                    <h3>
+                        ${escapeHtml(
+                            submission.meme_title ||
+                            "Untitled SPARKD Meme"
+                        )}
+                    </h3>
+
+
+                    <p>
+                        👻 ${submission.wallet_address
+                            ? submission.wallet_address.slice(0, 6) +
+                              "..." +
+                              submission.wallet_address.slice(-4)
+                            : "Unknown Wallet"}
+                    </p>
+
+
+                    <p>
+                        🧬 DNA VERIFIED
+                    </p>
+
+                </div>
+
+            `;
+
+
+            grid.appendChild(
+                card
+            );
+
+        }
+
+
+        console.log(
+            "🖼️ SPARKD community submissions loaded:",
+            data
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ Could not load community submissions:",
+            error
+        );
+
+
+        grid.innerHTML = `
+
+            <div class="empty-submissions">
+
+                <span>⚠️</span>
+
+                <p>
+                    Unable to load community submissions.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+////////////////////////////////////////////////////
+// HTML ESCAPE HELPER
+////////////////////////////////////////////////////
+
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
 
 ////////////////////////////////////////////////////
 // SUBMISSION WINDOW
