@@ -1601,3 +1601,123 @@ document.addEventListener(
 
     }
 );
+
+// SPARKD MEME SUBMISSION VIEWER
+
+function openSubmissionViewer(
+    imageUrl,
+    memeTitle
+) {
+
+    const viewer =
+        document.createElement(
+            "div"
+        );
+
+
+    viewer.id =
+        "submissionViewer";
+
+
+    viewer.innerHTML = `
+
+        <div class="submission-viewer-backdrop">
+
+            <div class="submission-viewer-content">
+
+                <button
+                    class="submission-viewer-close"
+                    type="button"
+                    aria-label="Close"
+                >
+                    ✕
+                </button>
+
+                <img
+                    src="${imageUrl}"
+                    alt="${escapeHtml(
+                        memeTitle
+                    )}"
+                >
+
+                <div class="submission-viewer-title">
+                    ${escapeHtml(
+                        memeTitle
+                    )}
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    document.body.appendChild(
+        viewer
+    );
+
+
+    const closeButton =
+        viewer.querySelector(
+            ".submission-viewer-close"
+        );
+
+
+    const backdrop =
+        viewer.querySelector(
+            ".submission-viewer-backdrop"
+        );
+
+
+    closeButton.addEventListener(
+        "click",
+        function () {
+
+            viewer.remove();
+
+        }
+    );
+
+
+    backdrop.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target ===
+                backdrop
+            ) {
+
+                viewer.remove();
+
+            }
+
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        function closeWithEscape(
+            event
+        ) {
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
+
+                viewer.remove();
+
+                document.removeEventListener(
+                    "keydown",
+                    closeWithEscape
+                );
+
+            }
+
+        }
+    );
+
+}
