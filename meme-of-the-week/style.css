@@ -915,7 +915,7 @@ section h2 {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 85px;
+    max-height: 70px;
     object-fit: contain;
 }
 
