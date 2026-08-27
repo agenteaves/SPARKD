@@ -587,9 +587,6 @@ console.log(
     data.length === 0
 ) {
 
-    console.log(
-        "🏆 No previous champions yet."
-    );
 
     return;
 
@@ -1587,7 +1584,6 @@ function setupContestWallet() {
 
 }
 
-
 ////////////////////////////////////////////////////
 // INITIALIZE CONTEST WALLET
 ////////////////////////////////////////////////////
@@ -1601,7 +1597,10 @@ document.addEventListener(
     }
 );
 
+
+// =================================================
 // SPARKD MEME SUBMISSION VIEWER
+// =================================================
 
 function openSubmissionViewer(
     imageUrl,
@@ -1721,6 +1720,7 @@ function openSubmissionViewer(
 
 }
 
+
 // =================================================
 // SPARKD MEME HALL OF FAME
 // =================================================
@@ -1750,6 +1750,10 @@ async function loadHallOfFame() {
 
 
     try {
+
+        //////////////////////////////////////////////////
+        // LOAD PREVIOUS CONTESTS WITH WINNERS
+        //////////////////////////////////////////////////
 
         const {
             data,
@@ -1789,99 +1793,9 @@ async function loadHallOfFame() {
         );
 
 
-        if (
-            !data ||
-            data.length === 0
-        ) {
-
-            console.log(
-                "🏆 No previous champions yet."
-            );
-
-            return;
-
-        }
-
-       if (
-    !data ||
-    data.length === 0
-) {
-
-    console.log(
-        "🏆 No previous champions yet."
-    );
-
-    return;
-
-}
-
-// =================================================
-// SPARKD MEME HALL OF FAME
-// =================================================
-
-async function loadHallOfFame() {
-
-    const hall =
-        document.getElementById(
-            "hallOfFame"
-        );
-
-
-    if (!hall) {
-
-        console.warn(
-            "⚠️ hallOfFame element not found."
-        );
-
-        return;
-
-    }
-
-
-    console.log(
-        "🏆 SPARKD Hall of Fame loading..."
-    );
-
-
-    try {
-
-        const {
-            data,
-            error
-        } =
-            await supabaseClient
-                .from(
-                    "meme_week_contests"
-                )
-                .select(
-                    "id,week_start,week_end,status,winner_submission_id"
-                )
-                .not(
-                    "winner_submission_id",
-                    "is",
-                    null
-                )
-                .order(
-                    "week_start",
-                    {
-                        ascending:
-                            false
-                    }
-                );
-
-
-        if (error) {
-
-            throw error;
-
-        }
-
-
-        console.log(
-            "🏆 SPARKD Hall of Fame contests:",
-            data
-        );
-
+        //////////////////////////////////////////////////
+        // NO PREVIOUS CHAMPIONS
+        //////////////////////////////////////////////////
 
         if (
             !data ||
@@ -1922,6 +1836,10 @@ async function loadHallOfFame() {
 
             }
 
+
+            //////////////////////////////////////////////////
+            // LOAD WINNING SUBMISSION
+            //////////////////////////////////////////////////
 
             const {
                 data: submission,
@@ -1989,7 +1907,7 @@ async function loadHallOfFame() {
 
 
             //////////////////////////////////////////////////
-            // CREATE CARD
+            // CREATE CHAMPION CARD
             //////////////////////////////////////////////////
 
             const card =
@@ -2068,6 +1986,38 @@ async function loadHallOfFame() {
             `;
 
 
+            //////////////////////////////////////////////////
+            // MAKE CHAMPION IMAGE CLICKABLE
+            //////////////////////////////////////////////////
+
+            const championImage =
+                card.querySelector(
+                    ".hall-image img"
+                );
+
+
+            if (championImage) {
+
+                championImage.style.cursor =
+                    "pointer";
+
+
+                championImage.addEventListener(
+                    "click",
+                    function () {
+
+                        openSubmissionViewer(
+                            imageUrl,
+                            submission.meme_title ||
+                            "SPARKD Champion"
+                        );
+
+                    }
+                );
+
+            }
+
+
             hall.appendChild(
                 card
             );
@@ -2091,3 +2041,4 @@ async function loadHallOfFame() {
     }
 
 }
+
