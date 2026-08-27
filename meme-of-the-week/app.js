@@ -1726,3 +1726,97 @@ function openSubmissionViewer(
     );
 
 }
+
+// =================================================
+// SPARKD MEME HALL OF FAME
+// =================================================
+
+async function loadHallOfFame() {
+
+    const hall =
+        document.getElementById(
+            "hallOfFame"
+        );
+
+
+    if (!hall) {
+
+        console.warn(
+            "⚠️ hallOfFame element not found."
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "🏆 SPARKD Hall of Fame loading..."
+    );
+
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "meme_week_contests"
+                )
+                .select(
+                    "id,week_start,week_end,status,winner_submission_id"
+                )
+                .not(
+                    "winner_submission_id",
+                    "is",
+                    null
+                )
+                .order(
+                    "week_start",
+                    {
+                        ascending:
+                            false
+                    }
+                );
+
+
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        console.log(
+            "🏆 SPARKD Hall of Fame contests:",
+            data
+        );
+
+
+        if (
+            !data ||
+            data.length === 0
+        ) {
+
+            console.log(
+                "🏆 No previous champions yet."
+            );
+
+            return;
+
+        }
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ Could not load Hall of Fame:",
+            error
+        );
+
+    }
+
+}
