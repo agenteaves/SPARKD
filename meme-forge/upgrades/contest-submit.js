@@ -1663,6 +1663,23 @@ async findSparkdTokenAccount(
             "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
         );
 
+    console.log("🔎 DEBUG wallet:", wallet);
+
+console.log(
+    "🔎 DEBUG wallet PublicKey:",
+    owner.toString()
+);
+
+console.log(
+    "🔎 DEBUG SPARKD mint:",
+    mint.toString()
+);
+
+console.log(
+    "🔎 DEBUG Token-2022 program:",
+    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxu"
+);
+
 
     ////////////////////////////////////////////////////
     // TOKEN-2022 PROGRAM
