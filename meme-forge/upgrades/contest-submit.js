@@ -872,7 +872,232 @@ window.SPARKD_CONTEST = {
         );
 
 
-       
+    ////////////////////////////////////////////////////
+    // FIND SPARKD TOKEN-2022 ACCOUNT
+    //
+    // READ ONLY
+    //
+    // NO TRANSACTION
+    // NO TRANSFER
+    // NO BURN
+    ////////////////////////////////////////////////////
+
+    async findSparkdTokenAccount(
+        wallet
+    ) {
+
+        this.validateWallet(
+            wallet
+        );
+
+
+        console.log(
+            "🔎 Finding SPARKD Token-2022 account..."
+        );
+
+
+        const provider =
+            getContestWalletProvider();
+
+
+        if (!provider) {
+
+            throw new Error(
+                "Phantom Wallet was not detected."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // PUBLIC SOLANA CONNECTION
+        //
+        // READ ONLY
+        ////////////////////////////////////////////////////
+
+        const connection =
+            new solanaWeb3.Connection(
+
+                "https://api.mainnet-beta.solana.com",
+
+                "confirmed"
+
+            );
+
+
+        const owner =
+            new solanaWeb3.PublicKey(
+                wallet
+            );
+
+
+        const mint =
+            new solanaWeb3.PublicKey(
+                "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+            );
+
+
+        ////////////////////////////////////////////////////
+        // TOKEN-2022 ACCOUNT LOOKUP
+        ////////////////////////////////////////////////////
+
+        const accounts =
+            await connection.getParsedTokenAccountsByOwner(
+
+                owner,
+
+                {
+
+                    mint:
+                        mint,
+
+                    programId:
+                        splToken.TOKEN_2022_PROGRAM_ID
+
+                }
+
+            );
+
+
+        console.log(
+            "🪙 SPARKD Token-2022 accounts:",
+            accounts.value
+        );
+
+
+        if (
+            !accounts.value ||
+            accounts.value.length === 0
+        ) {
+
+            throw new Error(
+                "No Token-2022 SPARKD token account was found for this wallet."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // USE FIRST MATCHING TOKEN ACCOUNT
+        ////////////////////////////////////////////////////
+
+        const account =
+            accounts.value[0];
+
+
+        const tokenAccount =
+            account.pubkey;
+
+
+        const parsed =
+            account.account.data.parsed;
+
+
+        const tokenAmount =
+            parsed?.info?.tokenAmount;
+
+
+        const balance =
+            Number(
+                tokenAmount?.uiAmount || 0
+            );
+
+
+        const decimals =
+            Number(
+                tokenAmount?.decimals
+            );
+
+
+        ////////////////////////////////////////////////////
+        // VERIFY EXPECTED DECIMALS
+        ////////////////////////////////////////////////////
+
+        if (
+            decimals !==
+            6
+        ) {
+
+            throw new Error(
+
+                "Unexpected SPARKD decimals: " +
+                decimals
+
+            );
+
+        }
+
+
+        console.log(
+            "🔥 SPARKD Token-2022 account found:",
+            tokenAccount.toString()
+        );
+
+
+        console.log(
+            "🪙 SPARKD token balance:",
+            balance
+        );
+
+
+        console.log(
+            "🔢 SPARKD decimals:",
+            decimals
+        );
+
+
+        return {
+
+            tokenAccount:
+                tokenAccount.toString(),
+
+            mint:
+                mint.toString(),
+
+            balance:
+                balance,
+
+            decimals:
+                decimals,
+
+            program:
+                "Token-2022"
+
+        };
+
+    },
+
+
+    ////////////////////////////////////////////////////
+    // REAL TEST SUBMISSION
+    //
+    // DATABASE INSERT ENABLED
+    //
+    // STILL NO TOKEN BURN
+    // STILL NO SOL TRANSFER
+    ////////////////////////////////////////////////////
+
+    async submitMemeTest(
+        file,
+        forgeData,
+        memeTitle
+    ) {
+
+
+        console.log(
+            "🧪 SPARKD TEST SUBMISSION STARTING..."
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 1 — BASIC FILE CHECK
+        ////////////////////////////////////////////////////
+
+        this.validateFile(
+            file
+        );
+
+
         ////////////////////////////////////////////////////
         // STEP 2 — CONNECTED PHANTOM WALLET
         //
@@ -921,7 +1146,6 @@ window.SPARKD_CONTEST = {
             "🔑 TEST wallet:",
             wallet
         );
-
 
 
         ////////////////////////////////////////////////////
@@ -1283,6 +1507,60 @@ window.SPARKD_CONTEST_TEST =
 
 
 ////////////////////////////////////////////////////
+// READ-ONLY TOKEN-2022 ACCOUNT TEST
+////////////////////////////////////////////////////
+
+window.SPARKD_TOKEN2022_TEST =
+    async function () {
+
+        try {
+
+            if (
+                typeof currentWallet ===
+                    "undefined" ||
+                !currentWallet
+            ) {
+
+                throw new Error(
+                    "Please connect your Phantom wallet first."
+                );
+
+            }
+
+
+            const result =
+                await window.SPARKD_CONTEST.findSparkdTokenAccount(
+
+                    currentWallet
+
+                );
+
+
+            console.log(
+                "🔥 SPARKD Token-2022 READ-ONLY TEST RESULT:",
+                result
+            );
+
+
+            return result;
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ SPARKD Token-2022 read-only test failed:",
+                error
+            );
+
+
+            throw error;
+
+        }
+
+    };
+
+
+////////////////////////////////////////////////////
 // INITIALIZATION LOG
 ////////////////////////////////////////////////////
 
@@ -1296,6 +1574,14 @@ console.log(
 );
 
 console.log(
+    "🔎 Token-2022 read-only test:",
+    "SPARKD_TOKEN2022_TEST()"
+);
+
+console.log(
     "🛡️ TEST MODE: No token burns. No SOL transfers."
 );
+
+       
+      
 
