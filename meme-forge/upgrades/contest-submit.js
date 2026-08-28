@@ -1238,6 +1238,8 @@ window.SPARKD_CONTEST = {
 
         };
 
+        },
+
        
     ////////////////////////////////////////////////////
     // REAL SUBMISSION — DRY RUN
