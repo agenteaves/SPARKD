@@ -1238,6 +1238,367 @@ window.SPARKD_CONTEST = {
 
         };
 
+       
+    ////////////////////////////////////////////////////
+    // REAL SUBMISSION — DRY RUN
+    //
+    // PRODUCTION VALIDATION PATH
+    //
+    // ⚠️ NO TOKEN BURN
+    // ⚠️ NO TOKEN TRANSFER
+    // ⚠️ NO SOL TRANSFER
+    //
+    // This verifies everything needed before we
+    // authorize an actual Token-2022 burn.
+    ////////////////////////////////////////////////////
+
+    async submitMeme(
+        file,
+        forgeData,
+        memeTitle
+    ) {
+
+        console.log(
+            "🧪 SPARKD PRODUCTION SUBMISSION DRY RUN STARTING..."
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 1 — FILE
+        ////////////////////////////////////////////////////
+
+        this.validateFile(
+            file
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 2 — CONNECTED PHANTOM WALLET
+        ////////////////////////////////////////////////////
+
+        const wallet =
+            typeof currentWallet !==
+                "undefined"
+                ? currentWallet
+                : null;
+
+
+        if (
+            typeof wallet !==
+                "string" ||
+            !wallet
+        ) {
+
+            throw new Error(
+                "Please connect your Phantom wallet first."
+            );
+
+        }
+
+
+        this.validateWallet(
+            wallet
+        );
+
+
+        console.log(
+            "🔑 DRY RUN wallet:",
+            wallet
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 3 — CURRENT CONTEST
+        ////////////////////////////////////////////////////
+
+        let contest =
+            null;
+
+
+        if (
+            typeof currentContest !==
+                "undefined" &&
+            currentContest
+        ) {
+
+            contest =
+                currentContest;
+
+        }
+        else {
+
+            contest =
+                await this.getCurrentContest();
+
+        }
+
+
+        if (
+            !contest ||
+            !contest.id
+        ) {
+
+            throw new Error(
+                "No active Meme of the Week contest."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 DRY RUN contest:",
+            contest.id
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 4 — EXISTING SUBMISSION CHECK
+        ////////////////////////////////////////////////////
+
+        const existing =
+            await this.checkExistingSubmission(
+                wallet
+            );
+
+
+        if (
+            existing.submissionCount >
+            0
+        ) {
+
+            throw new Error(
+                "This wallet already has a submission for the current contest."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // STEP 5 — SPARKD BALANCE
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🪙 DRY RUN checking SPARKD balance..."
+        );
+
+
+        const balance =
+            await this.checkBalance(
+                wallet
+            );
+
+
+        if (
+            !balance.canSubmit
+        ) {
+
+            throw new Error(
+                "SPARKD balance verification failed."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 DRY RUN SPARKD balance:",
+            balance.balance
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 6 — FIND TOKEN-2022 ACCOUNT
+        //
+        // READ ONLY
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🔎 DRY RUN finding SPARKD Token-2022 account..."
+        );
+
+
+        const tokenAccount =
+            await this.findSparkdTokenAccount(
+                wallet
+            );
+
+
+        if (
+            !tokenAccount ||
+            !tokenAccount.tokenAccount
+        ) {
+
+            throw new Error(
+                "Unable to locate the SPARKD Token-2022 account."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // STEP 7 — VERIFY TOKEN INFORMATION
+        ////////////////////////////////////////////////////
+
+        if (
+            tokenAccount.mint !==
+            "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+        ) {
+
+            throw new Error(
+                "SPARKD Token-2022 mint verification failed."
+            );
+
+        }
+
+
+        if (
+            tokenAccount.decimals !==
+            6
+        ) {
+
+            throw new Error(
+                "SPARKD Token-2022 decimal verification failed."
+            );
+
+        }
+
+
+        if (
+            tokenAccount.balance <
+            this.REQUIRED_SPARKD
+        ) {
+
+            throw new Error(
+                "SPARKD Token-2022 account balance is below the required amount."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 DRY RUN Token-2022 account verified:",
+            tokenAccount.tokenAccount
+        );
+
+
+        console.log(
+            "🪙 DRY RUN Token-2022 balance:",
+            tokenAccount.balance
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 8 — FORGE DATA
+        ////////////////////////////////////////////////////
+
+        if (
+            !forgeData ||
+            typeof forgeData !==
+                "object"
+        ) {
+
+            throw new Error(
+                "SPARKD Forge verification data is missing."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // STEP 9 — SERVER-SIDE FORGE VERIFICATION
+        ////////////////////////////////////////////////////
+
+        const forgeVerification =
+            await this.verifyForge(
+
+                wallet,
+
+                forgeData
+
+            );
+
+
+        console.log(
+            "🧬 DRY RUN Forge DNA verified:",
+            forgeVerification
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 10 — DRY RUN RESULT
+        ////////////////////////////////////////////////////
+
+        const result = {
+
+            success:
+                true,
+
+            dryRun:
+                true,
+
+            test:
+                false,
+
+            wallet:
+                wallet,
+
+            contestId:
+                contest.id,
+
+            memeTitle:
+                memeTitle ||
+                "Untitled SPARKD Meme",
+
+            requiredSparkd:
+                this.REQUIRED_SPARKD,
+
+            walletBalance:
+                balance.balance,
+
+            tokenAccount:
+                tokenAccount.tokenAccount,
+
+            mint:
+                tokenAccount.mint,
+
+            decimals:
+                tokenAccount.decimals,
+
+            tokenProgram:
+                tokenAccount.program,
+
+            forgeVerified:
+                true,
+
+            burnAmount:
+                this.REQUIRED_SPARKD,
+
+            burnTransaction:
+                null,
+
+            burnVerified:
+                false,
+
+            message:
+                "DRY RUN SUCCESS — submission is ready for Token-2022 burn authorization. NO TOKENS WERE BURNED."
+
+        };
+
+
+        ////////////////////////////////////////////////////
+        // FINAL LOG
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🔥🔥 SPARKD PRODUCTION SUBMISSION DRY RUN SUCCESS:",
+            result
+        );
+
+
+        return result;
+
+    },
+
+
     },
 
 
