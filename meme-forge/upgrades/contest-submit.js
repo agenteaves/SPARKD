@@ -1673,9 +1673,9 @@ async findSparkdTokenAccount(
     ////////////////////////////////////////////////////
 
     const token2022Program =
-        new solanaWeb3.PublicKey(
-            "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxu"
-        );
+    new solanaWeb3.PublicKey(
+        "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+    );
 
    
 ////////////////////////////////////////////////////
@@ -1689,9 +1689,8 @@ async findSparkdTokenAccount(
 
 const associatedTokenProgram =
     new solanaWeb3.PublicKey(
-        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efT"
+        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
     );
-
 
     ////////////////////////////////////////////////////
     // DERIVE TOKEN-2022 ASSOCIATED TOKEN ACCOUNT
