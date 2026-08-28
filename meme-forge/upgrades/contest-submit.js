@@ -867,9 +867,378 @@ window.SPARKD_CONTEST = {
         // STEP 1 — BASIC FILE CHECK
         ////////////////////////////////////////////////////
 
+        
         this.validateFile(
             file
         );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 2 — CONNECTED PHANTOM WALLET
+        //
+        // Uses the wallet already connected by
+        // the Meme of the Week contest wallet system.
+        //
+        // NO TOKEN TRANSACTION
+        // NO TOKEN BURN
+        // NO SOL TRANSFER
+        ////////////////////////////////////////////////////
+
+        const wallet =
+            typeof currentWallet !==
+                "undefined"
+                ? currentWallet
+                : null;
+
+
+        if (
+            typeof wallet !==
+                "string" ||
+            !wallet
+        ) {
+
+            throw new Error(
+                "Please connect your Phantom wallet first."
+            );
+
+        }
+
+
+        this.validateWallet(
+            wallet
+        );
+
+
+        console.log(
+            "🔑 TEST wallet:",
+            wallet
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 3 — CONTEST CHECK
+        ////////////////////////////////////////////////////
+
+        let contest =
+            null;
+
+
+        if (
+            typeof currentContest !==
+                "undefined" &&
+            currentContest
+        ) {
+
+            contest =
+                currentContest;
+
+        }
+        else {
+
+            contest =
+                await this.getCurrentContest();
+
+        }
+
+
+        if (
+            !contest ||
+            !contest.id
+        ) {
+
+            throw new Error(
+                "No active Meme of the Week contest."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 TEST contest:",
+            contest.id
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 4 — CHECK EXISTING SUBMISSION
+        ////////////////////////////////////////////////////
+
+        const existing =
+            await this.checkExistingSubmission(
+                wallet
+            );
+
+
+        if (
+            existing.submissionCount >
+            0
+        ) {
+
+            throw new Error(
+                "This wallet already has a submission for the current contest."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // STEP 5 — SPARKD BALANCE
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "🪙 TEST MODE: Checking SPARKD balance..."
+        );
+
+
+        const balance =
+            await this.checkBalance(
+                wallet
+            );
+
+
+        if (
+            !balance.canSubmit
+        ) {
+
+            throw new Error(
+                "SPARKD balance verification failed."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 TEST SPARKD balance verified:",
+            balance.balance
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 6 — FORGE DATA CHECK
+        ////////////////////////////////////////////////////
+
+        if (
+            !forgeData ||
+            typeof forgeData !==
+                "object"
+        ) {
+
+            throw new Error(
+                "SPARKD Forge verification data is missing."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // STEP 7 — SERVER-SIDE FORGE VERIFICATION
+        ////////////////////////////////////////////////////
+
+        const forgeVerification =
+            await this.verifyForge(
+
+                wallet,
+
+                forgeData
+
+            );
+
+
+        console.log(
+            "🔥 TEST Forge DNA verified."
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 8 — UPLOAD IMAGE
+        ////////////////////////////////////////////////////
+
+        const upload =
+            await this.uploadMeme(
+
+                file,
+
+                wallet,
+
+                contest.id
+
+            );
+
+
+        console.log(
+            "🔥 TEST meme uploaded:",
+            upload.path
+        );
+
+
+        ////////////////////////////////////////////////////
+        // STEP 9 — CREATE DATABASE SUBMISSION
+        ////////////////////////////////////////////////////
+
+        const client =
+            this.getSupabaseClient();
+
+
+        const submissionId =
+            crypto.randomUUID();
+
+
+        const submissionData = {
+
+            id:
+                submissionId,
+
+            contest_id:
+                contest.id,
+
+            creator_id:
+                forgeVerification.creatorID ||
+                forgeData.creatorID,
+
+            wallet_address:
+                wallet,
+
+            meme_title:
+                memeTitle ||
+                "Untitled SPARKD Meme",
+
+            meme_image_url:
+                upload.path,
+
+            dna_verified:
+                true,
+
+            dna_verification_data:
+                forgeData,
+
+            burn_amount:
+                0,
+
+            burn_transaction:
+                null,
+
+            burn_verified:
+                false,
+
+            status:
+                "pending"
+
+        };
+
+
+        ////////////////////////////////////////////////////
+        // INSERT DATABASE ROW
+        ////////////////////////////////////////////////////
+
+        console.log(
+            "💾 TEST inserting submission row..."
+        );
+
+
+        const {
+            error:
+                submissionError
+        } =
+            await client
+
+                .from(
+                    "meme_week_submissions"
+                )
+
+                .insert(
+                    submissionData
+                );
+
+
+        if (
+            submissionError
+        ) {
+
+            console.error(
+                "SPARKD submission database error:",
+                submissionError
+            );
+
+
+            ////////////////////////////////////////////////////
+            // CLEAN UP UPLOADED IMAGE
+            ////////////////////////////////////////////////////
+
+            console.log(
+                "🧹 Removing uploaded image because database insert failed..."
+            );
+
+
+            const {
+                error:
+                    cleanupError
+            } =
+                await client
+
+                    .storage
+
+                    .from(
+                        this.BUCKET
+                    )
+
+                    .remove([
+                        upload.path
+                    ]);
+
+
+            if (
+                cleanupError
+            ) {
+
+                console.error(
+                    "⚠️ Image cleanup also failed:",
+                    cleanupError
+                );
+
+            }
+
+
+            throw new Error(
+                submissionError.message
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // SUCCESS
+        ////////////////////////////////////////////////////
+
+        const submission = {
+
+            id:
+                submissionId,
+
+            ...submissionData
+
+        };
+
+
+        console.log(
+            "🔥🔥 SPARKD MEME OF THE WEEK TEST SUBMISSION SUCCESS:",
+            submission
+        );
+
+
+        return {
+
+            success:
+                true,
+
+            test:
+                true,
+
+            submission:
+                submission
+
+        };
+
+    },
 
 
     ////////////////////////////////////////////////////
@@ -977,10 +1346,6 @@ window.SPARKD_CONTEST = {
         }
 
 
-        ////////////////////////////////////////////////////
-        // USE FIRST MATCHING TOKEN ACCOUNT
-        ////////////////////////////////////////////////////
-
         const account =
             accounts.value[0];
 
@@ -1009,20 +1374,14 @@ window.SPARKD_CONTEST = {
             );
 
 
-        ////////////////////////////////////////////////////
-        // VERIFY EXPECTED DECIMALS
-        ////////////////////////////////////////////////////
-
         if (
             decimals !==
             6
         ) {
 
             throw new Error(
-
                 "Unexpected SPARKD decimals: " +
                 decimals
-
             );
 
         }
@@ -1066,6 +1425,7 @@ window.SPARKD_CONTEST = {
         };
 
     },
+
 
 
     ////////////////////////////////////////////////////
