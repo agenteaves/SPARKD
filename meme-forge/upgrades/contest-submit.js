@@ -1677,15 +1677,20 @@ async findSparkdTokenAccount(
             "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxu"
         );
 
+   
+////////////////////////////////////////////////////
+// ASSOCIATED TOKEN ACCOUNT PROGRAM
+////////////////////////////////////////////////////
+//
+// Official Solana Associated Token Account
+// program address.
+//
+////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////
-    // ASSOCIATED TOKEN ACCOUNT PROGRAM
-    ////////////////////////////////////////////////////
-
-    const associatedTokenProgram =
-        new solanaWeb3.PublicKey(
-            "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efT"
-        );
+const associatedTokenProgram =
+    new solanaWeb3.PublicKey(
+        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efT"
+    );
 
 
     ////////////////////////////////////////////////////
