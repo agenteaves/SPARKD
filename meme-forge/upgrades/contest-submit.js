@@ -1632,41 +1632,43 @@ async findSparkdTokenAccount(
     );
 
 
-    ////////////////////////////////////////////////////
-    // CALL SUPER-HANDLER
-    ////////////////////////////////////////////////////
+ 
+////////////////////////////////////////////////////
+// CALL SUPER-HANDLER
+////////////////////////////////////////////////////
 
-    const response =
-        await fetch(
+const response =
+    await fetch(
 
-           this.SUPER_HANDLER_URL
+        this.SUPER_HANDLER_URL,
 
-            {
+        {
 
-                method:
-                    "POST",
+            method:
+                "POST",
 
-                headers: {
+            headers: {
 
-                    "Content-Type":
-                        "application/json"
+                "Content-Type":
+                    "application/json"
 
-                },
+            },
 
-                body:
-                    JSON.stringify({
+            body:
+                JSON.stringify({
 
-                        action:
-                            "find_token_account",
+                    action:
+                        "find_token_account",
 
-                        wallet:
-                            wallet
+                    wallet:
+                        wallet
 
-                    })
+                })
 
-            }
+        }
 
-        );
+    );
+
 
 
     ////////////////////////////////////////////////////
