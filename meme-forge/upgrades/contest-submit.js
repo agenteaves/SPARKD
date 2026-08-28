@@ -1680,9 +1680,9 @@ window.SPARKD_CONTEST = {
                     mint:
                         mint,
 
-                    programId:
+                  programId:
     new solanaWeb3.PublicKey(
-        "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxu"
+        "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
     )
 
                 }
