@@ -1639,7 +1639,7 @@ async findSparkdTokenAccount(
     const response =
         await fetch(
 
-            this.CONFIG.SUPER_HANDLER_URL,
+           this.SUPER_HANDLER_URL
 
             {
 
