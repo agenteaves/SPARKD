@@ -1620,6 +1620,10 @@ async findSparkdTokenAccount(
     wallet
 ) {
 
+    ////////////////////////////////////////////////////
+    // VALIDATE WALLET
+    ////////////////////////////////////////////////////
+
     this.validateWallet(
         wallet
     );
@@ -1645,7 +1649,7 @@ async findSparkdTokenAccount(
 
 
     ////////////////////////////////////////////////////
-    // WALLET
+    // WALLET PUBLIC KEY
     ////////////////////////////////////////////////////
 
     const owner =
@@ -1655,30 +1659,13 @@ async findSparkdTokenAccount(
 
 
     ////////////////////////////////////////////////////
-    // SPARKD MINT
+    // SPARKD TOKEN-2022 MINT
     ////////////////////////////////////////////////////
 
     const mint =
         new solanaWeb3.PublicKey(
             "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
         );
-
-    console.log("🔎 DEBUG wallet:", wallet);
-
-console.log(
-    "🔎 DEBUG wallet PublicKey:",
-    owner.toString()
-);
-
-console.log(
-    "🔎 DEBUG SPARKD mint:",
-    mint.toString()
-);
-
-console.log(
-    "🔎 DEBUG Token-2022 program:",
-    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxu"
-);
 
 
     ////////////////////////////////////////////////////
@@ -1702,7 +1689,7 @@ console.log(
 
 
     ////////////////////////////////////////////////////
-    // DERIVE TOKEN-2022 ATA
+    // DERIVE TOKEN-2022 ASSOCIATED TOKEN ACCOUNT
     //
     // ATA seeds:
     //
@@ -1770,24 +1757,7 @@ console.log(
 
 
     ////////////////////////////////////////////////////
-    // VERIFY ACCOUNT OWNER
-    ////////////////////////////////////////////////////
-
-    if (
-        !accountInfo.value.owner.equals(
-            token2022Program
-        )
-    ) {
-
-        throw new Error(
-            "SPARKD token account is not owned by Token-2022."
-        );
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // PARSED DATA
+    // PARSED ACCOUNT DATA
     ////////////////////////////////////////////////////
 
     const parsed =
@@ -1806,16 +1776,16 @@ console.log(
     }
 
 
-    const tokenInfo =
-        parsed.info;
-
-
     ////////////////////////////////////////////////////
-    // VERIFY MINT
+    // VERIFY ACCOUNT MINT
     ////////////////////////////////////////////////////
+
+    const accountMint =
+        parsed.info.mint;
+
 
     if (
-        tokenInfo.mint !==
+        accountMint !==
         mint.toString()
     ) {
 
@@ -1827,11 +1797,15 @@ console.log(
 
 
     ////////////////////////////////////////////////////
-    // VERIFY OWNER
+    // VERIFY ACCOUNT OWNER
     ////////////////////////////////////////////////////
 
+    const accountOwner =
+        parsed.info.owner;
+
+
     if (
-        tokenInfo.owner !==
+        accountOwner !==
         owner.toString()
     ) {
 
@@ -1843,11 +1817,11 @@ console.log(
 
 
     ////////////////////////////////////////////////////
-    // TOKEN AMOUNT
+    // TOKEN BALANCE
     ////////////////////////////////////////////////////
 
     const tokenAmount =
-        tokenInfo.tokenAmount;
+        parsed.info.tokenAmount;
 
 
     const balance =
@@ -1901,11 +1875,6 @@ console.log(
     );
 
 
-    console.log(
-        "🛡️ SPARKD Token-2022 account verified."
-    );
-
-
     return {
 
         tokenAccount:
@@ -1926,6 +1895,7 @@ console.log(
     };
 
 },
+
 
     ////////////////////////////////////////////////////
     // REAL TEST SUBMISSION
