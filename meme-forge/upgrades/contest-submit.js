@@ -1647,7 +1647,7 @@ window.SPARKD_CONTEST = {
         const connection =
             new solanaWeb3.Connection(
 
-                "https://api.mainnet-beta.solana.com",
+                "https://solana-rpc.publicnode.com",
 
                 "confirmed"
 
