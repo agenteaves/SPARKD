@@ -1601,9 +1601,6 @@ window.SPARKD_CONTEST = {
     },
 
 
-    },
-
-
     ////////////////////////////////////////////////////
     // FIND SPARKD TOKEN-2022 ACCOUNT
     //
