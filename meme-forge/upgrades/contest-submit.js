@@ -1606,10 +1606,8 @@ window.SPARKD_CONTEST = {
 //
 // READ ONLY
 //
-// Uses the Token-2022 Associated Token Account.
-// Does NOT use getParsedTokenAccountsByOwner()
-// because public RPC endpoints may reject
-// indexed requests.
+// Uses the SPARKD super-handler and the private
+// Solana RPC configured server-side.
 //
 // NO TRANSACTION
 // NO TRANSFER
@@ -1635,209 +1633,140 @@ async findSparkdTokenAccount(
 
 
     ////////////////////////////////////////////////////
-    // PUBLIC SOLANA CONNECTION
+    // CALL SUPER-HANDLER
     ////////////////////////////////////////////////////
 
-    const connection =
-        new solanaWeb3.Connection(
+    const response =
+        await fetch(
 
-            "https://api.mainnet-beta.solana.com",
+            this.CONFIG.SUPER_HANDLER_URL,
 
-            "confirmed"
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        action:
+                            "find_token_account",
+
+                        wallet:
+                            wallet
+
+                    })
+
+            }
 
         );
 
 
     ////////////////////////////////////////////////////
-    // WALLET PUBLIC KEY
+    // HTTP ERROR
     ////////////////////////////////////////////////////
 
-    const owner =
-        new solanaWeb3.PublicKey(
-            wallet
+    if (
+        !response.ok
+    ) {
+
+        let errorMessage =
+            "SPARKD token account lookup failed.";
+
+
+        try {
+
+            const errorData =
+                await response.json();
+
+
+            if (
+                errorData?.error
+            ) {
+
+                errorMessage =
+                    errorData.error;
+
+            }
+
+        }
+        catch {
+            // Keep default error message.
+        }
+
+
+        throw new Error(
+            errorMessage
         );
 
+    }
+
 
     ////////////////////////////////////////////////////
-    // SPARKD TOKEN-2022 MINT
+    // PARSE RESULT
     ////////////////////////////////////////////////////
 
-    const mint =
-        new solanaWeb3.PublicKey(
-            "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+    const result =
+        await response.json();
+
+
+    ////////////////////////////////////////////////////
+    // VALIDATE SERVER RESPONSE
+    ////////////////////////////////////////////////////
+
+    if (
+        !result ||
+        result.success !==
+            true ||
+        result.found !==
+            true
+    ) {
+
+        throw new Error(
+            result?.error ||
+            "SPARKD Token-2022 account was not found."
         );
 
+    }
+
 
     ////////////////////////////////////////////////////
-    // TOKEN-2022 PROGRAM
+    // VERIFY MINT
     ////////////////////////////////////////////////////
 
-    const token2022Program =
-    new solanaWeb3.PublicKey(
+    if (
+        result.mint !==
+        "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+    ) {
+
+        throw new Error(
+            "SPARKD mint verification failed."
+        );
+
+    }
+
+
+    ////////////////////////////////////////////////////
+    // VERIFY TOKEN-2022 PROGRAM
+    ////////////////////////////////////////////////////
+
+    if (
+        result.program !==
         "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-    );
-
-   
-////////////////////////////////////////////////////
-// ASSOCIATED TOKEN ACCOUNT PROGRAM
-////////////////////////////////////////////////////
-//
-// Official Solana Associated Token Account
-// program address.
-//
-////////////////////////////////////////////////////
-
-const associatedTokenProgram =
-    new solanaWeb3.PublicKey(
-        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-    );
-
-    ////////////////////////////////////////////////////
-    // DERIVE TOKEN-2022 ASSOCIATED TOKEN ACCOUNT
-    //
-    // ATA seeds:
-    //
-    // owner
-    // token program
-    // mint
-    ////////////////////////////////////////////////////
-
-    const [
-        tokenAccount
-    ] =
-        solanaWeb3.PublicKey.findProgramAddressSync(
-
-            [
-
-                owner.toBuffer(),
-
-                token2022Program.toBuffer(),
-
-                mint.toBuffer()
-
-            ],
-
-            associatedTokenProgram
-
-        );
-
-
-    console.log(
-        "🔎 Derived SPARKD Token-2022 ATA:",
-        tokenAccount.toString()
-    );
-
-
-    ////////////////////////////////////////////////////
-    // READ ACCOUNT DIRECTLY
-    //
-    // This is NOT an indexed request.
-    ////////////////////////////////////////////////////
-
-    const accountInfo =
-        await connection.getParsedAccountInfo(
-
-            tokenAccount,
-
-            "confirmed"
-
-        );
-
-
-    ////////////////////////////////////////////////////
-    // ACCOUNT DOES NOT EXIST
-    ////////////////////////////////////////////////////
-
-    if (
-        !accountInfo ||
-        !accountInfo.value
     ) {
 
         throw new Error(
-            "SPARKD Token-2022 Associated Token Account was not found."
+            "SPARKD Token-2022 program verification failed."
         );
 
     }
-
-
-    ////////////////////////////////////////////////////
-    // PARSED ACCOUNT DATA
-    ////////////////////////////////////////////////////
-
-    const parsed =
-        accountInfo.value.data?.parsed;
-
-
-    if (
-        !parsed ||
-        !parsed.info
-    ) {
-
-        throw new Error(
-            "SPARKD Token-2022 account data could not be parsed."
-        );
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // VERIFY ACCOUNT MINT
-    ////////////////////////////////////////////////////
-
-    const accountMint =
-        parsed.info.mint;
-
-
-    if (
-        accountMint !==
-        mint.toString()
-    ) {
-
-        throw new Error(
-            "SPARKD Token-2022 account mint verification failed."
-        );
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // VERIFY ACCOUNT OWNER
-    ////////////////////////////////////////////////////
-
-    const accountOwner =
-        parsed.info.owner;
-
-
-    if (
-        accountOwner !==
-        owner.toString()
-    ) {
-
-        throw new Error(
-            "SPARKD Token-2022 account owner verification failed."
-        );
-
-    }
-
-
-    ////////////////////////////////////////////////////
-    // TOKEN BALANCE
-    ////////////////////////////////////////////////////
-
-    const tokenAmount =
-        parsed.info.tokenAmount;
-
-
-    const balance =
-        Number(
-            tokenAmount?.uiAmount || 0
-        );
-
-
-    const decimals =
-        Number(
-            tokenAmount?.decimals
-        );
 
 
     ////////////////////////////////////////////////////
@@ -1845,60 +1774,66 @@ const associatedTokenProgram =
     ////////////////////////////////////////////////////
 
     if (
-        decimals !==
+        Number(
+            result.decimals
+        ) !==
         6
     ) {
 
         throw new Error(
             "Unexpected SPARKD decimals: " +
-            decimals
+            result.decimals
         );
 
     }
 
 
     ////////////////////////////////////////////////////
-    // SUCCESS
+    // FINAL READ-ONLY RESULT
     ////////////////////////////////////////////////////
 
-    console.log(
-        "🔥 SPARKD Token-2022 account found:",
-        tokenAccount.toString()
-    );
-
-
-    console.log(
-        "🪙 SPARKD token balance:",
-        balance
-    );
-
-
-    console.log(
-        "🔢 SPARKD decimals:",
-        decimals
-    );
-
-
-    return {
+    const tokenAccountResult = {
 
         tokenAccount:
-            tokenAccount.toString(),
+            result.tokenAccount,
 
         mint:
-            mint.toString(),
+            result.mint,
 
         balance:
-            balance,
+            Number(
+                result.balance ||
+                0
+            ),
+
+        rawAmount:
+            result.rawAmount,
 
         decimals:
-            decimals,
+            Number(
+                result.decimals
+            ),
 
         program:
-            "Token-2022"
+            result.program,
+
+        sufficientBalance:
+            result.sufficientBalance ===
+            true
 
     };
 
+
+    console.log(
+        "🔥 SPARKD Token-2022 READ-ONLY ACCOUNT RESULT:",
+        tokenAccountResult
+    );
+
+
+    return tokenAccountResult;
+
 },
+
 
 
     ////////////////////////////////////////////////////
