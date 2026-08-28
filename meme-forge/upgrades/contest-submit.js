@@ -392,7 +392,7 @@ window.SPARKD_CONTEST = {
         const response =
             await fetch(
 
-                this.SUPER_HANDLER_URL,
+                this.CONFIG.SUPER_HANDLER_URL,
 
                 {
 
