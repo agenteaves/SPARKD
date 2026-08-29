@@ -3265,21 +3265,22 @@ async checkTransactionStatus(
                 method:
                     "POST",
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-               JSON.stringify({
-                action:
-                    "check_transaction_status",
+               headers: {
+                "Content-Type":
+                    "application/json"
+            },
             
-                wallet:
-                    wallet,
+            body:
+                JSON.stringify({
+                    action:
+                        "check_transaction_status",
             
-                transactionSignature:
-                    transactionSignature
-            })
+                    wallet:
+                        wallet,
+            
+                    transactionSignature:
+                        transactionSignature
+    })
             }
         );
 
