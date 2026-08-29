@@ -1685,57 +1685,101 @@ if (
             savedBurnRecovery
         );
 
- if (
-    recoveryData?.signedTransaction &&
-    recoveryData?.burnTransaction &&
-    recoveryData?.status === "signed_pending_broadcast"
-) {
+    ////////////////////////////////////////////////////
+    // SIGNED TRANSACTION PENDING RECOVERY
+    ////////////////////////////////////////////////////
 
-    console.log(
-        "♻️ Resubmitting exact previously signed SPARKD burn transaction..."
-    );
+    if (
+        recoveryData?.signedTransaction &&
+        recoveryData?.burnTransaction &&
+        recoveryData?.status === "signed_pending_broadcast"
+    ) {
 
-   await this.resendSignedBurnTransaction(
-    wallet,
-    recoveryData.signedTransaction
-);
-
-console.log(
-    "🔎 Verifying recovered SPARKD burn on-chain..."
-);
-
-try {
-
-    await this.recordBurnReceipt(
-        wallet,
-        contest.id,
-        recoveryData.burnTransaction
-    );
-
-    existingBurnReceipt =
-        await this.getBurnReceipt(
-            wallet,
-            contest.id
+        console.log(
+            "♻️ Resubmitting exact previously signed SPARKD burn transaction..."
         );
 
-}
-catch (
-    recoveryError
-) {
+        await this.resendSignedBurnTransaction(
+            wallet,
+            recoveryData.signedTransaction
+        );
 
-    console.error(
-        "⚠️ Recovered SPARKD burn is not yet verifiable:",
-        recoveryError
+        console.log(
+            "🔎 Verifying recovered SPARKD burn on-chain..."
+        );
+
+        try {
+
+            await this.recordBurnReceipt(
+                wallet,
+                contest.id,
+                recoveryData.burnTransaction
+            );
+
+            existingBurnReceipt =
+                await this.getBurnReceipt(
+                    wallet,
+                    contest.id
+                );
+
+            console.log(
+                "♻️ Pending SPARKD burn recovered and verified."
+            );
+
+        }
+        catch (
+            recoveryError
+        ) {
+
+            console.error(
+                "⚠️ Recovered SPARKD burn is not yet verifiable:",
+                recoveryError
+            );
+
+            throw new Error(
+                "The previously signed SPARKD burn transaction is still pending recovery. DO NOT BURN AGAIN."
+            );
+
+        }
+
+    }
+
+    ////////////////////////////////////////////////////
+    // BROADCAST SIGNATURE ALREADY SAVED
+    ////////////////////////////////////////////////////
+
+    else if (
+        recoveryData?.burnTransaction
+    ) {
+
+        await this.recordBurnReceipt(
+            wallet,
+            contest.id,
+            recoveryData.burnTransaction
+        );
+
+        existingBurnReceipt =
+            await this.getBurnReceipt(
+                wallet,
+                contest.id
+            );
+
+        console.log(
+            "♻️ SPARKD burn receipt recovered from local marker."
+        );
+
+    }
+
+}
+
+////////////////////////////////////////////////////
+// CHECK EXISTING SUBMISSION
+////////////////////////////////////////////////////
+
+const existing =
+    await this.checkExistingSubmission(
+        wallet
     );
-
-    throw new Error(
-        "The previously signed SPARKD burn transaction is still pending recovery. DO NOT BURN AGAIN."
-    );
-
-}
-}
-
-        
 
 ////////////////////////////////////////////////////
 // VERIFIED RECEIPT EXISTS
