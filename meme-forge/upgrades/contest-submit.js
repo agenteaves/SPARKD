@@ -2232,7 +2232,20 @@ console.log(
     "🔥🔥 SPARKD REAL CONTEST SUBMISSION SUCCESS:",
     finalized.submission
 );
+        
+////////////////////////////////////////////////////
+// CLEAR LOCAL BURN RECOVERY MARKER
+//
+// ONLY AFTER FINALIZATION SUCCEEDS
+////////////////////////////////////////////////////
 
+localStorage.removeItem(
+    `sparkd_burn_recovery_${contest.id}_${wallet}`
+);
+
+console.log(
+    "🧹 SPARKD burn recovery marker cleared."
+);
 
 return {
 
