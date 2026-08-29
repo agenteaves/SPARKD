@@ -3128,6 +3128,67 @@ encodeBase58(bytes) {
 
 },
 
+////////////////////////////////////////////////////
+// RESEND EXACT SIGNED BURN TRANSACTION
+//
+// DOES NOT CREATE OR SIGN A NEW BURN.
+// IT ONLY RESUBMITS THE ALREADY-SIGNED BYTES.
+////////////////////////////////////////////////////
+
+async resendSignedBurnTransaction(
+    wallet,
+    signedTransactionBase64
+) {
+
+    if (
+        !wallet ||
+        !signedTransactionBase64
+    ) {
+
+        throw new Error(
+            "Missing signed SPARKD burn recovery data."
+        );
+
+    }
+
+    const response =
+        await fetch(
+            this.SUPER_HANDLER_URL,
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        action:
+                            "send_signed_transaction",
+
+                        wallet:
+                            wallet,
+
+                        signedTransaction:
+                            signedTransactionBase64
+                    })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    return {
+        response:
+            response,
+        result:
+            result
+    };
+
+},
+
    async executeSparkdBurn(
     wallet,
     contestId
