@@ -1727,21 +1727,65 @@ if (
             );
 
         }
-        catch (
-            recoveryError
-        ) {
+       catch (
+    recoveryError
+) {
 
-            console.error(
-                "⚠️ Recovered SPARKD burn is not yet verifiable:",
-                recoveryError
-            );
+    console.error(
+        "⚠️ Recovered SPARKD burn is not yet verifiable:",
+        recoveryError
+    );
 
-            throw new Error(
-                "The previously signed SPARKD burn transaction is still pending recovery. DO NOT BURN AGAIN."
-            );
+    const transactionStatus =
+        await this.checkTransactionStatus(
+            wallet,
+            recoveryData.burnTransaction
+        );
 
-        }
+    const currentBlockHeightResult =
+        await this.getBlockHeight(
+            wallet
+        );
 
+    const transactionNotFound =
+        transactionStatus?.found === false;
+
+    const lastValidBlockHeight =
+        Number(
+            recoveryData?.lastValidBlockHeight
+        );
+
+    const currentBlockHeight =
+        Number(
+            currentBlockHeightResult?.blockHeight
+        );
+
+    const transactionExpired =
+        Number.isFinite(lastValidBlockHeight) &&
+        Number.isFinite(currentBlockHeight) &&
+        currentBlockHeight >
+            lastValidBlockHeight;
+
+    if (
+        transactionNotFound &&
+        transactionExpired
+    ) {
+
+        localStorage.removeItem(
+            burnRecoveryKey
+        );
+
+        throw new Error(
+            "The previous signed SPARKD burn expired without landing and was safely cleared. Please submit again to create a fresh burn."
+        );
+
+    }
+
+         throw new Error(
+            "The previously signed SPARKD burn transaction is still pending recovery. DO NOT BURN AGAIN."
+         );
+
+}
     }
 
     ////////////////////////////////////////////////////
