@@ -2265,6 +2265,362 @@ const response =
 
     },
 
+        ////////////////////////////////////////////////////
+    // EXECUTE + VERIFY SPARKD TOKEN-2022 BURN
+    //
+    // WARNING:
+    // Phantom approval WILL send a REAL transaction.
+    // Successful execution burns 2,000 SPARKD.
+    ////////////////////////////////////////////////////
+
+    async executeSparkdBurn(wallet) {
+
+        console.log(
+            "🔥 Preparing REAL 2,000 SPARKD burn..."
+        );
+
+
+        ////////////////////////////////////////////////////
+        // VALIDATE WALLET
+        ////////////////////////////////////////////////////
+
+        this.validateWallet(
+            wallet
+        );
+
+
+        ////////////////////////////////////////////////////
+        // REQUIRE PHANTOM
+        ////////////////////////////////////////////////////
+
+        if (
+            !window.solana ||
+            !window.solana.isPhantom
+        ) {
+
+            throw new Error(
+                "Phantom wallet is required."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // VERIFY PHANTOM WALLET MATCHES
+        ////////////////////////////////////////////////////
+
+        if (
+            !window.solana.publicKey
+        ) {
+
+            throw new Error(
+                "Please connect Phantom first."
+            );
+
+        }
+
+
+        const phantomWallet =
+            window.solana.publicKey.toString();
+
+
+        if (
+            phantomWallet !== wallet
+        ) {
+
+            throw new Error(
+                "Connected Phantom wallet does not match the contest wallet."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // BUILD FRESH BURN TRANSACTION
+        ////////////////////////////////////////////////////
+
+        const built =
+            await this.buildSparkdBurnTransaction(
+                wallet
+            );
+
+
+        if (
+            !built ||
+            !built.transaction
+        ) {
+
+            throw new Error(
+                "Unable to build SPARKD burn transaction."
+            );
+
+        }
+
+
+        console.log(
+            "⚠️ Phantom will now request approval to burn exactly 2,000 SPARKD."
+        );
+
+
+        ////////////////////////////////////////////////////
+        // PHANTOM SIGN + SEND
+        //
+        // THIS IS THE POINT WHERE USER APPROVAL
+        // CAN CAUSE THE REAL TOKEN BURN.
+        ////////////////////////////////////////////////////
+
+        let sendResult;
+
+
+        try {
+
+            sendResult =
+                await window.solana.signAndSendTransaction(
+                    built.transaction
+                );
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ Phantom rejected or failed the SPARKD burn:",
+                error
+            );
+
+            throw error;
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // GET TRANSACTION SIGNATURE
+        ////////////////////////////////////////////////////
+
+        const signature =
+            typeof sendResult === "string"
+                ? sendResult
+                : sendResult?.signature;
+
+
+        if (
+            typeof signature !== "string" ||
+            !signature
+        ) {
+
+            throw new Error(
+                "Phantom did not return a burn transaction signature."
+            );
+
+        }
+
+
+        console.log(
+            "🔥 SPARKD burn transaction sent:",
+            signature
+        );
+
+
+        ////////////////////////////////////////////////////
+        // SERVER-SIDE ON-CHAIN VERIFICATION
+        //
+        // Transaction may take a moment to reach
+        // confirmed status, so retry read-only verification.
+        ////////////////////////////////////////////////////
+
+        let verification =
+            null;
+
+
+        const maxAttempts =
+            15;
+
+
+        for (
+            let attempt = 1;
+            attempt <= maxAttempts;
+            attempt++
+        ) {
+
+            console.log(
+                "🔎 Verifying SPARKD burn on-chain... attempt",
+                attempt,
+                "of",
+                maxAttempts
+            );
+
+
+            const verifyResponse =
+                await fetch(
+
+                    this.SUPER_HANDLER_URL,
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                action:
+                                    "verify_burn",
+
+                                wallet:
+                                    wallet,
+
+                                burnTransaction:
+                                    signature
+
+                            })
+
+                    }
+
+                );
+
+
+            const verifyResult =
+                await verifyResponse.json();
+
+
+            if (
+                verifyResponse.ok &&
+                verifyResult.success === true &&
+                verifyResult.verified === true
+            ) {
+
+                verification =
+                    verifyResult;
+
+                break;
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // HARD FAILURE
+            //
+            // If server explicitly says the transaction
+            // exists but does not contain our valid burn,
+            // stop instead of retrying.
+            ////////////////////////////////////////////////////
+
+            if (
+                verifyResult.success === true &&
+                verifyResult.verified === false &&
+                verifyResult.transactionFound === true
+            ) {
+
+                throw new Error(
+
+                    verifyResult.reason ||
+                    verifyResult.error ||
+                    "The transaction was found but the SPARKD burn could not be verified."
+
+                );
+
+            }
+
+
+            ////////////////////////////////////////////////////
+            // WAIT 1 SECOND BEFORE NEXT READ-ONLY CHECK
+            ////////////////////////////////////////////////////
+
+            if (
+                attempt <
+                maxAttempts
+            ) {
+
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            1000
+                        )
+                );
+
+            }
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // VERIFICATION FAILED / NOT CONFIRMED
+        ////////////////////////////////////////////////////
+
+        if (
+            !verification ||
+            verification.verified !== true
+        ) {
+
+            throw new Error(
+
+                "The burn transaction was sent, but server verification has not confirmed it yet. Transaction: " +
+                signature
+
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // FINAL VERIFIED RESULT
+        ////////////////////////////////////////////////////
+
+        const result = {
+
+            success:
+                true,
+
+            burned:
+                true,
+
+            verified:
+                true,
+
+            wallet:
+                wallet,
+
+            tokenAccount:
+                built.tokenAccount,
+
+            mint:
+                built.mint,
+
+            burnAmount:
+                2000,
+
+            rawBurnAmount:
+                "2000000000",
+
+            decimals:
+                6,
+
+            burnTransaction:
+                signature,
+
+            verification:
+                verification
+
+        };
+
+
+        console.log(
+            "🔥🔥 SPARKD REAL BURN VERIFIED:",
+            result
+        );
+
+
+        return result;
+
+    },
+
     ////////////////////////////////////////////////////
     // REAL TEST SUBMISSION
     //
