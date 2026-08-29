@@ -2059,10 +2059,11 @@ else {
 
     try {
 
-        burnResult =
-            await this.executeSparkdBurn(
-                wallet
-            );
+       burnResult =
+    await this.executeSparkdBurn(
+        wallet,
+        contest.id
+    );
 
     }
     catch (error) {
@@ -3021,7 +3022,10 @@ const response =
     // Successful execution burns 2,000 SPARKD.
     ////////////////////////////////////////////////////
 
-    async executeSparkdBurn(wallet) {
+    async exasync executeSparkdBurn(
+    wallet,
+    contestId
+) {ecuteSparkdBurn(wallet) {
 
         console.log(
             "🔥 Preparing REAL 2,000 SPARKD burn..."
