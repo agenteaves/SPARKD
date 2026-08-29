@@ -3283,6 +3283,32 @@ for (
 const signedTransactionBase64 =
     btoa(binary);
 
+       ////////////////////////////////////////////////////
+// DERIVE TRANSACTION SIGNATURE BEFORE BROADCAST
+////////////////////////////////////////////////////
+
+if (
+    !signedTransaction.signatures ||
+    !signedTransaction.signatures[0] ||
+    !signedTransaction.signatures[0].signature
+) {
+
+    throw new Error(
+        "Unable to read the signed SPARKD transaction signature."
+    );
+
+}
+
+const preBroadcastSignature =
+    this.encodeBase58(
+        signedTransaction.signatures[0].signature
+    );
+
+console.log(
+    "🧾 SPARKD transaction signature derived before broadcast:",
+    preBroadcastSignature
+);
+
 
 console.log(
     "✍️ SPARKD burn transaction signed by Phantom."
