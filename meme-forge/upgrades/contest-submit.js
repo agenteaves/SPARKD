@@ -2362,63 +2362,136 @@ const response =
         );
 
 
-        ////////////////////////////////////////////////////
-        // PHANTOM SIGN + SEND
-        //
-        // THIS IS THE POINT WHERE USER APPROVAL
-        // CAN CAUSE THE REAL TOKEN BURN.
-        ////////////////////////////////////////////////////
+       ////////////////////////////////////////////////////
+// PHANTOM SIGN — SERVER SENDS THROUGH PRIVATE RPC
+////////////////////////////////////////////////////
 
-        let sendResult;
+let signedTransaction;
 
 
-        try {
+try {
 
-            sendResult =
-                await window.solana.signAndSendTransaction(
-                    built.transaction
-                );
-
-        }
-        catch (error) {
-
-            console.error(
-                "❌ Phantom rejected or failed the SPARKD burn:",
-                error
-            );
-
-            throw error;
-
-        }
-
-
-        ////////////////////////////////////////////////////
-        // GET TRANSACTION SIGNATURE
-        ////////////////////////////////////////////////////
-
-        const signature =
-            typeof sendResult === "string"
-                ? sendResult
-                : sendResult?.signature;
-
-
-        if (
-            typeof signature !== "string" ||
-            !signature
-        ) {
-
-            throw new Error(
-                "Phantom did not return a burn transaction signature."
-            );
-
-        }
-
-
-        console.log(
-            "🔥 SPARKD burn transaction sent:",
-            signature
+    signedTransaction =
+        await window.solana.signTransaction(
+            built.transaction
         );
 
+}
+catch (error) {
+
+    console.error(
+        "❌ Phantom rejected or failed to sign the SPARKD burn:",
+        error
+    );
+
+    throw error;
+
+}
+
+
+////////////////////////////////////////////////////
+// SERIALIZE SIGNED TRANSACTION
+////////////////////////////////////////////////////
+
+if (!signedTransaction) {
+
+    throw new Error(
+        "Phantom did not return a signed transaction."
+    );
+
+}
+
+
+const serialized =
+    signedTransaction.serialize();
+
+
+let binary = "";
+
+for (
+    let i = 0;
+    i < serialized.length;
+    i++
+) {
+
+    binary +=
+        String.fromCharCode(
+            serialized[i]
+        );
+
+}
+
+
+const signedTransactionBase64 =
+    btoa(binary);
+
+
+console.log(
+    "✍️ SPARKD burn transaction signed by Phantom."
+);
+
+
+////////////////////////////////////////////////////
+// SEND THROUGH PRIVATE SOLANA RPC
+////////////////////////////////////////////////////
+
+const sendResponse =
+    await fetch(
+        this.SUPER_HANDLER_URL,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                action: "send_signed_transaction",
+                wallet,
+                signedTransaction:
+                    signedTransactionBase64
+            })
+        }
+    );
+
+
+const sendResult =
+    await sendResponse.json();
+
+
+if (
+    !sendResponse.ok ||
+    !sendResult?.success ||
+    !sendResult?.sent ||
+    !sendResult?.transactionSignature
+) {
+
+    console.error(
+        "❌ SPARKD private-RPC send failed:",
+        sendResult
+    );
+
+    throw new Error(
+        sendResult?.rpcError?.message ||
+        sendResult?.error ||
+        "Failed to broadcast signed burn transaction."
+    );
+
+}
+
+
+////////////////////////////////////////////////////
+// GET TRANSACTION SIGNATURE
+////////////////////////////////////////////////////
+
+const signature =
+    sendResult.transactionSignature;
+
+
+console.log(
+    "🔥 SPARKD burn transaction sent through private RPC:",
+    signature
+);
 
         ////////////////////////////////////////////////////
         // SERVER-SIDE ON-CHAIN VERIFICATION
