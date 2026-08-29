@@ -1647,139 +1647,171 @@ async finalizeSubmission(
         );
 
 
-        ////////////////////////////////////////////////////
-        // STEP 4 — EXISTING SUBMISSION CHECK
-        ////////////////////////////////////////////////////
+       ////////////////////////////////////////////////////
+// STEP 4 — EXISTING SUBMISSION CHECK
+////////////////////////////////////////////////////
 
-        const existing =
-            await this.checkExistingSubmission(
-                wallet
-            );
-
-
-        if (
-            existing.submissionCount >
-            0
-        ) {
-
-            throw new Error(
-                "This wallet already has a submission for the current contest."
-            );
-
-        }
+const existing =
+    await this.checkExistingSubmission(
+        wallet
+    );
 
 
-        ////////////////////////////////////////////////////
-        // STEP 5 — SPARKD BALANCE
-        ////////////////////////////////////////////////////
+if (
+    existing.submissionCount >
+    0
+) {
 
-        console.log(
-            "🪙 DRY RUN checking SPARKD balance..."
+    throw new Error(
+        "This wallet already has a submission for the current contest."
+    );
+
+}
+
+      ////////////////////////////////////////////////////
+// STEP 5–7 — BALANCE / TOKEN ACCOUNT
+//
+// SKIP DURING VERIFIED RECEIPT RECOVERY
+////////////////////////////////////////////////////
+
+let balance =
+    null;
+
+
+let tokenAccount =
+    null;
+
+
+const recoveringExistingBurn =
+    existingBurnReceipt?.found ===
+        true &&
+    existingBurnReceipt?.verified ===
+        true &&
+    existingBurnReceipt?.receipt?.burn_transaction;
+
+
+if (
+    recoveringExistingBurn
+) {
+
+    console.log(
+        "♻️ Recovery mode: skipping new SPARKD balance and token-account requirements."
+    );
+
+}
+else {
+
+    ////////////////////////////////////////////////////
+    // STEP 5 — SPARKD BALANCE
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🪙 Checking SPARKD balance..."
+    );
+
+
+    balance =
+        await this.checkBalance(
+            wallet
         );
 
 
-        const balance =
-            await this.checkBalance(
-                wallet
-            );
+    if (
+        !balance.canSubmit
+    ) {
+
+        throw new Error(
+            "SPARKD balance verification failed."
+        );
+
+    }
 
 
-        if (
-            !balance.canSubmit
-        ) {
-
-            throw new Error(
-                "SPARKD balance verification failed."
-            );
-
-        }
+    console.log(
+        "🔥 SPARKD balance:",
+        balance.balance
+    );
 
 
-        console.log(
-            "🔥 DRY RUN SPARKD balance:",
-            balance.balance
+    ////////////////////////////////////////////////////
+    // STEP 6 — FIND TOKEN-2022 ACCOUNT
+    ////////////////////////////////////////////////////
+
+    console.log(
+        "🔎 Finding SPARKD Token-2022 account..."
+    );
+
+
+    tokenAccount =
+        await this.findSparkdTokenAccount(
+            wallet
         );
 
 
-        ////////////////////////////////////////////////////
-        // STEP 6 — FIND TOKEN-2022 ACCOUNT
-        //
-        // READ ONLY
-        ////////////////////////////////////////////////////
+    if (
+        !tokenAccount ||
+        !tokenAccount.tokenAccount
+    ) {
 
-        console.log(
-            "🔎 DRY RUN finding SPARKD Token-2022 account..."
+        throw new Error(
+            "Unable to locate the SPARKD Token-2022 account."
         );
 
-
-        const tokenAccount =
-            await this.findSparkdTokenAccount(
-                wallet
-            );
+    }
 
 
-        if (
-            !tokenAccount ||
-            !tokenAccount.tokenAccount
-        ) {
+    ////////////////////////////////////////////////////
+    // STEP 7 — VERIFY TOKEN INFORMATION
+    ////////////////////////////////////////////////////
 
-            throw new Error(
-                "Unable to locate the SPARKD Token-2022 account."
-            );
+    if (
+        tokenAccount.mint !==
+        "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+    ) {
 
-        }
-
-
-        ////////////////////////////////////////////////////
-        // STEP 7 — VERIFY TOKEN INFORMATION
-        ////////////////////////////////////////////////////
-
-        if (
-            tokenAccount.mint !==
-            "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
-        ) {
-
-            throw new Error(
-                "SPARKD Token-2022 mint verification failed."
-            );
-
-        }
-
-
-        if (
-            tokenAccount.decimals !==
-            6
-        ) {
-
-            throw new Error(
-                "SPARKD Token-2022 decimal verification failed."
-            );
-
-        }
-
-
-        if (
-            tokenAccount.balance <
-            this.REQUIRED_SPARKD
-        ) {
-
-            throw new Error(
-                "SPARKD Token-2022 account balance is below the required amount."
-            );
-
-        }
-
-
-        console.log(
-            "🔥 DRY RUN Token-2022 account verified:",
-            tokenAccount.tokenAccount
+        throw new Error(
+            "SPARKD Token-2022 mint verification failed."
         );
 
+    }
 
-        console.log(
-            "🪙 DRY RUN Token-2022 balance:",
-            tokenAccount.balance
+
+    if (
+        tokenAccount.decimals !==
+        6
+    ) {
+
+        throw new Error(
+            "SPARKD Token-2022 decimal verification failed."
         );
+
+    }
+
+
+    if (
+        tokenAccount.balance <
+        this.REQUIRED_SPARKD
+    ) {
+
+        throw new Error(
+            "SPARKD Token-2022 account balance is below the required amount."
+        );
+
+    }
+
+
+    console.log(
+        "🔥 SPARKD Token-2022 account verified:",
+        tokenAccount.tokenAccount
+    );
+
+
+    console.log(
+        "🪙 SPARKD Token-2022 balance:",
+        tokenAccount.balance
+    );
+
+}
 
 
         ////////////////////////////////////////////////////
