@@ -3215,10 +3215,13 @@ async getBlockHeight(
                 },
 
                 body:
-                    JSON.stringify({
-                        action:
-                            "get_block_height"
-                    })
+                   JSON.stringify({
+                action:
+                    "get_block_height",
+            
+                wallet:
+                    wallet
+})
             }
         );
 
