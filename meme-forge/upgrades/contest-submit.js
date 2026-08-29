@@ -1643,17 +1643,96 @@ async finalizeSubmission(
 );
 
 
-       ////////////////////////////////////////////////////
-// STEP 4 — EXISTING SUBMISSION CHECK
+   ////////////////////////////////////////////////////
+// STEP 4 — RECOVERY STATE CHECK
+//
+// CHECK BURN RECEIPT BEFORE ANY NEW BURN
 ////////////////////////////////////////////////////
+
+console.log(
+    "🔎 Checking for an existing SPARKD burn receipt..."
+);
+
+let existingBurnReceipt =
+    await this.getBurnReceipt(
+        wallet,
+        contest.id
+    );
+
+////////////////////////////////////////////////////
+// LOCAL BURN RECOVERY
+////////////////////////////////////////////////////
+
+const burnRecoveryKey =
+    `sparkd_burn_recovery_${contest.id}_${wallet}`;
+
+const savedBurnRecovery =
+    localStorage.getItem(
+        burnRecoveryKey
+    );
+
+if (
+    existingBurnReceipt?.found !== true &&
+    savedBurnRecovery
+) {
+
+    console.log(
+        "🛡️ Local SPARKD burn recovery marker found."
+    );
+
+    const recoveryData =
+        JSON.parse(
+            savedBurnRecovery
+        );
+
+    if (
+        recoveryData?.burnTransaction
+    ) {
+
+        await this.recordBurnReceipt(
+            wallet,
+            contest.id,
+            recoveryData.burnTransaction
+        );
+
+        existingBurnReceipt =
+            await this.getBurnReceipt(
+                wallet,
+                contest.id
+            );
+
+        console.log(
+            "♻️ SPARKD burn receipt recovered from local marker."
+        );
+
+    }
+
+}
 
 const existing =
     await this.checkExistingSubmission(
         wallet
     );
 
+////////////////////////////////////////////////////
+// VERIFIED RECEIPT EXISTS
+//
+// NEVER BURN AGAIN FOR THIS CONTEST
+////////////////////////////////////////////////////
 
 if (
+    existingBurnReceipt?.found === true &&
+    existingBurnReceipt?.verified === true &&
+    existingBurnReceipt?.receipt?.burn_transaction
+) {
+
+    console.log(
+        "♻️ Verified SPARKD burn receipt found. Recovery mode enabled:",
+        existingBurnReceipt.receipt.burn_transaction
+    );
+
+}
+else if (
     existing.submissionCount >
     0
 ) {
