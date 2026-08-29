@@ -3192,6 +3192,67 @@ encodeBase58(bytes) {
 // IT ONLY RESUBMITS THE ALREADY-SIGNED BYTES.
 ////////////////////////////////////////////////////
 
+    ////////////////////////////////////////////////////
+// CHECK SOLANA TRANSACTION STATUS
+//
+// READ ONLY
+////////////////////////////////////////////////////
+
+async checkTransactionStatus(
+    transactionSignature
+) {
+
+    if (
+        !transactionSignature
+    ) {
+
+        throw new Error(
+            "Missing SPARKD transaction signature."
+        );
+
+    }
+
+    const response =
+        await fetch(
+            this.SUPER_HANDLER_URL,
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        action:
+                            "check_transaction_status",
+
+                        transactionSignature:
+                            transactionSignature
+                    })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (
+        !response.ok
+    ) {
+
+        throw new Error(
+            result?.error ||
+            "Unable to check SPARKD transaction status."
+        );
+
+    }
+
+    return result;
+
+},
+
 async resendSignedBurnTransaction(
     wallet,
     signedTransactionBase64
