@@ -3278,7 +3278,33 @@ if (
 
 const signature =
     sendResult.transactionSignature;
+       
+////////////////////////////////////////////////////
+// UPDATE RECOVERY MARKER WITH BROADCAST SIGNATURE
+////////////////////////////////////////////////////
 
+localStorage.setItem(
+    `sparkd_burn_recovery_${contestId}_${wallet}`,
+    JSON.stringify({
+        contestId:
+            contestId,
+        wallet:
+            wallet,
+        burnTransaction:
+            signature,
+        signedTransaction:
+            signedTransactionBase64,
+        status:
+            "broadcast",
+        createdAt:
+            new Date().toISOString()
+    })
+);
+
+console.log(
+    "🛡️ SPARKD recovery marker updated with transaction signature:",
+    signature
+);
 
 console.log(
     "🔥 SPARKD burn transaction sent through private RPC:",
