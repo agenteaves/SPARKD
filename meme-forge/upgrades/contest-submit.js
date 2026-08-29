@@ -2272,9 +2272,6 @@ else {
 // DO THIS BEFORE RECORDING THE SERVER RECEIPT
 ////////////////////////////////////////////////////
 
-const burnRecoveryKey =
-    `sparkd_burn_recovery_${contest.id}_${wallet}`;
-
 localStorage.setItem(
     burnRecoveryKey,
     JSON.stringify({
