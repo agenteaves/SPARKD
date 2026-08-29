@@ -1835,8 +1835,435 @@ const response =
     return tokenAccountResult;
 
 },
+    
+
+    ////////////////////////////////////////////////////
+    // BUILD SPARKD TOKEN-2022 BURN TRANSACTION
+    //
+    // IMPORTANT:
+    // BUILDS ONLY.
+    // DOES NOT SIGN.
+    // DOES NOT SEND.
+    // DOES NOT BURN.
+    ////////////////////////////////////////////////////
+
+    async buildSparkdBurnTransaction(wallet) {
+
+        console.log(
+            "🔥 Building SPARKD Token-2022 BurnChecked transaction..."
+        );
 
 
+        ////////////////////////////////////////////////////
+        // VALIDATE WALLET
+        ////////////////////////////////////////////////////
+
+        if (
+            typeof wallet !== "string" ||
+            !wallet
+        ) {
+
+            throw new Error(
+                "A connected wallet is required."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // REQUIRE SOLANA WEB3
+        ////////////////////////////////////////////////////
+
+        if (
+            !window.solanaWeb3
+        ) {
+
+            throw new Error(
+                "Solana Web3.js is not available."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // GET VERIFIED SPARKD TOKEN ACCOUNT
+        ////////////////////////////////////////////////////
+
+        const tokenAccountResult =
+            await this.findSparkdTokenAccount(
+                wallet
+            );
+
+
+        if (
+            !tokenAccountResult ||
+            !tokenAccountResult.tokenAccount
+        ) {
+
+            throw new Error(
+                "Unable to find the SPARKD Token-2022 account."
+            );
+
+        }
+
+
+        if (
+            tokenAccountResult.sufficientBalance !== true
+        ) {
+
+            throw new Error(
+                "Wallet does not have enough SPARKD to burn 2,000 tokens."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // GET FRESH BLOCKHASH + SERVER BURN PARAMETERS
+        ////////////////////////////////////////////////////
+
+        const prepareResponse =
+            await fetch(
+
+                this.SUPER_HANDLER_URL,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:
+                                "prepare_burn",
+
+                            wallet:
+                                wallet
+
+                        })
+
+                }
+
+            );
+
+
+        const prepareResult =
+            await prepareResponse.json();
+
+
+        if (
+            !prepareResponse.ok ||
+            prepareResult.success !== true ||
+            prepareResult.prepared !== true
+        ) {
+
+            throw new Error(
+
+                prepareResult?.error ||
+                "Unable to prepare SPARKD burn transaction."
+
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // EXPECTED SPARKD VALUES
+        ////////////////////////////////////////////////////
+
+        const expectedMint =
+            "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
+
+
+        const expectedProgram =
+            "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
+
+
+        const expectedRawAmount =
+            "2000000000";
+
+
+        const expectedDecimals =
+            6;
+
+
+        ////////////////////////////////////////////////////
+        // VERIFY SERVER VALUES BEFORE BUILDING
+        ////////////////////////////////////////////////////
+
+        if (
+            prepareResult.mint !== expectedMint
+        ) {
+
+            throw new Error(
+                "Server returned an unexpected SPARKD mint."
+            );
+
+        }
+
+
+        if (
+            prepareResult.tokenProgram !== expectedProgram
+        ) {
+
+            throw new Error(
+                "Server returned an unexpected Token-2022 program."
+            );
+
+        }
+
+
+        if (
+            String(
+                prepareResult.rawBurnAmount
+            ) !== expectedRawAmount
+        ) {
+
+            throw new Error(
+                "Server returned an unexpected SPARKD burn amount."
+            );
+
+        }
+
+
+        if (
+            Number(
+                prepareResult.decimals
+            ) !== expectedDecimals
+        ) {
+
+            throw new Error(
+                "Server returned unexpected SPARKD decimals."
+            );
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // PUBLIC KEYS
+        ////////////////////////////////////////////////////
+
+        const walletPublicKey =
+            new window.solanaWeb3.PublicKey(
+                wallet
+            );
+
+
+        const tokenAccountPublicKey =
+            new window.solanaWeb3.PublicKey(
+                tokenAccountResult.tokenAccount
+            );
+
+
+        const mintPublicKey =
+            new window.solanaWeb3.PublicKey(
+                expectedMint
+            );
+
+
+        const tokenProgramPublicKey =
+            new window.solanaWeb3.PublicKey(
+                expectedProgram
+            );
+
+
+        ////////////////////////////////////////////////////
+        // BUILD BURN CHECKED DATA
+        //
+        // Byte 0:
+        // Token instruction discriminator = 15
+        //
+        // Bytes 1-8:
+        // u64 little-endian raw amount
+        //
+        // Byte 9:
+        // decimals = 6
+        ////////////////////////////////////////////////////
+
+        const instructionData =
+            new Uint8Array(10);
+
+
+        instructionData[0] =
+            15;
+
+
+        const amount =
+            BigInt(
+                expectedRawAmount
+            );
+
+
+        for (
+            let i = 0;
+            i < 8;
+            i++
+        ) {
+
+            instructionData[
+                1 + i
+            ] =
+                Number(
+                    (
+                        amount >>
+                        BigInt(
+                            8 * i
+                        )
+                    ) &
+                    255n
+                );
+
+        }
+
+
+        instructionData[9] =
+            expectedDecimals;
+
+
+        ////////////////////////////////////////////////////
+        // BUILD TOKEN-2022 BURN CHECKED INSTRUCTION
+        ////////////////////////////////////////////////////
+
+        const burnInstruction =
+            new window.solanaWeb3.TransactionInstruction({
+
+                programId:
+                    tokenProgramPublicKey,
+
+                keys: [
+
+                    {
+                        pubkey:
+                            tokenAccountPublicKey,
+
+                        isSigner:
+                            false,
+
+                        isWritable:
+                            true
+                    },
+
+                    {
+                        pubkey:
+                            mintPublicKey,
+
+                        isSigner:
+                            false,
+
+                        isWritable:
+                            true
+                    },
+
+                    {
+                        pubkey:
+                            walletPublicKey,
+
+                        isSigner:
+                            true,
+
+                        isWritable:
+                            false
+                    }
+
+                ],
+
+                data:
+                    instructionData
+
+            });
+
+
+        ////////////////////////////////////////////////////
+        // BUILD TRANSACTION
+        ////////////////////////////////////////////////////
+
+        const transaction =
+            new window.solanaWeb3.Transaction();
+
+
+        transaction.add(
+            burnInstruction
+        );
+
+
+        transaction.feePayer =
+            walletPublicKey;
+
+
+        transaction.recentBlockhash =
+            prepareResult.blockhash;
+
+
+        ////////////////////////////////////////////////////
+        // LOG EVERYTHING BEFORE ANY SIGNING
+        ////////////////////////////////////////////////////
+
+        const result = {
+
+            transaction:
+                transaction,
+
+            tokenAccount:
+                tokenAccountResult.tokenAccount,
+
+            mint:
+                expectedMint,
+
+            wallet:
+                wallet,
+
+            tokenProgram:
+                expectedProgram,
+
+            burnAmount:
+                2000,
+
+            rawBurnAmount:
+                expectedRawAmount,
+
+            decimals:
+                expectedDecimals,
+
+            blockhash:
+                prepareResult.blockhash,
+
+            lastValidBlockHeight:
+                prepareResult.lastValidBlockHeight,
+
+            instructionData:
+                Array.from(
+                    instructionData
+                ),
+
+            signed:
+                false,
+
+            sent:
+                false,
+
+            burned:
+                false
+
+        };
+
+
+        console.log(
+            "🔥 SPARKD BurnChecked transaction BUILT — NOT SENT:",
+            result
+        );
+
+
+        return result;
+
+    },
 
     ////////////////////////////////////////////////////
     // REAL TEST SUBMISSION
