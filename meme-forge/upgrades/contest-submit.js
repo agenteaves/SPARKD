@@ -3029,6 +3029,105 @@ const response =
     // Successful execution burns 2,000 SPARKD.
     ////////////////////////////////////////////////////
 
+    ////////////////////////////////////////////////////
+// BASE58 ENCODER
+//
+// USED TO DERIVE THE SOLANA TRANSACTION SIGNATURE
+// BEFORE THE SIGNED TRANSACTION IS BROADCAST.
+////////////////////////////////////////////////////
+
+encodeBase58(bytes) {
+
+    const alphabet =
+        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    if (
+        !bytes ||
+        bytes.length === 0
+    ) {
+
+        return "";
+
+    }
+
+    const digits = [0];
+
+    for (
+        let i = 0;
+        i < bytes.length;
+        i++
+    ) {
+
+        let carry =
+            bytes[i];
+
+        for (
+            let j = 0;
+            j < digits.length;
+            j++
+        ) {
+
+            carry +=
+                digits[j] << 8;
+
+            digits[j] =
+                carry % 58;
+
+            carry =
+                Math.floor(
+                    carry / 58
+                );
+
+        }
+
+        while (
+            carry > 0
+        ) {
+
+            digits.push(
+                carry % 58
+            );
+
+            carry =
+                Math.floor(
+                    carry / 58
+                );
+
+        }
+
+    }
+
+    let result = "";
+
+    for (
+        let i = 0;
+        i < bytes.length - 1 &&
+        bytes[i] === 0;
+        i++
+    ) {
+
+        result +=
+            alphabet[0];
+
+    }
+
+    for (
+        let i = digits.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        result +=
+            alphabet[
+                digits[i]
+            ];
+
+    }
+
+    return result;
+
+},
+
    async executeSparkdBurn(
     wallet,
     contestId
