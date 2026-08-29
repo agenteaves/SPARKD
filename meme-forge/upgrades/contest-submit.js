@@ -3244,6 +3244,7 @@ async getBlockHeight(
 },
 
 async checkTransactionStatus(
+    wallet,
     transactionSignature
 ) {
 
@@ -3269,14 +3270,16 @@ async checkTransactionStatus(
                         "application/json"
                 },
 
-                body:
-                    JSON.stringify({
-                        action:
-                            "check_transaction_status",
-
-                        transactionSignature:
-                            transactionSignature
-                    })
+               JSON.stringify({
+                action:
+                    "check_transaction_status",
+            
+                wallet:
+                    wallet,
+            
+                transactionSignature:
+                    transactionSignature
+            })
             }
         );
 
