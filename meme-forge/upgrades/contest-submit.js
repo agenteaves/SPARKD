@@ -2283,7 +2283,8 @@ localStorage.setItem(
             burnResult.burnTransaction,
         createdAt:
             new Date().toISOString()
-    })
+    })   
+    
 );
 
 console.log(
@@ -3572,13 +3573,19 @@ localStorage.setItem(
             wallet,
         signedTransaction:
             signedTransactionBase64,
+        
         burnTransaction:
             preBroadcastSignature,
+        
+        lastValidBlockHeight:
+            built.lastValidBlockHeight,
+        
         status:
             "signed_pending_broadcast",
         createdAt:
             new Date().toISOString()
     })
+       
 );
 
       
