@@ -3187,16 +3187,56 @@ encodeBase58(bytes) {
 
 ////////////////////////////////////////////////////
 // RESEND EXACT SIGNED BURN TRANSACTION
-//
 // DOES NOT CREATE OR SIGN A NEW BURN.
 // IT ONLY RESUBMITS THE ALREADY-SIGNED BYTES.
-////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////
 // CHECK SOLANA TRANSACTION STATUS
 //
 // READ ONLY
+//
+// GET CURRENT SOLANA BLOCK HEIGHT
+//
+// READ ONLY
 ////////////////////////////////////////////////////
+
+async getBlockHeight() {
+
+    const response =
+        await fetch(
+            this.SUPER_HANDLER_URL,
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        action:
+                            "get_block_height"
+                    })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (
+        !response.ok
+    ) {
+
+        throw new Error(
+            result?.error ||
+            "Unable to get current Solana block height."
+        );
+
+    }
+
+    return result;
+
+},
 
 async checkTransactionStatus(
     transactionSignature
