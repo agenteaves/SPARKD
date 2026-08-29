@@ -3477,28 +3477,54 @@ console.log(
         );
 
 
-        ////////////////////////////////////////////////////
-        // STEP 4 — CHECK EXISTING SUBMISSION
-        ////////////////////////////////////////////////////
+       ////////////////////////////////////////////////////
+// STEP 4 — RECOVERY STATE CHECK
+//
+// CHECK BURN RECEIPT BEFORE ANY NEW BURN
+////////////////////////////////////////////////////
 
-        const existing =
-            await this.checkExistingSubmission(
-                wallet
-            );
+console.log(
+    "🔎 Checking for an existing SPARKD burn receipt..."
+);
 
+let existingBurnReceipt =
+    await this.getBurnReceipt(
+        wallet,
+        contest.id
+    );
 
-        if (
-            existing.submissionCount >
-            0
-        ) {
+const existing =
+    await this.checkExistingSubmission(
+        wallet
+    );
 
-            throw new Error(
+////////////////////////////////////////////////////
+// VERIFIED RECEIPT EXISTS
+//
+// NEVER BURN AGAIN FOR THIS CONTEST
+////////////////////////////////////////////////////
 
-                "This wallet already has a submission for the current contest."
+if (
+    existingBurnReceipt?.found === true &&
+    existingBurnReceipt?.verified === true &&
+    existingBurnReceipt?.receipt?.burn_transaction
+) {
 
-            );
+    console.log(
+        "♻️ Verified SPARKD burn receipt found. Recovery mode enabled:",
+        existingBurnReceipt.receipt.burn_transaction
+    );
 
-        }
+}
+else if (
+    existing.submissionCount > 0
+) {
+
+    throw new Error(
+        "This wallet already has a submission for the current contest."
+    );
+
+}
 
 
         ////////////////////////////////////////////////////
