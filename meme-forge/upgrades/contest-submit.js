@@ -3181,7 +3181,47 @@ const signedTransactionBase64 =
 console.log(
     "✍️ SPARKD burn transaction signed by Phantom."
 );
+        
+////////////////////////////////////////////////////
+// SAVE PRE-BROADCAST RECOVERY MARKER
+//
+// THE TRANSACTION IS SIGNED BUT NOT YET SENT.
+// THIS ALLOWS RECOVERY IF THE PAGE CRASHES
+// DURING OR IMMEDIATELY AFTER BROADCAST.
+////////////////////////////////////////////////////
 
+if (
+    !contestId
+) {
+
+    throw new Error(
+        "Contest ID is required before broadcasting the SPARKD burn."
+    );
+
+}
+
+const pendingBurnRecoveryKey =
+    `sparkd_burn_recovery_${contestId}_${wallet}`;
+
+localStorage.setItem(
+    pendingBurnRecoveryKey,
+    JSON.stringify({
+        contestId:
+            contestId,
+        wallet:
+            wallet,
+        signedTransaction:
+            signedTransactionBase64,
+        status:
+            "signed_pending_broadcast",
+        createdAt:
+            new Date().toISOString()
+    })
+);
+
+console.log(
+    "🛡️ Pre-broadcast SPARKD recovery marker saved."
+);
 
 ////////////////////////////////////////////////////
 // SEND THROUGH PRIVATE SOLANA RPC
