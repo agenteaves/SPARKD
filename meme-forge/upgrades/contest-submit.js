@@ -3344,6 +3344,8 @@ localStorage.setItem(
             wallet,
         signedTransaction:
             signedTransactionBase64,
+        burnTransaction:
+            preBroadcastSignature,
         status:
             "signed_pending_broadcast",
         createdAt:
@@ -3351,6 +3353,7 @@ localStorage.setItem(
     })
 );
 
+      
 console.log(
     "🛡️ Pre-broadcast SPARKD recovery marker saved."
 );
