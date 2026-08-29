@@ -1525,80 +1525,348 @@ window.SPARKD_CONTEST = {
         );
 
 
-        ////////////////////////////////////////////////////
-        // STEP 10 — DRY RUN RESULT
-        ////////////////////////////////////////////////////
+       ////////////////////////////////////////////////////
+// STEP 10 — UPLOAD IMAGE
+////////////////////////////////////////////////////
 
-        const result = {
+console.log(
+    "🖼️ Uploading SPARKD contest meme..."
+);
 
-            success:
-                true,
-
-            dryRun:
-                true,
-
-            test:
-                false,
-
-            wallet:
-                wallet,
-
-            contestId:
-                contest.id,
-
-            memeTitle:
-                memeTitle ||
-                "Untitled SPARKD Meme",
-
-            requiredSparkd:
-                this.REQUIRED_SPARKD,
-
-            walletBalance:
-                balance.balance,
-
-            tokenAccount:
-                tokenAccount.tokenAccount,
-
-            mint:
-                tokenAccount.mint,
-
-            decimals:
-                tokenAccount.decimals,
-
-            tokenProgram:
-                tokenAccount.program,
-
-            forgeVerified:
-                true,
-
-            burnAmount:
-                this.REQUIRED_SPARKD,
-
-            burnTransaction:
-                null,
-
-            burnVerified:
-                false,
-
-            message:
-                "DRY RUN SUCCESS — submission is ready for Token-2022 burn authorization. NO TOKENS WERE BURNED."
-
-        };
+const upload =
+    await this.uploadMeme(
+        file,
+        wallet,
+        contest.id
+    );
 
 
-        ////////////////////////////////////////////////////
-        // FINAL LOG
-        ////////////////////////////////////////////////////
+if (
+    !upload ||
+    !upload.path
+) {
+
+    throw new Error(
+        "SPARKD meme upload failed."
+    );
+
+}
+
+
+console.log(
+    "🔥 SPARKD meme uploaded:",
+    upload.path
+);
+
+
+////////////////////////////////////////////////////
+// STEP 11 — REAL TOKEN-2022 BURN
+////////////////////////////////////////////////////
+
+console.log(
+    "🔥 Requesting REAL 2,000 SPARKD burn..."
+);
+
+
+let burnResult;
+
+
+try {
+
+    burnResult =
+        await this.executeSparkdBurn(
+            wallet
+        );
+
+}
+catch (error) {
+
+    ////////////////////////////////////////////////////
+    // BURN FAILED — REMOVE UPLOADED IMAGE
+    ////////////////////////////////////////////////////
+
+    console.error(
+        "❌ SPARKD burn failed:",
+        error
+    );
+
+
+    try {
+
+        const cleanupClient =
+            this.getSupabaseClient();
+
+
+        await cleanupClient
+            .storage
+            .from(
+                this.BUCKET
+            )
+            .remove([
+                upload.path
+            ]);
+
 
         console.log(
-            "🔥🔥 SPARKD PRODUCTION SUBMISSION DRY RUN SUCCESS:",
-            result
+            "🧹 Uploaded meme removed because burn failed."
+        );
+
+    }
+    catch (cleanupError) {
+
+        console.error(
+            "⚠️ Failed to clean up uploaded meme:",
+            cleanupError
+        );
+
+    }
+
+
+    throw error;
+
+}
+
+
+////////////////////////////////////////////////////
+// STEP 12 — VERIFY BURN RESULT
+////////////////////////////////////////////////////
+
+if (
+    !burnResult ||
+    burnResult.success !== true ||
+    burnResult.burned !== true ||
+    burnResult.verified !== true
+) {
+
+    throw new Error(
+        "SPARKD burn was not successfully verified."
+    );
+
+}
+
+
+if (
+    burnResult.burnAmount !==
+    this.REQUIRED_SPARKD
+) {
+
+    throw new Error(
+        "Verified SPARKD burn amount is incorrect."
+    );
+
+}
+
+
+if (
+    burnResult.rawBurnAmount !==
+    "2000000000"
+) {
+
+    throw new Error(
+        "Verified SPARKD raw burn amount is incorrect."
+    );
+
+}
+
+
+if (
+    burnResult.mint !==
+    "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+) {
+
+    throw new Error(
+        "Verified SPARKD burn mint is incorrect."
+    );
+
+}
+
+
+if (
+    typeof burnResult.burnTransaction !==
+        "string" ||
+    !burnResult.burnTransaction
+) {
+
+    throw new Error(
+        "Verified SPARKD burn transaction signature is missing."
+    );
+
+}
+
+
+console.log(
+    "✅ REAL SPARKD burn verified:",
+    burnResult.burnTransaction
+);
+
+
+////////////////////////////////////////////////////
+// STEP 13 — CREATE DATABASE SUBMISSION
+////////////////////////////////////////////////////
+
+const client =
+    this.getSupabaseClient();
+
+
+const submissionId =
+    crypto.randomUUID();
+
+
+const submissionData = {
+
+    id:
+        submissionId,
+
+    contest_id:
+        contest.id,
+
+    creator_id:
+        forgeVerification.creatorID ||
+        forgeData.creatorID,
+
+    wallet_address:
+        wallet,
+
+    meme_title:
+        memeTitle ||
+        "Untitled SPARKD Meme",
+
+    meme_image_url:
+        upload.path,
+
+    dna_verified:
+        true,
+
+    dna_verification_data:
+        forgeData,
+
+    burn_amount:
+        this.REQUIRED_SPARKD,
+
+    burn_transaction:
+        burnResult.burnTransaction,
+
+    burn_verified:
+        true,
+
+    status:
+        "pending"
+
+};
+
+
+////////////////////////////////////////////////////
+// STEP 14 — INSERT DATABASE ROW
+////////////////////////////////////////////////////
+
+console.log(
+    "💾 Saving verified SPARKD contest submission..."
+);
+
+
+const {
+    error:
+        submissionError
+} =
+    await client
+
+        .from(
+            "meme_week_submissions"
+        )
+
+        .insert(
+            submissionData
         );
 
 
-        return result;
+if (
+    submissionError
+) {
 
-    },
+    console.error(
+        "❌ SPARKD submission database error:",
+        submissionError
+    );
+
+
+    ////////////////////////////////////////////////////
+    // IMAGE CAN BE REMOVED.
+    // TOKEN BURN CANNOT BE UNDONE.
+    ////////////////////////////////////////////////////
+
+    try {
+
+        await client
+            .storage
+            .from(
+                this.BUCKET
+            )
+            .remove([
+                upload.path
+            ]);
+
+    }
+    catch (cleanupError) {
+
+        console.error(
+            "⚠️ Image cleanup failed:",
+            cleanupError
+        );
+
+    }
+
+
+    throw new Error(
+        "The 2,000 SPARKD burn succeeded, but the submission database insert failed. Burn transaction: " +
+        burnResult.burnTransaction +
+        ". DO NOT BURN AGAIN. Database error: " +
+        submissionError.message
+    );
+
+}
+
+
+////////////////////////////////////////////////////
+// STEP 15 — SUCCESS
+////////////////////////////////////////////////////
+
+const submission = {
+
+    id:
+        submissionId,
+
+    ...submissionData
+
+};
+
+
+console.log(
+    "🔥🔥 SPARKD REAL CONTEST SUBMISSION SUCCESS:",
+    submission
+);
+
+
+return {
+
+    success:
+        true,
+
+    test:
+        false,
+
+    burned:
+        true,
+
+    burnVerified:
+        true,
+
+    burnTransaction:
+        burnResult.burnTransaction,
+
+    submission:
+        submission
+
+};
 
 
 ////////////////////////////////////////////////////
