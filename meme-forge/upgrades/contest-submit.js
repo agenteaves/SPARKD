@@ -1685,7 +1685,17 @@ if (
             savedBurnRecovery
         );
 
-  if (
+ if (
+    recoveryData?.signedTransaction &&
+    recoveryData?.status === "signed_pending_broadcast"
+) {
+
+    throw new Error(
+        "A previously signed SPARKD burn transaction is pending recovery. DO NOT BURN AGAIN."
+    );
+
+}
+else if (
     recoveryData?.burnTransaction
 ) {
 
@@ -1703,16 +1713,6 @@ if (
 
     console.log(
         "♻️ SPARKD burn receipt recovered from local marker."
-    );
-
-}
-else if (
-    recoveryData?.signedTransaction &&
-    recoveryData?.status === "signed_pending_broadcast"
-) {
-
-    throw new Error(
-        "A previously signed SPARKD burn transaction is pending recovery. DO NOT BURN AGAIN."
     );
 
 }
