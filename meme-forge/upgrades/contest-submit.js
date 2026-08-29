@@ -772,6 +772,99 @@ async recordBurnReceipt(
 
 },
 
+////////////////////////////////////////////////////
+// FINALIZE VERIFIED SUBMISSION
+////////////////////////////////////////////////////
+
+async finalizeSubmission(
+    wallet,
+    contestId,
+    burnTransaction,
+    submissionId,
+    creatorId,
+    memeTitle,
+    memeImageUrl,
+    dnaVerificationData
+) {
+
+    this.validateWallet(
+        wallet
+    );
+
+
+    const response =
+        await fetch(
+            this.SUPER_HANDLER_URL,
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        action:
+                            "finalize_submission",
+
+                        wallet:
+                            wallet,
+
+                        contestId:
+                            contestId,
+
+                        burnTransaction:
+                            burnTransaction,
+
+                        submissionId:
+                            submissionId,
+
+                        creatorId:
+                            creatorId,
+
+                        memeTitle:
+                            memeTitle,
+
+                        memeImageUrl:
+                            memeImageUrl,
+
+                        dnaVerificationData:
+                            dnaVerificationData
+                    })
+            }
+        );
+
+
+    const result =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        result?.success !== true ||
+        result?.finalized !== true
+    ) {
+
+        throw new Error(
+            result?.error ||
+            "Unable to finalize SPARKD contest submission."
+        );
+
+    }
+
+
+    console.log(
+        "💾 SPARKD contest submission finalized:",
+        result
+    );
+
+
+    return result;
+
+},
+    
     ////////////////////////////////////////////////////
     // UPLOAD VERIFIED MEME
     ////////////////////////////////////////////////////
