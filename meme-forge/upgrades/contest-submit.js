@@ -2082,15 +2082,6 @@ else {
 
     if (
         burnResult.mint !==
-        "BMU2rhUtANRS1h5kq3gZpZ9m3aQ4VkUDwVbUSnVes5rUXSe6"
-    ) {
-
-        // intentionally impossible branch removed below
-    }
-
-
-    if (
-        burnResult.mint !==
         "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
     ) {
 
