@@ -1695,13 +1695,41 @@ if (
         "♻️ Resubmitting exact previously signed SPARKD burn transaction..."
     );
 
-    await this.resendSignedBurnTransaction(
+   await this.resendSignedBurnTransaction(
+    wallet,
+    recoveryData.signedTransaction
+);
+
+console.log(
+    "🔎 Verifying recovered SPARKD burn on-chain..."
+);
+
+try {
+
+    await this.recordBurnReceipt(
         wallet,
-        recoveryData.signedTransaction
+        contest.id,
+        recoveryData.burnTransaction
+    );
+
+    existingBurnReceipt =
+        await this.getBurnReceipt(
+            wallet,
+            contest.id
+        );
+
+}
+catch (
+    recoveryError
+) {
+
+    console.error(
+        "⚠️ Recovered SPARKD burn is not yet verifiable:",
+        recoveryError
     );
 
     throw new Error(
-        "The previously signed SPARKD burn transaction was resubmitted for recovery. DO NOT BURN AGAIN."
+        "The previously signed SPARKD burn transaction is still pending recovery. DO NOT BURN AGAIN."
     );
 
 }
