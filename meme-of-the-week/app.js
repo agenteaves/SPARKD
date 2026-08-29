@@ -1248,15 +1248,14 @@ document.addEventListener(
                                     "⏳ TESTING...";
 
 
-                                const result =
-                                    await window.SPARKD_CONTEST
-                                        .submitMemeTest(
-                                            file,
-                                            forgeData,
-                                            testTitle
-                                                ? testTitle.value
-                                                : "Test SPARKD Meme"
-                                        );
+                              const result =
+                                await window.SPARKD_CONTEST.submitMeme(
+                                    file,
+                                    forgeData,
+                                    testTitle
+                                        ? testTitle.value
+                                        : "Test SPARKD Meme"
+    );;
 
 
                                 console.log(
