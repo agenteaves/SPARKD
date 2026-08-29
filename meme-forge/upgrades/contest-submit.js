@@ -1687,36 +1687,24 @@ if (
 
  if (
     recoveryData?.signedTransaction &&
+    recoveryData?.burnTransaction &&
     recoveryData?.status === "signed_pending_broadcast"
 ) {
 
-    throw new Error(
-        "A previously signed SPARKD burn transaction is pending recovery. DO NOT BURN AGAIN."
-    );
-
-}
-else if (
-    recoveryData?.burnTransaction
-) {
-
-    await this.recordBurnReceipt(
-        wallet,
-        contest.id,
-        recoveryData.burnTransaction
-    );
-
-    existingBurnReceipt =
-        await this.getBurnReceipt(
-            wallet,
-            contest.id
-        );
-
     console.log(
-        "♻️ SPARKD burn receipt recovered from local marker."
+        "♻️ Resubmitting exact previously signed SPARKD burn transaction..."
+    );
+
+    await this.resendSignedBurnTransaction(
+        wallet,
+        recoveryData.signedTransaction
+    );
+
+    throw new Error(
+        "The previously signed SPARKD burn transaction was resubmitted for recovery. DO NOT BURN AGAIN."
     );
 
 }
-
 }
 
         
