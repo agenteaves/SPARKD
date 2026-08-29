@@ -680,7 +680,97 @@ async getBurnReceipt(
     return result;
 
 },
+    
+////////////////////////////////////////////////////
+// RECORD VERIFIED BURN RECEIPT
+////////////////////////////////////////////////////
 
+async recordBurnReceipt(
+    wallet,
+    contestId,
+    burnTransaction
+) {
+
+    this.validateWallet(
+        wallet
+    );
+
+
+    if (
+        !contestId ||
+        !burnTransaction
+    ) {
+
+        throw new Error(
+            "Contest ID and burn transaction are required."
+        );
+
+    }
+
+
+    console.log(
+        "🔥 Recording verified SPARKD burn receipt..."
+    );
+
+
+    const response =
+        await fetch(
+            this.SUPER_HANDLER_URL,
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        action:
+                            "record_burn_receipt",
+
+                        wallet:
+                            wallet,
+
+                        contestId:
+                            contestId,
+
+                        burnTransaction:
+                            burnTransaction
+                    })
+            }
+        );
+
+
+    const result =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        result?.success !== true ||
+        result?.recorded !== true ||
+        result?.verified !== true
+    ) {
+
+        throw new Error(
+            result?.error ||
+            "Unable to record verified SPARKD burn receipt."
+        );
+
+    }
+
+
+    console.log(
+        "🔥 SPARKD burn receipt recorded:",
+        result
+    );
+
+
+    return result;
+
+},
 
     ////////////////////////////////////////////////////
     // UPLOAD VERIFIED MEME
