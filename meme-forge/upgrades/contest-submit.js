@@ -1535,18 +1535,14 @@ async finalizeSubmission(
         },
 
        
-    ////////////////////////////////////////////////////
-    // REAL SUBMISSION — DRY RUN
-    //
-    // PRODUCTION VALIDATION PATH
-    //
-    // ⚠️ NO TOKEN BURN
-    // ⚠️ NO TOKEN TRANSFER
-    // ⚠️ NO SOL TRANSFER
-    //
-    // This verifies everything needed before we
-    // authorize an actual Token-2022 burn.
-    ////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
+// REAL PRODUCTION SUBMISSION
+//
+// VERIFIED TOKEN-2022 BURN + SERVER FINALIZATION
+//
+// Burns exactly 2,000 SPARKD after validation.
+// Includes burn-receipt recovery protection.
+////////////////////////////////////////////////////
 
     async submitMeme(
         file,
