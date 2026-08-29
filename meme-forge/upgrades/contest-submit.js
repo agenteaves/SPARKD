@@ -3022,10 +3022,10 @@ const response =
     // Successful execution burns 2,000 SPARKD.
     ////////////////////////////////////////////////////
 
-    async exasync executeSparkdBurn(
+   async executeSparkdBurn(
     wallet,
     contestId
-) {ecuteSparkdBurn(wallet) {
+) {
 
         console.log(
             "🔥 Preparing REAL 2,000 SPARKD burn..."
