@@ -2119,35 +2119,60 @@ else {
     );
 
 
-    ////////////////////////////////////////////////////
-    // RECORD BURN RECEIPT IMMEDIATELY
-    ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+// RECORD BURN RECEIPT IMMEDIATELY
+////////////////////////////////////////////////////
 
-    try {
+////////////////////////////////////////////////////
+// SAVE LOCAL BURN RECOVERY MARKER
+//
+// DO THIS BEFORE RECORDING THE SERVER RECEIPT
+////////////////////////////////////////////////////
 
-        await this.recordBurnReceipt(
-            wallet,
+const burnRecoveryKey =
+    `sparkd_burn_recovery_${contest.id}_${wallet}`;
+
+localStorage.setItem(
+    burnRecoveryKey,
+    JSON.stringify({
+        contestId:
             contest.id,
-            burnTransaction
-        );
+        wallet:
+            wallet,
+        burnTransaction:
+            burnResult.burnTransaction,
+        createdAt:
+            new Date().toISOString()
+    })
+);
 
-    }
-    catch (error) {
+console.log(
+    "🛡️ Local SPARKD burn recovery marker saved:",
+    burnResult.burnTransaction
+);
 
-        throw new Error(
-            "The 2,000 SPARKD burn succeeded, but the burn receipt could not be recorded. Burn transaction: " +
-            burnTransaction +
-            ". DO NOT BURN AGAIN. " +
-            (
-                error?.message ||
-                error
-            )
-        );
+try {
 
-    }
+    await this.recordBurnReceipt(
+        wallet,
+        contest.id,
+        burnResult.burnTransaction
+    );
 
 }
+catch (error) {
 
+    throw new Error(
+        "The 2,000 SPARKD burn succeeded, but the burn receipt could not be recorded. Burn transaction: " +
+        burnResult.burnTransaction +
+        ". DO NOT BURN AGAIN. " +
+        (
+            error?.message ||
+            error
+        )
+    );
+
+}
 
 ////////////////////////////////////////////////////
 // STEP 12 — FINALIZE THROUGH SERVER
