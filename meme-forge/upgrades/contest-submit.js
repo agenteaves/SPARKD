@@ -1551,8 +1551,8 @@ async finalizeSubmission(
     ) {
 
         console.log(
-            "🧪 SPARKD PRODUCTION SUBMISSION DRY RUN STARTING..."
-        );
+    "🔥 SPARKD REAL PRODUCTION SUBMISSION STARTING..."
+);
 
 
         ////////////////////////////////////////////////////
@@ -1593,10 +1593,10 @@ async finalizeSubmission(
         );
 
 
-        console.log(
-            "🔑 DRY RUN wallet:",
-            wallet
-        );
+       console.log(
+    "🔑 PRODUCTION wallet:",
+    wallet
+);
 
 
         ////////////////////////////////////////////////////
@@ -1637,10 +1637,10 @@ async finalizeSubmission(
         }
 
 
-        console.log(
-            "🔥 DRY RUN contest:",
-            contest.id
-        );
+       console.log(
+    "🔥 PRODUCTION contest:",
+    contest.id
+);
 
 
        ////////////////////////////////////////////////////
