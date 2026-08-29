@@ -3493,6 +3493,59 @@ let existingBurnReceipt =
         contest.id
     );
 
+        ////////////////////////////////////////////////////
+// LOCAL BURN RECOVERY
+//
+// IF A BURN SUCCEEDED BUT THE SERVER RECEIPT
+// WAS NOT SAVED, RECOVER IT BEFORE ANY NEW BURN.
+////////////////////////////////////////////////////
+
+const burnRecoveryKey =
+    `sparkd_burn_recovery_${contest.id}_${wallet}`;
+
+const savedBurnRecovery =
+    localStorage.getItem(
+        burnRecoveryKey
+    );
+
+if (
+    existingBurnReceipt?.found !== true &&
+    savedBurnRecovery
+) {
+
+    console.log(
+        "🛡️ Local SPARKD burn recovery marker found."
+    );
+
+    const recoveryData =
+        JSON.parse(
+            savedBurnRecovery
+        );
+
+    if (
+        recoveryData?.burnTransaction
+    ) {
+
+        await this.recordBurnReceipt(
+            wallet,
+            contest.id,
+            recoveryData.burnTransaction
+        );
+
+        existingBurnReceipt =
+            await this.getBurnReceipt(
+                wallet,
+                contest.id
+            );
+
+        console.log(
+            "♻️ SPARKD burn receipt recovered from local marker."
+        );
+
+    }
+
+}
+
 const existing =
     await this.checkExistingSubmission(
         wallet
