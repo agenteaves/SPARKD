@@ -570,6 +570,117 @@ window.SPARKD_CONTEST = {
 
     },
 
+    ////////////////////////////////////////////////////
+// GET EXISTING BURN RECEIPT
+//
+// READ ONLY
+////////////////////////////////////////////////////
+
+async getBurnReceipt(
+    wallet,
+    contestId
+) {
+
+
+    this.validateWallet(
+        wallet
+    );
+
+
+    if (
+        !contestId
+    ) {
+
+        throw new Error(
+            "Contest ID is required."
+        );
+
+    }
+
+
+    console.log(
+        "🔎 SPARKD checking burn receipt..."
+    );
+
+
+    const response =
+        await fetch(
+
+            this.SUPER_HANDLER_URL,
+
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        action:
+                            "get_burn_receipt",
+
+                        wallet:
+                            wallet,
+
+                        contestId:
+                            contestId
+
+                    })
+
+            }
+
+        );
+
+
+    if (
+        !response.ok
+    ) {
+
+        throw new Error(
+
+            "Burn receipt check returned HTTP " +
+            response.status
+
+        );
+
+    }
+
+
+    const result =
+        await response.json();
+
+
+    if (
+        !result.success
+    ) {
+
+        throw new Error(
+
+            result.error ||
+            "Unable to check burn receipt."
+
+        );
+
+    }
+
+
+    console.log(
+        "🔥 SPARKD burn receipt check:",
+        result
+    );
+
+
+    return result;
+
+},
+
 
     ////////////////////////////////////////////////////
     // UPLOAD VERIFIED MEME
