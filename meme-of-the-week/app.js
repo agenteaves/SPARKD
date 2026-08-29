@@ -1245,7 +1245,7 @@ document.addEventListener(
 
 
                                 testButton.textContent =
-                                    "⏳ TESTING...";
+                                "⏳ SUBMITTING...";
 
 
                               const result =
@@ -1259,18 +1259,16 @@ document.addEventListener(
 
 
                                 console.log(
-                                    "🔥 TEST SUBMISSION RESULT:",
-                                    result
-                                );
+                                "🔥 REAL SUBMISSION RESULT:",
+                                result
+                            );
 
 
                                 alert(
-                                    "🔥 TEST SUBMISSION SUCCESS!\n\n" +
-                                    "Submission ID:\n" +
-                                    result.submission.id +
-                                    "\n\n" +
-                                    "NO SPARKD WAS BURNED."
-                                );
+                                "🔥 SUBMISSION SUCCESS!\n\n" +
+                                "Submission ID:\n" +
+                                result.submission.id
+                            );
 
 
                             }
