@@ -3198,7 +3198,9 @@ encodeBase58(bytes) {
 // READ ONLY
 ////////////////////////////////////////////////////
 
-async getBlockHeight() {
+async getBlockHeight(
+    wallet
+) {
 
     const response =
         await fetch(
