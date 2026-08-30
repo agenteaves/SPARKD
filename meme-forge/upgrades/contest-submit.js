@@ -2720,7 +2720,7 @@ const response =
     //
     // IMPORTANT:
     // BUILDS / VALIDATES ONLY ON THE CLIENT.
-    // SERVER PARTIALLY SIGNS WITH NONCE AUTHORITY.
+    // PHANTOM SIGNS FIRST; SERVER ADDS NONCE AUTHORITY AFTERWARD.
     // DOES NOT OPEN PHANTOM.
     // DOES NOT BROADCAST.
     // DOES NOT BURN.
@@ -2852,7 +2852,7 @@ const response =
     prepareResult.success !== true ||
     prepareResult.prepared !== true ||
     prepareResult.transactionBuilt !== true ||
-    prepareResult.nonceAuthoritySigned !== true ||
+    prepareResult.nonceAuthoritySigned !== false ||
     typeof prepareResult.partiallySignedTransaction !== "string" ||
     !prepareResult.partiallySignedTransaction
 ) {
@@ -2944,8 +2944,7 @@ const response =
 //
 // IMPORTANT:
 // DO NOT REBUILD OR MODIFY THIS TRANSACTION.
-// CHANGING THE MESSAGE WOULD INVALIDATE THE
-// NONCE-AUTHORITY SIGNATURE.
+// CHANGING THE MESSAGE WOULD CHANGE WHAT PHANTOM SIGNS.
 ////////////////////////////////////////////////////
 
 let partiallySignedTransactionBytes;
@@ -3348,11 +3347,11 @@ const nonceAuthoritySignatureEntry =
 
 if (
     !nonceAuthoritySignatureEntry ||
-    !nonceAuthoritySignatureEntry.signature
+    nonceAuthoritySignatureEntry.signature !== null
 ) {
 
     throw new Error(
-        "Durable SPARKD transaction is missing the nonce-authority signature."
+        "Durable SPARKD transaction must reach Phantom before the nonce authority signs it."
     );
 
 }
@@ -3401,7 +3400,7 @@ if (
                 prepareResult.reservationId,
             
             serverSigned:
-                true,
+                false,
 
             instructionData:
                 Array.from(
@@ -3822,8 +3821,43 @@ if (!signedTransaction) {
 }
 
 
+const signedWalletSignatureEntry =
+    signedTransaction.signatures.find(
+        entry =>
+            entry.publicKey.toBase58() === wallet
+    );
+
+const signedNonceAuthorityEntry =
+    signedTransaction.signatures.find(
+        entry =>
+            entry.publicKey.toBase58() === built.nonceAuthority
+    );
+
+if (
+    !signedWalletSignatureEntry?.signature
+) {
+
+    throw new Error(
+        "Phantom did not add the required wallet signature."
+    );
+
+}
+
+if (
+    signedNonceAuthorityEntry?.signature
+) {
+
+    throw new Error(
+        "Unexpected nonce-authority signature before server completion."
+    );
+
+}
+
 const serialized =
-    signedTransaction.serialize();
+    signedTransaction.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false
+    });
 
 
 let binary = "";
@@ -3850,20 +3884,18 @@ const signedTransactionBase64 =
 ////////////////////////////////////////////////////
 
 if (
-    !signedTransaction.signatures ||
-    !signedTransaction.signatures[0] ||
-    !signedTransaction.signatures[0].signature
+    !signedWalletSignatureEntry?.signature
 ) {
 
     throw new Error(
-        "Unable to read the signed SPARKD transaction signature."
+        "Unable to read the Phantom-signed SPARKD transaction signature."
     );
 
 }
 
 const preBroadcastSignature =
     this.encodeBase58(
-        signedTransaction.signatures[0].signature
+        signedWalletSignatureEntry.signature
     );
 
 console.log(
