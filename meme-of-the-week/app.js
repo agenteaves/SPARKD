@@ -1231,7 +1231,7 @@ document.addEventListener(
 
 
                                 console.log(
-                                    "🔥 TEST Forge data:",
+                                   "🔥 SPARKD Forge data:"
                                     forgeData
                                 );
 
