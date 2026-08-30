@@ -1692,6 +1692,9 @@ if (
     if (
         recoveryData?.signedTransaction &&
         recoveryData?.burnTransaction &&
+        recoveryData?.reservationId &&
+        recoveryData?.contestId === contest.id &&
+        recoveryData?.wallet === wallet &&
         recoveryData?.status === "signed_pending_broadcast"
     ) {
 
@@ -1699,10 +1702,24 @@ if (
             "♻️ Resubmitting exact previously signed SPARKD burn transaction..."
         );
 
-        await this.resendSignedBurnTransaction(
-            wallet,
-            recoveryData.signedTransaction
-        );
+        const resendResult =
+            await this.resendSignedBurnTransaction(
+                wallet,
+                contest.id,
+                recoveryData.reservationId,
+                recoveryData.signedTransaction
+            );
+
+        if (
+            resendResult.transactionSignature !==
+            recoveryData.burnTransaction
+        ) {
+
+            throw new Error(
+                "Recovered SPARKD transaction signature does not match the saved recovery marker. DO NOT BURN AGAIN."
+            );
+
+        }
 
         console.log(
             "🔎 Verifying recovered SPARKD burn on-chain..."
@@ -1742,44 +1759,19 @@ if (
             recoveryData.burnTransaction
         );
 
-    const currentBlockHeightResult =
-        await this.getBlockHeight(
-            wallet
-        );
+   const transactionNotFound =
+    transactionStatus?.found === false;
 
-    const transactionNotFound =
-        transactionStatus?.found === false;
 
-    const lastValidBlockHeight =
-        Number(
-            recoveryData?.lastValidBlockHeight
-        );
+if (
+    transactionNotFound
+) {
 
-    const currentBlockHeight =
-        Number(
-            currentBlockHeightResult?.blockHeight
-        );
+    throw new Error(
+        "The previously signed durable-nonce SPARKD burn is not currently visible on-chain. Its recovery marker has been preserved. DO NOT BURN AGAIN."
+    );
 
-    const transactionExpired =
-        Number.isFinite(lastValidBlockHeight) &&
-        Number.isFinite(currentBlockHeight) &&
-        currentBlockHeight >
-            lastValidBlockHeight;
-
-    if (
-        transactionNotFound &&
-        transactionExpired
-    ) {
-
-        localStorage.removeItem(
-            burnRecoveryKey
-        );
-
-        throw new Error(
-            "The previous signed SPARKD burn expired without landing and was safely cleared. Please submit again to create a fresh burn."
-        );
-
-    }
+}
 
          throw new Error(
             "The previously signed SPARKD burn transaction is still pending recovery. DO NOT BURN AGAIN."
@@ -1793,8 +1785,36 @@ if (
     ////////////////////////////////////////////////////
 
     else if (
-        recoveryData?.burnTransaction
+        recoveryData?.burnTransaction &&
+        recoveryData?.contestId === contest.id &&
+        recoveryData?.wallet === wallet
     ) {
+
+        if (
+            recoveryData?.signedTransaction &&
+            recoveryData?.reservationId
+        ) {
+
+            const resendResult =
+                await this.resendSignedBurnTransaction(
+                    wallet,
+                    contest.id,
+                    recoveryData.reservationId,
+                    recoveryData.signedTransaction
+                );
+
+            if (
+                resendResult.transactionSignature !==
+                recoveryData.burnTransaction
+            ) {
+
+                throw new Error(
+                    "Recovered SPARKD transaction signature does not match the saved recovery marker. DO NOT BURN AGAIN."
+                );
+
+            }
+
+        }
 
         await this.recordBurnReceipt(
             wallet,
@@ -2032,7 +2052,7 @@ else {
 
 
         console.log(
-            "🧬 DRY RUN Forge DNA verified:",
+            "🧬 SPARKD Forge DNA verified:",
             forgeVerification
         );
 
@@ -2699,13 +2719,17 @@ const response =
     // BUILD SPARKD TOKEN-2022 BURN TRANSACTION
     //
     // IMPORTANT:
-    // BUILDS ONLY.
-    // DOES NOT SIGN.
-    // DOES NOT SEND.
+    // BUILDS / VALIDATES ONLY ON THE CLIENT.
+    // SERVER PARTIALLY SIGNS WITH NONCE AUTHORITY.
+    // DOES NOT OPEN PHANTOM.
+    // DOES NOT BROADCAST.
     // DOES NOT BURN.
     ////////////////////////////////////////////////////
 
-    async buildSparkdBurnTransaction(wallet) {
+   async buildSparkdBurnTransaction(
+    wallet,
+    contestId
+) {
 
         console.log(
             "🔥 Building SPARKD Token-2022 BurnChecked transaction..."
@@ -2777,7 +2801,7 @@ const response =
 
 
         ////////////////////////////////////////////////////
-        // GET FRESH BLOCKHASH + SERVER BURN PARAMETERS
+        // GET SERVER-BUILT DURABLE-NONCE BURN TRANSACTION
         ////////////////////////////////////////////////////
 
         const prepareResponse =
@@ -2797,16 +2821,22 @@ const response =
 
                     },
 
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "prepare_burn",
-
-                            wallet:
-                                wallet
-
-                        })
+                   body:
+                    JSON.stringify({
+                
+                        action:
+                            "prepare_burn",
+                
+                        wallet:
+                            wallet,
+                
+                        contestId:
+                            contestId,
+                
+                        tokenAccount:
+                            tokenAccountResult.tokenAccount
+                
+                    })
 
                 }
 
@@ -2817,20 +2847,24 @@ const response =
             await prepareResponse.json();
 
 
-        if (
-            !prepareResponse.ok ||
-            prepareResult.success !== true ||
-            prepareResult.prepared !== true
-        ) {
+       if (
+    !prepareResponse.ok ||
+    prepareResult.success !== true ||
+    prepareResult.prepared !== true ||
+    prepareResult.transactionBuilt !== true ||
+    prepareResult.nonceAuthoritySigned !== true ||
+    typeof prepareResult.partiallySignedTransaction !== "string" ||
+    !prepareResult.partiallySignedTransaction
+) {
 
-            throw new Error(
+    throw new Error(
 
-                prepareResult?.error ||
-                "Unable to prepare SPARKD burn transaction."
+        prepareResult?.error ||
+        "Unable to prepare durable SPARKD burn transaction."
 
-            );
+    );
 
-        }
+}
 
 
         ////////////////////////////////////////////////////
@@ -2905,159 +2939,423 @@ const response =
         }
 
 
-        ////////////////////////////////////////////////////
-        // PUBLIC KEYS
-        ////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////
+// DESERIALIZE SERVER-BUILT DURABLE TRANSACTION
+//
+// IMPORTANT:
+// DO NOT REBUILD OR MODIFY THIS TRANSACTION.
+// CHANGING THE MESSAGE WOULD INVALIDATE THE
+// NONCE-AUTHORITY SIGNATURE.
+////////////////////////////////////////////////////
 
-        const walletPublicKey =
-            new window.solanaWeb3.PublicKey(
-                wallet
-            );
+let partiallySignedTransactionBytes;
 
+try {
 
-        const tokenAccountPublicKey =
-            new window.solanaWeb3.PublicKey(
-                tokenAccountResult.tokenAccount
-            );
+    partiallySignedTransactionBytes =
+        Uint8Array.from(
 
+            atob(
+                prepareResult.partiallySignedTransaction
+            ),
 
-        const mintPublicKey =
-            new window.solanaWeb3.PublicKey(
-                expectedMint
-            );
+            character =>
+                character.charCodeAt(0)
 
-
-        const tokenProgramPublicKey =
-            new window.solanaWeb3.PublicKey(
-                expectedProgram
-            );
-
-
-        ////////////////////////////////////////////////////
-        // BUILD BURN CHECKED DATA
-        //
-        // Byte 0:
-        // Token instruction discriminator = 15
-        //
-        // Bytes 1-8:
-        // u64 little-endian raw amount
-        //
-        // Byte 9:
-        // decimals = 6
-        ////////////////////////////////////////////////////
-
-        const instructionData =
-            new Uint8Array(10);
-
-
-        instructionData[0] =
-            15;
-
-
-        const amount =
-            BigInt(
-                expectedRawAmount
-            );
-
-
-        for (
-            let i = 0;
-            i < 8;
-            i++
-        ) {
-
-            instructionData[
-                1 + i
-            ] =
-                Number(
-                    (
-                        amount >>
-                        BigInt(
-                            8 * i
-                        )
-                    ) &
-                    255n
-                );
-
-        }
-
-
-        instructionData[9] =
-            expectedDecimals;
-
-
-        ////////////////////////////////////////////////////
-        // BUILD TOKEN-2022 BURN CHECKED INSTRUCTION
-        ////////////////////////////////////////////////////
-
-        const burnInstruction =
-            new window.solanaWeb3.TransactionInstruction({
-
-                programId:
-                    tokenProgramPublicKey,
-
-                keys: [
-
-                    {
-                        pubkey:
-                            tokenAccountPublicKey,
-
-                        isSigner:
-                            false,
-
-                        isWritable:
-                            true
-                    },
-
-                    {
-                        pubkey:
-                            mintPublicKey,
-
-                        isSigner:
-                            false,
-
-                        isWritable:
-                            true
-                    },
-
-                    {
-                        pubkey:
-                            walletPublicKey,
-
-                        isSigner:
-                            true,
-
-                        isWritable:
-                            false
-                    }
-
-                ],
-
-                data:
-                    instructionData
-
-            });
-
-
-        ////////////////////////////////////////////////////
-        // BUILD TRANSACTION
-        ////////////////////////////////////////////////////
-
-        const transaction =
-            new window.solanaWeb3.Transaction();
-
-
-        transaction.add(
-            burnInstruction
         );
 
+}
+catch {
 
-        transaction.feePayer =
-            walletPublicKey;
+    throw new Error(
+        "Server returned an invalid durable SPARKD transaction."
+    );
+
+}
 
 
-        transaction.recentBlockhash =
-            prepareResult.blockhash;
+let transaction;
+
+try {
+
+    transaction =
+        window.solanaWeb3.Transaction.from(
+            partiallySignedTransactionBytes
+        );
+
+}
+catch {
+
+    throw new Error(
+        "Unable to decode the durable SPARKD transaction."
+    );
+
+}
+
+
+////////////////////////////////////////////////////
+// EXPECTED PUBLIC KEYS
+////////////////////////////////////////////////////
+
+const walletPublicKey =
+    new window.solanaWeb3.PublicKey(
+        wallet
+    );
+
+
+const tokenAccountPublicKey =
+    new window.solanaWeb3.PublicKey(
+        tokenAccountResult.tokenAccount
+    );
+
+
+const mintPublicKey =
+    new window.solanaWeb3.PublicKey(
+        expectedMint
+    );
+
+
+const tokenProgramPublicKey =
+    new window.solanaWeb3.PublicKey(
+        expectedProgram
+    );
+
+
+////////////////////////////////////////////////////
+// RETAIN EXACT BURN DATA FOR VALIDATION / RESULT
+////////////////////////////////////////////////////
+
+if (
+    transaction.instructions.length !== 2
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected instruction count."
+    );
+
+}
+
+
+const instructionData =
+    transaction.instructions[1].data;
+
+       ////////////////////////////////////////////////////
+// VALIDATE DURABLE TRANSACTION MESSAGE
+////////////////////////////////////////////////////
+
+if (
+    !transaction.feePayer ||
+    !transaction.feePayer.equals(
+        walletPublicKey
+    )
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected fee payer."
+    );
+
+}
+
+
+if (
+    transaction.recentBlockhash !==
+    prepareResult.nonceValue
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected nonce value."
+    );
+
+}
+
+
+if (
+    !transaction.instructions[0]
+        .programId
+        .equals(
+            window.solanaWeb3.SystemProgram.programId
+        )
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction is missing the nonce instruction."
+    );
+
+}
+
+
+if (
+    !transaction.instructions[1]
+        .programId
+        .equals(
+            tokenProgramPublicKey
+        )
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected burn program."
+    );
+
+}
+
+       ////////////////////////////////////////////////////
+// VALIDATE BURN INSTRUCTION ACCOUNTS
+////////////////////////////////////////////////////
+
+const burnKeys =
+    transaction.instructions[1].keys;
+
+
+if (
+    burnKeys.length !== 3
+) {
+
+    throw new Error(
+        "Durable SPARKD burn instruction has an unexpected account count."
+    );
+
+}
+
+
+if (
+    !burnKeys[0].pubkey.equals(
+        tokenAccountPublicKey
+    ) ||
+    burnKeys[0].isSigner !== false ||
+    burnKeys[0].isWritable !== true
+) {
+
+    throw new Error(
+        "Durable SPARKD burn instruction has an unexpected token account."
+    );
+
+}
+
+
+if (
+    !burnKeys[1].pubkey.equals(
+        mintPublicKey
+    ) ||
+    burnKeys[1].isSigner !== false ||
+    burnKeys[1].isWritable !== true
+) {
+
+    throw new Error(
+        "Durable SPARKD burn instruction has an unexpected mint account."
+    );
+
+}
+
+
+if (
+    !burnKeys[2].pubkey.equals(
+        walletPublicKey
+    ) ||
+    burnKeys[2].isSigner !== true
+) {
+
+    throw new Error(
+        "Durable SPARKD burn instruction has an unexpected wallet authority."
+    );
+
+}
+
+
+////////////////////////////////////////////////////
+// VALIDATE EXACT BURN CHECKED DATA
+////////////////////////////////////////////////////
+
+const expectedInstructionData =
+    new Uint8Array(10);
+
+
+expectedInstructionData[0] =
+    15;
+
+
+const expectedAmount =
+    BigInt(
+        expectedRawAmount
+    );
+
+
+for (
+    let i = 0;
+    i < 8;
+    i++
+) {
+
+    expectedInstructionData[
+        1 + i
+    ] =
+        Number(
+            (
+                expectedAmount >>
+                BigInt(
+                    8 * i
+                )
+            ) &
+            255n
+        );
+
+}
+
+
+expectedInstructionData[9] =
+    expectedDecimals;
+
+
+if (
+    instructionData.length !==
+    expectedInstructionData.length ||
+    !instructionData.every(
+        (value, index) =>
+            value ===
+            expectedInstructionData[index]
+    )
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has unexpected burn instruction data."
+    );
+
+}
+
+       ////////////////////////////////////////////////////
+// VALIDATE NONCE ADVANCE INSTRUCTION
+////////////////////////////////////////////////////
+
+const nonceInstruction =
+    transaction.instructions[0];
+
+
+const nonceKeys =
+    nonceInstruction.keys;
+
+
+if (
+    nonceKeys.length !== 3
+) {
+
+    throw new Error(
+        "Durable SPARKD nonce instruction has an unexpected account count."
+    );
+
+}
+
+
+if (
+    nonceKeys[0].pubkey.toBase58() !==
+        prepareResult.nonceAccount ||
+    nonceKeys[0].isSigner !== false ||
+    nonceKeys[0].isWritable !== true
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected nonce account."
+    );
+
+}
+
+
+if (
+    nonceKeys[1].pubkey.toBase58() !==
+        "SysvarRecentB1ockHashes11111111111111111111" ||
+    nonceKeys[1].isSigner !== false ||
+    nonceKeys[1].isWritable !== false
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected nonce sysvar."
+    );
+
+}
+
+
+if (
+    nonceKeys[2].pubkey.toBase58() !==
+        prepareResult.nonceAuthority ||
+    nonceKeys[2].isSigner !== true ||
+    nonceKeys[2].isWritable !== false
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected nonce authority."
+    );
+
+}
+
+
+const nonceInstructionData =
+    Array.from(
+        nonceInstruction.data
+    );
+
+
+if (
+    nonceInstructionData.length !== 4 ||
+    nonceInstructionData[0] !== 4 ||
+    nonceInstructionData[1] !== 0 ||
+    nonceInstructionData[2] !== 0 ||
+    nonceInstructionData[3] !== 0
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has unexpected nonce instruction data."
+    );
+
+}
+
+       ////////////////////////////////////////////////////
+// VALIDATE SIGNATURE STATE
+////////////////////////////////////////////////////
+
+const walletSignatureEntry =
+    transaction.signatures.find(
+        entry =>
+            entry.publicKey.equals(
+                walletPublicKey
+            )
+    );
+
+
+if (
+    !walletSignatureEntry ||
+    walletSignatureEntry.signature !== null
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction has an unexpected wallet signature state."
+    );
+
+}
+
+
+const nonceAuthorityPublicKey =
+    new window.solanaWeb3.PublicKey(
+        prepareResult.nonceAuthority
+    );
+
+
+const nonceAuthoritySignatureEntry =
+    transaction.signatures.find(
+        entry =>
+            entry.publicKey.equals(
+                nonceAuthorityPublicKey
+            )
+    );
+
+
+if (
+    !nonceAuthoritySignatureEntry ||
+    !nonceAuthoritySignatureEntry.signature
+) {
+
+    throw new Error(
+        "Durable SPARKD transaction is missing the nonce-authority signature."
+    );
+
+}
 
 
         ////////////////////////////////////////////////////
@@ -3090,11 +3388,20 @@ const response =
             decimals:
                 expectedDecimals,
 
-            blockhash:
-                prepareResult.blockhash,
-
-            lastValidBlockHeight:
-                prepareResult.lastValidBlockHeight,
+           nonceAccount:
+                prepareResult.nonceAccount,
+            
+            nonceAuthority:
+                prepareResult.nonceAuthority,
+            
+            nonceValue:
+                prepareResult.nonceValue,
+            
+            reservationId:
+                prepareResult.reservationId,
+            
+            serverSigned:
+                true,
 
             instructionData:
                 Array.from(
@@ -3243,51 +3550,6 @@ encodeBase58(bytes) {
 // READ ONLY
 ////////////////////////////////////////////////////
 
-async getBlockHeight(
-    wallet
-) {
-
-    const response =
-        await fetch(
-            this.SUPER_HANDLER_URL,
-            {
-                method:
-                    "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                   JSON.stringify({
-                action:
-                    "get_block_height",
-            
-                wallet:
-                    wallet
-})
-            }
-        );
-
-    const result =
-        await response.json();
-
-    if (
-        !response.ok
-    ) {
-
-        throw new Error(
-            result?.error ||
-            "Unable to get current Solana block height."
-        );
-
-    }
-
-    return result;
-
-},
-
 async checkTransactionStatus(
     wallet,
     transactionSignature
@@ -3349,16 +3611,20 @@ async checkTransactionStatus(
 
 async resendSignedBurnTransaction(
     wallet,
+    contestId,
+    reservationId,
     signedTransactionBase64
 ) {
 
     if (
         !wallet ||
+        !contestId ||
+        !reservationId ||
         !signedTransactionBase64
     ) {
 
         throw new Error(
-            "Missing signed SPARKD burn recovery data."
+            "Missing signed SPARKD durable-nonce recovery data."
         );
 
     }
@@ -3383,6 +3649,12 @@ async resendSignedBurnTransaction(
                         wallet:
                             wallet,
 
+                        contestId:
+                            contestId,
+
+                        reservationId:
+                            reservationId,
+
                         signedTransaction:
                             signedTransactionBase64
                     })
@@ -3392,12 +3664,28 @@ async resendSignedBurnTransaction(
     const result =
         await response.json();
 
-    return {
-        response:
-            response,
-        result:
-            result
-    };
+    if (
+        !response.ok ||
+        result?.success !== true ||
+        result?.sent !== true ||
+        !result?.transactionSignature
+    ) {
+
+        const error =
+            new Error(
+                result?.error ||
+                result?.rpcError?.message ||
+                "Unable to resend the exact signed SPARKD burn transaction."
+            );
+
+        error.response = response;
+        error.result = result;
+
+        throw error;
+
+    }
+
+    return result;
 
 },
 
@@ -3472,7 +3760,8 @@ async resendSignedBurnTransaction(
 
         const built =
             await this.buildSparkdBurnTransaction(
-                wallet
+                wallet,
+                contestId
             );
 
 
@@ -3612,22 +3901,31 @@ localStorage.setItem(
     pendingBurnRecoveryKey,
     JSON.stringify({
         contestId:
-            contestId,
-        wallet:
-            wallet,
-        signedTransaction:
-            signedTransactionBase64,
-        
-        burnTransaction:
-            preBroadcastSignature,
-        
-        lastValidBlockHeight:
-            built.lastValidBlockHeight,
-        
-        status:
-            "signed_pending_broadcast",
-        createdAt:
-            new Date().toISOString()
+        contestId,
+
+    wallet:
+        wallet,
+
+    signedTransaction:
+        signedTransactionBase64,
+
+    burnTransaction:
+        preBroadcastSignature,
+
+    reservationId:
+        built.reservationId,
+
+    nonceAccount:
+        built.nonceAccount,
+
+    nonceValue:
+        built.nonceValue,
+
+    status:
+        "signed_pending_broadcast",
+
+    createdAt:
+        new Date().toISOString()
     })
        
 );
@@ -3651,12 +3949,22 @@ const sendResponse =
                 "Content-Type": "application/json"
             },
 
-            body: JSON.stringify({
-                action: "send_signed_transaction",
+           body: JSON.stringify({
+            action:
+                "send_signed_transaction",
+        
+            wallet:
                 wallet,
-                signedTransaction:
-                    signedTransactionBase64
-            })
+        
+            contestId:
+                contestId,
+        
+            reservationId:
+                built.reservationId,
+        
+            signedTransaction:
+                signedTransactionBase64
+        })
         }
     );
 
@@ -3692,6 +4000,17 @@ if (
 
 const signature =
     sendResult.transactionSignature;
+
+if (
+    signature !==
+    preBroadcastSignature
+) {
+
+    throw new Error(
+        "Server returned a transaction signature that does not match the Phantom-signed burn. DO NOT BURN AGAIN."
+    );
+
+}
        
 ////////////////////////////////////////////////////
 // UPDATE RECOVERY MARKER WITH BROADCAST SIGNATURE
@@ -3708,6 +4027,16 @@ localStorage.setItem(
             signature,
         signedTransaction:
             signedTransactionBase64,
+
+        reservationId:
+            built.reservationId,
+        
+        nonceAccount:
+            built.nonceAccount,
+        
+        nonceValue:
+            built.nonceValue,
+        
         status:
             "broadcast",
         createdAt:
@@ -3933,488 +4262,6 @@ console.log(
     //
     // STILL NO TOKEN BURN
     // STILL NO SOL TRANSFER
-    ////////////////////////////////////////////////////
-
-    async submitMemeTest(
-        file,
-        forgeData,
-        memeTitle
-    ) {
-
-
-        console.log(
-            "🧪 SPARKD TEST SUBMISSION STARTING..."
-        );
-
-
-        ////////////////////////////////////////////////////
-        // STEP 1 — BASIC FILE CHECK
-        ////////////////////////////////////////////////////
-
-        this.validateFile(
-            file
-        );
-
-
-        ////////////////////////////////////////////////////
-        // STEP 2 — CONNECTED PHANTOM WALLET
-        //
-        // Uses the wallet already connected by
-        // the Meme of the Week contest wallet system.
-        //
-        // NO TOKEN TRANSACTION
-        // NO TOKEN BURN
-        // NO SOL TRANSFER
-        ////////////////////////////////////////////////////
-
-        const wallet =
-            typeof currentWallet !==
-                "undefined"
-                ? currentWallet
-                : null;
-
-
-        ////////////////////////////////////////////////////
-        // WALLET CHECK
-        ////////////////////////////////////////////////////
-
-        if (
-            typeof wallet !==
-                "string" ||
-            !wallet
-        ) {
-
-            throw new Error(
-                "Please connect your Phantom wallet first."
-            );
-
-        }
-
-
-        ////////////////////////////////////////////////////
-        // VALIDATE WALLET
-        ////////////////////////////////////////////////////
-
-        this.validateWallet(
-            wallet
-        );
-
-
-        console.log(
-            "🔑 TEST wallet:",
-            wallet
-        );
-
-
-        ////////////////////////////////////////////////////
-        // STEP 3 — CONTEST CHECK
-        ////////////////////////////////////////////////////
-
-        let contest =
-            null;
-
-
-        if (
-            typeof currentContest !==
-                "undefined" &&
-            currentContest
-        ) {
-
-            contest =
-                currentContest;
-
-        }
-        else {
-
-            contest =
-                await this.getCurrentContest();
-
-        }
-
-
-        if (
-            !contest ||
-            !contest.id
-        ) {
-
-            throw new Error(
-                "No active Meme of the Week contest."
-            );
-
-        }
-
-
-        console.log(
-            "🔥 TEST contest:",
-            contest.id
-        );
-
-
-       ////////////////////////////////////////////////////
-// STEP 4 — RECOVERY STATE CHECK
-//
-// CHECK BURN RECEIPT BEFORE ANY NEW BURN
-////////////////////////////////////////////////////
-
-console.log(
-    "🔎 Checking for an existing SPARKD burn receipt..."
-);
-
-let existingBurnReceipt =
-    await this.getBurnReceipt(
-        wallet,
-        contest.id
-    );
-
-        ////////////////////////////////////////////////////
-// LOCAL BURN RECOVERY
-//
-// IF A BURN SUCCEEDED BUT THE SERVER RECEIPT
-// WAS NOT SAVED, RECOVER IT BEFORE ANY NEW BURN.
-////////////////////////////////////////////////////
-
-const burnRecoveryKey =
-    `sparkd_burn_recovery_${contest.id}_${wallet}`;
-
-const savedBurnRecovery =
-    localStorage.getItem(
-        burnRecoveryKey
-    );
-
-if (
-    existingBurnReceipt?.found !== true &&
-    savedBurnRecovery
-) {
-
-    console.log(
-        "🛡️ Local SPARKD burn recovery marker found."
-    );
-
-    const recoveryData =
-        JSON.parse(
-            savedBurnRecovery
-        );
-
-    if (
-        recoveryData?.burnTransaction
-    ) {
-
-        await this.recordBurnReceipt(
-            wallet,
-            contest.id,
-            recoveryData.burnTransaction
-        );
-
-        existingBurnReceipt =
-            await this.getBurnReceipt(
-                wallet,
-                contest.id
-            );
-
-        console.log(
-            "♻️ SPARKD burn receipt recovered from local marker."
-        );
-
-    }
-
-}
-
-const existing =
-    await this.checkExistingSubmission(
-        wallet
-    );
-
-////////////////////////////////////////////////////
-// VERIFIED RECEIPT EXISTS
-//
-// NEVER BURN AGAIN FOR THIS CONTEST
-////////////////////////////////////////////////////
-
-if (
-    existingBurnReceipt?.found === true &&
-    existingBurnReceipt?.verified === true &&
-    existingBurnReceipt?.receipt?.burn_transaction
-) {
-
-    console.log(
-        "♻️ Verified SPARKD burn receipt found. Recovery mode enabled:",
-        existingBurnReceipt.receipt.burn_transaction
-    );
-
-}
-else if (
-    existing.submissionCount > 0
-) {
-
-    throw new Error(
-        "This wallet already has a submission for the current contest."
-    );
-
-}
-
-
-        ////////////////////////////////////////////////////
-        // STEP 5 — SPARKD BALANCE
-        ////////////////////////////////////////////////////
-
-        console.log(
-            "🪙 TEST MODE: Checking SPARKD balance..."
-        );
-
-
-        const balance =
-            await this.checkBalance(
-                wallet
-            );
-
-
-        if (
-            !balance.canSubmit
-        ) {
-
-            throw new Error(
-                "SPARKD balance verification failed."
-            );
-
-        }
-
-
-        console.log(
-            "🔥 TEST SPARKD balance verified:",
-            balance.balance
-        );
-
-
-        ////////////////////////////////////////////////////
-        // STEP 6 — FORGE DATA CHECK
-        ////////////////////////////////////////////////////
-
-        if (
-            !forgeData ||
-            typeof forgeData !==
-                "object"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge verification data is missing."
-            );
-
-        }
-
-
-        ////////////////////////////////////////////////////
-        // STEP 7 — SERVER-SIDE FORGE VERIFICATION
-        ////////////////////////////////////////////////////
-
-        const forgeVerification =
-            await this.verifyForge(
-
-                wallet,
-
-                forgeData
-
-            );
-
-
-        console.log(
-            "🔥 TEST Forge DNA verified."
-        );
-
-
-        ////////////////////////////////////////////////////
-        // STEP 8 — UPLOAD IMAGE
-        ////////////////////////////////////////////////////
-
-        const upload =
-            await this.uploadMeme(
-
-                file,
-
-                wallet,
-
-                contest.id
-
-            );
-
-
-        console.log(
-            "🔥 TEST meme uploaded:",
-            upload.path
-        );
-
-
-        ////////////////////////////////////////////////////
-        // STEP 9 — CREATE DATABASE SUBMISSION
-        ////////////////////////////////////////////////////
-
-        const client =
-            this.getSupabaseClient();
-
-
-        const submissionId =
-            crypto.randomUUID();
-
-
-        const submissionData = {
-
-            id:
-                submissionId,
-
-            contest_id:
-                contest.id,
-
-            creator_id:
-                forgeVerification.creatorID ||
-                forgeData.creatorID,
-
-            wallet_address:
-                wallet,
-
-            meme_title:
-                memeTitle ||
-                "Untitled SPARKD Meme",
-
-            meme_image_url:
-                upload.path,
-
-            dna_verified:
-                true,
-
-            dna_verification_data:
-                forgeData,
-
-            burn_amount:
-                0,
-
-            burn_transaction:
-                null,
-
-            burn_verified:
-                false,
-
-            status:
-                "pending"
-
-        };
-
-
-        ////////////////////////////////////////////////////
-        // INSERT DATABASE ROW
-        ////////////////////////////////////////////////////
-
-        console.log(
-            "💾 TEST inserting submission row..."
-        );
-
-
-        const {
-            error:
-                submissionError
-        } =
-            await client
-
-                .from(
-                    "meme_week_submissions"
-                )
-
-                .insert(
-                    submissionData
-                );
-
-
-        ////////////////////////////////////////////////////
-        // DATABASE ERROR
-        ////////////////////////////////////////////////////
-
-        if (
-            submissionError
-        ) {
-
-            console.error(
-                "SPARKD submission database error:",
-                submissionError
-            );
-
-
-            ////////////////////////////////////////////////////
-            // CLEAN UP UPLOADED IMAGE
-            ////////////////////////////////////////////////////
-
-            console.log(
-                "🧹 Removing uploaded image because database insert failed..."
-            );
-
-
-            const {
-                error:
-                    cleanupError
-            } =
-                await client
-
-                    .storage
-
-                    .from(
-                        this.BUCKET
-                    )
-
-                    .remove([
-                        upload.path
-                    ]);
-
-
-            if (
-                cleanupError
-            ) {
-
-                console.error(
-                    "⚠️ Image cleanup also failed:",
-                    cleanupError
-                );
-
-            }
-
-
-            throw new Error(
-                submissionError.message
-            );
-
-        }
-
-
-        ////////////////////////////////////////////////////
-        // SUCCESS
-        ////////////////////////////////////////////////////
-
-        const submission = {
-
-            id:
-                submissionId,
-
-            ...submissionData
-
-        };
-
-
-        console.log(
-            "🔥🔥 SPARKD MEME OF THE WEEK TEST SUBMISSION SUCCESS:",
-            submission
-        );
-
-
-        return {
-
-            success:
-                true,
-
-            test:
-                true,
-
-            submission:
-                submission
-
-        };
-
-    }
 
 };
 
@@ -4516,9 +4363,5 @@ console.log(
 );
 
 console.log(
-    "🛡️ TEST MODE: No token burns. No SOL transfers."
+    "🛡️ Production submissions use an explicit Phantom-approved 2,000 SPARKD burn; submitMemeTest remains no-burn test-only."
 );
-
-       
-      
-
