@@ -1275,7 +1275,7 @@ document.addEventListener(
                             catch (error) {
 
                                 console.error(
-                                    "❌ TEST SUBMISSION FAILED:",
+                                    "❌ SPARKD SUBMISSION FAILED:"
                                     error
                                 );
 
