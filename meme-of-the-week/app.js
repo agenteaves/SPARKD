@@ -1230,8 +1230,8 @@ document.addEventListener(
                                     );
 
 
-                                console.log(
-                                   "🔥 SPARKD Forge data:"
+                               console.log(
+                                    "🔥 SPARKD Forge data:",
                                     forgeData
                                 );
 
@@ -1275,7 +1275,7 @@ document.addEventListener(
                             catch (error) {
 
                                 console.error(
-                                    "❌ SPARKD SUBMISSION FAILED:"
+                                    "❌ SPARKD SUBMISSION FAILED:",
                                     error
                                 );
 
