@@ -3626,6 +3626,26 @@ async executeSparkdBurn(
     // PHANTOM IS THE ONLY SIGNER
     ////////////////////////////////////////////////////
 
+    const heightBeforePhantom =
+    await this.getCurrentBlockHeight(
+        wallet
+    );
+
+console.log(
+    "⏱️ SPARKD blockhash BEFORE Phantom:",
+    {
+        currentBlockHeight:
+            heightBeforePhantom,
+
+        lastValidBlockHeight:
+            built.lastValidBlockHeight,
+
+        blocksRemaining:
+            built.lastValidBlockHeight -
+            heightBeforePhantom
+    }
+);
+
     let signedTransaction;
 
     try {
@@ -3646,6 +3666,30 @@ async executeSparkdBurn(
         throw error;
 
     }
+
+    const heightAfterPhantom =
+    await this.getCurrentBlockHeight(
+        wallet
+    );
+
+console.log(
+    "⏱️ SPARKD blockhash AFTER Phantom:",
+    {
+        currentBlockHeight:
+            heightAfterPhantom,
+
+        lastValidBlockHeight:
+            built.lastValidBlockHeight,
+
+        blocksRemaining:
+            built.lastValidBlockHeight -
+            heightAfterPhantom,
+
+        blocksConsumedDuringPhantom:
+            heightAfterPhantom -
+            heightBeforePhantom
+    }
+);
 
     if (
         !signedTransaction
