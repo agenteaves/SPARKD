@@ -3095,10 +3095,10 @@ const response =
             !burnKeys[1].pubkey.equals(mintPublicKey) ||
             burnKeys[1].isSigner !== false ||
             burnKeys[1].isWritable !== true ||
-            !burnKeys[2].pubkey.equals(walletPublicKey) ||
+           !burnKeys[2].pubkey.equals(walletPublicKey) ||
             burnKeys[2].isSigner !== true ||
-            burnKeys[2].isWritable !== false
-        ) {
+            burnKeys[2].isWritable !== true
+                    ) {
 
             throw new Error(
                 "SPARKD BurnChecked instruction has unexpected accounts."
