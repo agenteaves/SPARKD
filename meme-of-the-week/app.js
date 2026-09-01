@@ -580,7 +580,7 @@ async function loadCommunitySubmissions() {
     try {
         
 console.log(
-    "🧪 COMMUNITY QUERY STARTING..."
+    "🖼️ COMMUNITY QUERY STARTING..."
 );
         
         const {
@@ -611,7 +611,7 @@ console.log(
                 );
 
         console.log(
-    "🧪 COMMUNITY QUERY FINISHED:",
+    "🖼️ COMMUNITY QUERY FINISHED:",
     {
         data: data,
         error: error
@@ -1065,10 +1065,7 @@ document.addEventListener(
 );
 
 ////////////////////////////////////////////////////
-// TEMPORARY MEME OF THE WEEK SUBMISSION TEST
-//
-// NO TOKEN BURN
-// NO SOL TRANSFER
+// MEME OF THE WEEK SUBMISSION
 ////////////////////////////////////////////////////
 
 document.addEventListener(
@@ -1097,7 +1094,7 @@ document.addEventListener(
         ) {
 
             console.warn(
-                "SPARKD test submission controls not found."
+                "SPARKD submission controls not found."
             );
 
             return;
