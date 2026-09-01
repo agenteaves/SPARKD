@@ -1,0 +1,21 @@
+<!doctype html>
+SPARKD Contest Health
+SPARKD Meme of the Week — Admin Health
+Private diagnostic dashboard. No contest controls are exposed here.
+
+    <input id="adminKey" type="password" autocomplete="off" placeholder="Enter admin access key">
+    <button id="loadBtn">Load Health</button>
+
+    <div class="grid">
+      <div class="card"><div class="label">System</div><div id="systemHealth" class="value"></div></div>
+      <div class="card"><div class="label">Contest Phase</div><div id="phase" class="value"></div></div>
+      <div class="card"><div class="label">Next Transition</div><div id="nextTransition" class="value"></div></div>
+      <div class="card"><div class="label">Submissions</div><div id="submissions" class="value"></div></div>
+      <div class="card"><div class="label">Eligible</div><div id="eligible" class="value"></div></div>
+      <div class="card"><div class="label">Votes</div><div id="votes" class="value"></div></div>
+      <div class="card"><div class="label">Cron Job</div><div id="cron" class="value"></div></div>
+      <div class="card"><div class="label">Last Cron Run</div><div id="lastRun" class="value"></div></div>
+      <div class="card"><div class="label">Latest Winner</div><div id="winner" class="value"></div></div>
+    </div>
+    <h3>Raw Health Snapshot</h3>
+    <pre id="raw"></pre>
