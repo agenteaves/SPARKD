@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD MEME OF THE WEEK — FLOATING SOCIAL SHARE
-// social-share.js v1.0
+// social-share.js v1.1
 //
 // Standalone frontend module.
 // Does NOT modify contest-submit.js, voting, lifecycle,
@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.0";
+  const VERSION = "1.1";
   const ROOT_ID = "sparkdSocialShare";
   const STYLE_ID = "sparkdSocialShareStyles";
   const TOAST_ID = "sparkdShareToast";
@@ -242,13 +242,13 @@
     { id: "x", label: "X", icon: "𝕏" },
     { id: "facebook", label: "Facebook", icon: "f" },
     { id: "linkedin", label: "LinkedIn", icon: "in" },
-    { id: "reddit", label: "Reddit", icon: "r/" },
+    { id: "reddit", label: "Reddit", icon: "●" },
     { id: "bluesky", label: "Bluesky", icon: "🦋" },
-    { id: "telegram", label: "Telegram", icon: "✈" },
-    { id: "whatsapp", label: "WhatsApp", icon: "☏" },
+    { id: "telegram", label: "Telegram", icon: "➤" },
+    { id: "whatsapp", label: "WhatsApp", icon: "☎" },
     { id: "pinterest", label: "Pinterest", icon: "P" },
     { id: "tumblr", label: "Tumblr", icon: "t" },
-    { id: "line", label: "LINE", icon: "L" },
+    { id: "line", label: "LINE", icon: "LINE" },
     { id: "mastodon", label: "Mastodon", icon: "M", action: shareMastodon },
     { id: "email", label: "Email", icon: "✉", direct: true },
     { id: "sms", label: "Text message", icon: "💬", direct: true },
@@ -337,12 +337,58 @@
         outline: none;
       }
 
+      /* Recognizable platform treatments */
+      #${ROOT_ID} .sparkd-share-btn[data-network="x"] {
+        background: #000000; color: #ffffff;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="facebook"] {
+        background: #1877F2; color: #ffffff;
+        font-size: 27px; font-weight: 900;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="linkedin"] {
+        background: #0A66C2; color: #ffffff; font-size: 15px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="reddit"] {
+        background: #FF4500; color: #ffffff; font-size: 14px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="bluesky"] {
+        background: #1185FE; color: #ffffff;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="telegram"] {
+        background: #229ED9; color: #ffffff; font-size: 21px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="whatsapp"] {
+        background: #25D366; color: #ffffff; font-size: 20px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="pinterest"] {
+        background: #E60023; color: #ffffff; font-size: 22px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="tumblr"] {
+        background: #36465D; color: #ffffff; font-size: 23px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="line"] {
+        background: #06C755; color: #ffffff; font-size: 11px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="mastodon"] {
+        background: #6364FF; color: #ffffff; font-size: 20px;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="email"] {
+        background: #555B66; color: #ffffff;
+      }
+      #${ROOT_ID} .sparkd-share-btn[data-network="sms"] {
+        background: #34C759; color: #ffffff;
+      }
       #${ROOT_ID} .sparkd-share-btn[data-network="native"] {
+        background: #202027; color: #ffffff;
         border-color: rgba(137,247,161,.55);
       }
-
       #${ROOT_ID} .sparkd-share-btn[data-network="copy"] {
+        background: #202027; color: #ffffff;
         border-color: rgba(255,209,102,.5);
+      }
+      #${ROOT_ID} .sparkd-share-btn:hover,
+      #${ROOT_ID} .sparkd-share-btn:focus-visible {
+        filter: brightness(1.12);
       }
 
       #${TOAST_ID} {
