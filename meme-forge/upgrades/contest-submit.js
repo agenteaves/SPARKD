@@ -2478,6 +2478,8 @@ catch (error) {
 
 }
 
+}
+
 ////////////////////////////////////////////////////
 // STEP 12 — FINALIZE THROUGH SERVER
 ////////////////////////////////////////////////////
@@ -3582,6 +3584,85 @@ async executeSparkdBurn(
         );
 
     }
+
+////////////////////////////////////////////////////
+// PHANTOM READINESS CHECK
+//
+// Wake / unlock Phantom BEFORE building the burn
+// transaction so the fresh blockhash does not expire
+// while Phantom is reconnecting.
+////////////////////////////////////////////////////
+
+console.log(
+    "🔐 Confirming Phantom is unlocked and ready..."
+);
+
+if (
+    !window.solana ||
+    !window.solana.isPhantom
+) {
+
+    throw new Error(
+        "Phantom wallet is required to submit."
+    );
+
+}
+
+let phantomReady;
+
+try {
+
+    phantomReady =
+        await window.solana.connect({
+            onlyIfTrusted: true
+        });
+
+}
+catch {
+
+    try {
+
+        phantomReady =
+            await window.solana.connect();
+
+    }
+    catch (error) {
+
+        throw new Error(
+            "Please unlock Phantom and connect your wallet before submitting."
+        );
+
+    }
+
+}
+
+if (
+    !phantomReady?.publicKey
+) {
+
+    throw new Error(
+        "Phantom is not ready. Please unlock Phantom and try again."
+    );
+
+}
+
+const phantomReadyWallet =
+    phantomReady.publicKey.toBase58();
+
+if (
+    phantomReadyWallet !== wallet
+) {
+
+    throw new Error(
+        "A different Phantom wallet is connected. Please reconnect the correct wallet before submitting."
+    );
+
+}
+
+console.log(
+    "✅ Phantom unlocked and ready:",
+    phantomReadyWallet
+);
 
     ////////////////////////////////////////////////////
     // BUILD FRESH SINGLE-SIGNER TRANSACTION
