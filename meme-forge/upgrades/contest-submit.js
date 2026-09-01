@@ -2829,7 +2829,7 @@ const response =
     //
     // IMPORTANT:
     // BUILDS / VALIDATES ONLY ON THE CLIENT.
-    // PHANTOM SIGNS FIRST; SERVER ADDS NONCE AUTHORITY AFTERWARD.
+    // SERVER BUILDS A RECENT-BLOCKHASH BURN; PHANTOM APPROVES THE WALLET SIGNATURE.
     // DOES NOT OPEN PHANTOM.
     // DOES NOT BROADCAST.
     // DOES NOT BURN.
@@ -4200,15 +4200,5 @@ console.log(
 );
 
 console.log(
-    "🧪 Test submission function:",
-    "SPARKD_CONTEST.submitMemeTest(file, forgeData, memeTitle)"
-);
-
-console.log(
-    "🔎 Token-2022 read-only test:",
-    "SPARKD_TOKEN2022_TEST()"
-);
-
-console.log(
-    "🛡️ Production submissions use an explicit Phantom-approved 2,000 SPARKD burn; submitMemeTest remains no-burn test-only."
+    "🛡️ SPARKD Meme of the Week production submission engine ready."
 );
