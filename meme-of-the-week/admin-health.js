@@ -1,12 +1,14 @@
-(() => { “use strict”; const ENDPOINT =
-“https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-admin-health”;
+(() => {
+  "use strict";
+  const ENDPOINT = "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-admin-health";
 
-const $ = (id) => document.getElementById(id); const fmt = (v) => v ?
-new Date(v).toLocaleString() : “—”;
+  const $ = (id) => document.getElementById(id);
+  const fmt = (v) => v ? new Date(v).toLocaleString() : "—";
 
-async function loadHealth() { const key = $(“adminKey”).value.trim();
-$(“message”).textContent = “Loading…”;
-$(“dashboard”).classList.add(“hidden”);
+  async function loadHealth() {
+    const key = $("adminKey").value.trim();
+    $("message").textContent = "Loading…";
+    $("dashboard").classList.add("hidden");
 
     try {
       const res = await fetch(ENDPOINT, {
@@ -46,11 +48,12 @@ $(“dashboard”).classList.add(“hidden”);
     } catch (err) {
       $("message").textContent = `❌ ${err.message || err}`;
     }
+  }
 
-}
+  $("loadBtn").addEventListener("click", loadHealth);
+  $("adminKey").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") loadHealth();
+  });
 
-$(“loadBtn”).addEventListener(“click”, loadHealth);
-$(“adminKey”).addEventListener(“keydown”, (e) => { if (e.key ===
-“Enter”) loadHealth(); });
-
-console.log(“🛡️ SPARKD admin-health.js v1.0 loaded.”); })();
+  console.log("🛡️ SPARKD admin-health.js v1.0 loaded.");
+})();
