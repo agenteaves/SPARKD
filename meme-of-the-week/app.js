@@ -40,6 +40,18 @@ const winnerWeek =
     );
 
 
+const winnerDisplay =
+    document.getElementById(
+        "winnerDisplay"
+    );
+
+
+const winnerName =
+    document.getElementById(
+        "winnerName"
+    );
+
+
 const submissionCount =
     document.getElementById(
         "submissionCount"
@@ -495,22 +507,35 @@ async function loadContestStatistics() {
         // UPDATE TOTAL BURNED
         ////////////////////////////////////////////////////
 
-        totalBurned.textContent =
+        const verifiedBurnTotal =
             Number(
-                currentContest.prize_sol ||
-                0
+                data.totalBurned ??
+                data.totalSparkdBurned ??
+                data.verifiedBurnTotal ??
+                (
+                    Number(
+                        data.submissionCount ||
+                        0
+                    ) * 2000
+                )
+            );
+
+
+        totalBurned.textContent =
+            (
+                Number.isFinite(
+                    verifiedBurnTotal
+                )
+                    ? verifiedBurnTotal
+                    : 0
             ).toLocaleString(
-
                 "en-US",
-
                 {
-
                     maximumFractionDigits:
                         6
-
                 }
-
             );
+
 
 
         console.log(
@@ -601,6 +626,10 @@ console.log(
                 .eq(
                     "dna_verified",
                     true
+                )
+                .neq(
+                    "status",
+                    "rejected"
                 )
                 .order(
                     "created_at",
@@ -1024,26 +1053,46 @@ submitMemeButton.addEventListener(
     "click",
     function () {
 
-
         if (
             !submissionsAreOpen()
         ) {
 
-
             alert(
                 "Meme of the Week submissions are currently closed."
             );
-
 
             return;
 
         }
 
 
-        alert(
-            "Submission system coming online."
-        );
+        const submissionForm =
+            document.getElementById(
+                "motmSubmissionForm"
+            );
 
+
+        if (!submissionForm) {
+
+            console.error(
+                "SPARKD public submission form not found."
+            );
+
+            return;
+
+        }
+
+
+        submissionForm.style.display =
+            "block";
+
+
+        submissionForm.scrollIntoView({
+            behavior:
+                "smooth",
+            block:
+                "nearest"
+        });
 
     }
 );
@@ -1059,6 +1108,8 @@ document.addEventListener(
 
         loadCurrentContest();
 
+        loadCurrentWinner();
+
         loadHallOfFame();
 
     }
@@ -1066,35 +1117,55 @@ document.addEventListener(
 
 ////////////////////////////////////////////////////
 // MEME OF THE WEEK SUBMISSION
+//
+// PUBLIC FORM WIRING ONLY.
+// The proven contest-submit.js burn / recovery engine
+// is intentionally left untouched.
 ////////////////////////////////////////////////////
 
 document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        const testButton =
+        const submissionForm =
             document.getElementById(
-                "testSubmitButton"
+                "motmSubmissionForm"
             );
 
-        const testFile =
+        const submitButton =
             document.getElementById(
-                "testMemeFile"
+                "motmSubmitFinalButton"
             );
 
-        const testTitle =
+        const cancelButton =
             document.getElementById(
-                "testMemeTitle"
+                "motmCancelButton"
+            );
+
+        const memeFile =
+            document.getElementById(
+                "motmMemeFile"
+            );
+
+        const memeTitle =
+            document.getElementById(
+                "motmMemeTitle"
+            );
+
+        const submissionStatus =
+            document.getElementById(
+                "motmSubmissionStatus"
             );
 
 
         if (
-            !testButton ||
-            !testFile
+            !submissionForm ||
+            !submitButton ||
+            !memeFile
         ) {
 
             console.warn(
-                "SPARKD submission controls not found."
+                "SPARKD public submission controls not found."
             );
 
             return;
@@ -1102,18 +1173,34 @@ document.addEventListener(
         }
 
 
-        testButton.addEventListener(
+        if (cancelButton) {
+
+            cancelButton.addEventListener(
+                "click",
+                function () {
+
+                    submissionForm.style.display =
+                        "none";
+
+                    if (submissionStatus) {
+                        submissionStatus.textContent =
+                            "";
+                    }
+
+                }
+            );
+
+        }
+
+
+        submitButton.addEventListener(
             "click",
             async function () {
 
                 try {
 
-                    ////////////////////////////////////////////////////
-                    // FILE CHECK
-                    ////////////////////////////////////////////////////
-
                     const file =
-                        testFile.files[0];
+                        memeFile.files[0];
 
 
                     if (!file) {
@@ -1126,10 +1213,6 @@ document.addEventListener(
 
                     }
 
-
-                    ////////////////////////////////////////////////////
-                    // WALLET CHECK
-                    ////////////////////////////////////////////////////
 
                     if (
                         typeof currentWallet !==
@@ -1146,205 +1229,237 @@ document.addEventListener(
                     }
 
 
-                    ////////////////////////////////////////////////////
-                    // READ FORGE DNA
-                    ////////////////////////////////////////////////////
+                    if (
+                        !window.SPARKD_CONTEST ||
+                        typeof window.SPARKD_CONTEST.submitMeme !==
+                            "function"
+                    ) {
 
-                    const reader =
-                        new FileReader();
+                        throw new Error(
+                            "SPARKD production submission engine is not available."
+                        );
 
-
-                    reader.onload =
-                        async function (event) {
-
-                            try {
-
-                                const bytes =
-                                    new Uint8Array(
-                                        event.target.result
-                                    );
+                    }
 
 
-                                const text =
-                                    new TextDecoder()
-                                        .decode(bytes);
+                    if (submissionStatus) {
+                        submissionStatus.textContent =
+                            "Reading SPARKD Forge DNA...";
+                    }
 
 
-                                const marker =
-                                    "SPARKD-FORGE";
+                    const forgeData =
+                        await new Promise(
+                            (resolve, reject) => {
+
+                                const reader =
+                                    new FileReader();
 
 
-                                const markerPosition =
-                                    text.indexOf(
-                                        marker
-                                    );
+                                reader.onerror =
+                                    function () {
+                                        reject(
+                                            new Error(
+                                                "Unable to read the selected PNG."
+                                            )
+                                        );
+                                    };
 
 
-                                if (
-                                    markerPosition ===
-                                    -1
-                                ) {
+                                reader.onload =
+                                    function (event) {
 
-                                    throw new Error(
-                                        "No SPARKD Forge DNA found in this PNG."
-                                    );
+                                        try {
 
-                                }
+                                            const bytes =
+                                                new Uint8Array(
+                                                    event.target.result
+                                                );
 
+                                            const text =
+                                                new TextDecoder()
+                                                    .decode(bytes);
 
-                                const jsonStart =
-                                    text.indexOf(
-                                        "{",
-                                        markerPosition
-                                    );
+                                            const marker =
+                                                "SPARKD-FORGE";
 
+                                            const markerPosition =
+                                                text.indexOf(
+                                                    marker
+                                                );
 
-                                const jsonEnd =
-                                    text.indexOf(
-                                        "}",
-                                        jsonStart
-                                    );
+                                            if (
+                                                markerPosition ===
+                                                -1
+                                            ) {
+                                                throw new Error(
+                                                    "No SPARKD Forge DNA found in this PNG."
+                                                );
+                                            }
 
+                                            const jsonStart =
+                                                text.indexOf(
+                                                    "{",
+                                                    markerPosition
+                                                );
 
-                                if (
-                                    jsonStart === -1 ||
-                                    jsonEnd === -1
-                                ) {
+                                            const jsonEnd =
+                                                text.indexOf(
+                                                    "}",
+                                                    jsonStart
+                                                );
 
-                                    throw new Error(
-                                        "SPARKD Forge metadata could not be read."
-                                    );
+                                            if (
+                                                jsonStart === -1 ||
+                                                jsonEnd === -1
+                                            ) {
+                                                throw new Error(
+                                                    "SPARKD Forge metadata could not be read."
+                                                );
+                                            }
 
-                                }
+                                            resolve(
+                                                JSON.parse(
+                                                    text.substring(
+                                                        jsonStart,
+                                                        jsonEnd + 1
+                                                    )
+                                                )
+                                            );
 
+                                        }
+                                        catch (error) {
+                                            reject(error);
+                                        }
 
-                                const forgeData =
-                                    JSON.parse(
-                                        text.substring(
-                                            jsonStart,
-                                            jsonEnd + 1
-                                        )
-                                    );
-
-
-                               console.log(
-                                    "🔥 SPARKD Forge data:",
-                                    forgeData
-                                );
-
-
-                                ////////////////////////////////////////////////////
-                                // READY-TO-BURN CONFIRMATION
-                                //
-                                // IMPORTANT:
-                                // Do not begin the live submission/burn flow until
-                                // the entrant confirms they are ready for Phantom.
-                                // The transaction uses a recent Solana blockhash,
-                                // so Phantom approval must happen promptly.
-                                ////////////////////////////////////////////////////
-
-                                const readyToBurn =
-                                    window.confirm(
-                                        "READY TO SUBMIT?\n\n" +
-                                        "Entering Meme of the Week requires burning exactly 2,000 SPARKD.\n\n" +
-                                        "After you continue, Phantom will open for the burn transaction. Review it and approve promptly because Solana transactions have a short validity window.\n\n" +
-                                        "Press OK only when you are ready to review Phantom now."
-                                    );
+                                    };
 
 
-                                if (!readyToBurn) {
-
-                                    console.log(
-                                        "SPARKD submission cancelled before burn preparation."
-                                    );
-
-                                    return;
-
-                                }
-
-
-                                ////////////////////////////////////////////////////
-                                // LIVE CONTEST SUBMISSION
-                                ////////////////////////////////////////////////////
-
-                                testButton.disabled =
-                                    true;
-
-
-                                testButton.textContent =
-                                    "⏳ PREPARING PHANTOM...";
-
-
-                                const result =
-                                    await window.SPARKD_CONTEST.submitMeme(
-                                        file,
-                                        forgeData,
-                                        testTitle
-                                            ? testTitle.value
-                                            : "SPARKD Meme"
-                                    );
-
-
-                                console.log(
-                                "🔥 REAL SUBMISSION RESULT:",
-                                result
-                            );
-
-
-                                alert(
-                                "🔥 SUBMISSION SUCCESS!\n\n" +
-                                "Submission ID:\n" +
-                                result.submission.id
-                            );
-
-
-                            }
-                            catch (error) {
-
-                                console.error(
-                                    "❌ SPARKD SUBMISSION FAILED:",
-                                    error
-                                );
-
-
-                                alert(
-                                    "❌ SUBMISSION FAILED\n\n" +
-                                    error.message
+                                reader.readAsArrayBuffer(
+                                    file
                                 );
 
                             }
-                            finally {
-
-                                testButton.disabled =
-                                    false;
+                        );
 
 
-                                testButton.textContent =
-                                    "🔥 SUBMIT MEME";
-
-                            }
-
-                        };
-
-
-                    reader.readAsArrayBuffer(
-                        file
+                    console.log(
+                        "🔥 SPARKD Forge data:",
+                        forgeData
                     );
 
+
+                    const readyToBurn =
+                        window.confirm(
+                            "READY TO SUBMIT?\n\n" +
+                            "Entering Meme of the Week requires burning exactly 2,000 SPARKD.\n\n" +
+                            "After you continue, Phantom will open for the burn transaction. Review it and approve promptly.\n\n" +
+                            "Press OK only when you are ready to review Phantom now."
+                        );
+
+
+                    if (!readyToBurn) {
+
+                        if (submissionStatus) {
+                            submissionStatus.textContent =
+                                "Submission cancelled before burn preparation.";
+                        }
+
+                        return;
+
+                    }
+
+
+                    submitButton.disabled =
+                        true;
+
+                    submitButton.textContent =
+                        "⏳ PREPARING PHANTOM...";
+
+
+                    if (submissionStatus) {
+                        submissionStatus.textContent =
+                            "Preparing secure SPARKD submission...";
+                    }
+
+
+                    const result =
+                        await window.SPARKD_CONTEST.submitMeme(
+                            file,
+                            forgeData,
+                            memeTitle
+                                ? memeTitle.value
+                                : "SPARKD Meme"
+                        );
+
+
+                    console.log(
+                        "🔥 REAL SUBMISSION RESULT:",
+                        result
+                    );
+
+
+                    if (submissionStatus) {
+                        submissionStatus.textContent =
+                            "🔥 Submission successful!";
+                    }
+
+
+                    alert(
+                        "🔥 SUBMISSION SUCCESS!\n\n" +
+                        "Submission ID:\n" +
+                        result.submission.id
+                    );
+
+
+                    memeFile.value =
+                        "";
+
+                    if (memeTitle) {
+                        memeTitle.value =
+                            "";
+                    }
+
+
+                    submissionForm.style.display =
+                        "none";
+
+
+                    await loadContestStatistics();
+                    await loadCommunitySubmissions();
 
                 }
                 catch (error) {
 
                     console.error(
-                        "❌ SPARKD submission error:",
+                        "❌ SPARKD SUBMISSION FAILED:",
                         error
                     );
 
 
+                    if (submissionStatus) {
+                        submissionStatus.textContent =
+                            error?.message ||
+                            "Submission failed.";
+                    }
+
+
                     alert(
                         "❌ SUBMISSION FAILED\n\n" +
-                        error.message
+                        (
+                            error?.message ||
+                            error
+                        )
                     );
+
+                }
+                finally {
+
+                    submitButton.disabled =
+                        false;
+
+                    submitButton.textContent =
+                        "🚀 SUBMIT MEME";
 
                 }
 
@@ -1788,6 +1903,174 @@ function openSubmissionViewer(
 
 }
 
+
+
+////////////////////////////////////////////////////
+// LOAD CURRENT / LATEST CHAMPION
+////////////////////////////////////////////////////
+
+async function loadCurrentWinner() {
+
+    if (
+        !winnerDisplay ||
+        !winnerName
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const {
+            data: contest,
+            error: contestError
+        } =
+            await supabaseClient
+                .from(
+                    "meme_week_contests"
+                )
+                .select(
+                    "id,week_start,week_end,winner_submission_id"
+                )
+                .not(
+                    "winner_submission_id",
+                    "is",
+                    null
+                )
+                .order(
+                    "week_start",
+                    {
+                        ascending:
+                            false
+                    }
+                )
+                .limit(
+                    1
+                )
+                .maybeSingle();
+
+
+        if (contestError) {
+            throw contestError;
+        }
+
+
+        if (
+            !contest ||
+            !contest.winner_submission_id
+        ) {
+
+            winnerName.textContent =
+                "Awaiting Champion";
+
+            return;
+
+        }
+
+
+        const {
+            data: submission,
+            error: submissionError
+        } =
+            await supabaseClient
+                .from(
+                    "meme_week_submissions"
+                )
+                .select(
+                    "id,meme_title,meme_image_url,wallet_address"
+                )
+                .eq(
+                    "id",
+                    contest.winner_submission_id
+                )
+                .maybeSingle();
+
+
+        if (submissionError) {
+            throw submissionError;
+        }
+
+
+        if (!submission) {
+
+            winnerName.textContent =
+                "Awaiting Champion";
+
+            return;
+
+        }
+
+
+        const imageUrl =
+            supabaseClient
+                .storage
+                .from(
+                    "sparkd-contest-submissions"
+                )
+                .getPublicUrl(
+                    submission.meme_image_url
+                )
+                .data
+                .publicUrl;
+
+
+        winnerName.textContent =
+            submission.meme_title ||
+            "SPARKD Champion";
+
+
+        winnerDisplay.innerHTML = `
+            <div class="winner-placeholder">
+                <img
+                    src="${imageUrl}"
+                    alt="${escapeHtml(
+                        submission.meme_title ||
+                        "SPARKD Champion"
+                    )}"
+                    loading="lazy"
+                    style="max-width:100%;height:auto;cursor:pointer;"
+                >
+            </div>
+        `;
+
+
+        const image =
+            winnerDisplay.querySelector(
+                "img"
+            );
+
+
+        if (image) {
+
+            image.addEventListener(
+                "click",
+                function () {
+
+                    openSubmissionViewer(
+                        imageUrl,
+                        submission.meme_title ||
+                        "SPARKD Champion"
+                    );
+
+                }
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ Could not load current SPARKD champion:",
+            error
+        );
+
+        winnerName.textContent =
+            "Awaiting Champion";
+
+    }
+
+}
 
 // =================================================
 // SPARKD MEME HALL OF FAME
