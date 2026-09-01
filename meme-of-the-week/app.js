@@ -1237,7 +1237,37 @@ document.addEventListener(
 
 
                                 ////////////////////////////////////////////////////
-                                // SUBMIT TEST
+                                // READY-TO-BURN CONFIRMATION
+                                //
+                                // IMPORTANT:
+                                // Do not begin the live submission/burn flow until
+                                // the entrant confirms they are ready for Phantom.
+                                // The transaction uses a recent Solana blockhash,
+                                // so Phantom approval must happen promptly.
+                                ////////////////////////////////////////////////////
+
+                                const readyToBurn =
+                                    window.confirm(
+                                        "READY TO SUBMIT?\n\n" +
+                                        "Entering Meme of the Week requires burning exactly 2,000 SPARKD.\n\n" +
+                                        "After you continue, Phantom will open for the burn transaction. Review it and approve promptly because Solana transactions have a short validity window.\n\n" +
+                                        "Press OK only when you are ready to review Phantom now."
+                                    );
+
+
+                                if (!readyToBurn) {
+
+                                    console.log(
+                                        "SPARKD submission cancelled before burn preparation."
+                                    );
+
+                                    return;
+
+                                }
+
+
+                                ////////////////////////////////////////////////////
+                                // LIVE CONTEST SUBMISSION
                                 ////////////////////////////////////////////////////
 
                                 testButton.disabled =
@@ -1245,17 +1275,17 @@ document.addEventListener(
 
 
                                 testButton.textContent =
-                                "⏳ SUBMITTING...";
+                                    "⏳ PREPARING PHANTOM...";
 
 
-                              const result =
-                                await window.SPARKD_CONTEST.submitMeme(
-                                    file,
-                                    forgeData,
-                                    testTitle
-                                        ? testTitle.value
-                                        : "Test SPARKD Meme"
-    );;
+                                const result =
+                                    await window.SPARKD_CONTEST.submitMeme(
+                                        file,
+                                        forgeData,
+                                        testTitle
+                                            ? testTitle.value
+                                            : "SPARKD Meme"
+                                    );
 
 
                                 console.log(
@@ -1281,7 +1311,7 @@ document.addEventListener(
 
 
                                 alert(
-                                    "❌ TEST SUBMISSION FAILED\n\n" +
+                                    "❌ SUBMISSION FAILED\n\n" +
                                     error.message
                                 );
 
@@ -1293,7 +1323,7 @@ document.addEventListener(
 
 
                                 testButton.textContent =
-                                    "🧪 TEST SUBMISSION";
+                                    "🔥 SUBMIT MEME";
 
                             }
 
@@ -1309,13 +1339,13 @@ document.addEventListener(
                 catch (error) {
 
                     console.error(
-                        "❌ Test submission error:",
+                        "❌ SPARKD submission error:",
                         error
                     );
 
 
                     alert(
-                        "❌ TEST SUBMISSION FAILED\n\n" +
+                        "❌ SUBMISSION FAILED\n\n" +
                         error.message
                     );
 
@@ -2082,4 +2112,3 @@ async function loadHallOfFame() {
     }
 
 }
-
