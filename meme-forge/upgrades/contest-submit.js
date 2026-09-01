@@ -2437,31 +2437,21 @@ else {
 
 ////////////////////////////////////////////////////
 // RECORD BURN RECEIPT IMMEDIATELY
-////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////
-// SAVE LOCAL BURN RECOVERY MARKER
 //
-// DO THIS BEFORE RECORDING THE SERVER RECEIPT
+// IMPORTANT:
+// executeSparkdBurn() already saved the COMPLETE
+// signed transaction recovery marker before broadcast.
+//
+// DO NOT overwrite that marker here.
+//
+// If receipt recording or finalization fails, the
+// complete recovery marker must remain intact so the
+// exact signed transaction can be checked/recovered
+// without ever creating a second burn.
 ////////////////////////////////////////////////////
-
-localStorage.setItem(
-    burnRecoveryKey,
-    JSON.stringify({
-        contestId:
-            contest.id,
-        wallet:
-            wallet,
-        burnTransaction:
-            burnResult.burnTransaction,
-        createdAt:
-            new Date().toISOString()
-    })   
-    
-);
 
 console.log(
-    "🛡️ Local SPARKD burn recovery marker saved:",
+    "🛡️ Full SPARKD burn recovery marker preserved:",
     burnResult.burnTransaction
 );
 
@@ -2487,7 +2477,6 @@ catch (error) {
     );
 
 }
-}    
 
 ////////////////////////////////////////////////////
 // STEP 12 — FINALIZE THROUGH SERVER
