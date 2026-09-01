@@ -1,11 +1,39 @@
 <!doctype html>
-SPARKD Contest Health
-SPARKD Meme of the Week — Admin Health
-Private diagnostic dashboard. No contest controls are exposed here.
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SPARKD Contest Health</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#0b0b0d;color:#fff;margin:0;padding:24px}
+    .wrap{max-width:980px;margin:0 auto}
+    h1{margin:0 0 8px}
+    .sub{opacity:.7;margin-bottom:20px}
+    .bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+    input,button{padding:11px 13px;border-radius:10px;border:1px solid #333;background:#151519;color:#fff}
+    input{flex:1;min-width:280px}
+    button{cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    .card{background:#151519;border:1px solid #2b2b32;border-radius:14px;padding:16px}
+    .label{font-size:.8rem;opacity:.6;text-transform:uppercase;letter-spacing:.06em}
+    .value{font-size:1.12rem;font-weight:700;margin-top:7px;word-break:break-word}
+    .ok{color:#89f7a1}.warn{color:#ffd166}.bad{color:#ff7b7b}
+    .hidden{display:none}
+    pre{white-space:pre-wrap;word-break:break-word;background:#101014;border-radius:12px;padding:14px;overflow:auto}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SPARKD Meme of the Week — Admin Health</h1>
+  <div class="sub">Private diagnostic dashboard. No contest controls are exposed here.</div>
 
+  <div class="bar">
     <input id="adminKey" type="password" autocomplete="off" placeholder="Enter admin access key">
     <button id="loadBtn">Load Health</button>
+  </div>
 
+  <div id="message"></div>
+  <div id="dashboard" class="hidden">
     <div class="grid">
       <div class="card"><div class="label">System</div><div id="systemHealth" class="value"></div></div>
       <div class="card"><div class="label">Contest Phase</div><div id="phase" class="value"></div></div>
@@ -19,3 +47,8 @@ Private diagnostic dashboard. No contest controls are exposed here.
     </div>
     <h3>Raw Health Snapshot</h3>
     <pre id="raw"></pre>
+  </div>
+</div>
+<script src="admin-health.js"></script>
+</body>
+</html>
