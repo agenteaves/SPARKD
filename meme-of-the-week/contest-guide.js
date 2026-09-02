@@ -266,6 +266,11 @@
         }
 
         launcher.addEventListener("click", openGuide);
+       // Allow direct links to the contest guide:
+// /meme-of-the-week/#guide
+if (window.location.hash === "#guide") {
+    openGuide();
+}
         overlay.querySelector(".sparkd-guide-close").addEventListener("click", closeGuide);
         overlay.querySelector(".sparkd-guide-done").addEventListener("click", closeGuide);
         overlay.addEventListener("click", function (event) {
