@@ -260,10 +260,19 @@
         }
 
         function closeGuide() {
-            overlay.classList.remove("is-open");
-            overlay.setAttribute("aria-hidden", "true");
-            document.body.style.overflow = "";
-        }
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+
+    // Remove #guide from the URL after closing
+    if (window.location.hash === "#guide") {
+        history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search
+        );
+    }
+}
 
         launcher.addEventListener("click", openGuide);
        // Allow direct links to the contest guide:
