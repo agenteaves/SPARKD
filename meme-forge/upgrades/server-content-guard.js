@@ -1,158 +1,148 @@
 /* ============================================================
-   SPARKD SERVER CONTENT GUARD
-   Supabase server-side image moderation client
-   Version: v1
-============================================================ */
+   SPARKD SERVER NUDENET GUARD
+   Client connector for server-hosted NudeNet ONNX inference.
+   Version: server-nudenet-v1
+   ============================================================ */
 
 (function () {
-
     "use strict";
 
+    /*
+     * SET THIS TO YOUR DEPLOYED SERVER URL.
+     *
+     * Example:
+     * window.SPARKD_NUDENET_ENDPOINT =
+     *   "https://your-service.example.com/scan";
+     *
+     * Define window.SPARKD_NUDENET_ENDPOINT before this script,
+     * OR replace the empty string below after deployment.
+     */
+    const DEFAULT_ENDPOINT = "";
 
-    const ENDPOINT =
-        "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety";
+    function endpoint() {
+        return (
+            window.SPARKD_NUDENET_ENDPOINT ||
+            DEFAULT_ENDPOINT
+        );
+    }
 
+    async function check(file) {
 
-    async function check(
-        file
-    ) {
+        if (!(file instanceof File)) {
+            alert("🚫 SPARKD content protection could not verify this image. Upload blocked.");
+            return false;
+        }
+
+        if (!file.type || !file.type.startsWith("image/")) {
+            alert("🚫 Only image files are allowed.");
+            return false;
+        }
+
+        const url = endpoint();
+
+        if (!url) {
+            console.error("❌ SPARKD_NUDENET_ENDPOINT is not configured.");
+            alert("🚫 SPARKD content protection is unavailable. Upload blocked.");
+            return false;
+        }
 
         try {
+            const form = new FormData();
+            form.append("image", file, file.name);
 
-            if (
-                !file ||
-                typeof file.type !==
-                    "string" ||
-                !file.type.startsWith(
-                    "image/"
-                )
-            ) {
+            const response = await fetch(url, {
+                method: "POST",
+                body: form,
+                cache: "no-store",
+                credentials: "omit"
+            });
 
-                alert(
-                    "🚫 Please select a valid image."
-                );
+            let result = null;
 
-                return false;
-
+            try {
+                result = await response.json();
+            } catch (_) {
+                result = null;
             }
 
-
-            const formData =
-                new FormData();
-
-
-            formData.append(
-                "image",
-                file,
-                file.name ||
-                    "sparkd-upload.png"
-            );
-
-
-            const response =
-                await fetch(
-                    ENDPOINT,
-                    {
-                        method:
-                            "POST",
-
-                        body:
-                            formData,
-
-                        cache:
-                            "no-store"
-                    }
-                );
-
-
-            const result =
-                await response
-                    .json()
-                    .catch(
-                        function () {
-                            return {};
-                        }
-                    );
-
-
-            /*
-             * FAIL CLOSED:
-             * Anything except an explicit safe=true response
-             * is rejected.
-             */
-            if (
-                !response.ok ||
-                result?.success !== true ||
-                result?.checked !== true ||
-                result?.safe !== true ||
-                result?.blocked === true
-            ) {
-
-                console.warn(
-                    "🚫 SPARKD server safety rejected image:",
+            if (!response.ok) {
+                console.error(
+                    "❌ SPARKD NudeNet server rejected safety request:",
+                    response.status,
                     result
                 );
 
-
                 alert(
-                    result?.blocked === true &&
-                    result?.success === true
-                        ? "🚫 SPARKD blocked this image because it contains prohibited content."
-                        : "🚫 SPARKD content protection could not verify this image. Upload blocked."
+                    "🚫 SPARKD content protection could not verify this image. Upload blocked."
                 );
 
-
                 return false;
-
             }
 
+            if (
+                !result ||
+                result.success !== true ||
+                result.checked !== true
+            ) {
+                console.error(
+                    "❌ Invalid SPARKD NudeNet server result:",
+                    result
+                );
+
+                alert(
+                    "🚫 SPARKD content protection could not verify this image. Upload blocked."
+                );
+
+                return false;
+            }
+
+            if (
+                result.blocked === true ||
+                result.safe !== true
+            ) {
+                console.warn(
+                    "🚫 SPARKD NudeNet blocked image:",
+                    result
+                );
+
+                alert(
+                    "🚫 This image cannot be used in SPARKD Meme Forge."
+                );
+
+                return false;
+            }
 
             console.log(
-                "✅ SPARKD server safety approved image."
+                "✅ SPARKD NudeNet server approved image.",
+                result
             );
-
 
             return true;
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "❌ SPARKD server safety request failed:",
+                "❌ SPARKD NudeNet server safety error:",
                 error
             );
 
-
             alert(
-                "🚫 SPARKD content protection is unavailable. Upload blocked."
+                "🚫 SPARKD content protection could not verify this image. Upload blocked."
             );
 
-
             return false;
-
         }
-
     }
 
-
     window.SPARKD_GUARD = {
-
-        check:
-            check,
-
-        isReady:
-            function () {
-                return true;
-            },
-
-        version:
-            "server-v1"
-
+        check: check,
+        isReady: function () {
+            return !!endpoint();
+        },
+        version: "server-nudenet-v1"
     };
 
-
     console.log(
-        "🛡️ SPARKD Server Content Guard v1 loaded."
+        "🛡️ SPARKD Server NudeNet Guard loaded."
     );
-
 })();
