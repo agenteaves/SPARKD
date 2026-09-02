@@ -20,7 +20,7 @@
 
             .sparkd-guide-launcher {
                 position: absolute;
-                left: -165px;
+                left: -145px;
                 top: 50%;
                 transform: translateY(-50%);
                 width: 155px;
