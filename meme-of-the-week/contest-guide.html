@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Enter Meme of the Week | SPARKD</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #050b14;
+      color: #fff;
+    }
+    .guide-wrap {
+      width: min(900px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 60px;
+    }
+    .guide-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .back-link {
+      color: #00aaff;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .forge-link {
+      color: #00aaff;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .guide-card {
+      border: 1px solid rgba(0,170,255,.45);
+      border-radius: 20px;
+      padding: 30px;
+      background:
+        radial-gradient(circle at top, rgba(0,126,255,.12), transparent 40%),
+        #07101d;
+      box-shadow: 0 20px 70px rgba(0,0,0,.55);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(30px, 5vw, 46px);
+    }
+    .subtitle {
+      margin: 0 0 28px;
+      color: #b8c7d9;
+      line-height: 1.6;
+      font-size: 17px;
+    }
+    .steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      counter-reset: step;
+      display: grid;
+      gap: 14px;
+    }
+    .steps li {
+      counter-increment: step;
+      position: relative;
+      padding: 17px 18px 17px 72px;
+      min-height: 66px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+      line-height: 1.55;
+    }
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 18px;
+      top: 16px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #00aaff;
+      color: #00101a;
+      font-weight: 900;
+    }
+    .note {
+      margin: 24px 0 0;
+      padding: 16px;
+      border-left: 3px solid #ff9d00;
+      border-radius: 9px;
+      background: rgba(255,157,0,.08);
+      line-height: 1.55;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+    .action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #00aaff, #006dff);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 900;
+    }
+    .action.secondary {
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    @media (max-width: 600px) {
+      .guide-card { padding: 22px 16px; }
+      .guide-top { align-items: flex-start; flex-direction: column; }
+      .steps li { padding-left: 64px; }
+      .actions { flex-direction: column; }
+      .action { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="guide-wrap">
+    <div class="guide-top">
+      <a class="back-link" href="./">← BACK TO CONTEST</a>
+      <a class="forge-link" href="../meme-forge/">⚡ MEME FORGE</a>
+    </div>
+
+    <section class="guide-card">
+      <h1>🔥 How to Enter Meme of the Week</h1>
+      <p class="subtitle">
+        Create your meme in SPARKD Meme Forge, download the official Forge PNG,
+        then submit it to the active weekly contest.
+      </p>
+
+      <ol class="steps">
+        <li><strong>Open Meme Forge.</strong> Upload an image, add your text or emojis, and finish your meme.</li>
+        <li><strong>Download the finished meme.</strong> Use the Forge download/export button so you keep the official SPARKD Forge PNG data required by the contest.</li>
+        <li><strong>Return to Meme of the Week.</strong> Connect the Phantom wallet you want to use for your contest entry.</li>
+        <li><strong>Click “ENTER MEME OF THE WEEK.”</strong> Select your downloaded SPARKD Forge PNG and enter a title.</li>
+        <li><strong>Submit and approve the entry burn.</strong> Your wallet must hold at least 2,000 SPARKD. Phantom will show the required 2,000 SPARKD contest-entry burn for approval.</li>
+        <li><strong>Wait for confirmation.</strong> Keep the page open while the entry is verified. Once successful, your meme is entered into the current weekly contest.</li>
+      </ol>
+
+      <div class="note">
+        ⚠️ Only approve the transaction if Phantom shows exactly what you expect.
+        The contest submission engine verifies the Forge meme and entry burn before finalizing the submission.
+      </div>
+
+      <div class="actions">
+        <a class="action" href="../meme-forge/">⚡ OPEN MEME FORGE</a>
+        <a class="action secondary" href="./">🏆 RETURN TO CONTEST</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
