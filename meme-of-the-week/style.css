@@ -1085,3 +1085,43 @@ section h2 {
     }
 }
 
+/* =========================================
+   CONTEST GUIDE BUTTON
+========================================= */
+
+.contest-guide-btn {
+    position: absolute;
+    left: -160px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 150px;
+    padding: 14px 10px;
+
+    background: #07101d;
+    border: 1px solid rgba(0, 170, 255, 0.55);
+    border-radius: 12px;
+
+    color: #ffffff;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.35;
+
+    box-shadow: 0 0 18px rgba(0, 170, 255, 0.22);
+    z-index: 20;
+}
+
+.contest-guide-btn span {
+    display: block;
+    margin-top: 5px;
+    color: #8bd7ff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.contest-guide-btn:hover {
+    box-shadow: 0 0 24px rgba(0, 170, 255, 0.42);
+}
+
