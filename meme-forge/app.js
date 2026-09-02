@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////
-// SPARKD MEME FORGE v1.1
+// SPARKD MEME FORGE v1.1 - SERVER CONTENT GUARD
 // COMPLETE APP ENGINE
 ////////////////////////////////////////////////////
 
@@ -422,20 +422,26 @@ if (uploadBtn && imageInput) {
 
 
         ////////////////////////////////////////////////////
-        // CHECK THAT CONTENT GUARD EXISTS
+        // SERVER-SIDE SPARKD CONTENT GUARD
+        //
+        // Uses window.SPARKD_GUARD.check(file), which sends
+        // the original selected file to the Supabase
+        // server-side moderation endpoint.
+        //
+        // No browser model readiness check is required.
         ////////////////////////////////////////////////////
 
         if (
-            !window.SPARKDContentGuard ||
-            typeof window.SPARKDContentGuard.checkImage !== "function"
+            !window.SPARKD_GUARD ||
+            typeof window.SPARKD_GUARD.check !== "function"
         ) {
 
             console.error(
-                "❌ SPARKD Content Guard does not exist."
+                "❌ SPARKD Server Content Guard is unavailable."
             );
 
             alert(
-                "⚠️ SPARKD Content Guard is not ready. Please wait a moment and try again."
+                "🚫 SPARKD content protection is unavailable. Upload blocked."
             );
 
             imageInput.value = "";
@@ -445,20 +451,58 @@ if (uploadBtn && imageInput) {
         }
 
 
-        ////////////////////////////////////////////////////
-        // WAIT FOR CONTENT GUARD MODEL
-        ////////////////////////////////////////////////////
+        let allowedByServer =
+            false;
 
-        if (
-            !window.SPARKDContentGuard.isReady()
-        ) {
+
+        try {
 
             console.log(
-                "⏳ SPARKD Content Guard is still loading..."
+                "🛡️ Sending image to SPARKD server safety check:",
+                {
+                    fileName:
+                        file.name,
+
+                    fileType:
+                        file.type,
+
+                    fileSize:
+                        file.size
+                }
             );
 
-            alert(
-                "⚠️ SPARKD Content Guard is still loading. Please wait a few seconds and try again."
+
+            allowedByServer =
+                await window.SPARKD_GUARD.check(
+                    file
+                );
+
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ SPARKD server safety check failed:",
+                error
+            );
+
+            allowedByServer =
+                false;
+
+        }
+
+
+        /*
+         * FAIL CLOSED:
+         * The image is only accepted when the server
+         * explicitly returns true.
+         */
+        if (
+            allowedByServer !== true
+        ) {
+
+            console.warn(
+                "🚫 IMAGE REJECTED BY SPARKD SERVER CONTENT GUARD"
             );
 
             imageInput.value = "";
@@ -466,295 +510,6 @@ if (uploadBtn && imageInput) {
             return;
 
         }
-
-
-////////////////////////////////////////////////////
-// CREATE IMAGE ELEMENT FOR NSFWJS
-////////////////////////////////////////////////////
-
-console.log(
-    "🛡️ Preparing selected file for Content Guard:",
-    file.name,
-    file.type,
-    file.size
-);
-
-let scanImage = null;
-let scanImageURL = null;
-
-
-try {
-
-    ////////////////////////////////////////////////////
-    // CREATE UNIQUE OBJECT URL FOR THIS FILE
-    ////////////////////////////////////////////////////
-
-    scanImageURL =
-        URL.createObjectURL(file);
-
-
-    ////////////////////////////////////////////////////
-    // LOAD EXACT FILE INTO NEW IMAGE
-    ////////////////////////////////////////////////////
-
-    scanImage =
-        await new Promise(function (resolve, reject) {
-
-            const img =
-                new Image();
-
-            img.onload =
-                async function () {
-
-                    try {
-
-                        ////////////////////////////////////////////////////
-                        // WAIT UNTIL IMAGE IS FULLY DECODED
-                        ////////////////////////////////////////////////////
-
-                        if (
-                            typeof img.decode === "function"
-                        ) {
-
-                            await img.decode();
-
-                        }
-
-
-                        ////////////////////////////////////////////////////
-                        // VERIFY IMAGE DIMENSIONS
-                        ////////////////////////////////////////////////////
-
-                        if (
-                            !img.naturalWidth ||
-                            !img.naturalHeight
-                        ) {
-
-                            reject(
-                                new Error(
-                                    "Image decoded but has invalid dimensions."
-                                )
-                            );
-
-                            return;
-
-                        }
-
-
-                        resolve(img);
-
-                    }
-                    catch (error) {
-
-                        reject(error);
-
-                    }
-
-                };
-
-
-            img.onerror =
-                function () {
-
-                    reject(
-                        new Error(
-                            "Could not load image for safety scan."
-                        )
-                    );
-
-                };
-
-
-            ////////////////////////////////////////////////////
-            // LOAD THIS EXACT FILE
-            ////////////////////////////////////////////////////
-
-            img.src =
-                scanImageURL;
-
-        });
-
-
-    ////////////////////////////////////////////////////
-    // VERIFY THE EXACT IMAGE BEING SCANNED
-    ////////////////////////////////////////////////////
-
-    console.log(
-        "✅ IMAGE READY FOR SPARKD CONTENT GUARD:",
-        {
-            fileName: file.name,
-            fileType: file.type,
-            fileSize: file.size,
-
-            objectURL:
-                scanImageURL,
-
-            imageSource:
-                scanImage.src,
-
-            width:
-                scanImage.naturalWidth,
-
-            height:
-                scanImage.naturalHeight
-        }
-    );
-
-
-}
-catch (error) {
-
-    console.error(
-        "❌ Could not prepare image for Content Guard:",
-        error
-    );
-
-
-    if (scanImageURL) {
-
-        URL.revokeObjectURL(
-            scanImageURL
-        );
-
-    }
-
-
-    alert(
-        "⚠️ This image could not be checked."
-    );
-
-
-    imageInput.value = "";
-
-    return;
-
-}
-
-
-
-////////////////////////////////////////////////////
-// RUN SPARKD CONTENT GUARD
-////////////////////////////////////////////////////
-
-let guardResult;
-
-
-try {
-
-    console.log(
-        "🔎 SCANNING THIS EXACT FILE:",
-        {
-            fileName:
-                file.name,
-
-            fileSize:
-                file.size,
-
-            fileType:
-                file.type,
-
-            objectURL:
-                scanImageURL,
-
-            imageSource:
-                scanImage.src,
-
-            width:
-                scanImage.naturalWidth,
-
-            height:
-                scanImage.naturalHeight
-        }
-    );
-
-
-    ////////////////////////////////////////////////////
-    // SEND THE EXACT DECODED IMAGE TO NSFWJS
-    ////////////////////////////////////////////////////
-
-    guardResult =
-        await window.SPARKDContentGuard.checkImage(
-            scanImage
-        );
-
-
-    console.log(
-        "🛡️ SPARKD Content Guard result:",
-        guardResult
-    );
-
-
-}
-catch (error) {
-
-    console.error(
-        "❌ SPARKD Content Guard error:",
-        error
-    );
-
-
-    if (scanImageURL) {
-
-        URL.revokeObjectURL(
-            scanImageURL
-        );
-
-    }
-
-
-    alert(
-        "⚠️ Content Guard could not check this image."
-    );
-
-
-    imageInput.value = "";
-
-    return;
-
-}
-
-
-
-////////////////////////////////////////////////////
-// CLEAN UP SCAN IMAGE
-////////////////////////////////////////////////////
-
-if (scanImageURL) {
-
-    URL.revokeObjectURL(
-        scanImageURL
-    );
-
-}
-
-
-////////////////////////////////////////////////////
-// BLOCK IMAGE
-////////////////////////////////////////////////////
-
-if (
-    guardResult &&
-    guardResult.blocked === true
-) {
-
-    console.warn(
-        "🚫 IMAGE BLOCKED BY SPARKD CONTENT GUARD",
-        guardResult
-    );
-
-
-    alert(
-        "🚫 This image cannot be used in SPARKD Meme Forge."
-    );
-
-
-    imageInput.value = "";
-
-    return;
-
-}
-
-
 
 
         ////////////////////////////////////////////////////
