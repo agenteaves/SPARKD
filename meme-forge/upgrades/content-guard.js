@@ -1,7 +1,7 @@
 /* ============================================================
    SPARKD CONTENT GUARD
-   Browser-side NudeNet ONNX image safety scanner
-   Version: v30
+   Browser-side image safety scanner
+   Version: v23
 ============================================================ */
 
 (function () {
@@ -13,98 +13,54 @@
     );
 
 
-    /* ============================================================
-       STATE
-    ============================================================ */
-
     let guardReady = false;
-    let session = null;
+    let model = null;
 
 
     /* ============================================================
-       MODEL PATH
+       MODEL LOCATION
     ============================================================ */
 
     const MODEL_URL =
-        "/meme-forge/upgrades/nudenet/nudenet.onnx";
+        "./upgrades/model/";
 
 
     /* ============================================================
-       NUDENET SETTINGS
+       SAFETY THRESHOLDS
     ============================================================ */
 
-    const INPUT_SIZE = 320;
+    const BLOCK_THRESHOLDS = {
 
-    /*
-     * Minimum confidence required for a detection
-     * to be considered.
-     */
-    const DETECTION_THRESHOLD = 0.35;
+        Porn: 0.15,
 
-    /*
-     * Confidence required before an exposed body
-     * part is considered prohibited.
-     *
-     * Lower = stricter
-     * Higher = more permissive
-     */
-    const BLOCK_THRESHOLD = 0.70;
+        Hentai: 0.15,
 
-    /*
-     * IoU threshold used for Non-Maximum Suppression.
-     */
-    const NMS_THRESHOLD = 0.45;
+        Sexy: 0.20
+
+    };
 
 
-    /* ============================================================
-       NUDENET DEFAULT MODEL CLASSES
+    const COMBINED_NSFW_THRESHOLD =
+        0.25;
 
-       This ordering matches the documented default
-       NudeNet model.
-    ============================================================ */
-
-    const NUDENET_CLASSES = [
-
-        "exposed anus",
-        "exposed armpits",
-        "belly",
-        "exposed belly",
-        "buttocks",
-        "exposed buttocks",
-        "female face",
-        "male face",
-        "feet",
-        "exposed feet",
-        "breast",
-        "exposed breast",
-        "vagina",
-        "exposed vagina",
-        "male breast",
-        "exposed penis"
-
-    ];
-
-
-    /* ============================================================
-       PROHIBITED CLASSES
-
-       Covered/non-exposed body parts are NOT blocked.
-
-       Bikini/swimwear should therefore not automatically
-       trigger a block.
-
-       Explicitly exposed sexual anatomy is blocked.
-    ============================================================ */
 
     const BLOCKED_CLASSES = [
-
-        "exposed anus",
-        "exposed buttocks",
-        "exposed breast",
-        "exposed vagina",
-        "exposed penis"
-
+        "Porn",
+        "Hentai",
+        "Sexy"
     ];
+
+
+    /* ============================================================
+       MODEL VALIDATION
+    ============================================================ */
+
+    let modelValidated =
+        false;
+
+
+    let validationRunning =
+        false;
 
 
     /* ============================================================
@@ -116,59 +72,146 @@
         try {
 
             if (
-                typeof ort === "undefined"
+                typeof tf === "undefined"
             ) {
 
                 throw new Error(
-                    "ONNX Runtime Web is not loaded."
+                    "TensorFlow.js is not loaded."
                 );
 
             }
 
 
-            console.log(
-                "🛡️ Loading NudeNet ONNX model..."
-            );
-
-
-            session =
-                await ort.InferenceSession.create(
-                    MODEL_URL,
-                    {
-                        executionProviders: [
-                            "wasm"
-                        ]
-                    }
-                );
-
-
-            if (!session) {
+            if (
+                typeof nsfwjs === "undefined"
+            ) {
 
                 throw new Error(
-                    "NudeNet ONNX session was not created."
+                    "NSFWJS is not loaded."
                 );
 
             }
 
 
             console.log(
-                "🧠 NudeNet ONNX model loaded."
+                "🛡️ Loading SPARKD content model..."
             );
+
+
+            /*
+             * DEVICE CONSISTENCY
+             *
+             * Force the CPU backend so the same model path is used
+             * across desktops/laptops instead of allowing WebGL/GPU
+             * differences to influence inference behavior.
+             *
+             * FAIL CLOSED if CPU cannot be initialized.
+             */
+            await tf.setBackend(
+                "cpu"
+            );
+
+            await tf.ready();
+
+
+            if (
+                tf.getBackend() !==
+                "cpu"
+            ) {
+
+                throw new Error(
+                    "Unable to initialize deterministic CPU safety backend."
+                );
+
+            }
 
 
             console.log(
-                "🔬 NudeNet inputs:",
-                session.inputNames
+                "🧠 SPARKD safety backend:",
+                tf.getBackend()
             );
+
+
+            model =
+                await nsfwjs.load(
+                    MODEL_URL
+                );
+
+           console.log("🧪 SPARKD TESTING LOADED MODEL...");
+
+            const testCanvasA = document.createElement("canvas");
+            testCanvasA.width = 224;
+            testCanvasA.height = 224;
+            
+            const ctxA = testCanvasA.getContext("2d");
+            
+            // Completely black image
+            ctxA.fillStyle = "#000000";
+            ctxA.fillRect(0, 0, 224, 224);
+            
+            const testA = await model.classify(testCanvasA);
+            
+            console.log(
+                "🧪 SPARKD BLACK TEST:",
+                testA
+            );
+            
+            
+            // Completely white image
+            const testCanvasB = document.createElement("canvas");
+            testCanvasB.width = 224;
+            testCanvasB.height = 224;
+            
+            const ctxB = testCanvasB.getContext("2d");
+            
+            ctxB.fillStyle = "#ffffff";
+            ctxB.fillRect(0, 0, 224, 224);
+            
+            const testB = await model.classify(testCanvasB);
+            
+            console.log(
+                "🧪 SPARKD WHITE TEST:",
+                testB
+            );
+
+
+            if (!model) {
+
+                throw new Error(
+                    "NSFWJS returned no model."
+                );
+
+            }
 
 
             console.log(
-                "🔬 NudeNet outputs:",
-                session.outputNames
+                "🧠 NSFWJS model loaded."
             );
+
+
+            /*
+             * DO NOT mark the guard ready until the
+             * model passes a sanity check.
+             */
+            await validateModel();
+
+
+            if (!modelValidated) {
+
+                throw new Error(
+                    "NSFWJS model failed validation."
+                );
+
+            }
 
 
             guardReady = true;
+
+
+            console.log(
+                "✅ SPARKD Content Guard ready."
+            );
+
 
             window.SPARKD_CONTENT_GUARD_READY =
                 true;
@@ -180,20 +223,14 @@
                 )
             );
 
-
-            console.log(
-                "✅ SPARKD NudeNet Content Guard ready."
-            );
-
-
-        } catch (error) {
+        }
+        catch (error) {
 
             guardReady = false;
 
-            session = null;
+            model = null;
 
-            window.SPARKD_CONTENT_GUARD_READY =
-                false;
+            modelValidated = false;
 
 
             console.error(
@@ -202,11 +239,16 @@
             );
 
 
+            window.SPARKD_CONTENT_GUARD_READY =
+                false;
+
+
             window.dispatchEvent(
                 new CustomEvent(
                     "sparkd-content-guard-error",
                     {
-                        detail: error
+                        detail:
+                            error
                     }
                 )
             );
@@ -217,10 +259,413 @@
 
 
     /* ============================================================
-       CREATE MODEL INPUT
+       CREATE TEST IMAGE
+       
+       Creates two radically different images.
+       
+       This lets us verify that the model actually responds
+       to changing pixels.
     ============================================================ */
 
-    function createModelInput(image) {
+    function createValidationImages() {
+
+        const size =
+            224;
+
+
+        /*
+         * IMAGE A
+         *
+         * Solid black.
+         */
+        const canvasA =
+            document.createElement(
+                "canvas"
+            );
+
+
+        canvasA.width =
+            size;
+
+        canvasA.height =
+            size;
+
+
+        const ctxA =
+            canvasA.getContext(
+                "2d"
+            );
+
+
+        ctxA.fillStyle =
+            "#000000";
+
+
+        ctxA.fillRect(
+            0,
+            0,
+            size,
+            size
+        );
+
+
+        /*
+         * IMAGE B
+         *
+         * Bright multi-color pattern.
+         */
+        const canvasB =
+            document.createElement(
+                "canvas"
+            );
+
+
+        canvasB.width =
+            size;
+
+        canvasB.height =
+            size;
+
+
+        const ctxB =
+            canvasB.getContext(
+                "2d"
+            );
+
+
+        ctxB.fillStyle =
+            "#ffffff";
+
+
+        ctxB.fillRect(
+            0,
+            0,
+            size,
+            size
+        );
+
+
+        ctxB.fillStyle =
+            "#ff0000";
+
+
+        ctxB.fillRect(
+            0,
+            0,
+            112,
+            112
+        );
+
+
+        ctxB.fillStyle =
+            "#00ff00";
+
+
+        ctxB.fillRect(
+            112,
+            0,
+            112,
+            112
+        );
+
+
+        ctxB.fillStyle =
+            "#0000ff";
+
+
+        ctxB.fillRect(
+            0,
+            112,
+            112,
+            112
+        );
+
+
+        ctxB.fillStyle =
+            "#000000";
+
+
+        ctxB.fillRect(
+            112,
+            112,
+            112,
+            112
+        );
+
+
+        return {
+
+            imageA:
+                canvasA,
+
+            imageB:
+                canvasB
+
+        };
+
+    }
+
+
+    /* ============================================================
+       PREDICTION SIGNATURE
+    ============================================================ */
+
+    function getPredictionSignature(
+        predictions
+    ) {
+
+        if (
+            !Array.isArray(
+                predictions
+            )
+        ) {
+
+            return "";
+
+        }
+
+
+        return predictions
+            .map(
+                function (prediction) {
+
+                    return (
+                        prediction.className +
+                        ":" +
+                        Number(
+                            prediction.probability
+                        ).toFixed(8)
+                    );
+
+                }
+            )
+            .join("|");
+
+    }
+
+
+    /* ============================================================
+       VALIDATE MODEL
+    ============================================================ */
+
+    async function validateModel() {
+
+        if (
+            validationRunning
+        ) {
+
+            return;
+
+        }
+
+
+        validationRunning =
+            true;
+
+
+        try {
+
+            console.log(
+                "🧪 SPARKD validating NSFWJS model..."
+            );
+
+
+            const tests =
+                createValidationImages();
+
+
+            /*
+             * Run the actual NSFWJS classify()
+             * function on the two different canvases.
+             */
+            const resultA =
+                await model.classify(
+                    tests.imageA
+                );
+
+
+            const resultB =
+                await model.classify(
+                    tests.imageB
+                );
+
+
+            const signatureA =
+                getPredictionSignature(
+                    resultA
+                );
+
+
+            const signatureB =
+                getPredictionSignature(
+                    resultB
+                );
+
+
+            console.log(
+                "🧪 MODEL TEST A:",
+                resultA
+            );
+
+
+            console.log(
+                "🧪 MODEL TEST B:",
+                resultB
+            );
+
+
+            console.log(
+                "🧪 MODEL SIGNATURE A:",
+                signatureA
+            );
+
+
+            console.log(
+                "🧪 MODEL SIGNATURE B:",
+                signatureB
+            );
+
+
+            /*
+             * If two radically different canvases produce
+             * the exact same prediction vector, the model
+             * is not functioning correctly.
+             */
+            if (
+                signatureA ===
+                signatureB
+            ) {
+
+                console.error(
+                    "🚨 SPARKD MODEL FAILURE"
+                );
+
+
+                console.error(
+                    "Two completely different images produced identical NSFWJS predictions."
+                );
+
+
+                console.error(
+                    "The Content Guard will remain disabled."
+                );
+
+
+                modelValidated =
+                    false;
+
+
+                return;
+
+            }
+
+
+            /*
+             * Model responds differently to different
+             * inputs.
+             */
+            modelValidated =
+                true;
+
+
+            console.log(
+                "✅ SPARKD NSFWJS MODEL VALIDATION PASSED."
+            );
+
+        }
+        catch (error) {
+
+            modelValidated =
+                false;
+
+
+            console.error(
+                "❌ SPARKD model validation error:",
+                error
+            );
+
+        }
+        finally {
+
+            validationRunning =
+                false;
+
+        }
+
+    }
+
+
+    /* ============================================================
+       CREATE REAL IMAGE CANVAS
+    ============================================================ */
+
+    function createScanCanvas(image) {
+
+        const width =
+            image.naturalWidth ||
+            image.width;
+
+
+        const height =
+            image.naturalHeight ||
+            image.height;
+
+
+        if (
+            !width ||
+            !height
+        ) {
+
+            throw new Error(
+                "Image has invalid dimensions."
+            );
+
+        }
+
+
+        const MAX_SIZE =
+            1600;
+
+
+        let scanWidth =
+            width;
+
+
+        let scanHeight =
+            height;
+
+
+        if (
+            scanWidth > MAX_SIZE ||
+            scanHeight > MAX_SIZE
+        ) {
+
+            const scale =
+                Math.min(
+                    MAX_SIZE / scanWidth,
+                    MAX_SIZE / scanHeight
+                );
+
+
+            scanWidth =
+                Math.max(
+                    1,
+                    Math.round(
+                        scanWidth * scale
+                    )
+                );
+
+
+            scanHeight =
+                Math.max(
+                    1,
+                    Math.round(
+                        scanHeight * scale
+                    )
+                );
+
+        }
+
 
         const canvas =
             document.createElement(
@@ -229,17 +674,19 @@
 
 
         canvas.width =
-            INPUT_SIZE;
+            scanWidth;
+
 
         canvas.height =
-            INPUT_SIZE;
+            scanHeight;
 
 
         const ctx =
             canvas.getContext(
                 "2d",
                 {
-                    willReadFrequently: true
+                    willReadFrequently:
+                        true
                 }
             );
 
@@ -247,103 +694,39 @@
         if (!ctx) {
 
             throw new Error(
-                "Could not create scan canvas."
+                "Could not create image canvas."
             );
 
         }
 
 
-        /*
-         * Fill the entire model input.
-         */
+        ctx.clearRect(
+            0,
+            0,
+            scanWidth,
+            scanHeight
+        );
+
+
         ctx.drawImage(
             image,
             0,
             0,
-            INPUT_SIZE,
-            INPUT_SIZE
+            scanWidth,
+            scanHeight
         );
-
-
-        const imageData =
-            ctx.getImageData(
-                0,
-                0,
-                INPUT_SIZE,
-                INPUT_SIZE
-            );
-
-
-        const pixelCount =
-            INPUT_SIZE *
-            INPUT_SIZE;
-
-
-        /*
-         * NCHW RGB float32 tensor.
-         */
-        const input =
-            new Float32Array(
-                pixelCount * 3
-            );
-
-
-        for (
-            let i = 0;
-            i < pixelCount;
-            i++
-        ) {
-
-            const src =
-                i * 4;
-
-
-            /*
-             * Red
-             */
-            input[i] =
-                imageData.data[src] /
-                255.0;
-
-
-            /*
-             * Green
-             */
-            input[
-                pixelCount + i
-            ] =
-                imageData.data[src + 1] /
-                255.0;
-
-
-            /*
-             * Blue
-             */
-            input[
-                pixelCount * 2 + i
-            ] =
-                imageData.data[src + 2] /
-                255.0;
-
-        }
 
 
         return {
 
-            tensor:
-                new ort.Tensor(
-                    "float32",
-                    input,
-                    [
-                        1,
-                        3,
-                        INPUT_SIZE,
-                        INPUT_SIZE
-                    ]
-                ),
-
             canvas:
-                canvas
+                canvas,
+
+            width:
+                scanWidth,
+
+            height:
+                scanHeight
 
         };
 
@@ -351,431 +734,113 @@
 
 
     /* ============================================================
-       IOU
+       PIXEL FINGERPRINT
     ============================================================ */
 
-    function calculateIoU(
-        a,
-        b
+    function getPixelFingerprint(
+        canvas
     ) {
 
-        const ax1 =
-            a.x;
-
-        const ay1 =
-            a.y;
-
-        const ax2 =
-            a.x + a.width;
-
-        const ay2 =
-            a.y + a.height;
-
-
-        const bx1 =
-            b.x;
-
-        const by1 =
-            b.y;
-
-        const bx2 =
-            b.x + b.width;
-
-        const by2 =
-            b.y + b.height;
-
-
-        const ix1 =
-            Math.max(
-                ax1,
-                bx1
-            );
-
-        const iy1 =
-            Math.max(
-                ay1,
-                by1
-            );
-
-        const ix2 =
-            Math.min(
-                ax2,
-                bx2
-            );
-
-        const iy2 =
-            Math.min(
-                ay2,
-                by2
+        const ctx =
+            canvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
             );
 
 
-        const iw =
-            Math.max(
+        if (!ctx) {
+
+            throw new Error(
+                "Could not read image pixels."
+            );
+
+        }
+
+
+        const data =
+            ctx.getImageData(
                 0,
-                ix2 - ix1
-            );
-
-        const ih =
-            Math.max(
                 0,
-                iy2 - iy1
-            );
+                canvas.width,
+                canvas.height
+            ).data;
 
 
-        const intersection =
-            iw * ih;
+        let fingerprint =
+            2166136261;
 
 
-        const areaA =
+        const step =
             Math.max(
-                0,
-                a.width
-            ) *
-            Math.max(
-                0,
-                a.height
+                4,
+                Math.floor(
+                    data.length /
+                    20000
+                )
             );
 
 
-        const areaB =
-            Math.max(
-                0,
-                b.width
-            ) *
-            Math.max(
-                0,
-                b.height
-            );
-
-
-        const union =
-            areaA +
-            areaB -
-            intersection;
-
-
-        if (
-            union <= 0
+        for (
+            let i = 0;
+            i < data.length;
+            i += step
         ) {
 
-            return 0;
+            fingerprint ^=
+                data[i];
+
+
+            fingerprint =
+                Math.imul(
+                    fingerprint,
+                    16777619
+                );
+
+
+            if (
+                i + 1 <
+                data.length
+            ) {
+
+                fingerprint ^=
+                    data[i + 1];
+
+
+                fingerprint =
+                    Math.imul(
+                        fingerprint,
+                        16777619
+                    );
+
+            }
+
+
+            if (
+                i + 2 <
+                data.length
+            ) {
+
+                fingerprint ^=
+                    data[i + 2];
+
+
+                fingerprint =
+                    Math.imul(
+                        fingerprint,
+                        16777619
+                    );
+
+            }
 
         }
 
 
         return (
-            intersection /
-            union
+            fingerprint >>> 0
         );
-
-    }
-
-
-    /* ============================================================
-       NON-MAXIMUM SUPPRESSION
-    ============================================================ */
-
-    function applyNMS(
-        detections
-    ) {
-
-        const sorted =
-            [...detections].sort(
-                (
-                    a,
-                    b
-                ) =>
-                    b.probability -
-                    a.probability
-            );
-
-
-        const selected = [];
-
-
-        while (
-            sorted.length
-        ) {
-
-            const current =
-                sorted.shift();
-
-
-            selected.push(
-                current
-            );
-
-
-            for (
-                let i =
-                    sorted.length - 1;
-                i >= 0;
-                i--
-            ) {
-
-                /*
-                 * Only suppress boxes of the
-                 * same class.
-                 */
-                if (
-                    sorted[i].className !==
-                    current.className
-                ) {
-
-                    continue;
-
-                }
-
-
-                if (
-                    calculateIoU(
-                        current,
-                        sorted[i]
-                    ) >=
-                    NMS_THRESHOLD
-                ) {
-
-                    sorted.splice(
-                        i,
-                        1
-                    );
-
-                }
-
-            }
-
-        }
-
-
-        return selected;
-
-    }
-
-
-    /* ============================================================
-       PARSE NUDENET OUTPUT
-    ============================================================ */
-
-    function parseOutput(
-        output
-    ) {
-
-        if (
-            !output ||
-            !output.dims ||
-            !output.data
-        ) {
-
-            throw new Error(
-                "Invalid NudeNet output."
-            );
-
-        }
-
-
-        console.log(
-            "🔬 NudeNet output tensor:",
-            {
-                dimensions:
-                    output.dims,
-
-                length:
-                    output.data.length
-            }
-        );
-
-
-        /*
-         * Expected:
-         *
-         * [1, 22, 2100]
-         *
-         * 4 box channels
-         * +
-         * 18 class channels
-         */
-        if (
-            output.dims.length !== 3 ||
-            output.dims[0] !== 1 ||
-            output.dims[1] !== 22
-        ) {
-
-            throw new Error(
-                "Unsupported NudeNet output format: " +
-                JSON.stringify(
-                    output.dims
-                )
-            );
-
-        }
-
-
-        const detections =
-            output.dims[2];
-
-
-        const data =
-            output.data;
-
-
-        const rawDetections = [];
-
-
-        /*
-         * YOLO-style channel-first output:
-         *
-         * channel 0  = x
-         * channel 1  = y
-         * channel 2  = width
-         * channel 3  = height
-         *
-         * channels 4-21 = class scores
-         */
-        for (
-            let i = 0;
-            i < detections;
-            i++
-        ) {
-
-            const x =
-                data[i];
-
-
-            const y =
-                data[
-                    detections + i
-                ];
-
-
-            const width =
-                data[
-                    detections * 2 + i
-                ];
-
-
-            const height =
-                data[
-                    detections * 3 + i
-                ];
-
-
-            let bestClass =
-                -1;
-
-
-            let bestScore =
-                0;
-
-
-            for (
-                let c = 0;
-                c < 18;
-                c++
-            ) {
-
-                const score =
-                    data[
-                        detections *
-                        (4 + c) +
-                        i
-                    ];
-
-
-                if (
-                    Number.isFinite(
-                        score
-                    ) &&
-                    score >
-                    bestScore
-                ) {
-
-                    bestScore =
-                        score;
-
-                    bestClass =
-                        c;
-
-                }
-
-            }
-
-
-            if (
-                bestClass < 0
-            ) {
-
-                continue;
-
-            }
-
-
-            if (
-                !Number.isFinite(
-                    bestScore
-                )
-            ) {
-
-                continue;
-
-            }
-
-
-            if (
-                bestScore <
-                DETECTION_THRESHOLD
-            ) {
-
-                continue;
-
-            }
-
-
-            const className =
-                NUDENET_CLASSES[
-                    bestClass
-                ] ||
-                "unknown";
-
-
-            rawDetections.push({
-
-                classIndex:
-                    bestClass,
-
-                className:
-                    className,
-
-                probability:
-                    bestScore,
-
-                x:
-                    x,
-
-                y:
-                    y,
-
-                width:
-                    width,
-
-                height:
-                    height
-
-            });
-
-        }
-
-
-        /*
-         * Remove duplicate overlapping detections.
-         */
-        const finalDetections =
-            applyNMS(
-                rawDetections
-            );
-
-
-        return finalDetections;
 
     }
 
@@ -789,11 +854,12 @@
     ) {
 
         /*
-         * FAIL CLOSED
+         * FAIL CLOSED.
          */
         if (
             !guardReady ||
-            !session
+            !model ||
+            !modelValidated
         ) {
 
             return {
@@ -808,7 +874,7 @@
                     true,
 
                 reason:
-                    "Content safety model is unavailable."
+                    "Content safety model is unavailable or failed validation."
 
             };
 
@@ -838,91 +904,101 @@
 
         try {
 
-            console.log(
-                "🧠 SPARKD running NudeNet..."
-            );
+            /* ====================================================
+               CREATE FRESH CANVAS
+            ==================================================== */
 
-
-            /*
-             * Prepare image.
-             */
-            const prepared =
-                createModelInput(
+            const scan =
+                createScanCanvas(
                     image
                 );
 
 
             console.log(
-                "🔬 NudeNet scan:",
+                "🔬 NSFWJS INPUT:",
                 {
+
                     width:
-                        INPUT_SIZE,
+                        scan.width,
 
                     height:
-                        INPUT_SIZE
+                        scan.height,
+
+                    sourceWidth:
+                        image.naturalWidth,
+
+                    sourceHeight:
+                        image.naturalHeight,
+
+                    src:
+                        image.src
+
                 }
             );
 
 
-            /*
-             * Get input name.
-             */
-            const inputName =
-                session.inputNames[0];
+            /* ====================================================
+               VERIFY PIXELS
+            ==================================================== */
 
-
-            const feeds = {};
-
-
-            feeds[inputName] =
-                prepared.tensor;
-
-
-            /*
-             * Run ONNX.
-             */
-            const results =
-                await session.run(
-                    feeds
+            const fingerprint =
+                getPixelFingerprint(
+                    scan.canvas
                 );
 
 
-            const outputName =
-                session.outputNames[0];
+            console.log(
+                "🧬 SPARKD PIXEL FINGERPRINT:",
+                fingerprint
+            );
 
 
-            const output =
-                results[
-                    outputName
-                ];
+            /* ====================================================
+               RUN STANDARD NSFWJS CLASSIFY
+               
+               This is the important part.
+               
+               No manually-created TensorFlow tensor.
+               No preprocessing override.
+            ==================================================== */
+
+            console.log(
+                "🧠 SPARKD running NSFWJS classify(canvas)..."
+            );
 
 
-            if (!output) {
+            const predictions =
+                await model.classify(
+                    scan.canvas
+                );
+
+
+            if (
+                !Array.isArray(
+                    predictions
+                ) ||
+                predictions.length === 0
+            ) {
 
                 throw new Error(
-                    "NudeNet returned no output tensor."
+                    "NSFWJS returned no predictions."
                 );
 
             }
 
 
-            /*
-             * Parse detections.
-             */
-            const predictions =
-                parseOutput(
-                    output
-                );
-
-
             console.log(
-                "🛡️ SPARKD NudeNet detections:",
-                predictions
+                "🛡️ SPARKD image scan:",
+                JSON.stringify(
+                    predictions,
+                    null,
+                    2
+                )
             );
 
 
             /* ====================================================
-               FIND PROHIBITED DETECTION
+               FIND STRONGEST UNSAFE CATEGORY
             ==================================================== */
 
             let strongestBlocked =
@@ -945,24 +1021,37 @@
                 }
 
 
-                if (
-                    prediction.probability <
-                    BLOCK_THRESHOLD
-                ) {
-
-                    continue;
-
-                }
+                const threshold =
+                    BLOCK_THRESHOLDS[
+                        prediction.className
+                    ];
 
 
                 if (
-                    !strongestBlocked ||
-                    prediction.probability >
-                    strongestBlocked.probability
+                    prediction.probability >=
+                    threshold
                 ) {
 
-                    strongestBlocked =
-                        prediction;
+                    if (
+                        !strongestBlocked ||
+                        prediction.probability >
+                        strongestBlocked.probability
+                    ) {
+
+                        strongestBlocked = {
+
+                            className:
+                                prediction.className,
+
+                            probability:
+                                prediction.probability,
+
+                            threshold:
+                                threshold
+
+                        };
+
+                    }
 
                 }
 
@@ -1002,7 +1091,103 @@
                         strongestBlocked.probability,
 
                     threshold:
-                        BLOCK_THRESHOLD,
+                        strongestBlocked.threshold,
+
+                    predictions:
+                        predictions,
+
+                    reason:
+                        "Image contains prohibited NSFW content."
+
+                };
+
+            }
+
+
+            /* ====================================================
+               COMBINED NSFW CHECK
+
+               Explicit content can be split across several NSFWJS
+               categories.  Do not allow a clearly unsafe aggregate
+               score merely because no single class crossed its
+               individual threshold.
+            ==================================================== */
+
+            const pornScore =
+                predictions.find(
+                    function (prediction) {
+                        return (
+                            prediction.className ===
+                            "Porn"
+                        );
+                    }
+                )?.probability || 0;
+
+
+            const hentaiScore =
+                predictions.find(
+                    function (prediction) {
+                        return (
+                            prediction.className ===
+                            "Hentai"
+                        );
+                    }
+                )?.probability || 0;
+
+
+            const sexyScore =
+                predictions.find(
+                    function (prediction) {
+                        return (
+                            prediction.className ===
+                            "Sexy"
+                        );
+                    }
+                )?.probability || 0;
+
+
+            const combinedNSFW =
+                pornScore +
+                hentaiScore +
+                sexyScore;
+
+
+            console.log(
+                "🛡️ SPARKD combined NSFW score:",
+                combinedNSFW
+            );
+
+
+            if (
+                combinedNSFW >=
+                COMBINED_NSFW_THRESHOLD
+            ) {
+
+                console.warn(
+                    "🚫 SPARKD BLOCKED: Combined NSFW score",
+                    combinedNSFW
+                );
+
+
+                return {
+
+                    checked:
+                        true,
+
+                    safe:
+                        false,
+
+                    blocked:
+                        true,
+
+                    category:
+                        "NSFW",
+
+                    probability:
+                        combinedNSFW,
+
+                    threshold:
+                        COMBINED_NSFW_THRESHOLD,
 
                     predictions:
                         predictions,
@@ -1040,18 +1225,15 @@
 
             };
 
-
-        } catch (error) {
+        }
+        catch (error) {
 
             console.error(
-                "⚠️ SPARKD NudeNet scan failed:",
+                "⚠️ SPARKD image scan failed:",
                 error
             );
 
 
-            /*
-             * FAIL CLOSED
-             */
             return {
 
                 checked:
@@ -1082,22 +1264,276 @@
         checkImage:
             checkImage,
 
+
         isReady:
             function () {
 
                 return (
                     guardReady &&
-                    !!session
+                    !!model &&
+                    modelValidated
                 );
 
             },
 
+
         getModel:
             function () {
 
-                return session;
+                return model;
 
             }
+
+    };
+
+
+    /* ============================================================
+       FILE-BASED FORGE COMPATIBILITY API
+
+       Existing Forge upload code calls:
+           SPARKD_GUARD.check(file)
+
+       Keep that call fail-closed and route it through the same v23
+       classifier.  This does not touch the Forge core file.
+    ============================================================ */
+
+    async function waitUntilReady() {
+
+        if (
+            window.SPARKDContentGuard &&
+            window.SPARKDContentGuard.isReady()
+        ) {
+
+            return;
+
+        }
+
+
+        await new Promise(
+            function (resolve, reject) {
+
+                let finished =
+                    false;
+
+
+                const timeout =
+                    setTimeout(
+                        function () {
+
+                            cleanup();
+
+                            reject(
+                                new Error(
+                                    "Content Guard initialization timed out."
+                                )
+                            );
+
+                        },
+                        20000
+                    );
+
+
+                function cleanup() {
+
+                    if (finished) {
+                        return;
+                    }
+
+                    finished =
+                        true;
+
+                    clearTimeout(
+                        timeout
+                    );
+
+                    window.removeEventListener(
+                        "sparkd-content-guard-ready",
+                        onReady
+                    );
+
+                    window.removeEventListener(
+                        "sparkd-content-guard-error",
+                        onError
+                    );
+
+                }
+
+
+                function onReady() {
+
+                    cleanup();
+                    resolve();
+
+                }
+
+
+                function onError() {
+
+                    cleanup();
+
+                    reject(
+                        new Error(
+                            "Content Guard failed to initialize."
+                        )
+                    );
+
+                }
+
+
+                window.addEventListener(
+                    "sparkd-content-guard-ready",
+                    onReady
+                );
+
+                window.addEventListener(
+                    "sparkd-content-guard-error",
+                    onError
+                );
+
+            }
+        );
+
+    }
+
+
+    async function checkFile(
+        file
+    ) {
+
+        try {
+
+            if (
+                !file ||
+                typeof file.type !==
+                "string" ||
+                !file.type.startsWith(
+                    "image/"
+                )
+            ) {
+
+                console.warn(
+                    "🚫 SPARKD Content Guard rejected invalid image file."
+                );
+
+                return false;
+
+            }
+
+
+            await waitUntilReady();
+
+
+            const objectUrl =
+                URL.createObjectURL(
+                    file
+                );
+
+
+            try {
+
+                const image =
+                    await new Promise(
+                        function (resolve, reject) {
+
+                            const img =
+                                new Image();
+
+
+                            img.onload =
+                                function () {
+                                    resolve(
+                                        img
+                                    );
+                                };
+
+
+                            img.onerror =
+                                function () {
+                                    reject(
+                                        new Error(
+                                            "Uploaded image could not be decoded."
+                                        )
+                                    );
+                                };
+
+
+                            img.src =
+                                objectUrl;
+
+                        }
+                    );
+
+
+                const result =
+                    await checkImage(
+                        image
+                    );
+
+
+                if (
+                    !result ||
+                    result.safe !==
+                    true ||
+                    result.blocked ===
+                    true
+                ) {
+
+                    console.warn(
+                        "🚫 SPARKD upload rejected:",
+                        result?.reason ||
+                        "Image failed safety verification."
+                    );
+
+                    alert(
+                        "🚫 This image was blocked by SPARKD content protection."
+                    );
+
+                    return false;
+
+                }
+
+
+                return true;
+
+            }
+            finally {
+
+                URL.revokeObjectURL(
+                    objectUrl
+                );
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ SPARKD file safety check failed:",
+                error
+            );
+
+
+            /*
+             * FAIL CLOSED.
+             */
+            alert(
+                "🚫 Image safety verification is unavailable. Upload blocked."
+            );
+
+            return false;
+
+        }
+
+    }
+
+
+    window.SPARKD_GUARD = {
+
+        check:
+            checkFile,
+
+        version:
+            "23"
 
     };
 
@@ -1108,6 +1544,4 @@
 
     loadContentGuard();
 
-
 })();
-
