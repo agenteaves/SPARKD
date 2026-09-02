@@ -1053,16 +1053,19 @@ section h2 {
 }
 
 /* =====================================================
-   MEME FORGE HEADER LINK
+   MEME FORGE LINK — DIRECTLY BELOW TOP-LEFT SPARKD
    ===================================================== */
 
 .motm-forge-link {
-    display: inline-block;
-    margin: 0 0 4px;
+    position: absolute;
+    top: 52px;
+    left: 22px;
+
     color: #00aaff;
     text-decoration: none;
     font-size: 18px;
     font-weight: 800;
+
     transition:
         transform 0.2s ease,
         text-shadow 0.2s ease;
@@ -1073,5 +1076,12 @@ section h2 {
     text-shadow:
         0 0 10px rgba(0, 170, 255, 0.9),
         0 0 25px rgba(0, 110, 255, 0.6);
+}
+
+@media (max-width: 700px) {
+    .motm-forge-link {
+        top: 48px;
+        left: 18px;
+    }
 }
 
