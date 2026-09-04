@@ -1541,7 +1541,12 @@ function showContestWallet(
     if (button) {
 
         button.textContent =
-            "🔗 WALLET CONNECTED";
+            "🔌 DISCONNECT WALLET";
+
+        button.setAttribute(
+            "aria-label",
+            "Disconnect Phantom wallet"
+        );
 
     }
 
@@ -1621,6 +1626,116 @@ async function connectContestWallet() {
 
 
 ////////////////////////////////////////////////////
+// DISCONNECT PHANTOM WALLET
+////////////////////////////////////////////////////
+
+async function disconnectContestWallet() {
+
+    const provider =
+        getContestWalletProvider();
+
+
+    try {
+
+        if (
+            provider &&
+            typeof provider.disconnect ===
+                "function"
+        ) {
+
+            await provider.disconnect();
+
+        }
+
+    }
+    catch (error) {
+
+        console.warn(
+            "⚠️ Phantom disconnect returned an error:",
+            error
+        );
+
+    }
+    finally {
+
+        currentWallet =
+            null;
+
+
+        const status =
+            document.getElementById(
+                "contestWalletStatus"
+            );
+
+
+        const button =
+            document.getElementById(
+                "contestConnectWallet"
+            );
+
+
+        if (status) {
+
+            status.textContent =
+                "🔌 Wallet Not Connected";
+
+        }
+
+
+        if (button) {
+
+            button.textContent =
+                "🔗 CONNECT SPARKD WALLET";
+
+            button.setAttribute(
+                "aria-label",
+                "Connect Phantom wallet"
+            );
+
+        }
+
+
+        console.log(
+            "🔌 SPARKD Meme of the Week wallet disconnected."
+        );
+
+    }
+
+}
+
+
+////////////////////////////////////////////////////
+// CONNECT / DISCONNECT TOGGLE
+////////////////////////////////////////////////////
+
+async function toggleContestWallet() {
+
+    const provider =
+        getContestWalletProvider();
+
+
+    const isConnected =
+        Boolean(
+            currentWallet ||
+            provider?.publicKey
+        );
+
+
+    if (isConnected) {
+
+        await disconnectContestWallet();
+
+        return;
+
+    }
+
+
+    await connectContestWallet();
+
+}
+
+
+////////////////////////////////////////////////////
 // CHECK EXISTING PHANTOM CONNECTION
 ////////////////////////////////////////////////////
 
@@ -1695,7 +1810,7 @@ function setupContestWallet() {
 
     button.addEventListener(
         "click",
-        connectContestWallet
+        toggleContestWallet
     );
 
 
@@ -1750,12 +1865,38 @@ function setupContestWallet() {
                     button.textContent =
                         "🔗 CONNECT SPARKD WALLET";
 
+                    button.setAttribute(
+                        "aria-label",
+                        "Connect Phantom wallet"
+                    );
+
                 }
 
 
                 console.log(
                     "🔌 SPARKD Meme of the Week wallet disconnected."
                 );
+
+            }
+        );
+
+
+        provider.on(
+            "accountChanged",
+            function (publicKey) {
+
+                if (publicKey) {
+
+                    showContestWallet(
+                        publicKey
+                    );
+
+                }
+                else {
+
+                    disconnectContestWallet();
+
+                }
 
             }
         );
