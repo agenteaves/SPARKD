@@ -1483,6 +1483,21 @@ let currentWallet = null;
 
 function getContestWalletProvider() {
 
+    const phantomProvider =
+        window.phantom &&
+        window.phantom.solana &&
+        window.phantom.solana.isPhantom
+            ? window.phantom.solana
+            : null;
+
+
+    if (phantomProvider) {
+
+        return phantomProvider;
+
+    }
+
+
     if (
         window.solana &&
         window.solana.isPhantom
@@ -1491,6 +1506,7 @@ function getContestWalletProvider() {
         return window.solana;
 
     }
+
 
     return null;
 
@@ -1664,6 +1680,19 @@ async function connectContestWallet() {
         console.error(
             "❌ SPARKD Meme of the Week wallet connection failed:",
             error
+        );
+
+
+        const message =
+            error &&
+            error.message
+                ? error.message
+                : String(error);
+
+
+        alert(
+            "Phantom connection did not complete. " +
+            message
         );
 
     }
