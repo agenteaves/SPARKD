@@ -1587,8 +1587,13 @@ async function connectContestWallet() {
         );
 
 
+        // Force Phantom to present its connection/approval UI
+        // when the user explicitly clicks the contest wallet button.
         const response =
-            await provider.connect();
+            await provider.connect({
+                onlyIfTrusted:
+                    false
+            });
 
 
         const publicKey =
