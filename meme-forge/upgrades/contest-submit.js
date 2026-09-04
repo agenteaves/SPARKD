@@ -3608,59 +3608,40 @@ if (
 
 }
 
-let phantomReady;
+const phantomReady = {
+    publicKey:
+        window.solana.publicKey
+};
 
-try {
-
-    phantomReady =
-        await window.solana.connect({
-            onlyIfTrusted: true
-        });
-
-}
-catch {
-
-    try {
-
-        phantomReady =
-            await window.solana.connect();
-
-    }
-    catch (error) {
-
-        throw new Error(
-            "Please unlock Phantom and connect your wallet before submitting."
-        );
-
-    }
-
-}
 
 if (
-    !phantomReady?.publicKey
+    !phantomReady.publicKey
 ) {
 
     throw new Error(
-        "Phantom is not ready. Please unlock Phantom and try again."
+        "Phantom is not connected. Use CONNECT SPARKD WALLET before submitting."
     );
 
 }
 
+
 const phantomReadyWallet =
     phantomReady.publicKey.toBase58();
+
 
 if (
     phantomReadyWallet !== wallet
 ) {
 
     throw new Error(
-        "A different Phantom wallet is connected. Please reconnect the correct wallet before submitting."
+        "A different Phantom wallet is active. Disconnect it and reconnect the correct wallet using CONNECT SPARKD WALLET."
     );
 
 }
 
+
 console.log(
-    "✅ Phantom unlocked and ready:",
+    "✅ Phantom already connected and ready:",
     phantomReadyWallet
 );
 
