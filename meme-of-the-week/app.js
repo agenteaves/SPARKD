@@ -1571,8 +1571,49 @@ async function connectContestWallet() {
 
     if (!provider) {
 
+        // Desktop browsers need the Phantom extension/provider.
+        // Mobile browsers can hand the current contest URL to Phantom.
+        const isMobile =
+            /Android|iPhone|iPad|iPod/i.test(
+                navigator.userAgent
+            );
+
+
+        if (isMobile) {
+
+            const currentUrl =
+                window.location.href;
+
+
+            const ref =
+                window.location.origin;
+
+
+            window.location.href =
+                "https://phantom.app/ul/browse/" +
+                encodeURIComponent(
+                    currentUrl
+                ) +
+                "?ref=" +
+                encodeURIComponent(
+                    ref
+                );
+
+
+            return;
+
+        }
+
+
+        window.open(
+            "https://phantom.app/",
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+
         alert(
-            "👻 Phantom Wallet was not detected. Please install or open Phantom Wallet."
+            "👻 Phantom Wallet was not detected in this browser. Phantom has been opened so you can install or enable it, then return here and click Connect again."
         );
 
         return;
