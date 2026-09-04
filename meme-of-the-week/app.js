@@ -1672,6 +1672,68 @@ async function connectContestWallet() {
         }
 
 
+        if (
+            typeof provider.signMessage !==
+                "function"
+        ) {
+
+            throw new Error(
+                "This Phantom wallet does not support message signing."
+            );
+
+        }
+
+
+        const walletAddress =
+            publicKey.toString();
+
+
+        const connectionMessage =
+            [
+                "SPARKD Contest Wallet Connection",
+                "Wallet: " +
+                    walletAddress,
+                "Site: " +
+                    window.location.origin,
+                "Timestamp: " +
+                    new Date().toISOString()
+            ].join("\n");
+
+
+        const encodedMessage =
+            new TextEncoder()
+                .encode(
+                    connectionMessage
+                );
+
+
+        const signed =
+            await provider.signMessage(
+                encodedMessage,
+                "utf8"
+            );
+
+
+        const signature =
+            signed &&
+            signed.signature
+                ? signed.signature
+                : signed;
+
+
+        if (
+            !signature ||
+            typeof signature.length !==
+                "number"
+        ) {
+
+            throw new Error(
+                "Phantom did not return a valid connection signature."
+            );
+
+        }
+
+
         localStorage.removeItem(
             CONTEST_WALLET_DISCONNECTED_KEY
         );
