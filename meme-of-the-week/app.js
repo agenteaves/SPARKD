@@ -1816,43 +1816,40 @@ async function toggleContestWallet() {
 
 async function checkContestWallet() {
 
-    const provider =
-        getContestWalletProvider();
+    // Do not silently reconnect Phantom on page load.
+    // A user who disconnected must explicitly click Connect again.
+    currentWallet =
+        null;
 
 
-    if (!provider) {
-
-        return;
-
-    }
-
-
-    try {
-
-        const response =
-            await provider.connect({
-                onlyIfTrusted:
-                    true
-            });
+    const status =
+        document.getElementById(
+            "contestWalletStatus"
+        );
 
 
-        if (
-            response &&
-            response.publicKey
-        ) {
+    const button =
+        document.getElementById(
+            "contestConnectWallet"
+        );
 
-            showContestWallet(
-                response.publicKey
-            );
 
-        }
+    if (status) {
+
+        status.textContent =
+            "🔌 Wallet Not Connected";
 
     }
-    catch (error) {
 
-        // No trusted connection is normal.
-        console.log(
-            "🔌 No existing trusted Phantom connection."
+
+    if (button) {
+
+        button.textContent =
+            "🔗 CONNECT SPARKD WALLET";
+
+        button.setAttribute(
+            "aria-label",
+            "Connect Phantom wallet"
         );
 
     }
