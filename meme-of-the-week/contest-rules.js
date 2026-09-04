@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////// // SPARKD MEME OF
-THE WEEK — CONTEST RULES // contest-rules.js v1.1 // // Standalone
+THE WEEK — CONTEST RULES // contest-rules.js v1.2 // // Standalone
 frontend module. // Injects a Contest Rules button beside the current //
 week/date heading above the large winner box. // // Does NOT modify
 contest-submit.js, voting.js, // lifecycle logic, winner selection, or
@@ -7,7 +7,7 @@ Supabase writes. ////////////////////////////////////////////////////
 
 (() => { “use strict”;
 
-const VERSION = “1.1”; const ROOT_ID = “sparkdContestRules”; const
+const VERSION = “1.2”; const ROOT_ID = “sparkdContestRules”; const
 MODAL_ID = “sparkdContestRulesModal”; const STYLE_ID =
 “sparkdContestRulesStyles”;
 
@@ -82,7 +82,7 @@ valid vote to produce a champion.”, “If a completed contest receives
 zero valid votes, no artificial winner is created.”, “Winner selection
 and contest rollover are performed automatically by the server-side
 contest lifecycle.” ] }, { title: “9. Champion & Hall of Fame”, items: [
-“The official weekly winner becomes the Meme of the Week champion.”,
+“The first-place weekly winner becomes the Meme of the Week champion.”,
 “The champion may be displayed in the large winner area on the contest
 page and in SPARKD’s champion displays.”, “Completed champions are
 preserved in the Meme Hall of Fame / Previous Champions area.”, “The
