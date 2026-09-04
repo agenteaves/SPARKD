@@ -26,7 +26,7 @@
         "SPARKD Homepage Champion";
 
     const MODULE_VERSION =
-        "1.1";
+        "1.2";
 
     const SUPABASE_URL =
         "https://uxpbgzksfizkyxubctep.supabase.co";
@@ -303,7 +303,7 @@
                 </strong>
 
                 <span>
-                    Winners will receive a small amount of Sol
+                    1st $15 • 2nd $10 • 3rd $5 — paid in SOL
                 </span>
             </div>
         `;
