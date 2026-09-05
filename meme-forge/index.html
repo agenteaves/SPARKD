@@ -7,14 +7,15 @@
 <meta name="description" content="Create, customize and share SPARKD community memes.">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Bangers&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/fabric@5.3.1/dist/fabric.min.js'"></script>
 </head>
 <body>
+<noscript><div style="margin:20px;padding:16px;background:#111;color:#fff;border:2px solid #ff6a00;border-radius:10px;">SPARKD Meme Forge requires JavaScript. Please enable JavaScript and reload this page.</div></noscript>
 <div id="app">
 
   <!-- HEADER -->
   <header>
-    <button id="homeBtn">🏠 Home</button>
+    <button id="homeBtn" type="button" aria-label="Return to SPARKD home">🏠 Home</button>
     <a
     href="../creator-profile/index.html"
     id="profileBtn"
@@ -35,20 +36,20 @@
 
   <!-- TOP TEXT TOOL -->
   <div id="textToolbar">
-    <input id="textInput" placeholder="SPARKD TO THE MOON">
-    <button id="addTextBtn">🔤 Add Text</button>
+    <input id="textInput" aria-label="Meme text" placeholder="SPARKD TO THE MOON">
+    <button id="addTextBtn" type="button">🔤 Add Text</button>
   </div>
 
   <!-- LEFT SIDE TOOLBAR -->
   <div id="sideToolbar">
-    <button id="uploadBtn">🖼 Upload Image</button>
-    <button id="clearBtn">🧹 Clear All</button>
+    <button id="uploadBtn" type="button" aria-label="Upload an image into Meme Forge">🖼 Upload Image</button>
+    <button id="clearBtn" type="button" aria-label="Clear all objects from the Meme Forge canvas">🧹 Clear All</button>
     <input type="file" id="imageInput" accept="image/*" hidden>
-    <button id="deleteBtn">🗑 Delete</button>
+    <button id="deleteBtn" type="button" aria-label="Delete the selected canvas object">🗑 Delete</button>
 
     <div class="emojiContainer">
-      <button id="emojiBtn">😀 Emojis</button>
-      <div id="emojiPicker">
+      <button id="emojiBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="emojiPicker">😀 Emojis</button>
+      <div id="emojiPicker" role="group" aria-label="Meme emoji picker">
         <span class="emojiOption">😀</span>
         <span class="emojiOption">😂</span>
         <span class="emojiOption">🤣</span>
@@ -68,14 +69,14 @@
       </div>
     </div>
 
-    <button id="downloadBtn">⬇ Export</button>
+    <button id="downloadBtn" type="button" aria-label="Export Meme Forge image as PNG">⬇ Export</button>
   </div>
 
   <!-- MAIN WORKSPACE -->
   <div id="workspace">
     <div id="editor">
       <div id="canvasBox">
-        <canvas id="memeCanvas" width="1080" height="1080"></canvas>
+        <canvas id="memeCanvas" width="1080" height="1080" aria-label="SPARKD Meme Forge editing canvas"></canvas>
       </div>
     </div>
 
@@ -98,7 +99,7 @@
       <div id="challengeDifficulty">Difficulty: ⭐</div>
       <div id="challengeReward">Reward: +0 SPARK Points</div>
 
-      <button id="completeMissionBtn">✅ Complete Mission</button>
+      <button id="completeMissionBtn" type="button">✅ Complete Mission</button>
     </div>
   </div>
 
@@ -124,7 +125,7 @@
 <script src="/meme-forge/upgrades/server-nudenet-guard.js?v=1"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 
 <script>
   document.getElementById("homeBtn").onclick = function() {
