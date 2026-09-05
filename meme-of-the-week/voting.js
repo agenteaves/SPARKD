@@ -15,7 +15,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "1.0";
+    const VERSION = "2.0";
 
     const VOTING_ENDPOINT =
         "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-voting";
@@ -124,21 +124,27 @@
     }
 
     function randomNonce() {
-        const bytes =
-            new Uint8Array(16);
+        const bytes = new Uint8Array(16);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes).map(value => value.toString(16).padStart(2, "0")).join("");
+    }
 
-        crypto.getRandomValues(
-            bytes
-        );
-
-        return Array.from(bytes)
-            .map(
-                value =>
-                    value
-                        .toString(16)
-                        .padStart(2, "0")
-            )
+    async function sha256(value) {
+        const bytes = new TextEncoder().encode(value);
+        const digest = await crypto.subtle.digest("SHA-256", bytes);
+        return Array.from(new Uint8Array(digest))
+            .map(value => value.toString(16).padStart(2, "0"))
             .join("");
+    }
+
+    async function getPublicVoterId() {
+        const key = "sparkd_public_voter_seed_v1";
+        let seed = localStorage.getItem(key);
+        if (!seed) {
+            seed = randomNonce() + randomNonce();
+            localStorage.setItem(key, seed);
+        }
+        return sha256("SPARKD public voter v1:" + seed);
     }
 
     async function api(
@@ -497,7 +503,7 @@
             );
 
         subtitle.textContent =
-            "One verified wallet vote per weekly contest.";
+            "Public voting begins with the next weekly contest. The current contest keeps its existing verified-wallet rules.";
 
         headingWrap.append(
             heading,
@@ -580,6 +586,7 @@
 
         return {
             modal,
+            panel,
             message,
             grid
         };
@@ -594,22 +601,15 @@
             createModal();
 
         try {
-            const wallet =
-                await getConnectedWallet();
+            const wallet = await getConnectedWallet();
+            const voterId = await getPublicVoterId();
 
-            const state =
-                await api(
-                    "get_voting_state",
-                    {
-                        wallet
-                    }
-                );
-
-            renderVotingState(
-                ui,
-                state,
-                wallet
+            const state = await api(
+                "get_voting_state",
+                { wallet, voterId }
             );
+
+            renderVotingState(ui, state, wallet, voterId);
         }
         catch (error) {
             ui.message.textContent =
@@ -621,7 +621,8 @@
     function renderVotingState(
         ui,
         state,
-        wallet
+        wallet,
+        voterId
     ) {
         ui.grid.replaceChildren();
 
@@ -659,11 +660,14 @@
             return;
         }
 
-        if (
-            state.userVote
-        ) {
+        if (state.userVote) {
+            ui.message.textContent = state.publicVoting
+                ? "✅ You already voted in this weekly contest."
+                : "✅ This wallet has already voted in this weekly contest.";
+        }
+        else if (state.publicVoting) {
             ui.message.textContent =
-                "✅ This wallet has already voted in this weekly contest.";
+                "Choose one meme and vote. No wallet is required. One vote per browser per weekly contest.";
         }
         else if (!wallet) {
             ui.message.textContent =
@@ -793,19 +797,14 @@
             }
 
             voteButton.disabled =
-                !wallet ||
-                Boolean(
-                    state.userVote
-                );
+                Boolean(state.userVote) ||
+                (!state.publicVoting && !wallet);
 
             voteButton.addEventListener(
                 "click",
-                () =>
-                    castVote(
-                        ui,
-                        state.contest.id,
-                        submission.id
-                    )
+                () => state.publicVoting
+                    ? castPublicVote(ui, state.contest.id, submission.id, voterId)
+                    : castVote(ui, state.contest.id, submission.id, voterId)
             );
 
             body.append(
@@ -826,13 +825,86 @@
     }
 
     ////////////////////////////////////////////////////
-    // CAST VOTE WITH PHANTOM MESSAGE SIGNATURE
+    // PUBLIC VOTING (NEXT CONTEST AND LATER)
+    ////////////////////////////////////////////////////
+
+    async function castPublicVote(ui, contestId, submissionId, voterId) {
+        try {
+            ui.message.textContent = "🗳️ Recording your vote...";
+            await api("cast_public_vote", { contestId, submissionId, voterId });
+            ui.message.textContent =
+                "✅ Vote recorded! Your vote counts without a wallet. Connect Phantom only if you want to enter the optional $5 SOL voter reward drawing.";
+
+            const state = await api("get_voting_state", { voterId });
+            renderVotingState(ui, state, null, voterId);
+            installRewardEntry(ui, contestId, voterId, state.userVote);
+        }
+        catch (error) {
+            ui.message.textContent = "❌ " + (error?.message || String(error));
+        }
+    }
+
+    function installRewardEntry(ui, contestId, voterId, userVote) {
+        if (!userVote || userVote.rewardWallet || ui.modal.querySelector(".sparkd-reward-entry")) return;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "sparkd-vote-action sparkd-reward-entry";
+        button.style.marginTop = "14px";
+        button.textContent = "🎁 OPTIONAL: CONNECT PHANTOM FOR $5 SOL DRAWING";
+
+        button.addEventListener("click", async () => {
+            try {
+                const phantom = getPhantom();
+                if (!phantom) throw new Error("Phantom Wallet was not detected.");
+
+                const connection = phantom.publicKey ? null : await phantom.connect();
+                const wallet = connection?.publicKey?.toString() || phantom.publicKey?.toString();
+                if (!wallet) throw new Error("Unable to determine connected wallet.");
+                if (typeof phantom.signMessage !== "function") throw new Error("This Phantom wallet does not support message signing.");
+
+                const timestamp = new Date().toISOString();
+                const nonce = randomNonce();
+                const message = [
+                    "SPARKD Voter Reward Entry",
+                    "Contest: " + contestId,
+                    "Voter: " + voterId,
+                    "Wallet: " + wallet,
+                    "Timestamp: " + timestamp,
+                    "Nonce: " + nonce
+                ].join("\n");
+
+                ui.message.textContent = "👻 Sign the reward-entry message in Phantom. This does not send SOL or burn SPARKD.";
+                const signed = await phantom.signMessage(new TextEncoder().encode(message), "utf8");
+                const signatureBytes = signed?.signature || signed;
+
+                await api("register_reward_wallet", {
+                    contestId, voterId, wallet, timestamp, nonce, message,
+                    signatureBase64: bytesToBase64(signatureBytes)
+                });
+
+                button.disabled = true;
+                button.textContent = "✅ ENTERED IN $5 SOL DRAWING";
+                ui.message.textContent = "✅ Your vote already counted, and your wallet is now entered in the optional $5 SOL voter reward drawing.";
+            }
+            catch (error) {
+                ui.message.textContent = "❌ " + (error?.message || String(error));
+            }
+        });
+
+        ui.panel?.appendChild?.(button);
+        if (!ui.panel) ui.grid.parentNode.appendChild(button);
+    }
+
+    ////////////////////////////////////////////////////
+    // LEGACY WALLET VOTING (CURRENT CONTEST ONLY)
     ////////////////////////////////////////////////////
 
     async function castVote(
         ui,
         contestId,
-        submissionId
+        submissionId,
+        voterId
     ) {
         const phantom =
             getPhantom();
@@ -949,19 +1021,12 @@
             ui.message.textContent =
                 "✅ Vote recorded successfully.";
 
-            const state =
-                await api(
-                    "get_voting_state",
-                    {
-                        wallet
-                    }
-                );
-
-            renderVotingState(
-                ui,
-                state,
-                wallet
+            const state = await api(
+                "get_voting_state",
+                { wallet, voterId }
             );
+
+            renderVotingState(ui, state, wallet, voterId);
         }
         catch (error) {
             const message =
