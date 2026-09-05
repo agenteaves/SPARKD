@@ -69,7 +69,21 @@
     </div>
 
     <button id="downloadBtn">⬇ Export</button>
+    <button id="assetsBtn" aria-expanded="false">🧰 Assets ▾</button>
   </div>
+
+  <!-- SPARKD ASSET LIBRARY -->
+  <section id="assetsPanel" hidden>
+    <div id="assetsHeader">
+      <div>
+        <strong>SPARKD Assets</strong>
+        <span>50 original assets — click one to add it to the canvas.</span>
+      </div>
+      <button id="assetsClose" type="button" aria-label="Close assets">×</button>
+    </div>
+    <div id="assetsCategories"></div>
+    <div id="assetsGrid"></div>
+  </section>
 
   <!-- MAIN WORKSPACE -->
   <div id="workspace">
@@ -147,6 +161,7 @@
 <script src="upgrades/creator-starter-pack.js"></script>
 <script src="upgrades/text-color-picker.js"></script>
 <script src="upgrades/contest-submit.js"></script>
+<script src="upgrades/assets-library.js?v=1"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="upgrades/website-stats.js?v=2"></script>
