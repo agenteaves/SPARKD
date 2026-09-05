@@ -967,7 +967,7 @@ SPARKD ASSET LIBRARY
     width:min(1180px,94vw);
     max-height:58vh;
     overflow:auto;
-    margin:0 auto 18px;
+    margin:-28px auto 18px;
     padding:16px;
     background:#0d0d0d;
     border:2px solid #ff6a00;
