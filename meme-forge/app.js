@@ -268,15 +268,57 @@ function containsUnsafeContent(text) {
 
     function resizeCanvasView() {
 
-        const zoom =
-            Math.min(
-                window.innerWidth * 0.65,
-                window.innerHeight * 0.65
-            ) / 1080;
+        const canvasBox =
+            document.getElementById(
+                "canvasBox"
+            );
 
-        canvas.setZoom(zoom);
+
+        if (!canvasBox) {
+
+            return;
+
+        }
+
+
+        const padding =
+            window.innerWidth <= 700
+                ? 20
+                : 40;
+
+
+        const displaySize =
+            Math.max(
+                220,
+                Math.min(
+                    canvasBox.clientWidth - padding,
+                    window.innerHeight * 0.72
+                )
+            );
+
+
+        canvas.setZoom(
+            1
+        );
+
+
+        canvas.setDimensions(
+            {
+                width:
+                    displaySize + "px",
+
+                height:
+                    displaySize + "px"
+            },
+            {
+                cssOnly:
+                    true
+            }
+        );
+
+
         canvas.calcOffset();
-        canvas.renderAll();
+        canvas.requestRenderAll();
 
     }
 
@@ -302,18 +344,23 @@ function containsUnsafeContent(text) {
 
         emojiBtn.onclick = function () {
 
-            if (
-                emojiPicker.style.display === "grid"
-            ) {
+            const opening =
+                emojiPicker.style.display !==
+                    "grid";
 
-                emojiPicker.style.display = "none";
 
-            }
-            else {
+            emojiPicker.style.display =
+                opening
+                    ? "grid"
+                    : "none";
 
-                emojiPicker.style.display = "grid";
 
-            }
+            emojiBtn.setAttribute(
+                "aria-expanded",
+                String(
+                    opening
+                )
+            );
 
         };
 
@@ -321,6 +368,41 @@ function containsUnsafeContent(text) {
         document
             .querySelectorAll(".emojiOption")
             .forEach(function (item) {
+
+                item.setAttribute(
+                    "role",
+                    "button"
+                );
+
+                item.setAttribute(
+                    "tabindex",
+                    "0"
+                );
+
+                item.setAttribute(
+                    "aria-label",
+                    "Add emoji " +
+                    item.textContent
+                );
+
+
+                item.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
+
+                            event.preventDefault();
+                            item.click();
+
+                        }
+
+                    }
+                );
+
 
                 item.onclick = function () {
 
