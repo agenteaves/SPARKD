@@ -958,3 +958,188 @@ MOBILE
 
 
 }
+
+
+/* ================================
+FORGE ACCESSIBILITY / RESPONSIVE HARDENING
+================================ */
+html,
+body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+}
+
+button,
+.nav-link,
+.emojiOption,
+input{
+    min-height:44px;
+}
+
+button:focus-visible,
+.nav-link:focus-visible,
+.emojiOption:focus-visible,
+input:focus-visible{
+    outline:3px solid #ffffff;
+    outline-offset:3px;
+    box-shadow:0 0 0 5px #ff6a00;
+}
+
+#canvasBox{
+    max-width:calc(100vw - 40px);
+    max-height:calc(100vw - 40px);
+}
+
+.canvas-container,
+.canvas-container canvas{
+    max-width:100% !important;
+    max-height:100% !important;
+}
+
+@media(max-width:1180px){
+    header{
+        padding-top:82px;
+    }
+
+    #sideToolbar{
+        position:static;
+        left:auto;
+        top:auto;
+        transform:none;
+        flex-direction:row;
+        flex-wrap:wrap;
+        justify-content:center;
+        width:min(94vw,760px);
+        margin:0 auto 15px;
+        gap:8px;
+    }
+
+    #sideToolbar button{
+        width:auto;
+        min-width:132px;
+        flex:1 1 132px;
+        max-width:180px;
+    }
+
+    #emojiPicker{
+        left:0;
+        top:52px;
+    }
+
+    #workspace{
+        flex-direction:column;
+        align-items:center;
+        gap:18px;
+        margin-top:10px;
+    }
+
+    #canvasBox{
+        width:min(82vw,760px);
+        height:min(82vw,760px);
+    }
+
+    #dailyChallenge{
+        width:min(82vw,760px);
+        flex:0 0 auto;
+        min-height:0;
+    }
+}
+
+@media(max-width:700px){
+    header{
+        padding:18px 12px 12px;
+    }
+
+    header h1{
+        font-size:clamp(28px,9vw,38px);
+        letter-spacing:1px;
+        margin-top:8px;
+    }
+
+    header p{
+        font-size:13px;
+    }
+
+    #homeBtn,
+    #chatBtn,
+    #profileBtn{
+        position:static;
+        width:min(92vw,360px);
+        height:auto;
+        min-height:44px;
+        margin:6px auto;
+        display:flex;
+    }
+
+    #textToolbar{
+        width:92vw;
+        flex-wrap:wrap;
+    }
+
+    #textInput{
+        width:100%;
+        min-width:0;
+    }
+
+    #addTextBtn{
+        width:100%;
+    }
+
+    #sideToolbar{
+        width:92vw;
+    }
+
+    #sideToolbar button{
+        max-width:none;
+        min-width:calc(50% - 8px);
+    }
+
+    #workspace{
+        width:100%;
+    }
+
+    #canvasBox{
+        width:min(92vw,620px);
+        height:min(92vw,620px);
+        padding:10px;
+        border-radius:12px;
+    }
+
+    #dailyChallenge{
+        width:min(92vw,620px);
+        padding:16px;
+    }
+
+    #emojiPicker{
+        position:fixed;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        width:min(88vw,320px);
+        grid-template-columns:repeat(4,1fr);
+    }
+
+    #textColorMenu{
+        max-width:90vw;
+        max-height:70vh;
+        overflow:auto;
+    }
+}
+
+@media(max-width:420px){
+    #sideToolbar button{
+        min-width:100%;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    *,
+    *::before,
+    *::after{
+        animation-duration:0.01ms !important;
+        animation-iteration-count:1 !important;
+        scroll-behavior:auto !important;
+        transition-duration:0.01ms !important;
+    }
+}
