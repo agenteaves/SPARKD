@@ -5,97 +5,97 @@ week/date heading above the large winner box. // // Does NOT modify
 contest-submit.js, voting.js, // lifecycle logic, winner selection, or
 Supabase writes. ////////////////////////////////////////////////////
 
-(() => { “use strict”;
+(() => { "use strict";
 
-const VERSION = “1.2”; const ROOT_ID = “sparkdContestRules”; const
-MODAL_ID = “sparkdContestRulesModal”; const STYLE_ID =
-“sparkdContestRulesStyles”;
+const VERSION = "1.2"; const ROOT_ID = "sparkdContestRules"; const
+MODAL_ID = "sparkdContestRulesModal"; const STYLE_ID =
+"sparkdContestRulesStyles";
 
-const RULE_SECTIONS = [ { title: “1. Contest Overview”, items: [ “SPARKD
-Meme of the Week is a weekly community meme contest.”, “Each weekly
+const RULE_SECTIONS = [ { title: "1. Contest Overview", items: [ "SPARKD
+Meme of the Week is a weekly community meme contest.", "Each weekly
 contest moves automatically through a submission phase, a voting phase,
-and winner finalization.”, “The live contest dates, phase, and countdown
+and winner finalization.", "The live contest dates, phase, and countdown
 shown on the contest page are the public schedule. Server and database
-time control whether an action is actually accepted.” ] }, { title: “2.
-Meme Entry Requirements”, items: [ “Contest entries must be submitted
-through the official SPARKD Meme of the Week submission system.”, “The
+time control whether an action is actually accepted." ] }, { title: "2.
+Meme Entry Requirements", items: [ "Contest entries must be submitted
+through the official SPARKD Meme of the Week submission system.", "The
 meme must be a valid SPARKD Meme Forge PNG that passes Forge DNA
-verification.”, “The submitting wallet must hold at least 2,000 SPARKD
-at the time the entry is prepared.”, “Entering a meme requires a
-verified burn of exactly 2,000 SPARKD.”, “The burn is an on-chain token
+verification.", "The submitting wallet must hold at least 2,000 SPARKD
+at the time the entry is prepared.", "Entering a meme requires a
+verified burn of exactly 2,000 SPARKD.", "The burn is an on-chain token
 burn. Once successfully broadcast and confirmed, burned SPARKD cannot be
-returned.”, “A meme title is required and may contain up to 100
-characters.”, “The submission must be completed during the active
+returned.", "A meme title is required and may contain up to 100
+characters.", "The submission must be completed during the active
 submission window. Late new submissions are rejected by the
-server/database even if a browser page is still open.” ] }, { title: “3.
-Wallet & Burn Verification”, items: [ “The entrant uses a compatible
-Solana wallet such as Phantom to authorize the contest transaction.”,
-“The contest verifies the SPARKD burn on-chain before the entry is
-finalized.”, “A valid entry must have both DNA verification and burn
-verification.”, “Canceling or rejecting the wallet transaction before it
-is broadcast does not create a completed entry or verified burn.”, “Only
+server/database even if a browser page is still open." ] }, { title: "3.
+Wallet & Burn Verification", items: [ "The entrant uses a compatible
+Solana wallet such as Phantom to authorize the contest transaction.",
+"The contest verifies the SPARKD burn on-chain before the entry is
+finalized.", "A valid entry must have both DNA verification and burn
+verification.", "Canceling or rejecting the wallet transaction before it
+is broadcast does not create a completed entry or verified burn.", "Only
 burns associated with the correct active contest and submission window
-are accepted.” ] }, { title: “4. Submission Status & Moderation”, items:
-[ “New valid entries may initially appear with a pending status.”,
-“Contest administrators may approve or reject a pending submission.”, “A
-rejected meme is not eligible to receive contest votes.”, “A meme does
+are accepted." ] }, { title: "4. Submission Status & Moderation", items:
+[ "New valid entries may initially appear with a pending status.",
+"Contest administrators may approve or reject a pending submission.", "A
+rejected meme is not eligible to receive contest votes.", "A meme does
 not currently need an approved status to appear as voting-eligible; it
 must have verified Forge DNA, a verified burn, and must not be
-rejected.”, “Winner submissions are protected from ordinary moderation
-changes after winner finalization.” ] }, { title: “5. Voting Rules”,
-items: [ “Voting is available only while the contest is officially in
-the voting phase.”, “The voting period lasts 12 hours after the
-submission period closes.”, “The exact voting window is enforced
-server-side. Votes outside the allowed time are rejected.”, “A voter
+rejected.", "Winner submissions are protected from ordinary moderation
+changes after winner finalization." ] }, { title: "5. Voting Rules",
+items: [ "Voting is available only while the contest is officially in
+the voting phase.", "The voting period lasts 12 hours after the
+submission period closes.", "The exact voting window is enforced
+server-side. Votes outside the allowed time are rejected.", "A voter
 must connect a Phantom wallet and sign the contest voting message to
-prove control of that wallet.”, “Voting does not burn SPARKD and does
-not require sending SOL.”, “There is currently no minimum SPARKD holding
-requirement for voters.”, “Each wallet receives exactly one vote per
-weekly contest.”, “Once a wallet has successfully voted in that weekly
-contest, it cannot cast a second vote in the same contest.”, “An entrant
+prove control of that wallet.", "Voting does not burn SPARKD and does
+not require sending SOL.", "There is currently no minimum SPARKD holding
+requirement for voters.", "Each wallet receives exactly one vote per
+weekly contest.", "Once a wallet has successfully voted in that weekly
+contest, it cannot cast a second vote in the same contest.", "An entrant
 may not vote for their own meme. An entrant may vote for another
-eligible meme in the same weekly contest.”, “A vote may only be cast for
-an eligible submission belonging to that contest.”, “Signed voting
+eligible meme in the same weekly contest.", "A vote may only be cast for
+an eligible submission belonging to that contest.", "Signed voting
 requests must be valid and fresh; expired or invalid signatures are
-rejected.” ] }, { title: “6. Weekly Voter Reward”, items: [ “Each
+rejected." ] }, { title: "6. Weekly Voter Reward", items: [ "Each
 eligible wallet that successfully casts a valid vote is automatically
-entered once in the weekly voter reward drawing.”, “No purchase is
+entered once in the weekly voter reward drawing.", "No purchase is
 necessary to vote or to enter the voter reward drawing, and voting does
-not require a SPARKD burn or SOL payment.”, “The weekly voter reward is
-$5 USD worth of SOL.”, “Each eligible voting wallet receives no more
-than one drawing entry per weekly contest.”, “The reward winner is
+not require a SPARKD burn or SOL payment.", "The weekly voter reward is
+$5 USD worth of SOL.", "Each eligible voting wallet receives no more
+than one drawing entry per weekly contest.", "The reward winner is
 selected randomly by the server after voting closes and is separate from
-the Meme of the Week winner.”, “Self-votes are prohibited and are not
-eligible for the voter reward drawing.”, “Odds of winning depend on the
-number of eligible voting wallets for that weekly contest.”, “The voter
-reward is void where prohibited.” ] }, { title: “7. Sharing &
-Campaigning”, items: [ “Entrants may share the contest and encourage
-friends, followers, or other community members to vote for their meme.”,
-“Every vote must still be independently cast from a wallet that
-satisfies the contest voting rules.”, “Community promotion does not
+the Meme of the Week winner.", "Self-votes are prohibited and are not
+eligible for the voter reward drawing.", "Odds of winning depend on the
+number of eligible voting wallets for that weekly contest.", "The voter
+reward is void where prohibited." ] }, { title: "7. Sharing &
+Campaigning", items: [ "Entrants may share the contest and encourage
+friends, followers, or other community members to vote for their meme.",
+"Every vote must still be independently cast from a wallet that
+satisfies the contest voting rules.", "Community promotion does not
 override the one-wallet-one-vote rule or the prohibition on
-self-voting.” ] }, { title: “8. How the Winner Is Chosen”, items: [
-“When voting closes, the eligible meme with the highest verified vote
-total wins.”, “If two or more eligible memes are tied, the meme
-submitted earlier wins the tie.”, “A contest must have at least one
-valid vote to produce a champion.”, “If a completed contest receives
-zero valid votes, no artificial winner is created.”, “Winner selection
+self-voting." ] }, { title: "8. How the Winner Is Chosen", items: [
+"When voting closes, the eligible meme with the highest verified vote
+total wins.", "If two or more eligible memes are tied, the meme
+submitted earlier wins the tie.", "A contest must have at least one
+valid vote to produce a champion.", "If a completed contest receives
+zero valid votes, no artificial winner is created.", "Winner selection
 and contest rollover are performed automatically by the server-side
-contest lifecycle.” ] }, { title: “9. Champion & Hall of Fame”, items: [
-“The first-place weekly winner becomes the Meme of the Week champion.”,
-“The champion may be displayed in the large winner area on the contest
-page and in SPARKD’s champion displays.”, “Completed champions are
-preserved in the Meme Hall of Fame / Previous Champions area.”, “The
+contest lifecycle." ] }, { title: "9. Champion & Hall of Fame", items: [
+"The first-place weekly winner becomes the Meme of the Week champion.",
+"The champion may be displayed in the large winner area on the contest
+page and in SPARKD’s champion displays.", "Completed champions are
+preserved in the Meme Hall of Fame / Previous Champions area.", "The
 next weekly contest is created automatically after the previous contest
-is finalized.” ] }, { title: “10. Technical Validity”, items: [ “Browser
+is finalized." ] }, { title: "10. Technical Validity", items: [ "Browser
 displays and countdowns are informational; the server/database is the
 final authority for contest phase, submission eligibility, voting
-eligibility, and winner finalization.”, “Transactions, signatures,
-submissions, or votes that fail verification are not counted.”,
-“Temporary wallet, Solana, Supabase, internet, or other third-party
+eligibility, and winner finalization.", "Transactions, signatures,
+submissions, or votes that fail verification are not counted.",
+"Temporary wallet, Solana, Supabase, internet, or other third-party
 service failures may prevent an action from completing. A user should
 confirm that the site reports a successful submission or vote before
-assuming it was recorded.” ] } ];
+assuming it was recorded." ] } ];
 
 function addStyles() { if (document.getElementById(STYLE_ID)) return;
 
@@ -415,6 +415,6 @@ function init() { addStyles(); createModal();
 
 }
 
-if (document.readyState === “loading”) {
-document.addEventListener(“DOMContentLoaded”, init, { once: true }); }
+if (document.readyState === "loading") {
+document.addEventListener("DOMContentLoaded", init, { once: true }); }
 else { init(); } })();
