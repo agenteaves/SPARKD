@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// SPARKD MEME FORGE - ORIGINAL MEME ASSET LIBRARY v2
-// 50 built-in original SVG assets.
+// SPARKD MEME FORGE - ORIGINAL MEME ASSET LIBRARY v3
+// 50 built-in polished original SVG assets.
 // Focus: funny situations, reactions, props and captionable scenes.
 ////////////////////////////////////////////////////
 
@@ -11,38 +11,78 @@ const assets = [];
 const add = (category,name,svg) => assets.push({category,name,svg});
 const E = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const svg = body => '<svg xmlns="http://www.w3.org/2000/svg" width="700" height="700" viewBox="0 0 700 700">'+body+'</svg>';
-const defs = '<defs><radialGradient id="fire"><stop stop-color="#ffd34d"/><stop offset=".55" stop-color="#ff6a00"/><stop offset="1" stop-color="#7d1800"/></radialGradient><linearGradient id="night" x2="1" y2="1"><stop stop-color="#07121e"/><stop offset="1" stop-color="#220800"/></linearGradient></defs>';
+const defs = '<defs>'+
+'<radialGradient id="fire"><stop stop-color="#fff7a8"/><stop offset=".28" stop-color="#ffd34d"/><stop offset=".62" stop-color="#ff6a00"/><stop offset="1" stop-color="#6d1200"/></radialGradient>'+
+'<linearGradient id="night" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#05111d"/><stop offset=".5" stop-color="#101722"/><stop offset="1" stop-color="#220800"/></linearGradient>'+
+'<linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#333"/><stop offset=".5" stop-color="#0e1116"/><stop offset="1" stop-color="#000"/></linearGradient>'+
+'<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a0"/><stop offset=".35" stop-color="#ffc43d"/><stop offset=".7" stop-color="#ff6a00"/><stop offset="1" stop-color="#8b2a00"/></linearGradient>'+
+'<radialGradient id="glow"><stop stop-color="#ffb347" stop-opacity=".55"/><stop offset=".55" stop-color="#ff6a00" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'+
+'<filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".65"/></filter>'+
+'<filter id="neon" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+'</defs>';
 
 function mascot(face,pose,label,extra=""){
-  const eyes = face==="panic" ? '<circle cx="285" cy="280" r="25" fill="#fff"/><circle cx="415" cy="280" r="25" fill="#fff"/><circle cx="285" cy="282" r="10"/><circle cx="415" cy="282" r="10"/>' :
-    face==="love" ? '<text x="350" y="305" text-anchor="middle" font-size="95">😍</text>' :
-    face==="sleep" ? '<path d="M260 280q30 25 60 0M380 280q30 25 60 0" fill="none" stroke="#fff" stroke-width="15"/>' :
-    '<ellipse cx="295" cy="280" rx="42" ry="30" fill="#101820" stroke="#42dfff" stroke-width="8"/><ellipse cx="405" cy="280" rx="42" ry="30" fill="#101820" stroke="#42dfff" stroke-width="8"/>';
+  const eyes = face==="panic"
+    ? '<ellipse cx="292" cy="286" rx="29" ry="34" fill="#fff"/><ellipse cx="408" cy="286" rx="29" ry="34" fill="#fff"/><circle cx="292" cy="293" r="12" fill="#111"/><circle cx="408" cy="293" r="12" fill="#111"/>'
+    : face==="love"
+    ? '<text x="350" y="320" text-anchor="middle" font-size="112">😍</text>'
+    : face==="sleep"
+    ? '<path d="M258 286q34 24 68 0M374 286q34 24 68 0" fill="none" stroke="#d7f8ff" stroke-width="15" stroke-linecap="round"/>'
+    : '<ellipse cx="294" cy="286" rx="50" ry="34" fill="#06131b" stroke="#35dfff" stroke-width="8"/><ellipse cx="406" cy="286" rx="50" ry="34" fill="#06131b" stroke="#35dfff" stroke-width="8"/><path d="M252 276q42-34 84 0M364 276q42-34 84 0" fill="none" stroke="#baf6ff" stroke-width="4" opacity=".8"/>';
+
+  const mouth = face==="panic"
+    ? '<ellipse cx="350" cy="370" rx="36" ry="42" fill="#050505" stroke="#fff" stroke-width="9"/>'
+    : '<path d="M310 365 Q350 410 390 365" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/>';
+
+  const arms = pose==="hands"
+    ? '<path d="M282 474Q215 470 152 405" stroke="#ff8a22" stroke-width="34" stroke-linecap="round"/><path d="M418 474Q485 470 548 405" stroke="#ff8a22" stroke-width="34" stroke-linecap="round"/><circle cx="145" cy="398" r="27" fill="url(#gold)"/><circle cx="555" cy="398" r="27" fill="url(#gold)"/>'
+    : '<path d="M285 470Q210 438 145 460" stroke="#ff8a22" stroke-width="34" stroke-linecap="round"/><path d="M415 470Q490 438 555 460" stroke="#ff8a22" stroke-width="34" stroke-linecap="round"/><circle cx="140" cy="461" r="27" fill="url(#gold)"/><circle cx="560" cy="461" r="27" fill="url(#gold)"/>';
+
   return svg(defs+
-    '<rect width="700" height="700" rx="55" fill="url(#night)"/>'+
-    '<path d="M260 180 Q350 35 440 180 L420 230 Q350 185 280 230Z" fill="url(#fire)"/>'+
-    '<circle cx="350" cy="310" r="150" fill="#171717" stroke="#ff6a00" stroke-width="16"/>'+eyes+
-    '<path d="M310 360 Q350 '+(face==="panic"?'330':'395')+' 390 360" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/>'+
-    '<rect x="275" y="430" width="150" height="105" rx="35" fill="#202020" stroke="#ff6a00" stroke-width="12"/>'+
-    '<text x="350" y="500" text-anchor="middle" font-family="Arial Black" font-size="34" fill="#ff8b25">SPARKD</text>'+
-    (pose==="hands"?'<path d="M270 465L170 400M430 465L530 400" stroke="#ff8b25" stroke-width="30" stroke-linecap="round"/>':'')+
-    (pose==="shrug"?'<path d="M275 460L150 455M425 460L550 455" stroke="#ff8b25" stroke-width="30" stroke-linecap="round"/>':'')+
-    extra+
-    '<text x="350" y="635" text-anchor="middle" font-family="Impact,Arial Black" font-size="'+(label.length>18?43:55)+'" fill="#fff" stroke="#000" stroke-width="9" paint-order="stroke">'+E(label)+'</text>');
+    '<rect width="700" height="700" rx="52" fill="url(#night)"/>'+
+    '<circle cx="350" cy="315" r="275" fill="url(#glow)"/>'+
+    '<g opacity=".55"><circle cx="86" cy="96" r="3" fill="#fff"/><circle cx="602" cy="128" r="4" fill="#fff"/><circle cx="570" cy="300" r="3" fill="#fff"/><circle cx="125" cy="348" r="4" fill="#fff"/></g>'+
+    '<g filter="url(#shadow)">'+
+      '<path d="M250 200Q278 87 350 45Q422 87 450 200L420 235Q350 188 280 235Z" fill="url(#fire)" stroke="#ff9d2f" stroke-width="8"/>'+
+      '<path d="M285 145Q350 80 415 145" fill="none" stroke="#fff6bc" stroke-width="11" opacity=".55"/>'+
+      '<circle cx="350" cy="315" r="160" fill="url(#armor)" stroke="url(#gold)" stroke-width="18"/>'+
+      '<ellipse cx="350" cy="238" rx="118" ry="46" fill="#2b3139" opacity=".9"/>'+
+      eyes+mouth+
+      '<rect x="273" y="438" width="154" height="112" rx="38" fill="url(#armor)" stroke="url(#gold)" stroke-width="13"/>'+
+      '<path d="M300 458H400" stroke="#ffe391" stroke-width="5" opacity=".45"/>'+
+      '<text x="350" y="507" text-anchor="middle" font-family="Arial Black,Arial" font-size="35" fill="#ff9d2f" stroke="#5c1800" stroke-width="2" paint-order="stroke">SPARKD</text>'+
+      arms+extra+
+    '</g>'+
+    '<text x="350" y="640" text-anchor="middle" font-family="Impact,Arial Black,Arial" font-size="'+(label.length>18?41:54)+'" fill="#fff" stroke="#000" stroke-width="11" paint-order="stroke" filter="url(#shadow)">'+E(label)+'</text>');
 }
+
 function scene(label,body){
- return svg(defs+'<rect width="700" height="700" rx="45" fill="url(#night)"/>'+body+
- '<rect y="590" width="700" height="110" fill="#080808" opacity=".9"/><text x="350" y="660" text-anchor="middle" font-family="Impact,Arial Black" font-size="'+(label.length>20?39:52)+'" fill="#fff" stroke="#000" stroke-width="8" paint-order="stroke">'+E(label)+'</text>');
+ return svg(defs+
+ '<rect width="700" height="700" rx="48" fill="url(#night)"/>'+
+ '<circle cx="350" cy="300" r="300" fill="url(#glow)"/>'+
+ '<g opacity=".45"><circle cx="95" cy="95" r="4" fill="#fff"/><circle cx="610" cy="120" r="3" fill="#fff"/><circle cx="535" cy="395" r="4" fill="#fff"/><circle cx="160" cy="420" r="3" fill="#fff"/></g>'+
+ '<g filter="url(#shadow)">'+body+'</g>'+
+ '<rect y="572" width="700" height="128" fill="#05070a" opacity=".92"/>'+
+ '<path d="M0 574H700" stroke="#ff6a00" stroke-width="4" opacity=".8"/>'+
+ '<text x="350" y="650" text-anchor="middle" font-family="Impact,Arial Black,Arial" font-size="'+(label.length>20?38:50)+'" fill="#fff" stroke="#000" stroke-width="10" paint-order="stroke">'+E(label)+'</text>');
 }
+
 function prop(label,body){
- return svg('<rect width="700" height="700" fill="none"/>'+body+
- '<text x="350" y="650" text-anchor="middle" font-family="Impact,Arial Black" font-size="48" fill="#fff" stroke="#000" stroke-width="9" paint-order="stroke">'+E(label)+'</text>');
+ return svg(defs+
+ '<rect width="700" height="700" rx="48" fill="#07101a"/>'+
+ '<circle cx="350" cy="310" r="265" fill="url(#glow)"/>'+
+ '<g filter="url(#shadow)">'+body+'</g>'+
+ '<text x="350" y="650" text-anchor="middle" font-family="Impact,Arial Black,Arial" font-size="48" fill="#fff" stroke="#000" stroke-width="10" paint-order="stroke">'+E(label)+'</text>');
 }
+
 function template(name,layout){
- return svg('<rect width="700" height="700" fill="#fff" stroke="#111" stroke-width="14"/>'+
- (layout==="split"?'<line x1="350" y1="0" x2="350" y2="700" stroke="#111" stroke-width="10"/>':'')+
- (layout==="four"?'<line x1="350" y1="0" x2="350" y2="700" stroke="#111" stroke-width="8"/><line x1="0" y1="350" x2="700" y2="350" stroke="#111" stroke-width="8"/>':'')+
- '<text x="350" y="75" text-anchor="middle" font-family="Impact" font-size="52" fill="#111">'+E(name)+'</text>');
+ return svg(defs+
+ '<rect width="700" height="700" rx="38" fill="#f7f7f7" stroke="#111" stroke-width="14"/>'+
+ '<rect x="20" y="20" width="660" height="660" rx="24" fill="#fff" stroke="#d7d7d7" stroke-width="4"/>'+
+ (layout==="split"?'<line x1="350" y1="95" x2="350" y2="670" stroke="#111" stroke-width="9"/>':'')+
+ (layout==="four"?'<line x1="350" y1="95" x2="350" y2="670" stroke="#111" stroke-width="8"/><line x1="25" y1="382" x2="675" y2="382" stroke="#111" stroke-width="8"/>':'')+
+ '<rect x="25" y="25" width="650" height="80" rx="14" fill="#111"/>'+
+ '<text x="350" y="82" text-anchor="middle" font-family="Impact,Arial Black,Arial" font-size="46" fill="#fff">'+E(name)+'</text>');
 }
 
 // 20 funny/captionable SPARKD characters
