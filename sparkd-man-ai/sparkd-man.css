@@ -1,4 +1,5 @@
 /* SPARKD Man AI — isolated homepage assistant */
+
 .sparkd-man-stage {
   width: min(1120px, 96vw);
   display: grid;
@@ -6,7 +7,7 @@
   gap: 24px;
   align-items: start;
   justify-content: center;
-  margin: 8px auto 25px;
+  margin: 8px auto 8px;
 }
 
 .sparkd-man-stage .meme-of-week {
@@ -48,10 +49,10 @@
   object-fit: contain;
   object-position: center bottom;
   display: block;
+  background: transparent;
   filter: drop-shadow(0 14px 20px rgba(0,0,0,.7));
   transform-origin: center bottom;
   transition: filter .25s ease, transform .25s ease;
-  border-radius: 22px;
 }
 
 .sparkd-man-ai.is-awake .sparkd-man-figure {
@@ -168,52 +169,12 @@
   margin: 7px 0 0;
 }
 
-@media (max-width: 980px) {
-  .sparkd-man-stage {
-    grid-template-columns: minmax(0, 760px);
-    gap: 10px;
-  }
-
-  .sparkd-man-ai {
-    min-height: 0;
-    width: min(540px, 94vw);
-    margin: 0 auto;
-  }
-
-  .sparkd-man-figure {
-    height: 300px;
-    width: min(260px, 72vw);
-  }
-}
-
-@media (max-width: 700px) {
-  .sparkd-man-stage { width: 94vw; }
-  .sparkd-man-figure { height: 255px; }
-  .sparkd-man-bubble,
-  .sparkd-man-controls,
-  .sparkd-man-text-row,
-  .sparkd-man-note { width: 100%; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sparkd-man-ai.is-speaking .sparkd-man-figure { animation: none; }
-}
-
-
-/* Desktop placement: established SPARKD Man stands LEFT of the Meme of the Week box. */
-@media (min-width: 981px) {
-  .sparkd-man-stage .sparkd-man-ai { grid-column: 1; grid-row: 1; }
-  .sparkd-man-stage .meme-of-week { grid-column: 2; grid-row: 1; }
-}
-
-/* Clean final SPARKD Man homepage presentation */
 @media (min-width: 981px) {
   .sparkd-man-stage {
     width: min(1280px, 96vw);
     grid-template-columns: 300px minmax(0, 680px) 300px;
     column-gap: 18px;
     justify-content: center;
-    align-items: start;
   }
 
   .sparkd-man-stage .sparkd-man-ai {
@@ -222,6 +183,7 @@
     width: 300px;
     justify-self: end;
     align-self: start;
+    justify-content: flex-start;
     overflow: visible;
   }
 
@@ -231,7 +193,6 @@
     width: 680px;
     max-width: 100%;
     justify-self: center;
-    margin: 0;
   }
 
   .sparkd-man-figure {
@@ -239,16 +200,8 @@
     height: auto;
     max-width: 280px;
     max-height: none;
-    object-fit: contain;
     object-position: center top;
-    display: block;
-    visibility: visible;
-    opacity: 1;
     margin: 0 auto 8px;
-    border-radius: 0;
-    background: transparent;
-    mix-blend-mode: normal;
-    clip-path: none;
     filter:
       drop-shadow(0 0 8px rgba(0,255,120,.42))
       drop-shadow(0 0 18px rgba(0,255,120,.24))
@@ -269,8 +222,43 @@
   }
 }
 
+@media (max-width: 980px) {
+  .sparkd-man-stage {
+    grid-template-columns: minmax(0, 760px);
+    gap: 10px;
+  }
 
-/* Homepage v21: pull post-contest content closer to the contest stage */
-.sparkd-man-stage {
-  margin-bottom: 8px;
+  .sparkd-man-ai {
+    min-height: 0;
+    width: min(540px, 94vw);
+    margin: 0 auto;
+  }
+
+  .sparkd-man-figure {
+    height: 300px;
+    width: min(260px, 72vw);
+  }
+}
+
+@media (max-width: 700px) {
+  .sparkd-man-stage {
+    width: 94vw;
+  }
+
+  .sparkd-man-figure {
+    height: 255px;
+  }
+
+  .sparkd-man-bubble,
+  .sparkd-man-controls,
+  .sparkd-man-text-row,
+  .sparkd-man-note {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkd-man-ai.is-speaking .sparkd-man-figure {
+    animation: none;
+  }
 }
