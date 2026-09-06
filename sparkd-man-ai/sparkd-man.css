@@ -428,3 +428,24 @@
       drop-shadow(0 0 24px rgba(255, 170, 0, 0.16)) !important;
   }
 }
+
+
+/* v19: visually remove baked black hero background and trim damaged bottom strip */
+@media (min-width: 981px) {
+  .sparkd-man-figure {
+    width: 280px !important;
+    height: auto !important;
+    max-width: 280px !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    object-position: center top !important;
+    background: transparent !important;
+    mix-blend-mode: screen !important;
+    clip-path: inset(0 0 14px 0) !important;
+    margin-bottom: -4px !important;
+    filter:
+      drop-shadow(0 0 8px rgba(0, 255, 102, 0.40))
+      drop-shadow(0 0 18px rgba(0, 255, 102, 0.24))
+      drop-shadow(0 0 24px rgba(255, 170, 0, 0.14)) !important;
+  }
+}
