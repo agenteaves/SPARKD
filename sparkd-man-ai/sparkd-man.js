@@ -7,7 +7,7 @@
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
   const persona = window.SPARKD_MAN_PERSONALITY || {};
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-intact.jpg?v=14";
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-intact.jpg?v=15";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
@@ -177,6 +177,77 @@
     return bytes;
   }
 
+  function splitSpeechText(text, maxLen = 900) {
+    const cleaned = String(text || "").replace(/\s+/g, " ").trim();
+    if (!cleaned) return [];
+    const sentences = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleaned];
+    const chunks = [];
+    let current = "";
+
+    for (const sentence of sentences) {
+      const next = (current + " " + sentence.trim()).trim();
+      if (next.length <= maxLen) {
+        current = next;
+        continue;
+      }
+
+      if (current) chunks.push(current);
+      if (sentence.length <= maxLen) {
+        current = sentence.trim();
+      } else {
+        const words = sentence.trim().split(/\s+/);
+        current = "";
+        for (const word of words) {
+          const candidate = (current + " " + word).trim();
+          if (candidate.length > maxLen && current) {
+            chunks.push(current);
+            current = word;
+          } else {
+            current = candidate;
+          }
+        }
+      }
+    }
+
+    if (current) chunks.push(current);
+    return chunks;
+  }
+
+  async function playNeuralChunk(text) {
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "speak", text })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.success !== true || !data?.audioBase64) {
+      throw new Error(data?.error || "Neural voice unavailable.");
+    }
+
+    const blob = new Blob(
+      [base64Bytes(data.audioBase64)],
+      { type: data.mimeType || "audio/wav" }
+    );
+
+    activeAudioUrl = URL.createObjectURL(blob);
+    activeAudio = new Audio(activeAudioUrl);
+    activeAudio.preload = "auto";
+    activeAudio.volume = 1;
+
+    await new Promise((resolve, reject) => {
+      activeAudio.onended = resolve;
+      activeAudio.onerror = () => reject(new Error("Audio playback failed."));
+      activeAudio.play().catch(reject);
+    });
+
+    if (activeAudioUrl) {
+      try { URL.revokeObjectURL(activeAudioUrl); } catch (_) {}
+    }
+    activeAudio = null;
+    activeAudioUrl = "";
+  }
+
   async function speak(ui, text, after) {
     stopActiveAudio();
     pauseRecognition();
@@ -184,46 +255,16 @@
     ui.root.classList.add("is-speaking");
 
     try {
-      const response = await fetch(ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "speak", text: String(text).slice(0, 1200) })
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || data?.success !== true || !data?.audioBase64) {
-        throw new Error(data?.error || "Neural voice unavailable.");
+      const chunks = splitSpeechText(text);
+      for (const chunk of chunks) {
+        if (!speaking) return;
+        await playNeuralChunk(chunk);
       }
 
-      const blob = new Blob(
-        [base64Bytes(data.audioBase64)],
-        { type: data.mimeType || "audio/wav" }
-      );
-
-      activeAudioUrl = URL.createObjectURL(blob);
-      activeAudio = new Audio(activeAudioUrl);
-      activeAudio.preload = "auto";
-      activeAudio.volume = 1;
-
-      const done = () => {
-        if (activeAudioUrl) {
-          try { URL.revokeObjectURL(activeAudioUrl); } catch (_) {}
-        }
-        activeAudio = null;
-        activeAudioUrl = "";
-        speaking = false;
-        ui.root.classList.remove("is-speaking");
-        if (after) after();
-        resumeRecognition(ui);
-      };
-
-      activeAudio.onended = done;
-      activeAudio.onerror = () => {
-        stopActiveAudio();
-        neuralVoiceFailed(ui, after);
-      };
-
-      await activeAudio.play();
+      speaking = false;
+      ui.root.classList.remove("is-speaking");
+      if (after) after();
+      resumeRecognition(ui);
     } catch (error) {
       console.warn("SPARKD Man neural voice failed:", error);
       stopActiveAudio();
