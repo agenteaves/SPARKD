@@ -952,6 +952,19 @@ function startCountdown() {
 
         if (!currentContest) {
 
+            daysRemaining.textContent =
+                "--";
+
+            const label =
+                document.getElementById(
+                    "daysRemainingLabel"
+                );
+
+            if (label) {
+                label.textContent =
+                    "NEXT CONTEST";
+            }
+
             return;
 
         }
@@ -960,29 +973,107 @@ function startCountdown() {
         const now =
             Date.now();
 
+        const start =
+            new Date(
+                currentContest.week_start
+            ).getTime();
 
         const end =
             new Date(
                 currentContest.week_end
             ).getTime();
 
+        const votingWindowMs =
+            window.SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS ||
+            12 * 60 * 60 * 1000;
+
+        const votingEnd =
+            end +
+            votingWindowMs;
+
+        let target =
+            end;
+
+        let labelText =
+            "SUBMISSIONS CLOSE IN";
+
+
+        if (
+            currentContest.status ===
+            "upcoming" ||
+            now < start
+        ) {
+
+            target =
+                start;
+
+            labelText =
+                "NEXT CONTEST OPENS IN";
+
+        }
+        else if (
+            currentContest.status ===
+            "voting"
+        ) {
+
+            target =
+                votingEnd;
+
+            labelText =
+                "VOTING ENDS IN";
+
+        }
+        else if (
+            currentContest.status ===
+            "completed" ||
+            now >= votingEnd
+        ) {
+
+            daysRemaining.textContent =
+                "CLOSED";
+
+            labelText =
+                "CONTEST CLOSED";
+
+            const label =
+                document.getElementById(
+                    "daysRemainingLabel"
+                );
+
+            if (label) {
+                label.textContent =
+                    labelText;
+            }
+
+            updateSubmitButton();
+
+            return;
+
+        }
+
 
         const remaining =
-            end -
+            target -
             now;
+
+
+        const label =
+            document.getElementById(
+                "daysRemainingLabel"
+            );
+
+        if (label) {
+            label.textContent =
+                labelText;
+        }
 
 
         if (
             remaining <= 0
         ) {
 
-
             daysRemaining.textContent =
-                "CLOSED";
-
-
-            updateSubmitButton();
-
+                "0m";
 
             return;
 
