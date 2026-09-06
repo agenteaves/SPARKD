@@ -7,7 +7,7 @@
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
   const persona = window.SPARKD_MAN_PERSONALITY || {};
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-final.jpg?v=12";
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-good.jpg?v=13";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
