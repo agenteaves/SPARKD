@@ -322,10 +322,10 @@
         armFollowUp(ui);
       });
     } catch (error) {
-      const msg = "Command link is having trouble. Try me again in a moment, citizen.";
+      const detail = String(error?.message || error || "Unknown command-link error.");
+      const msg = "Command link error: " + detail;
       console.error("SPARKD Man AI:", error);
       setStatus(ui, msg);
-      speak(ui, msg);
     } finally {
       ui.talk.disabled = false;
       ui.input.disabled = false;
