@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD MEME OF THE WEEK — VOTING UI
-// voting.js v1.0
+// voting.js v2.1
 //
 // NEW STANDALONE MODULE.
 // Does not modify contest-submit.js or app.js.
@@ -15,7 +15,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "2.0";
+    const VERSION = "2.1";
 
     const VOTING_ENDPOINT =
         "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-voting";
@@ -503,7 +503,7 @@
             );
 
         subtitle.textContent =
-            "Public voting begins with the next weekly contest. The current contest keeps its existing verified-wallet rules.";
+            "Voting follows the rules for the active weekly contest. Public-voting contests do not require a wallet; Phantom is optional for voter-reward entry.";
 
         headingWrap.append(
             heading,
