@@ -76,12 +76,12 @@
     const copy = document.createElement("p");
     copy.className = "sparkd-reward-copy";
     copy.textContent =
-      "Voting is open to everyone beginning with the next weekly contest. No wallet is required for your vote to count. After voting, you may optionally connect Phantom to enter that week's random $5 SOL voter reward drawing.";
+      "Public voting does not require a wallet for your vote to count. After voting, you may optionally connect Phantom to enter that week's random $5 SOL voter reward drawing.";
 
     const fine = document.createElement("span");
     fine.className = "sparkd-reward-fine";
     fine.textContent =
-      "No purchase necessary to vote. The current contest keeps its existing wallet-voting rules; public voting begins with the next contest. One optional reward entry per verified wallet per weekly contest. $5 USD value paid in SOL; selected after the contest is finalized. Void where prohibited.";
+      "No purchase necessary to vote. In public-voting contests, one optional reward entry is available per verified wallet per weekly contest. $5 USD value paid in SOL; selected after the contest is finalized. Void where prohibited.";
 
     box.append(title, copy, fine);
 
