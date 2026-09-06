@@ -7,7 +7,7 @@
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
   const persona = window.SPARKD_MAN_PERSONALITY || {};
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-final.jpg?v=10";
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-final.jpg?v=12";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
@@ -17,6 +17,8 @@
   let awakeUntil = 0;
   let followTimer = null;
   let history = [];
+  let activeAudio = null;
+  let activeAudioUrl = "";
 
   function makeUi() {
     const existing = document.getElementById("sparkdManAi");
@@ -145,16 +147,29 @@
     } catch (_) {}
   }
 
-  function speak(ui, text, after) {
+  function stopActiveAudio() {
+    if (activeAudio) {
+      try {
+        activeAudio.pause();
+        activeAudio.currentTime = 0;
+      } catch (_) {}
+      activeAudio = null;
+    }
+    if (activeAudioUrl) {
+      try { URL.revokeObjectURL(activeAudioUrl); } catch (_) {}
+      activeAudioUrl = "";
+    }
+    window.speechSynthesis?.cancel?.();
+  }
+
+  function fallbackBrowserSpeech(ui, text, after) {
     if (!("speechSynthesis" in window)) {
+      speaking = false;
+      ui.root.classList.remove("is-speaking");
       if (after) after();
+      resumeRecognition(ui);
       return;
     }
-
-    speechSynthesis.cancel();
-    pauseRecognition();
-    speaking = true;
-    ui.root.classList.add("is-speaking");
 
     const u = new SpeechSynthesisUtterance(text);
     const voice = chooseVoice();
@@ -173,6 +188,67 @@
     u.onend = done;
     u.onerror = done;
     speechSynthesis.speak(u);
+  }
+
+  function base64Bytes(value) {
+    const raw = atob(value);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+  }
+
+  async function speak(ui, text, after) {
+    stopActiveAudio();
+    pauseRecognition();
+    speaking = true;
+    ui.root.classList.add("is-speaking");
+
+    try {
+      const response = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "speak", text: String(text).slice(0, 1200) })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.success !== true || !data?.audioBase64) {
+        throw new Error(data?.error || "Neural voice unavailable.");
+      }
+
+      const blob = new Blob(
+        [base64Bytes(data.audioBase64)],
+        { type: data.mimeType || "audio/wav" }
+      );
+
+      activeAudioUrl = URL.createObjectURL(blob);
+      activeAudio = new Audio(activeAudioUrl);
+      activeAudio.preload = "auto";
+      activeAudio.volume = 1;
+
+      const done = () => {
+        if (activeAudioUrl) {
+          try { URL.revokeObjectURL(activeAudioUrl); } catch (_) {}
+        }
+        activeAudio = null;
+        activeAudioUrl = "";
+        speaking = false;
+        ui.root.classList.remove("is-speaking");
+        if (after) after();
+        resumeRecognition(ui);
+      };
+
+      activeAudio.onended = done;
+      activeAudio.onerror = () => {
+        stopActiveAudio();
+        fallbackBrowserSpeech(ui, text, after);
+      };
+
+      await activeAudio.play();
+    } catch (error) {
+      console.warn("SPARKD Man neural voice fallback:", error);
+      stopActiveAudio();
+      fallbackBrowserSpeech(ui, text, after);
+    }
   }
 
   function armFollowUp(ui) {
@@ -221,7 +297,9 @@
     }
 
     if (/^(stop|stop talking|be quiet)$/i.test(q)) {
-      window.speechSynthesis?.cancel?.();
+      stopActiveAudio();
+      speaking = false;
+      ui.root.classList.remove("is-speaking");
       setStatus(ui, "Voice stopped. I'm still standing by.");
       return;
     }
