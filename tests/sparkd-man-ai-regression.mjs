@@ -22,7 +22,7 @@ check(js.includes("speechSynthesis"), "browser speech synthesis must remain avai
 check(js.includes("data:image/webp;base64,"), "SPARKD Man visual asset must remain bundled");
 check(css.includes(".sparkd-man-stage"), "isolated homepage stage styles must remain");
 check(/@media \(max-width: 980px\)/.test(css), "responsive layout guard must remain");
-check(!/OPENAI_API_KEY|sk-[A-Za-z0-9]/.test(config + js + css + index), "frontend must never contain an OpenAI secret");
+check(!/GEMINI_API_KEY|AIza[A-Za-z0-9_-]+/.test(config + js + css + index), "frontend must never contain a Gemini secret");
 check(/functions\/v1\/sparkd-man-ai/.test(config), "frontend must use the protected Supabase endpoint");
 
 if (failures.length) {
