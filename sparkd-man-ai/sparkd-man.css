@@ -2,7 +2,7 @@
 .sparkd-man-stage {
   width: min(1120px, 96vw);
   display: grid;
-  grid-template-columns: minmax(0, 760px) minmax(250px, 320px);
+  grid-template-columns: minmax(250px, 320px) minmax(0, 760px);
   gap: 24px;
   align-items: end;
   justify-content: center;
@@ -197,4 +197,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sparkd-man-ai.is-speaking .sparkd-man-figure { animation: none; }
+}
+
+
+/* Desktop placement: established SPARKD Man stands LEFT of the Meme of the Week box. */
+@media (min-width: 981px) {
+  .sparkd-man-stage .sparkd-man-ai { grid-column: 1; grid-row: 1; }
+  .sparkd-man-stage .meme-of-week { grid-column: 2; grid-row: 1; }
 }
