@@ -205,3 +205,31 @@
   .sparkd-man-stage .sparkd-man-ai { grid-column: 1; grid-row: 1; }
   .sparkd-man-stage .meme-of-week { grid-column: 2; grid-row: 1; }
 }
+
+
+/* Verified SPARKD Man desktop render */
+@media (min-width: 981px) {
+  .sparkd-man-ai {
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .sparkd-man-figure {
+    width: 320px !important;
+    height: 480px !important;
+    max-width: none !important;
+    object-fit: contain !important;
+    object-position: center top !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 2 !important;
+    margin: 0 auto !important;
+    border-radius: 0 !important;
+  }
+
+  .sparkd-man-bubble {
+    margin-top: -54px;
+  }
+}
