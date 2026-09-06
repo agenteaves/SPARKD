@@ -17,4 +17,4 @@ Isolated homepage voice assistant for sparkdcoin.com.
 - `sparkd-man.js` — wake phrase, speech recognition, text fallback, TTS, session history.
 - Supabase Edge Function `sparkd-man-ai` — rate-limited server-side AI endpoint using the existing `OPENAI_API_KEY` secret.
 
-No OpenAI credential is exposed to the browser. The assistant does not sign transactions, move funds, or provide price predictions.
+No Gemini credential is exposed to the browser. The assistant does not sign transactions, move funds, or provide price predictions.
