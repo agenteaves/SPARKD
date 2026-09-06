@@ -304,3 +304,59 @@
     border-radius: 0 !important;
   }
 }
+
+
+/* v10: verified full-body asset + centered meme */
+@media (min-width: 981px) {
+  .sparkd-man-stage {
+    width: min(1280px, 96vw) !important;
+    grid-template-columns: 300px minmax(0, 680px) 300px !important;
+    column-gap: 18px !important;
+    justify-content: center !important;
+    align-items: start !important;
+  }
+
+  .sparkd-man-stage .sparkd-man-ai {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 300px !important;
+    justify-self: end !important;
+    align-self: start !important;
+    overflow: visible !important;
+  }
+
+  .sparkd-man-stage .meme-of-week {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 680px !important;
+    max-width: 100% !important;
+    justify-self: center !important;
+    margin: 0 !important;
+  }
+
+  .sparkd-man-figure {
+    width: 280px !important;
+    height: auto !important;
+    max-width: 280px !important;
+    max-height: 420px !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 auto 10px !important;
+    border-radius: 0 !important;
+  }
+
+  .sparkd-man-bubble,
+  .sparkd-man-controls,
+  .sparkd-man-text-row,
+  .sparkd-man-note {
+    width: 280px !important;
+    max-width: 280px !important;
+  }
+
+  .sparkd-man-bubble {
+    margin-top: 0 !important;
+  }
+}
