@@ -206,246 +206,65 @@
   .sparkd-man-stage .meme-of-week { grid-column: 2; grid-row: 1; }
 }
 
-
-/* Verified SPARKD Man desktop render */
+/* Clean final SPARKD Man homepage presentation */
 @media (min-width: 981px) {
-  .sparkd-man-ai {
-    justify-content: flex-start;
+  .sparkd-man-stage {
+    width: min(1280px, 96vw);
+    grid-template-columns: 300px minmax(0, 680px) 300px;
+    column-gap: 18px;
+    justify-content: center;
+    align-items: start;
+  }
+
+  .sparkd-man-stage .sparkd-man-ai {
+    grid-column: 1;
+    grid-row: 1;
+    width: 300px;
+    justify-self: end;
+    align-self: start;
     overflow: visible;
   }
 
-  .sparkd-man-figure {
-    width: 320px !important;
-    height: 480px !important;
-    max-width: none !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative !important;
-    z-index: 2 !important;
-    margin: 0 auto !important;
-    border-radius: 0 !important;
-  }
-
-  .sparkd-man-bubble {
-    margin-top: -54px;
-  }
-}
-
-
-/* Final desktop SPARKD Man + centered meme layout */
-@media (min-width: 981px) {
-  .sparkd-man-stage {
-    width: min(1280px, 96vw) !important;
-    grid-template-columns: 280px minmax(0, 680px) 280px !important;
-    column-gap: 20px !important;
-    justify-content: center !important;
-    align-items: start !important;
-  }
-
-  .sparkd-man-stage .sparkd-man-ai {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    width: 280px !important;
-    justify-self: end !important;
-    align-self: start !important;
-  }
-
   .sparkd-man-stage .meme-of-week {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    width: 680px !important;
-    max-width: 100% !important;
-    justify-self: center !important;
-    margin: 0 !important;
+    grid-column: 2;
+    grid-row: 1;
+    width: 680px;
+    max-width: 100%;
+    justify-self: center;
+    margin: 0;
   }
 
   .sparkd-man-figure {
-    width: 280px !important;
-    height: 420px !important;
-    max-width: 280px !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin: 0 auto 8px !important;
-    border-radius: 18px !important;
+    width: 280px;
+    height: auto;
+    max-width: 280px;
+    max-height: none;
+    object-fit: contain;
+    object-position: center top;
+    display: block;
+    visibility: visible;
+    opacity: 1;
+    margin: 0 auto 8px;
+    border-radius: 0;
+    background: transparent;
+    mix-blend-mode: normal;
+    clip-path: none;
+    filter:
+      drop-shadow(0 0 8px rgba(0,255,120,.42))
+      drop-shadow(0 0 18px rgba(0,255,120,.24))
+      drop-shadow(0 0 24px rgba(255,157,0,.14))
+      drop-shadow(0 14px 20px rgba(0,0,0,.55));
   }
 
   .sparkd-man-bubble,
   .sparkd-man-controls,
   .sparkd-man-text-row,
   .sparkd-man-note {
-    width: 280px !important;
-    max-width: 280px !important;
+    width: 280px;
+    max-width: 280px;
   }
 
   .sparkd-man-bubble {
-    margin-top: 0 !important;
-  }
-}
-
-
-/* v9 verified full-body hero render */
-@media (min-width: 981px) {
-  .sparkd-man-figure {
-    width: 300px !important;
-    height: 450px !important;
-    max-width: 300px !important;
-    object-fit: contain !important;
-    object-position: center center !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin: 0 auto 10px !important;
-    border-radius: 0 !important;
-  }
-}
-
-
-/* v10: verified full-body asset + centered meme */
-@media (min-width: 981px) {
-  .sparkd-man-stage {
-    width: min(1280px, 96vw) !important;
-    grid-template-columns: 300px minmax(0, 680px) 300px !important;
-    column-gap: 18px !important;
-    justify-content: center !important;
-    align-items: start !important;
-  }
-
-  .sparkd-man-stage .sparkd-man-ai {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    width: 300px !important;
-    justify-self: end !important;
-    align-self: start !important;
-    overflow: visible !important;
-  }
-
-  .sparkd-man-stage .meme-of-week {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    width: 680px !important;
-    max-width: 100% !important;
-    justify-self: center !important;
-    margin: 0 !important;
-  }
-
-  .sparkd-man-figure {
-    width: 280px !important;
-    height: auto !important;
-    max-width: 280px !important;
-    max-height: 420px !important;
-    object-fit: contain !important;
-    object-position: center center !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin: 0 auto 10px !important;
-    border-radius: 0 !important;
-  }
-
-  .sparkd-man-bubble,
-  .sparkd-man-controls,
-  .sparkd-man-text-row,
-  .sparkd-man-note {
-    width: 280px !important;
-    max-width: 280px !important;
-  }
-
-  .sparkd-man-bubble {
-    margin-top: 0 !important;
-  }
-}
-
-
-/* v13: intact full-body hero image; never crop */
-@media (min-width: 981px) {
-  .sparkd-man-figure {
-    width: 280px !important;
-    height: auto !important;
-    max-width: 280px !important;
-    max-height: none !important;
-    object-fit: contain !important;
-    object-position: center center !important;
-    display: block !important;
-    overflow: visible !important;
-  }
-}
-
-
-/* v14: use intrinsic full-body image dimensions with no crop/gray fill */
-@media (min-width: 981px) {
-  .sparkd-man-figure {
-    width: 280px !important;
-    height: auto !important;
-    max-width: 280px !important;
-    max-height: none !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    background: transparent !important;
-  }
-}
-
-
-/* v15: blend hero art into homepage and hide damaged bottom-edge pixels */
-@media (min-width: 981px) {
-  .sparkd-man-figure {
-    width: 280px !important;
-    height: auto !important;
-    max-width: 280px !important;
-    max-height: none !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    background: transparent !important;
-    mix-blend-mode: screen !important;
-    clip-path: inset(0 0 8px 0) !important;
-    filter:
-      drop-shadow(0 0 10px rgba(0, 255, 102, 0.32))
-      drop-shadow(0 0 20px rgba(255, 170, 0, 0.16)) !important;
-  }
-}
-
-
-/* v17: transparent established SPARKD Man asset with CSS-only glow */
-@media (min-width: 981px) {
-  .sparkd-man-figure {
-    width: 280px !important;
-    height: auto !important;
-    max-width: 280px !important;
-    max-height: none !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    background: transparent !important;
-    mix-blend-mode: normal !important;
-    clip-path: none !important;
-    filter:
-      drop-shadow(0 0 8px rgba(0, 255, 102, 0.45))
-      drop-shadow(0 0 18px rgba(0, 255, 102, 0.28))
-      drop-shadow(0 0 24px rgba(255, 170, 0, 0.16)) !important;
-  }
-}
-
-
-/* v19: visually remove baked black hero background and trim damaged bottom strip */
-@media (min-width: 981px) {
-  .sparkd-man-figure {
-    width: 280px !important;
-    height: auto !important;
-    max-width: 280px !important;
-    max-height: none !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    background: transparent !important;
-    mix-blend-mode: screen !important;
-    clip-path: inset(0 0 14px 0) !important;
-    margin-bottom: -4px !important;
-    filter:
-      drop-shadow(0 0 8px rgba(0, 255, 102, 0.40))
-      drop-shadow(0 0 18px rgba(0, 255, 102, 0.24))
-      drop-shadow(0 0 24px rgba(255, 170, 0, 0.14)) !important;
+    margin-top: 0;
   }
 }
