@@ -180,26 +180,40 @@
   function splitSpeechText(text, maxLen = 320) {
     const cleaned = String(text || "").replace(/\s+/g, " ").trim();
     if (!cleaned) return [];
+
     const sentences = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleaned];
     const chunks = [];
     let current = "";
 
+    // Keep the first spoken chunk deliberately short so neural TTS can begin faster.
+    const firstTarget = 150;
+
     for (const sentence of sentences) {
-      const next = (current + " " + sentence.trim()).trim();
-      if (next.length <= maxLen) {
+      const sentenceText = sentence.trim();
+      const limit = chunks.length === 0 ? firstTarget : maxLen;
+      const next = (current + " " + sentenceText).trim();
+
+      if (next.length <= limit) {
         current = next;
         continue;
       }
 
-      if (current) chunks.push(current);
-      if (sentence.length <= maxLen) {
-        current = sentence.trim();
-      } else {
-        const words = sentence.trim().split(/\s+/);
+      if (current) {
+        chunks.push(current);
         current = "";
+      }
+
+      const activeLimit = chunks.length === 0 ? firstTarget : maxLen;
+
+      if (sentenceText.length <= activeLimit) {
+        current = sentenceText;
+      } else {
+        const words = sentenceText.split(/\s+/);
         for (const word of words) {
+          const wordLimit = chunks.length === 0 ? firstTarget : maxLen;
           const candidate = (current + " " + word).trim();
-          if (candidate.length > maxLen && current) {
+
+          if (candidate.length > wordLimit && current) {
             chunks.push(current);
             current = word;
           } else {
