@@ -360,3 +360,18 @@
     margin-top: 0 !important;
   }
 }
+
+
+/* v13: intact full-body hero image; never crop */
+@media (min-width: 981px) {
+  .sparkd-man-figure {
+    width: 280px !important;
+    height: auto !important;
+    max-width: 280px !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+}
