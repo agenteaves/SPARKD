@@ -5,7 +5,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.2";
+  const VERSION = "1.3";
   const ROOT_ID = "sparkdContestRules";
   const MODAL_ID = "sparkdContestRulesModal";
   const STYLE_ID = "sparkdContestRulesStyles";
@@ -57,26 +57,25 @@
         "Voting is available only while the contest is officially in the voting phase.",
         "The voting period lasts 12 hours after the submission period closes.",
         "The exact voting window is enforced server-side. Votes outside the allowed time are rejected.",
-        "A voter must connect a Phantom wallet and sign the contest voting message to prove control of that wallet.",
-        "Voting does not burn SPARKD and does not require sending SOL.",
-        "There is currently no minimum SPARKD holding requirement for voters.",
-        "Each wallet receives exactly one vote per weekly contest.",
-        "Once a wallet has successfully voted in that weekly contest, it cannot cast a second vote in the same contest.",
+        "Beginning with the next weekly contest, no wallet is required to vote. The voting window appears automatically when the contest enters the voting phase.",
+        "Voting does not burn SPARKD, does not require sending SOL, and does not require a minimum SPARKD holding.",
+        "Each browser receives one vote per weekly contest. Once that browser has successfully voted, it cannot cast a second vote in the same contest.",
         "An entrant may not vote for their own meme. An entrant may vote for another eligible meme in the same weekly contest.",
         "A vote may only be cast for an eligible submission belonging to that contest.",
-        "Signed voting requests must be valid and fresh; expired or invalid signatures are rejected."
+        "Invalid, duplicate, self-vote, or out-of-window requests are rejected by the server."
       ]
     },
     {
       title: "6. Weekly Voter Reward",
       items: [
-        "Each eligible wallet that successfully casts a valid vote is automatically entered once in the weekly voter reward drawing.",
-        "No purchase is necessary to vote or to enter the voter reward drawing, and voting does not require a SPARKD burn or SOL payment.",
-        "The weekly voter reward is $5 USD worth of SOL.",
-        "Each eligible voting wallet receives no more than one drawing entry per weekly contest.",
+        "The $5 USD worth of SOL voter reward is optional and separate from the vote itself.",
+        "After a public vote is recorded, the voter may optionally connect Phantom and sign a reward-entry message to enter the drawing.",
+        "A public vote still counts even if the voter does not connect a wallet.",
+        "Voters who do not connect and verify a wallet are not entered in the $5 SOL random voter-reward drawing.",
+        "Each verified reward wallet may receive no more than one drawing entry per weekly contest.",
         "The reward winner is selected randomly by the server after voting closes and is separate from the Meme of the Week winner.",
         "Self-votes are prohibited and are not eligible for the voter reward drawing.",
-        "Odds of winning depend on the number of eligible voting wallets for that weekly contest.",
+        "Odds of winning depend on the number of eligible verified reward wallets for that weekly contest.",
         "The voter reward is void where prohibited."
       ]
     },
@@ -84,8 +83,8 @@
       title: "7. Sharing & Campaigning",
       items: [
         "Entrants may share the contest and encourage friends, followers, or other community members to vote for their meme.",
-        "Every vote must still be independently cast from a wallet that satisfies the contest voting rules.",
-        "Community promotion does not override the one-wallet-one-vote rule or the prohibition on self-voting."
+        "Every vote must still be independently cast through the contest voting interface and satisfy the contest voting rules.",
+        "Community promotion does not override the one-browser-one-vote rule or the prohibition on self-voting."
       ]
     },
     {
@@ -111,7 +110,7 @@
       title: "10. Technical Validity",
       items: [
         "Browser displays and countdowns are informational; the server/database is the final authority for contest phase, submission eligibility, voting eligibility, and winner finalization.",
-        "Transactions, signatures, submissions, or votes that fail verification are not counted.",
+        "Transactions, submissions, votes, or optional reward-entry signatures that fail verification are not counted.",
         "Temporary wallet, Solana, Supabase, internet, or other third-party service failures may prevent an action from completing. A user should confirm that the site reports a successful submission or vote before assuming it was recorded."
       ]
     }
