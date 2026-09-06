@@ -375,3 +375,17 @@
     overflow: visible !important;
   }
 }
+
+
+/* v14: use intrinsic full-body image dimensions with no crop/gray fill */
+@media (min-width: 981px) {
+  .sparkd-man-figure {
+    width: 280px !important;
+    height: auto !important;
+    max-width: 280px !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    object-position: center top !important;
+    background: transparent !important;
+  }
+}
