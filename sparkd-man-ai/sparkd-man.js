@@ -85,10 +85,18 @@
     }
   }
 
-  function neuralVoiceFailed(ui) {
+  function neuralVoiceFailed(ui, errorMessage = "") {
     speaking = false;
     ui.root.classList.remove("is-speaking");
-    setStatus(ui, "Neural voice link is unavailable right now. I can still answer in text.");
+
+    const quotaHit = /quota|too_many_requests|429|RESOURCE_EXHAUSTED/i.test(String(errorMessage));
+    setStatus(
+      ui,
+      quotaHit
+        ? "My neural voice quota is cooling down for a moment. My text answer is still available."
+        : "Neural voice link is unavailable right now. I can still answer in text."
+    );
+
     resumeRecognition(ui);
   }
 
@@ -99,42 +107,36 @@
     return bytes;
   }
 
-  function splitSpeechText(text, maxLen = 700) {
+  function splitSpeechText(text, maxLen = 1100) {
     const cleaned = String(text || "").replace(/\s+/g, " ").trim();
     if (!cleaned) return [];
+    if (cleaned.length <= maxLen) return [cleaned];
 
     const sentences = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleaned];
     const chunks = [];
     let current = "";
-    const firstTarget = 180;
 
     for (const sentence of sentences) {
       const sentenceText = sentence.trim();
-      const limit = chunks.length === 0 ? firstTarget : maxLen;
       const next = (current + " " + sentenceText).trim();
 
-      if (next.length <= limit) {
+      if (next.length <= maxLen) {
         current = next;
         continue;
       }
 
-      if (current) {
-        chunks.push(current);
-        current = "";
-      }
+      if (current) chunks.push(current);
 
-      const activeLimit = chunks.length === 0 ? firstTarget : maxLen;
-
-      if (sentenceText.length <= activeLimit) {
+      if (sentenceText.length <= maxLen) {
         current = sentenceText;
         continue;
       }
 
-      for (const word of sentenceText.split(/\s+/)) {
-        const wordLimit = chunks.length === 0 ? firstTarget : maxLen;
+      const words = sentenceText.split(/\s+/);
+      current = "";
+      for (const word of words) {
         const candidate = (current + " " + word).trim();
-
-        if (candidate.length > wordLimit && current) {
+        if (candidate.length > maxLen && current) {
           chunks.push(current);
           current = word;
         } else {
@@ -208,9 +210,10 @@
             played = true;
           } catch (error) {
             lastError = error;
-            if (attempt === 0 && runId === speechRunId) {
-              await new Promise(resolve => setTimeout(resolve, 180));
-            }
+            const message = String(error?.message || error || "");
+            const quotaHit = /quota|too_many_requests|429|RESOURCE_EXHAUSTED/i.test(message);
+            if (quotaHit || attempt === 1 || runId !== speechRunId) break;
+            await new Promise(resolve => setTimeout(resolve, 220));
           }
         }
 
@@ -230,8 +233,9 @@
     } catch (error) {
       if (runId !== speechRunId) return;
       console.warn("SPARKD Man neural voice failed:", error);
+      const detail = String(error?.message || error || "");
       stopActiveAudio();
-      neuralVoiceFailed(ui);
+      neuralVoiceFailed(ui, detail);
     }
   }
 
