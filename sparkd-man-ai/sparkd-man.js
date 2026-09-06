@@ -6,7 +6,8 @@
   const WAKE = String(cfg.wakePhrase || "hey spark").toLowerCase();
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-full-verified.jpg?v=9";
+  const persona = window.SPARKD_MAN_PERSONALITY || {};
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-final.jpg?v=10";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
@@ -122,7 +123,12 @@
 
   function chooseVoice() {
     const voices = speechSynthesis.getVoices().filter(v => /^en(-|_)/i.test(v.lang || ""));
-    return voices.find(v => /google us english|microsoft david|daniel|alex|male/i.test(v.name || "")) || voices[0] || null;
+    const preferred = Array.isArray(persona.voiceNames) ? persona.voiceNames : [];
+    for (const wanted of preferred) {
+      const exact = voices.find(v => String(v.name || "").toLowerCase() === String(wanted).toLowerCase());
+      if (exact) return exact;
+    }
+    return voices.find(v => /natural|guy|ryan|christopher|eric|google us english|daniel|alex|david/i.test(v.name || "")) || voices[0] || null;
   }
 
   function pauseRecognition() {
@@ -153,9 +159,9 @@
     const u = new SpeechSynthesisUtterance(text);
     const voice = chooseVoice();
     if (voice) u.voice = voice;
-    u.rate = 0.9;
-    u.pitch = 0.72;
-    u.volume = 1;
+    u.rate = Number(persona.rate || 0.88);
+    u.pitch = Number(persona.pitch || 0.92);
+    u.volume = Number(persona.volume || 1);
 
     const done = () => {
       speaking = false;
@@ -177,7 +183,7 @@
       if (!speaking && Date.now() >= awakeUntil) {
         setAwake(ui, false);
         setStatus(ui, voiceEnabled
-          ? "Standing by. Say “Hey Spark” when you need me."
+          ? (persona.standbyLine || "Standing by. Say “Hey Spark” when duty calls.")
           : "Standing by. Enable voice, then say “Hey Spark.”");
       }
     }, FOLLOW_UP_MS + 250);
@@ -189,10 +195,10 @@
       ask(ui, directQuestion.trim());
       return;
     }
-    const line = "SPARKD MAN ONLINE! State your mission, citizen!";
+    const line = persona.wakeLine || "SPARKD MAN ONLINE! What mission calls, citizen?";
     setStatus(ui, line);
     speak(ui, line, () => {
-      setStatus(ui, "Listening for your question…");
+      setStatus(ui, persona.listeningLine || "I’m listening. Give me the mission.");
       armFollowUp(ui);
     });
   }
@@ -221,7 +227,7 @@
     }
 
     setAwake(ui, true);
-    setStatus(ui, "⚡ Consulting the SPARKD command center…");
+    setStatus(ui, persona.thinkingLine || "⚡ Consulting SPARKD command…");
     ui.talk.disabled = true;
     ui.input.disabled = true;
 
@@ -242,7 +248,7 @@
       addHistory("assistant", answer);
       setStatus(ui, answer);
       speak(ui, answer, () => {
-        setStatus(ui, "Mission update delivered. Listening for a follow-up…");
+        setStatus(ui, persona.deliveredLine || "Mission update delivered. What’s next?");
         armFollowUp(ui);
       });
     } catch (error) {
