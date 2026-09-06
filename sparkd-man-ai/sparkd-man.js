@@ -198,7 +198,7 @@
     }
 
     if (/^(stop|stop talking|be quiet)$/i.test(q)) {
-      speechSynthesis?.cancel?.();
+      window.speechSynthesis?.cancel?.();
       setStatus(ui, "Voice stopped. I'm still standing by.");
       return;
     }
