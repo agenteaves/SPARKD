@@ -138,7 +138,7 @@
     }
 
     async function getPublicVoterId() {
-        const key = "sparkd_public_voter_seed_v1";
+        const key = window.SPARKD_CONTEST_CONFIG?.PUBLIC_VOTER_STORAGE_KEY || "sparkd_public_voter_seed_v1";
         let seed = localStorage.getItem(key);
         if (!seed) {
             seed = randomNonce() + randomNonce();
