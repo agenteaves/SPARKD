@@ -287,3 +287,20 @@
     margin-top: 0 !important;
   }
 }
+
+
+/* v9 verified full-body hero render */
+@media (min-width: 981px) {
+  .sparkd-man-figure {
+    width: 300px !important;
+    height: 450px !important;
+    max-width: 300px !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 auto 10px !important;
+    border-radius: 0 !important;
+  }
+}
