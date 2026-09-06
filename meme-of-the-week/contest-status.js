@@ -142,7 +142,8 @@
     }
 
     if (contest.status === "voting") {
-      const votingEndMs = endMs + 12 * 60 * 60 * 1000;
+      const votingWindowMs = window.SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS || 12 * 60 * 60 * 1000;
+      const votingEndMs = endMs + votingWindowMs;
       return {
         phase: "🗳️ VOTING OPEN",
         countdown:
