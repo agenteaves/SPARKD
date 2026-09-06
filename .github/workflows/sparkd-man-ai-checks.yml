@@ -1,0 +1,30 @@
+name: SPARKD Man AI checks
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "sparkd-man-ai/**"
+      - "tests/sparkd-man-ai-regression.mjs"
+      - ".github/workflows/sparkd-man-ai-checks.yml"
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "sparkd-man-ai/**"
+      - "tests/sparkd-man-ai-regression.mjs"
+      - ".github/workflows/sparkd-man-ai-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  sparkd-man-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run SPARKD Man AI regression checks
+        run: node tests/sparkd-man-ai-regression.mjs
