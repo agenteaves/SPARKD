@@ -170,6 +170,38 @@
       <div class="sparkd-contest-status-countdown">${view.countdown}</div>
       ${view.detail ? `<div class="sparkd-contest-status-detail">${view.detail}</div>` : ""}
     `;
+
+    // Keep the submission controls synchronized with the authoritative contest phase.
+    // Once submissions close, do not invite users into a form that can no longer succeed.
+    const submissionButton = document.getElementById("submitMemeButton");
+    const submissionForm = document.getElementById("motmSubmissionForm");
+    const submissionStatus = document.getElementById("motmSubmissionStatus");
+
+    if (submissionButton) {
+      const submissionsOpen = currentContest?.status === "submission" &&
+        new Date(currentContest.week_end).getTime() > Date.now();
+
+      if (submissionsOpen) {
+        submissionButton.disabled = false;
+        submissionButton.textContent = "🔥 ENTER MEME OF THE WEEK";
+        submissionButton.removeAttribute("aria-disabled");
+      } else {
+        submissionButton.disabled = true;
+        submissionButton.textContent =
+          currentContest?.status === "voting"
+            ? "🔒 SUBMISSIONS CLOSED — VOTING IS NOW OPEN"
+            : "🔒 SUBMISSIONS CLOSED";
+        submissionButton.setAttribute("aria-disabled", "true");
+
+        if (submissionForm) submissionForm.style.display = "none";
+        if (submissionStatus) {
+          submissionStatus.textContent =
+            currentContest?.status === "voting"
+              ? "🗳️ Voting is now open. New meme submissions are closed."
+              : "🔒 Meme submissions are currently closed.";
+        }
+      }
+    }
   }
 
   async function refresh() {
