@@ -6,7 +6,7 @@
   const WAKE = String(cfg.wakePhrase || "hey spark").toLowerCase();
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-exact.webp?v=4";
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-verified.webp?v=5";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
