@@ -233,3 +233,57 @@
     margin-top: -54px;
   }
 }
+
+
+/* Final desktop SPARKD Man + centered meme layout */
+@media (min-width: 981px) {
+  .sparkd-man-stage {
+    width: min(1280px, 96vw) !important;
+    grid-template-columns: 280px minmax(0, 680px) 280px !important;
+    column-gap: 20px !important;
+    justify-content: center !important;
+    align-items: start !important;
+  }
+
+  .sparkd-man-stage .sparkd-man-ai {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 280px !important;
+    justify-self: end !important;
+    align-self: start !important;
+  }
+
+  .sparkd-man-stage .meme-of-week {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 680px !important;
+    max-width: 100% !important;
+    justify-self: center !important;
+    margin: 0 !important;
+  }
+
+  .sparkd-man-figure {
+    width: 280px !important;
+    height: 420px !important;
+    max-width: 280px !important;
+    object-fit: contain !important;
+    object-position: center top !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 auto 8px !important;
+    border-radius: 18px !important;
+  }
+
+  .sparkd-man-bubble,
+  .sparkd-man-controls,
+  .sparkd-man-text-row,
+  .sparkd-man-note {
+    width: 280px !important;
+    max-width: 280px !important;
+  }
+
+  .sparkd-man-bubble {
+    margin-top: 0 !important;
+  }
+}
