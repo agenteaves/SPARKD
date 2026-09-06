@@ -874,3 +874,28 @@ font-size:35px;
     padding-top: 45px;
   }
 }
+
+
+/* Homepage v23: tighter flow below Meme of the Week */
+.hero > h2 {
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.hero > p {
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+
+.hero > .buttons {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.hero > .contract {
+  margin-top: 8px;
+}
+
+#about.section {
+  padding-top: 38px;
+}
