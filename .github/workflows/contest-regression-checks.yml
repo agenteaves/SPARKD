@@ -1,0 +1,28 @@
+name: Contest regression checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "meme-of-the-week/**"
+      - ".github/workflows/contest-regression-checks.yml"
+      - "tests/contest-regression.mjs"
+  pull_request:
+    paths:
+      - "meme-of-the-week/**"
+      - ".github/workflows/contest-regression-checks.yml"
+      - "tests/contest-regression.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  contest-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run contest regression checks
+        run: node tests/contest-regression.mjs
