@@ -7,7 +7,7 @@
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
   const persona = window.SPARKD_MAN_PERSONALITY || {};
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-good.jpg?v=13";
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-intact.jpg?v=14";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
@@ -162,32 +162,12 @@
     window.speechSynthesis?.cancel?.();
   }
 
-  function fallbackBrowserSpeech(ui, text, after) {
-    if (!("speechSynthesis" in window)) {
-      speaking = false;
-      ui.root.classList.remove("is-speaking");
-      if (after) after();
-      resumeRecognition(ui);
-      return;
-    }
-
-    const u = new SpeechSynthesisUtterance(text);
-    const voice = chooseVoice();
-    if (voice) u.voice = voice;
-    u.rate = Number(persona.rate || 0.88);
-    u.pitch = Number(persona.pitch || 0.92);
-    u.volume = Number(persona.volume || 1);
-
-    const done = () => {
-      speaking = false;
-      ui.root.classList.remove("is-speaking");
-      if (after) after();
-      resumeRecognition(ui);
-    };
-
-    u.onend = done;
-    u.onerror = done;
-    speechSynthesis.speak(u);
+  function neuralVoiceFailed(ui, after) {
+    speaking = false;
+    ui.root.classList.remove("is-speaking");
+    setStatus(ui, "Neural voice link is unavailable right now. I can still answer in text.");
+    if (after) after();
+    resumeRecognition(ui);
   }
 
   function base64Bytes(value) {
@@ -240,14 +220,14 @@
       activeAudio.onended = done;
       activeAudio.onerror = () => {
         stopActiveAudio();
-        fallbackBrowserSpeech(ui, text, after);
+        neuralVoiceFailed(ui, after);
       };
 
       await activeAudio.play();
     } catch (error) {
-      console.warn("SPARKD Man neural voice fallback:", error);
+      console.warn("SPARKD Man neural voice failed:", error);
       stopActiveAudio();
-      fallbackBrowserSpeech(ui, text, after);
+      neuralVoiceFailed(ui, after);
     }
   }
 
