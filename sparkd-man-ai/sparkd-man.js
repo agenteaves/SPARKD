@@ -99,14 +99,14 @@
     return bytes;
   }
 
-  function splitSpeechText(text, maxLen = 320) {
+  function splitSpeechText(text, maxLen = 700) {
     const cleaned = String(text || "").replace(/\s+/g, " ").trim();
     if (!cleaned) return [];
 
     const sentences = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleaned];
     const chunks = [];
     let current = "";
-    const firstTarget = 150;
+    const firstTarget = 180;
 
     for (const sentence of sentences) {
       const sentenceText = sentence.trim();
@@ -322,8 +322,10 @@
         armFollowUp(ui);
       });
     } catch (error) {
-      const detail = String(error?.message || error || "Unknown command-link error.");
-      const msg = "Command link error: " + detail;
+      const detail = String(error?.message || error || "");
+      const msg = detail.includes("recharging his command link")
+        ? detail
+        : "Command link is having trouble. Try me again in a moment, citizen.";
       console.error("SPARKD Man AI:", error);
       setStatus(ui, msg);
     } finally {
