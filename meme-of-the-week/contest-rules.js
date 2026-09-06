@@ -5,7 +5,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.3";
+  const VERSION = "1.4";
   const ROOT_ID = "sparkdContestRules";
   const MODAL_ID = "sparkdContestRulesModal";
   const STYLE_ID = "sparkdContestRulesStyles";
@@ -57,12 +57,12 @@
         "Voting is available only while the contest is officially in the voting phase.",
         "The voting period lasts 12 hours after the submission period closes.",
         "The exact voting window is enforced server-side. Votes outside the allowed time are rejected.",
-        "Beginning with the next weekly contest, no wallet is required to vote. The voting window appears automatically when the contest enters the voting phase.",
+        "In public-voting contests, no wallet is required to vote. The voting window appears automatically when the contest enters the voting phase.",
         "Voting does not burn SPARKD, does not require sending SOL, and does not require a minimum SPARKD holding.",
         "Each browser receives one vote per weekly contest. Once that browser has successfully voted, it cannot cast a second vote in the same contest.",
-        "An entrant may not vote for their own meme. An entrant may vote for another eligible meme in the same weekly contest.",
+        "Self-voting is prohibited by the contest rules. Because public votes do not require wallet identification, wallet-based self-vote blocking applies only where a wallet identity is available.",
         "A vote may only be cast for an eligible submission belonging to that contest.",
-        "Invalid, duplicate, self-vote, or out-of-window requests are rejected by the server."
+        "Invalid, duplicate, or out-of-window requests are rejected by the server. Wallet-identified self-votes are rejected where the system can verify the voter wallet."
       ]
     },
     {
@@ -74,7 +74,7 @@
         "Voters who do not connect and verify a wallet are not entered in the $5 SOL random voter-reward drawing.",
         "Each verified reward wallet may receive no more than one drawing entry per weekly contest.",
         "The reward winner is selected randomly by the server after voting closes and is separate from the Meme of the Week winner.",
-        "Self-votes are prohibited and are not eligible for the voter reward drawing.",
+        "A voter-reward wallet matching the selected meme's submitting wallet is not eligible for that week's voter reward drawing.",
         "Odds of winning depend on the number of eligible verified reward wallets for that weekly contest.",
         "The voter reward is void where prohibited."
       ]
