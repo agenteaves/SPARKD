@@ -18,8 +18,25 @@
   let history = [];
 
   function makeUi() {
+    const existing = document.getElementById("sparkdManAi");
+    if (existing) {
+      const status = existing.querySelector(".sparkd-man-status");
+      const enable = existing.querySelector(".sparkd-man-enable");
+      const talk = existing.querySelector(".sparkd-man-talk");
+      const input = existing.querySelector(".sparkd-man-text");
+      const textRow = existing.querySelector(".sparkd-man-text-row");
+
+      if (status && enable && talk && input && textRow) {
+        if (!Recognition) {
+          status.textContent = "Voice recognition is unavailable in this browser. You can still type to me.";
+          enable.textContent = "🎙️ VOICE UNAVAILABLE";
+        }
+        return { root: existing, status, enable, talk, input, textRow };
+      }
+    }
+
     const meme = document.querySelector(".meme-of-week");
-    if (!meme || document.getElementById("sparkdManAi")) return null;
+    if (!meme) return null;
 
     const stage = document.createElement("div");
     stage.className = "sparkd-man-stage";
@@ -56,12 +73,12 @@
 
     const enable = document.createElement("button");
     enable.type = "button";
-    enable.className = "sparkd-man-control";
+    enable.className = "sparkd-man-control sparkd-man-enable";
     enable.textContent = Recognition ? "🎙️ ENABLE HEY SPARK" : "🎙️ VOICE UNAVAILABLE";
 
     const talk = document.createElement("button");
     talk.type = "button";
-    talk.className = "sparkd-man-control";
+    talk.className = "sparkd-man-control sparkd-man-talk";
     talk.textContent = "⚡ TALK TO SPARK";
 
     controls.append(enable, talk);
@@ -89,7 +106,7 @@
     note.textContent = "Voice works while this page is open. SPARKD Man can explain the project and contest, but he cannot move funds or give financial advice.";
 
     root.append(img, bubble, controls, textRow, note);
-    stage.appendChild(root);
+    stage.insertBefore(root, meme);
 
     return { root, status, enable, talk, input, textRow };
   }
@@ -291,7 +308,7 @@
         const wakeIndex = lower.indexOf(WAKE);
 
         if (wakeIndex >= 0) {
-          const after = transcript.slice(wakeIndex + WAKE.length).replace(/^[,!.?s]+/, "");
+          const after = transcript.slice(wakeIndex + WAKE.length).replace(/^[,!.?\\s]+/, "");
           wake(ui, after);
           return;
         }
