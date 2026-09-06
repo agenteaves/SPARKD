@@ -85,6 +85,24 @@
       color: #00101a;
       font-weight: 900;
     }
+    .rules {
+      margin-top: 28px;
+      display: grid;
+      gap: 14px;
+    }
+    .rules h2 {
+      margin: 0 0 2px;
+      font-size: 25px;
+    }
+    .rule-card {
+      padding: 18px;
+      border: 1px solid rgba(0,170,255,.24);
+      border-radius: 14px;
+      background: rgba(0,170,255,.045);
+    }
+    .rule-card h3 { margin: 0 0 10px; font-size: 18px; }
+    .rule-card ul { margin: 0; padding-left: 20px; color: #d4dfeb; line-height: 1.6; }
+    .rule-card li + li { margin-top: 6px; }
     .note {
       margin: 24px 0 0;
       padding: 16px;
@@ -148,6 +166,43 @@
         <li><strong>Submit and approve the entry burn.</strong> Your wallet must hold at least 2,000 SPARKD. Phantom will show the required 2,000 SPARKD contest-entry burn for approval.</li>
         <li><strong>Wait for confirmation.</strong> Keep the page open while the entry is verified. Once successful, your meme is entered into the current weekly contest.</li>
       </ol>
+
+      <section class="rules" aria-labelledby="voting-rules-title">
+        <h2 id="voting-rules-title">🗳️ Voting Rules</h2>
+
+        <div class="rule-card">
+          <h3>How voting works</h3>
+          <ul>
+            <li>Voting opens only during the official voting phase and lasts <strong>12 hours after submissions close</strong>.</li>
+            <li>To vote, connect a <strong>Phantom wallet</strong> and sign the contest voting message to prove control of that wallet.</li>
+            <li>Voting is free: <strong>no SPARKD burn, SOL payment, or minimum SPARKD holding is required</strong>.</li>
+            <li>Each wallet gets <strong>one vote per weekly contest</strong>. Once recorded, that wallet cannot vote again that week.</li>
+            <li>Entrants may vote for another eligible meme, but <strong>self-voting is prohibited</strong>.</li>
+            <li>Votes must be for an eligible submission in the current contest. Invalid, expired, duplicate, self-vote, or out-of-window requests are rejected by the server.</li>
+          </ul>
+        </div>
+
+        <div class="rule-card">
+          <h3>🎁 Weekly voter reward</h3>
+          <ul>
+            <li>Each eligible wallet that successfully casts a valid vote is automatically entered <strong>once</strong> in that week's voter reward drawing.</li>
+            <li>No purchase is necessary to vote or enter the drawing.</li>
+            <li>One eligible voter is selected after voting closes to receive <strong>$5 USD worth of SOL</strong>.</li>
+            <li>The voter reward is separate from Meme of the Week winner selection. Odds depend on the number of eligible voting wallets.</li>
+            <li>Self-votes are not eligible for the voter reward. Reward is void where prohibited.</li>
+          </ul>
+        </div>
+
+        <div class="rule-card">
+          <h3>🏆 How the winner is chosen</h3>
+          <ul>
+            <li>When voting closes, the eligible meme with the <strong>highest verified vote total</strong> wins.</li>
+            <li>If eligible memes are tied, the <strong>earlier submitted meme</strong> wins the tie.</li>
+            <li>At least one valid vote is required to produce a champion. If there are zero valid votes, no artificial winner is created.</li>
+            <li>Winner selection and weekly contest rollover are handled automatically by the server.</li>
+          </ul>
+        </div>
+      </section>
 
       <div class="note">
         ⚠️ Only approve the transaction if Phantom shows exactly what you expect.
