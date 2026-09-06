@@ -268,3 +268,9 @@
     margin-top: 0;
   }
 }
+
+
+/* Homepage v21: pull post-contest content closer to the contest stage */
+.sparkd-man-stage {
+  margin-bottom: 8px;
+}
