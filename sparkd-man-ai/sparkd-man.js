@@ -7,7 +7,7 @@
   const FOLLOW_UP_MS = Number(cfg.followUpWindowMs || 15000);
   const MAX_HISTORY = Number(cfg.maxHistoryMessages || 6);
   const persona = window.SPARKD_MAN_PERSONALITY || {};
-  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-intact.jpg?v=15";
+  const HERO = "/sparkd-man-ai/assets/sparkd-man-fullbody-intact.jpg?v=16";
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
@@ -34,6 +34,7 @@
           status.textContent = "Voice recognition is unavailable in this browser. You can still type to me.";
           enable.textContent = "🎙️ VOICE UNAVAILABLE";
         }
+        removeHeroBackground(existing.querySelector(".sparkd-man-figure"));
         return { root: existing, status, enable, talk, input, textRow };
       }
     }
@@ -110,6 +111,7 @@
 
     root.append(img, bubble, controls, textRow, note);
     stage.insertBefore(root, meme);
+    removeHeroBackground(img);
 
     return { root, status, enable, talk, input, textRow };
   }
@@ -117,6 +119,54 @@
   function setStatus(ui, text) {
     ui.status.textContent = text;
   }
+  function removeHeroBackground(img) {
+    if (!img || img.dataset.bgProcessed === "1") return;
+    if (!img.complete || !img.naturalWidth || !img.naturalHeight) {
+      img.addEventListener("load", () => removeHeroBackground(img), { once: true });
+      return;
+    }
+
+    try {
+      const cropBottom = Math.min(10, Math.max(0, img.naturalHeight - 1));
+      const w = img.naturalWidth;
+      const h = img.naturalHeight - cropBottom;
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+
+      ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h);
+      const frame = ctx.getImageData(0, 0, w, h);
+      const px = frame.data;
+
+      for (let i = 0; i < px.length; i += 4) {
+        const r = px[i];
+        const g = px[i + 1];
+        const b = px[i + 2];
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const chroma = max - min;
+
+        // Remove the baked-in near-black rectangle while preserving colored glow.
+        if (max <= 18 && chroma <= 10) {
+          px[i + 3] = 0;
+        } else if (max < 48 && chroma <= 14) {
+          px[i + 3] = Math.round(((max - 18) / 30) * 255);
+        }
+      }
+
+      ctx.putImageData(frame, 0, 0);
+      img.dataset.bgProcessed = "1";
+      img.src = canvas.toDataURL("image/png");
+      img.style.mixBlendMode = "normal";
+      img.style.background = "transparent";
+      img.style.clipPath = "none";
+    } catch (error) {
+      console.warn("SPARKD Man background cleanup skipped:", error);
+    }
+  }
+
 
   function setAwake(ui, awake) {
     ui.root.classList.toggle("is-awake", awake);
@@ -177,7 +227,7 @@
     return bytes;
   }
 
-  function splitSpeechText(text, maxLen = 900) {
+  function splitSpeechText(text, maxLen = 320) {
     const cleaned = String(text || "").replace(/\s+/g, " ").trim();
     if (!cleaned) return [];
     const sentences = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [cleaned];
@@ -256,9 +306,12 @@
 
     try {
       const chunks = splitSpeechText(text);
-      for (const chunk of chunks) {
+      for (let i = 0; i < chunks.length; i++) {
         if (!speaking) return;
-        await playNeuralChunk(chunk);
+        await playNeuralChunk(chunks[i]);
+        if (i < chunks.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 120));
+        }
       }
 
       speaking = false;
