@@ -147,6 +147,20 @@
                         <div class="statCard">
 
                             <div class="statTitle">
+                                🦸 SPARKD Man Users
+                            </div>
+
+                            <div class="statValue" id="statsSparkdManUsers">0</div>
+                            <div style="font-size:12px;opacity:.72;margin-top:5px;">
+                                <span id="statsSparkdManInteractions">0</span> questions this week · resets Sunday
+                            </div>
+
+                        </div>
+
+
+                        <div class="statCard">
+
+                            <div class="statTitle">
                                 🗓 This Month
                             </div>
 
@@ -427,6 +441,22 @@ async function loadWebsiteStats() {
             "statsMonth"
         ).textContent =
             data.visitsThisMonth || 0;
+
+
+        // SPARKD Man weekly interaction stats
+        try {
+            const { data: sparkdManStats, error: sparkdManError } =
+                await statsClient.rpc("get_sparkd_man_weekly_stats");
+
+            if (!sparkdManError && sparkdManStats) {
+                document.getElementById("statsSparkdManUsers").textContent =
+                    sparkdManStats.uniqueUsers || 0;
+                document.getElementById("statsSparkdManInteractions").textContent =
+                    sparkdManStats.interactions || 0;
+            }
+        } catch (sparkdManStatsError) {
+            console.warn("SPARKD Man stats unavailable:", sparkdManStatsError);
+        }
 
 
         ////////////////////////////////////////////////////
