@@ -82,8 +82,8 @@
   async function fetchCurrentContest() {
     const url = new URL(`${SUPABASE_URL}/rest/v1/meme_week_contests`);
     url.searchParams.set("select", "id,week_start,week_end,status,winner_submission_id");
-    url.searchParams.set("status", "in.(submission,voting)");
-    url.searchParams.set("order", "week_start.desc");
+    url.searchParams.set("status", "in.(upcoming,submission,voting)");
+    url.searchParams.set("order", "week_start.asc");
     url.searchParams.set("limit", "1");
 
     const response = await fetch(url.toString(), {
@@ -128,7 +128,19 @@
       };
     }
 
+    const startMs = new Date(contest.week_start).getTime();
     const endMs = new Date(contest.week_end).getTime();
+
+    if (contest.status === "upcoming") {
+      return {
+        phase: "⏳ CONTEST OPENS SOON",
+        countdown:
+          startMs > now
+            ? `Submissions open in ${formatDuration(startMs - now)}`
+            : "Submissions are opening now…",
+        detail: "The contest lifecycle updates automatically every few minutes."
+      };
+    }
 
     if (contest.status === "submission") {
       return {
@@ -179,8 +191,10 @@
     const submissionStatus = document.getElementById("motmSubmissionStatus");
 
     if (submissionButton) {
+      const now = Date.now();
       const submissionsOpen = currentContest?.status === "submission" &&
-        new Date(currentContest.week_end).getTime() > Date.now();
+        new Date(currentContest.week_start).getTime() <= now &&
+        new Date(currentContest.week_end).getTime() > now;
 
       if (submissionsOpen) {
         submissionButton.disabled = false;
