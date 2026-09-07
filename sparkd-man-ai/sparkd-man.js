@@ -228,7 +228,7 @@
         if (!played) throw lastError || new Error("Neural speech chunk failed.");
 
         if (i < chunks.length - 1 && runId === speechRunId) {
-          await new Promise(resolve => setTimeout(resolve, 140));
+          await Promise.resolve();
         }
       }
 
