@@ -282,6 +282,25 @@
     });
   }
 
+  function getVisitorId() {
+    try {
+      const key = "sparkdManVisitorId";
+      let id = localStorage.getItem(key);
+
+      if (!id) {
+        id = crypto.randomUUID
+          ? crypto.randomUUID()
+          : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+        localStorage.setItem(key, id);
+      }
+
+      return id;
+    } catch (_) {
+      // Stats must never interfere with SPARKD Man operation.
+      return "";
+    }
+  }
+
   function addHistory(role, text) {
     history.push({ role, text: String(text).slice(0, 500) });
     history = history.slice(-MAX_HISTORY);
@@ -319,15 +338,7 @@
         body: JSON.stringify({
           question: q,
           history,
-          visitorId: (() => {
-            const key = "sparkdManVisitorId";
-            let id = localStorage.getItem(key);
-            if (!id) {
-              id = (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)));
-              localStorage.setItem(key, id);
-            }
-            return id;
-          })()
+          visitorId: getVisitorId()
         })
       });
 
