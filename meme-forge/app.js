@@ -884,7 +884,7 @@ if (deleteBtn) {
 
     if (downloadBtn) {
 
-        downloadBtn.onclick = function () {
+        downloadBtn.onclick = async function () {
 
             if (downloadBtn.dataset.exporting === "1") {
                 return;
@@ -1065,12 +1065,12 @@ if (deleteBtn) {
                 );
 
                 ////////////////////////////////////////////////////
-                // iPHONE / iPAD SAFARI DOWNLOAD
+                // iPHONE / iPAD SAFARI EXPORT
                 //
-                // iOS WebKit can ignore a synthetic download click
-                // when the href is a client-generated data/blob URL.
-                // Route only iOS exports through a same-origin server
-                // attachment endpoint. Desktop/Android stay untouched.
+                // iOS Safari can ignore delayed synthetic downloads
+                // for client-generated blob/data URLs. Prefer the
+                // native share sheet with the exact PNG file instead.
+                // Desktop/Android keep the existing download path.
                 ////////////////////////////////////////////////////
 
                 const isiOS =
@@ -1090,93 +1090,62 @@ if (deleteBtn) {
                         const pngBlob =
                             await pngResponse.blob();
 
-                        const pngBase64 =
-                            await new Promise(
-                                function (resolve, reject) {
-
-                                    const reader =
-                                        new FileReader();
-
-                                    reader.onload =
-                                        function () {
-
-                                            const value =
-                                                String(
-                                                    reader.result || ""
-                                                );
-
-                                            resolve(
-                                                value.includes(",")
-                                                    ? value.split(",")[1]
-                                                    : value
-                                            );
-
-                                        };
-
-                                    reader.onerror =
-                                        reject;
-
-                                    reader.readAsDataURL(
-                                        pngBlob
-                                    );
-
-                                }
-                            );
-
-                        const iosResponse =
-                            await fetch(
-                                SUPABASE_URL +
-                                "/functions/v1/meme-export-download",
+                        const pngFile =
+                            new File(
+                                [pngBlob],
+                                "SPARKD-meme.png",
                                 {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json"
-                                    },
-                                    body: JSON.stringify({
-                                        pngBase64: pngBase64
-                                    })
+                                    type: "image/png"
                                 }
                             );
 
-                        if (!iosResponse.ok) {
-                            throw new Error(
-                                "iPhone export endpoint failed."
-                            );
+                        const canShareFile =
+                            typeof navigator.share === "function" &&
+                            typeof navigator.canShare === "function" &&
+                            navigator.canShare({
+                                files: [pngFile]
+                            });
+
+                        if (canShareFile) {
+
+                            await navigator.share({
+                                files: [pngFile],
+                                title: "SPARKD Meme"
+                            });
+
                         }
+                        else {
 
-                        const iosBlob =
-                            await iosResponse.blob();
+                            // Older iOS fallback. Keep the normal
+                            // download behavior without adding a
+                            // server dependency.
+                            link.click();
 
-                        const iosUrl =
-                            URL.createObjectURL(
-                                iosBlob
-                            );
-
-                        link.href =
-                            iosUrl;
-
-                        link.download =
-                            "SPARKD-meme.png";
-
-                        link.click();
-
-                        setTimeout(function () {
-                            URL.revokeObjectURL(
-                                iosUrl
-                            );
-                        }, 10000);
+                        }
 
                     }
                     catch (iosExportError) {
 
-                        console.error(
-                            "❌ SPARKD iPhone export failed:",
-                            iosExportError
-                        );
+                        if (
+                            iosExportError &&
+                            iosExportError.name === "AbortError"
+                        ) {
+                            console.log(
+                                "ℹ️ SPARKD iPhone export cancelled."
+                            );
+                        }
+                        else {
 
-                        alert(
-                            "The iPhone download could not start. Please make sure Safari allows downloads and try again."
-                        );
+                            console.error(
+                                "❌ SPARKD iPhone export failed:",
+                                iosExportError
+                            );
+
+                            alert(
+                                "The iPhone export could not start. Please try again."
+                            );
+
+                        }
 
                     }
 
