@@ -986,6 +986,44 @@ if (deleteBtn) {
 
 
                 ////////////////////////////////////////////////////
+                // CONTEST WALLET UX CHECK
+                //
+                // Meme Forge can still export without a wallet, but
+                // that PNG cannot pass Meme of the Week wallet matching.
+                // Warn before we permanently embed NOT_CONNECTED.
+                ////////////////////////////////////////////////////
+
+                let exportWallet =
+                    null;
+
+                if (
+                    window.SPARKD_FORGE &&
+                    typeof window.SPARKD_FORGE.getConnectedWallet === "function"
+                ) {
+
+                    exportWallet =
+                        window.SPARKD_FORGE.getConnectedWallet();
+
+                }
+
+                if (!exportWallet) {
+
+                    const continueWithoutWallet =
+                        window.confirm(
+                            "⚠️ NO CONTEST WALLET CONNECTED\n\n" +
+                            "You can still save this meme, but this PNG will NOT be eligible for Meme of the Week because no Phantom wallet will be attached to its Forge DNA.\n\n" +
+                            "Choose Cancel to connect the wallet you plan to use for the contest, then export again.\n\n" +
+                            "Choose OK only if you want a non-contest PNG."
+                        );
+
+                    if (!continueWithoutWallet) {
+                        finishExport();
+                        return;
+                    }
+
+                }
+
+                ////////////////////////////////////////////////////
                 // CREATE SPARKD FORGE BIRTH RECORD
                 ////////////////////////////////////////////////////
 
