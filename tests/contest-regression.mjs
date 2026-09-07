@@ -22,6 +22,9 @@ check(/contest-config\.js/.test(index), "index.html must load contest-config.js"
 check(/voting\.js\?v=public-voting-2/.test(index), "index.html must load the public voting module");
 check(/VOTING_WINDOW_MS:\s*12\s*\*\s*60\s*\*\s*60\s*\*\s*1000/.test(config), "shared voting window must remain 12 hours");
 check(status.includes("SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS"), "contest-status.js must consume shared voting window config");
+check(/in\.\(upcoming,submission,voting\)/.test(status), "contest-status.js must show the upcoming contest before submissions open");
+check(/contest\.status === "upcoming"/.test(status), "contest-status.js must render an upcoming countdown");
+check(/week_start/.test(status) && /week_end/.test(status), "contest-status.js must enforce both start and end boundaries");
 check(/state\.votingOpen/.test(voting), "voting.js must rely on authoritative backend voting state");
 check(voting.includes("SPARKD_CONTEST_CONFIG?.PUBLIC_VOTER_STORAGE_KEY"), "voting.js must consume shared voter storage key");
 check(/No wallet is required|no wallet is required|does not require a wallet/.test(voting + rules + guide + reward), "public-facing files must describe walletless voting");
