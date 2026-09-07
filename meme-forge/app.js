@@ -886,6 +886,20 @@ if (deleteBtn) {
 
         downloadBtn.onclick = function () {
 
+            // Prevent double-click exports while the PNG is being prepared.
+            if (downloadBtn.dataset.exporting === "1") {
+                return;
+            }
+
+            downloadBtn.dataset.exporting = "1";
+            const originalButtonText = downloadBtn.textContent;
+            downloadBtn.textContent = "⏳ Exporting...";
+
+            const finishExport = function () {
+                downloadBtn.dataset.exporting = "0";
+                downloadBtn.textContent = originalButtonText;
+            };
+
             ////////////////////////////////////////////////////
             // CLEAR ACTIVE SELECTION
             ////////////////////////////////////////////////////
@@ -913,6 +927,7 @@ if (deleteBtn) {
                     "Please upload an image first."
                 );
 
+                finishExport();
                 return;
 
             }
@@ -933,24 +948,34 @@ if (deleteBtn) {
             // EXPORT IMAGE + TEXT
             ////////////////////////////////////////////////////
 
-            const dataURL =
-                canvas.toDataURL({
+            let dataURL = "";
 
-                    format: "png",
+            try {
+                dataURL =
+                    canvas.toDataURL({
 
-                    left: bounds.left,
+                        format: "png",
 
-                    top: bounds.top,
+                        left: bounds.left,
 
-                    width: bounds.width,
+                        top: bounds.top,
 
-                    height: bounds.height,
+                        width: bounds.width,
 
-                    multiplier: 2,
+                        height: bounds.height,
 
-                    enableRetinaScaling: true
+                        multiplier: 2,
 
-                });
+                        enableRetinaScaling: true
+
+                    });
+            }
+            catch (exportError) {
+                console.error("❌ SPARKD Meme Forge canvas export failed:", exportError);
+                alert("Export failed. Please reload the Meme Forge, upload the image again, and retry.");
+                finishExport();
+                return;
+            }
 
 
             ////////////////////////////////////////////////////
@@ -1148,9 +1173,25 @@ if (deleteBtn) {
                     link.download =
                         "SPARKD-meme.png";
 
+                    document.body.appendChild(link);
                     link.click();
+                    link.remove();
+
+                    if (link.href && link.href.startsWith("blob:")) {
+                        setTimeout(function () {
+                            URL.revokeObjectURL(link.href);
+                        }, 1000);
+                    }
+
+                    finishExport();
 
                 };
+
+            exportedImage.onerror = function (error) {
+                console.error("❌ SPARKD Meme Forge exported image could not be prepared:", error);
+                alert("Export failed while preparing the PNG. Please try again.");
+                finishExport();
+            };
 
 
             exportedImage.src =
