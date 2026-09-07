@@ -278,3 +278,15 @@
     margin-top: 0;
   }
 }
+
+
+/* Homepage v29: reduce, but preserve, breathing room below the meme box */
+@media (min-width: 981px) {
+  .sparkd-man-stage {
+    align-items: start;
+  }
+
+  .hero > .sparkd-man-stage + h2 {
+    margin-top: -115px;
+  }
+}
