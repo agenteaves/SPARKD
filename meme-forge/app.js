@@ -1064,15 +1064,136 @@ if (deleteBtn) {
                     link
                 );
 
-                // Direct download for desktop and mobile.
-                // No share sheet, no preview overlay.
-                link.click();
+                ////////////////////////////////////////////////////
+                // iPHONE / iPAD SAFARI DOWNLOAD
+                //
+                // iOS WebKit can ignore a synthetic download click
+                // when the href is a client-generated data/blob URL.
+                // Route only iOS exports through a same-origin server
+                // attachment endpoint. Desktop/Android stay untouched.
+                ////////////////////////////////////////////////////
+
+                const isiOS =
+                    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (
+                        navigator.platform === "MacIntel" &&
+                        navigator.maxTouchPoints > 1
+                    );
+
+                if (isiOS) {
+
+                    try {
+
+                        const pngResponse =
+                            await fetch(link.href);
+
+                        const pngBlob =
+                            await pngResponse.blob();
+
+                        const pngBase64 =
+                            await new Promise(
+                                function (resolve, reject) {
+
+                                    const reader =
+                                        new FileReader();
+
+                                    reader.onload =
+                                        function () {
+
+                                            const value =
+                                                String(
+                                                    reader.result || ""
+                                                );
+
+                                            resolve(
+                                                value.includes(",")
+                                                    ? value.split(",")[1]
+                                                    : value
+                                            );
+
+                                        };
+
+                                    reader.onerror =
+                                        reject;
+
+                                    reader.readAsDataURL(
+                                        pngBlob
+                                    );
+
+                                }
+                            );
+
+                        const iosResponse =
+                            await fetch(
+                                SUPABASE_URL +
+                                "/functions/v1/meme-export-download",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        pngBase64: pngBase64
+                                    })
+                                }
+                            );
+
+                        if (!iosResponse.ok) {
+                            throw new Error(
+                                "iPhone export endpoint failed."
+                            );
+                        }
+
+                        const iosBlob =
+                            await iosResponse.blob();
+
+                        const iosUrl =
+                            URL.createObjectURL(
+                                iosBlob
+                            );
+
+                        link.href =
+                            iosUrl;
+
+                        link.download =
+                            "SPARKD-meme.png";
+
+                        link.click();
+
+                        setTimeout(function () {
+                            URL.revokeObjectURL(
+                                iosUrl
+                            );
+                        }, 10000);
+
+                    }
+                    catch (iosExportError) {
+
+                        console.error(
+                            "❌ SPARKD iPhone export failed:",
+                            iosExportError
+                        );
+
+                        alert(
+                            "The iPhone download could not start. Please make sure Safari allows downloads and try again."
+                        );
+
+                    }
+
+                }
+                else {
+
+                    // Existing desktop/Android export path.
+                    link.click();
+
+                }
 
                 link.remove();
 
                 if (
                     link.href &&
-                    link.href.startsWith("blob:")
+                    link.href.startsWith("blob:") &&
+                    !isiOS
                 ) {
 
                     setTimeout(function () {
