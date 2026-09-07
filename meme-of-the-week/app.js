@@ -163,9 +163,9 @@ async function loadCurrentContest() {
                     .select(
                         "*"
                     )
-                    .eq(
+                    .in(
                         "status",
-                        "submission"
+                        ["upcoming", "submission"]
                     )
                     .gt(
                         "week_start",
