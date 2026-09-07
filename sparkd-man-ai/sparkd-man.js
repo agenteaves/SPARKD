@@ -316,7 +316,19 @@
       const response = await fetch(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, history })
+        body: JSON.stringify({
+          question: q,
+          history,
+          visitorId: (() => {
+            const key = "sparkdManVisitorId";
+            let id = localStorage.getItem(key);
+            if (!id) {
+              id = (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)));
+              localStorage.setItem(key, id);
+            }
+            return id;
+          })()
+        })
       });
 
       const data = await response.json().catch(() => ({}));
