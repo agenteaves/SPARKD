@@ -886,7 +886,6 @@ if (deleteBtn) {
 
         downloadBtn.onclick = function () {
 
-            // Prevent double-click exports while the PNG is being prepared.
             if (downloadBtn.dataset.exporting === "1") {
                 return;
             }
@@ -900,507 +899,208 @@ if (deleteBtn) {
                 downloadBtn.textContent = originalButtonText;
             };
 
-            ////////////////////////////////////////////////////
-            // CLEAR ACTIVE SELECTION
-            ////////////////////////////////////////////////////
-
-            canvas.discardActiveObject();
-
-            canvas.renderAll();
-
-
-            ////////////////////////////////////////////////////
-            // FIND UPLOADED IMAGE
-            ////////////////////////////////////////////////////
-
-            const image =
-                canvas
-                    .getObjects()
-                    .find(
-                        obj => obj.type === "image"
-                    );
-
-
-            if (!image) {
-
-                alert(
-                    "Please upload an image first."
-                );
-
-                finishExport();
-                return;
-
-            }
-
-
-            ////////////////////////////////////////////////////
-            // GET IMAGE BOUNDS
-            ////////////////////////////////////////////////////
-
-            const bounds =
-                image.getBoundingRect(
-                    false,
-                    true
-                );
-
-
-            ////////////////////////////////////////////////////
-            // EXPORT IMAGE + TEXT
-            ////////////////////////////////////////////////////
-
-            let dataURL = "";
-
             try {
-                dataURL =
-                    canvas.toDataURL({
 
-                        format: "png",
+                ////////////////////////////////////////////////////
+                // CLEAR ACTIVE SELECTION
+                ////////////////////////////////////////////////////
 
-                        left: bounds.left,
-
-                        top: bounds.top,
-
-                        width: bounds.width,
-
-                        height: bounds.height,
-
-                        multiplier: 2,
-
-                        enableRetinaScaling: true
-
-                    });
-            }
-            catch (exportError) {
-                console.error("❌ SPARKD Meme Forge canvas export failed:", exportError);
-                alert("Export failed. Please reload the Meme Forge, upload the image again, and retry.");
-                finishExport();
-                return;
-            }
+                canvas.discardActiveObject();
+                canvas.renderAll();
 
 
-            ////////////////////////////////////////////////////
-            // CREATE FINAL IMAGE CANVAS
-            ////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////
+                // FIND UPLOADED IMAGE
+                ////////////////////////////////////////////////////
 
-            const finalCanvas =
-                document.createElement(
-                    "canvas"
+                const image =
+                    canvas
+                        .getObjects()
+                        .find(
+                            obj => obj.type === "image"
+                        );
+
+                if (!image) {
+                    alert("Please upload an image first.");
+                    finishExport();
+                    return;
+                }
+
+
+                ////////////////////////////////////////////////////
+                // GET IMAGE BOUNDS
+                ////////////////////////////////////////////////////
+
+                const bounds =
+                    image.getBoundingRect(
+                        false,
+                        true
+                    );
+
+
+                ////////////////////////////////////////////////////
+                // SYNCHRONOUS EXPORT
+                //
+                // Keeping this inside the user's tap is important
+                // for mobile browsers that block delayed downloads.
+                ////////////////////////////////////////////////////
+
+                const finalCanvas =
+                    canvas.toCanvasElement(
+                        2,
+                        {
+                            left: bounds.left,
+                            top: bounds.top,
+                            width: bounds.width,
+                            height: bounds.height,
+                            enableRetinaScaling: true
+                        }
+                    );
+
+                const ctx =
+                    finalCanvas.getContext("2d");
+
+
+                ////////////////////////////////////////////////////
+                // ADD SPARKD CONTRACT
+                ////////////////////////////////////////////////////
+
+                ctx.font = "8px Arial";
+                ctx.textAlign = "right";
+                ctx.textBaseline = "bottom";
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#000000";
+                ctx.fillStyle = "#ffffff";
+
+                ctx.strokeText(
+                    SPARKD_CONTRACT,
+                    finalCanvas.width - 10,
+                    finalCanvas.height - 10
+                );
+
+                ctx.fillText(
+                    SPARKD_CONTRACT,
+                    finalCanvas.width - 10,
+                    finalCanvas.height - 10
                 );
 
 
-            finalCanvas.width =
-                bounds.width * 2;
+                ////////////////////////////////////////////////////
+                // CREATE SPARKD FORGE BIRTH RECORD
+                ////////////////////////////////////////////////////
 
-            finalCanvas.height =
-                bounds.height * 2;
+                let forgeRecord =
+                    null;
 
+                if (
+                    window.SPARKD_FORGE &&
+                    typeof window.SPARKD_FORGE.createRecord === "function"
+                ) {
 
-            const ctx =
-                finalCanvas.getContext(
-                    "2d"
-                );
+                    forgeRecord =
+                        window.SPARKD_FORGE.createRecord(
+                            finalCanvas
+                        );
 
-
-            const exportedImage =
-                new Image();
-
-
-            exportedImage.onload =
-                function () {
-
-                    ////////////////////////////////////////////////////
-                    // DRAW EXPORTED MEME
-                    ////////////////////////////////////////////////////
-
-                    ctx.drawImage(
-
-                        exportedImage,
-
-                        0,
-
-                        0,
-
-                        finalCanvas.width,
-
-                        finalCanvas.height
-
+                    console.log(
+                        "🔥 SPARKD Forge Birth:",
+                        forgeRecord
                     );
+                }
 
 
-                    ////////////////////////////////////////////////////
-                    // ADD SPARKD CONTRACT
-                    ////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////
+                // CREATE HIDDEN FORGE DATA
+                ////////////////////////////////////////////////////
 
-                    ctx.font =
-                        "8px Arial";
+                if (
+                    window.SPARKD_EXPORT &&
+                    forgeRecord &&
+                    typeof window.SPARKD_EXPORT.attachForgeData === "function"
+                ) {
 
-                    ctx.textAlign =
-                        "right";
-
-                    ctx.textBaseline =
-                        "bottom";
-
-                    ctx.lineWidth =
-                        2;
-
-                    ctx.strokeStyle =
-                        "#000000";
-
-                    ctx.fillStyle =
-                        "#ffffff";
-
-
-                    ctx.strokeText(
-
-                        SPARKD_CONTRACT,
-
-                        finalCanvas.width - 10,
-
-                        finalCanvas.height - 10
-
+                    window.SPARKD_EXPORT.attachForgeData(
+                        finalCanvas,
+                        forgeRecord
                     );
+                }
 
 
-                    ctx.fillText(
+                ////////////////////////////////////////////////////
+                // BUILD THE EXACT PNG FILE
+                ////////////////////////////////////////////////////
 
-                        SPARKD_CONTRACT,
+                const link =
+                    document.createElement("a");
 
-                        finalCanvas.width - 10,
+                if (
+                    window.SPARKD_PNG &&
+                    forgeRecord &&
+                    typeof window.SPARKD_PNG.attach === "function"
+                ) {
 
-                        finalCanvas.height - 10
-
-                    );
-
-
-                    ////////////////////////////////////////////////////
-                    // CREATE SPARKD FORGE BIRTH RECORD
-                    // FROM FINAL IMAGE
-                    ////////////////////////////////////////////////////
-
-                    let forgeRecord =
-                        null;
-
-
-                    if (
-                        window.SPARKD_FORGE &&
-                        typeof window.SPARKD_FORGE.createRecord === "function"
-                    ) {
-
-                        forgeRecord =
-                            window.SPARKD_FORGE.createRecord(
-                                finalCanvas
-                            );
-
-
-                        console.log(
-                            "🔥 SPARKD Forge Birth:",
+                    link.href =
+                        window.SPARKD_PNG.attach(
+                            finalCanvas,
                             forgeRecord
                         );
 
-                    }
+                }
+                else {
 
-
-                    ////////////////////////////////////////////////////
-                    // CREATE HIDDEN FORGE DATA
-                    ////////////////////////////////////////////////////
-
-                    let hiddenForgeData =
-                        null;
-
-
-                    if (
-                        window.SPARKD_EXPORT &&
-                        forgeRecord &&
-                        typeof window.SPARKD_EXPORT.attachForgeData === "function"
-                    ) {
-
-                        hiddenForgeData =
-                            window.SPARKD_EXPORT.attachForgeData(
-
-                                finalCanvas,
-
-                                forgeRecord
-
-                            );
-
-                    }
-
-
-                    ////////////////////////////////////////////////////
-                    // CREATE DOWNLOAD LINK
-                    ////////////////////////////////////////////////////
-
-                    const link =
-                        document.createElement(
-                            "a"
+                    link.href =
+                        finalCanvas.toDataURL(
+                            "image/png"
                         );
+                }
 
+                link.download =
+                    "SPARKD-meme.png";
 
-                    ////////////////////////////////////////////////////
-                    // INJECT SPARKD FORGE PNG DATA
-                    ////////////////////////////////////////////////////
+                link.style.display =
+                    "none";
 
-                    if (
-                        window.SPARKD_PNG &&
-                        forgeRecord &&
-                        typeof window.SPARKD_PNG.attach === "function"
-                    ) {
+                document.body.appendChild(
+                    link
+                );
 
-                        link.href =
-                            window.SPARKD_PNG.attach(
+                // Direct download for desktop and mobile.
+                // No share sheet, no preview overlay.
+                link.click();
 
-                                finalCanvas,
+                link.remove();
 
-                                forgeRecord
+                if (
+                    link.href &&
+                    link.href.startsWith("blob:")
+                ) {
 
-                            );
-
-                    }
-                    else {
-
-                        link.href =
-                            finalCanvas.toDataURL(
-                                "image/png"
-                            );
-
-                    }
-
-
-                    ////////////////////////////////////////////////////
-                    // DOWNLOAD / MOBILE SAVE-SHARE
-                    ////////////////////////////////////////////////////
-
-                    link.download =
-                        "SPARKD-meme.png";
-
-                    const isMobile =
-                        /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
-                        (navigator.maxTouchPoints > 1 && window.innerWidth <= 1024);
-
-                    if (isMobile) {
-
-                        const existing =
-                            document.getElementById("sparkdMobileExport");
-
-                        if (existing) {
-                            existing.remove();
-                        }
-
-                        const overlay =
-                            document.createElement("div");
-
-                        overlay.id =
-                            "sparkdMobileExport";
-
-                        overlay.style.cssText =
-                            "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.94);padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;";
-
-                        const title =
-                            document.createElement("div");
-
-                        title.textContent =
-                            "✅ SPARKD meme is ready";
-
-                        title.style.cssText =
-                            "font-size:22px;font-weight:900;";
-
-                        const help =
-                            document.createElement("div");
-
-                        help.textContent =
-                            "Tap Share / Save PNG. On iPhone, choose Save Image or Save to Files.";
-
-                        help.style.cssText =
-                            "max-width:520px;opacity:.86;line-height:1.45;";
-
-                        const preview =
-                            document.createElement("img");
-
-                        preview.src =
-                            link.href;
-
-                        preview.alt =
-                            "Exported SPARKD meme";
-
-                        preview.style.cssText =
-                            "display:block;max-width:min(92vw,560px);max-height:60vh;object-fit:contain;border-radius:12px;background:#111;";
-
-                        const buttons =
-                            document.createElement("div");
-
-                        buttons.style.cssText =
-                            "display:flex;flex-wrap:wrap;gap:10px;justify-content:center;";
-
-                        const shareButton =
-                            document.createElement("button");
-
-                        shareButton.type =
-                            "button";
-
-                        shareButton.textContent =
-                            "📤 Share / Save PNG";
-
-                        shareButton.style.cssText =
-                            "padding:12px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;";
-
-                        const openButton =
-                            document.createElement("button");
-
-                        openButton.type =
-                            "button";
-
-                        openButton.textContent =
-                            "🖼 Open Image";
-
-                        openButton.style.cssText =
-                            "padding:12px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;";
-
-                        const closeButton =
-                            document.createElement("button");
-
-                        closeButton.type =
-                            "button";
-
-                        closeButton.textContent =
-                            "✖ Close";
-
-                        closeButton.style.cssText =
-                            "padding:12px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;";
-
-                        shareButton.onclick =
-                            async function () {
-
-                                try {
-
-                                    const response =
-                                        await fetch(link.href);
-
-                                    const blob =
-                                        await response.blob();
-
-                                    const file =
-                                        new File(
-                                            [blob],
-                                            "SPARKD-meme.png",
-                                            { type: "image/png" }
-                                        );
-
-                                    if (
-                                        navigator.share &&
-                                        (
-                                            !navigator.canShare ||
-                                            navigator.canShare({
-                                                files: [file]
-                                            })
-                                        )
-                                    ) {
-
-                                        await navigator.share({
-                                            files: [file],
-                                            title: "SPARKD Meme"
-                                        });
-
-                                        return;
-                                    }
-
-                                }
-                                catch (shareError) {
-
-                                    console.warn(
-                                        "SPARKD mobile share unavailable:",
-                                        shareError
-                                    );
-
-                                }
-
-                                // Fallback for browsers without file sharing:
-                                // open the finished PNG where the user can
-                                // press-and-hold and choose Save Image.
-                                window.open(
-                                    link.href,
-                                    "_blank",
-                                    "noopener"
-                                );
-
-                            };
-
-                        openButton.onclick =
-                            function () {
-
-                                window.open(
-                                    link.href,
-                                    "_blank",
-                                    "noopener"
-                                );
-
-                            };
-
-                        closeButton.onclick =
-                            function () {
-
-                                overlay.remove();
-
-                                if (
-                                    link.href &&
-                                    link.href.startsWith("blob:")
-                                ) {
-                                    setTimeout(function () {
-                                        URL.revokeObjectURL(link.href);
-                                    }, 1000);
-                                }
-
-                            };
-
-                        buttons.append(
-                            shareButton,
-                            openButton,
-                            closeButton
+                    setTimeout(function () {
+                        URL.revokeObjectURL(
+                            link.href
                         );
+                    }, 5000);
+                }
 
-                        overlay.append(
-                            title,
-                            help,
-                            preview,
-                            buttons
-                        );
-
-                        document.body.appendChild(
-                            overlay
-                        );
-
-                    }
-                    else {
-
-                        document.body.appendChild(link);
-                        link.click();
-                        link.remove();
-
-                        if (
-                            link.href &&
-                            link.href.startsWith("blob:")
-                        ) {
-                            setTimeout(function () {
-                                URL.revokeObjectURL(link.href);
-                            }, 1000);
-                        }
-
-                    }
-
-                    finishExport();
-
-                };
-
-            exportedImage.onerror = function (error) {
-                console.error("❌ SPARKD Meme Forge exported image could not be prepared:", error);
-                alert("Export failed while preparing the PNG. Please try again.");
                 finishExport();
-            };
 
+            }
+            catch (exportError) {
 
-            exportedImage.src =
-                dataURL;
+                console.error(
+                    "❌ SPARKD Meme Forge export failed:",
+                    exportError
+                );
 
-        };
+                alert(
+                    "Export failed. Please refresh the Meme Forge and try again."
+                );
+
+                finishExport();
+
+            }
+
+        };;
 
     }
 
