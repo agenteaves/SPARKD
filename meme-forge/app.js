@@ -1167,20 +1167,223 @@ if (deleteBtn) {
 
 
                     ////////////////////////////////////////////////////
-                    // DOWNLOAD
+                    // DOWNLOAD / MOBILE SAVE-SHARE
                     ////////////////////////////////////////////////////
 
                     link.download =
                         "SPARKD-meme.png";
 
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
+                    const isMobile =
+                        /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+                        (navigator.maxTouchPoints > 1 && window.innerWidth <= 1024);
 
-                    if (link.href && link.href.startsWith("blob:")) {
-                        setTimeout(function () {
-                            URL.revokeObjectURL(link.href);
-                        }, 1000);
+                    if (isMobile) {
+
+                        const existing =
+                            document.getElementById("sparkdMobileExport");
+
+                        if (existing) {
+                            existing.remove();
+                        }
+
+                        const overlay =
+                            document.createElement("div");
+
+                        overlay.id =
+                            "sparkdMobileExport";
+
+                        overlay.style.cssText =
+                            "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.94);padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;";
+
+                        const title =
+                            document.createElement("div");
+
+                        title.textContent =
+                            "✅ SPARKD meme is ready";
+
+                        title.style.cssText =
+                            "font-size:22px;font-weight:900;";
+
+                        const help =
+                            document.createElement("div");
+
+                        help.textContent =
+                            "Tap Share / Save PNG. On iPhone, choose Save Image or Save to Files.";
+
+                        help.style.cssText =
+                            "max-width:520px;opacity:.86;line-height:1.45;";
+
+                        const preview =
+                            document.createElement("img");
+
+                        preview.src =
+                            link.href;
+
+                        preview.alt =
+                            "Exported SPARKD meme";
+
+                        preview.style.cssText =
+                            "display:block;max-width:min(92vw,560px);max-height:60vh;object-fit:contain;border-radius:12px;background:#111;";
+
+                        const buttons =
+                            document.createElement("div");
+
+                        buttons.style.cssText =
+                            "display:flex;flex-wrap:wrap;gap:10px;justify-content:center;";
+
+                        const shareButton =
+                            document.createElement("button");
+
+                        shareButton.type =
+                            "button";
+
+                        shareButton.textContent =
+                            "📤 Share / Save PNG";
+
+                        shareButton.style.cssText =
+                            "padding:12px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;";
+
+                        const openButton =
+                            document.createElement("button");
+
+                        openButton.type =
+                            "button";
+
+                        openButton.textContent =
+                            "🖼 Open Image";
+
+                        openButton.style.cssText =
+                            "padding:12px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;";
+
+                        const closeButton =
+                            document.createElement("button");
+
+                        closeButton.type =
+                            "button";
+
+                        closeButton.textContent =
+                            "✖ Close";
+
+                        closeButton.style.cssText =
+                            "padding:12px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;";
+
+                        shareButton.onclick =
+                            async function () {
+
+                                try {
+
+                                    const response =
+                                        await fetch(link.href);
+
+                                    const blob =
+                                        await response.blob();
+
+                                    const file =
+                                        new File(
+                                            [blob],
+                                            "SPARKD-meme.png",
+                                            { type: "image/png" }
+                                        );
+
+                                    if (
+                                        navigator.share &&
+                                        (
+                                            !navigator.canShare ||
+                                            navigator.canShare({
+                                                files: [file]
+                                            })
+                                        )
+                                    ) {
+
+                                        await navigator.share({
+                                            files: [file],
+                                            title: "SPARKD Meme"
+                                        });
+
+                                        return;
+                                    }
+
+                                }
+                                catch (shareError) {
+
+                                    console.warn(
+                                        "SPARKD mobile share unavailable:",
+                                        shareError
+                                    );
+
+                                }
+
+                                // Fallback for browsers without file sharing:
+                                // open the finished PNG where the user can
+                                // press-and-hold and choose Save Image.
+                                window.open(
+                                    link.href,
+                                    "_blank",
+                                    "noopener"
+                                );
+
+                            };
+
+                        openButton.onclick =
+                            function () {
+
+                                window.open(
+                                    link.href,
+                                    "_blank",
+                                    "noopener"
+                                );
+
+                            };
+
+                        closeButton.onclick =
+                            function () {
+
+                                overlay.remove();
+
+                                if (
+                                    link.href &&
+                                    link.href.startsWith("blob:")
+                                ) {
+                                    setTimeout(function () {
+                                        URL.revokeObjectURL(link.href);
+                                    }, 1000);
+                                }
+
+                            };
+
+                        buttons.append(
+                            shareButton,
+                            openButton,
+                            closeButton
+                        );
+
+                        overlay.append(
+                            title,
+                            help,
+                            preview,
+                            buttons
+                        );
+
+                        document.body.appendChild(
+                            overlay
+                        );
+
+                    }
+                    else {
+
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+
+                        if (
+                            link.href &&
+                            link.href.startsWith("blob:")
+                        ) {
+                            setTimeout(function () {
+                                URL.revokeObjectURL(link.href);
+                            }, 1000);
+                        }
+
                     }
 
                     finishExport();
