@@ -173,11 +173,19 @@
     activeAudio.preload = "auto";
     activeAudio.volume = 1;
 
+    const figure = document.querySelector("#sparkdManAi .sparkd-man-figure");
+    const idleSrc = figure?.dataset?.idleSrc || figure?.getAttribute("src") || "";
+    const speakingSrc = figure?.dataset?.speakingSrc || "";
+
     await new Promise((resolve, reject) => {
       activeAudio.onended = resolve;
       activeAudio.onerror = () => reject(new Error("Audio playback failed."));
-      activeAudio.play().catch(reject);
+      activeAudio.play().then(() => {
+        if (figure && speakingSrc) figure.setAttribute("src", speakingSrc);
+      }).catch(reject);
     });
+
+    if (figure && idleSrc) figure.setAttribute("src", idleSrc);
 
     if (activeAudioUrl) {
       try { URL.revokeObjectURL(activeAudioUrl); } catch (_) {}
