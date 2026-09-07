@@ -102,12 +102,82 @@
 
 
     ////////////////////////////////////////////////////
+    // HOMEPAGE THEME MUSIC
+    //
+    // Browsers commonly block audible autoplay until
+    // the visitor interacts once. Try immediately, then
+    // start on the first interaction if autoplay is denied.
+    // This is intentionally separate from speech/TTS.
+    ////////////////////////////////////////////////////
+
+    const themeMusic =
+        document.getElementById(
+            "sparkdThemeMusic"
+        );
+
+    let themeStarted =
+        false;
+
+    function startThemeMusic() {
+
+        if (
+            !themeMusic ||
+            themeStarted
+        ) {
+
+            return;
+
+        }
+
+        themeMusic.volume =
+            0.12;
+
+        themeMusic.loop =
+            true;
+
+        const playAttempt =
+            themeMusic.play();
+
+        if (
+            playAttempt &&
+            typeof playAttempt.then === "function"
+        ) {
+
+            playAttempt
+                .then(function () {
+
+                    themeStarted =
+                        true;
+
+                    console.log(
+                        "🎵 SPARKD theme music playing."
+                    );
+
+                })
+                .catch(function () {
+
+                    // Expected on browsers that require
+                    // a user gesture before audible playback.
+
+                });
+
+        }
+
+    }
+
+
+    startThemeMusic();
+
+
+    ////////////////////////////////////////////////////
     // FIRST USER INTERACTION
     ////////////////////////////////////////////////////
 
     function handleFirstInteraction() {
 
         initializeAudio();
+
+        startThemeMusic();
 
 
         document.removeEventListener(
