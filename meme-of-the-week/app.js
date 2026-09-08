@@ -1982,8 +1982,6 @@ async function toggleContestWallet() {
 
 async function checkContestWallet() {
 
-    // Do not silently reconnect Phantom on page load.
-    // A user who disconnected must explicitly click Connect again.
     currentWallet =
         null;
 
@@ -2000,25 +1998,131 @@ async function checkContestWallet() {
         );
 
 
-    if (status) {
+    const showDisconnectedState =
+        function () {
 
-        status.textContent =
-            "🔌 Wallet Not Connected";
+            if (status) {
+
+                status.textContent =
+                    "🔌 Wallet Not Connected";
+
+            }
+
+
+            if (button) {
+
+                button.textContent =
+                    "🔗 CONNECT SPARKD WALLET";
+
+                button.setAttribute(
+                    "aria-label",
+                    "Connect Phantom wallet"
+                );
+
+            }
+
+        };
+
+
+    ////////////////////////////////////////////////////
+    // HONOR AN EXPLICIT CONTEST DISCONNECT
+    ////////////////////////////////////////////////////
+
+    if (
+        localStorage.getItem(
+            CONTEST_WALLET_DISCONNECTED_KEY
+        ) === "1"
+    ) {
+
+        showDisconnectedState();
+
+        return;
 
     }
 
 
-    if (button) {
+    ////////////////////////////////////////////////////
+    // ADOPT THE EXISTING SHARED PHANTOM SESSION
+    //
+    // First use an already-live provider connection.
+    // If the browser has previously trusted SPARKD,
+    // onlyIfTrusted restores that session silently
+    // without presenting a connection popup.
+    ////////////////////////////////////////////////////
 
-        button.textContent =
-            "🔗 CONNECT SPARKD WALLET";
+    const provider =
+        getContestWalletProvider();
 
-        button.setAttribute(
-            "aria-label",
-            "Connect Phantom wallet"
+
+    if (!provider) {
+
+        showDisconnectedState();
+
+        return;
+
+    }
+
+
+    try {
+
+        if (
+            provider.isConnected &&
+            provider.publicKey
+        ) {
+
+            showContestWallet(
+                provider.publicKey
+            );
+
+            return;
+
+        }
+
+
+        if (
+            typeof provider.connect ===
+            "function"
+        ) {
+
+            const response =
+                await provider.connect({
+                    onlyIfTrusted:
+                        true
+                });
+
+
+            const publicKey =
+                response &&
+                response.publicKey
+                    ? response.publicKey
+                    : provider.publicKey;
+
+
+            if (publicKey) {
+
+                showContestWallet(
+                    publicKey
+                );
+
+                return;
+
+            }
+
+        }
+
+    }
+    catch (error) {
+
+        // A non-trusted wallet should remain disconnected
+        // without bothering the user with an alert on page load.
+        console.log(
+            "ℹ️ SPARKD contest wallet has no trusted shared session."
         );
 
     }
+
+
+    showDisconnectedState();
 
 }
 
