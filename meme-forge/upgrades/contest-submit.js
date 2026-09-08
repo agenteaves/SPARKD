@@ -970,8 +970,27 @@ async finalizeSubmission(
                 error
             );
 
+            const uploadErrorMessage =
+                String(
+                    error.message ||
+                    ""
+                );
+
+            if (
+                /exceeded the maximum allowed size|object.*maximum.*size|payload too large|file.*too large/i.test(
+                    uploadErrorMessage
+                )
+            ) {
+
+                throw new Error(
+                    "Your meme file is too large to submit. Maximum size is 10 MB."
+                );
+
+            }
+
             throw new Error(
-                error.message
+                uploadErrorMessage ||
+                "SPARKD meme upload failed."
             );
 
         }
