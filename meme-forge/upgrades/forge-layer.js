@@ -108,6 +108,25 @@ window.SPARKD_FORGE = {
 
 
             ////////////////////////////////////////////////////
+            // HONOR EXPLICIT SITE-WIDE DISCONNECT
+            ////////////////////////////////////////////////////
+
+            if (
+                localStorage.getItem(
+                    "sparkd_wallet_explicitly_disconnected"
+                ) === "1"
+            ) {
+
+                console.log(
+                    "ℹ️ SPARKD Forge: wallet use is explicitly disconnected."
+                );
+
+                return null;
+
+            }
+
+
+            ////////////////////////////////////////////////////
             // GET SAME PROVIDER AS CREATOR PROFILE
             ////////////////////////////////////////////////////
 
