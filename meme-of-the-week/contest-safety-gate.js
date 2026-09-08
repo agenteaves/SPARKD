@@ -3,9 +3,13 @@
 
   const HEALTH_URL = "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-public-health";
   const CHECK_EVERY_MS = 60_000;
+  const INITIAL_RETRY_DELAYS_MS = [0, 1500, 3000];
+  const HEALTH_TIMEOUT_MS = 5000;
   const MESSAGE = "The site is currently experiencing technical difficulties at this time. Please check back later.";
   let blocked = true; // fail closed until server health is confirmed
   let overlay = null;
+  let checking = false;
+  let showOverlay = false;
 
   function ensureOverlay() {
     if (overlay) return overlay;
@@ -46,43 +50,82 @@
     return overlay;
   }
 
-  function setBlocked(value) {
+  function setBlocked(value, displayOverlay = value) {
     blocked = value;
+    showOverlay = blocked && displayOverlay;
     const el = ensureOverlay();
-    document.documentElement.classList.toggle("sparkd-contest-unhealthy", blocked);
-    el.style.display = blocked ? "flex" : "none";
-    el.setAttribute("aria-hidden", blocked ? "false" : "true");
+    document.documentElement.classList.toggle("sparkd-contest-unhealthy", showOverlay);
+    el.style.display = showOverlay ? "flex" : "none";
+    el.setAttribute("aria-hidden", showOverlay ? "false" : "true");
   }
 
   function stopUnsafeAction(event) {
     if (!blocked) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    setBlocked(true);
+    // If the user tries an action while health is still unknown/unhealthy,
+    // surface the safety message immediately.
+    setBlocked(true, true);
   }
 
-  async function checkHealth() {
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function requestHealthOnce() {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
+
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
       const response = await fetch(`${HEALTH_URL}?t=${Date.now()}`, {
         method: "GET",
         cache: "no-store",
         signal: controller.signal,
       });
-      clearTimeout(timeout);
 
-      if (!response.ok) return setBlocked(true);
+      if (!response.ok) return false;
+
       const data = await response.json();
-      setBlocked(data?.healthy !== true);
+      return data?.healthy === true;
     } catch (_) {
-      setBlocked(true);
+      return false;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function checkHealth() {
+    if (checking) return;
+    checking = true;
+
+    // Keep unsafe actions blocked, but don't immediately show a full outage
+    // screen for a single transient mobile/Safari network miss.
+    setBlocked(true, false);
+
+    try {
+      for (const delay of INITIAL_RETRY_DELAYS_MS) {
+        if (delay) await wait(delay);
+
+        const healthy = await requestHealthOnce();
+
+        if (healthy) {
+          setBlocked(false, false);
+          return;
+        }
+      }
+
+      // Only show "Technical Difficulties" after the quick retry burst fails.
+      setBlocked(true, true);
+    } finally {
+      checking = false;
     }
   }
 
   function start() {
     ensureOverlay();
-    setBlocked(true);
+    // Fail closed immediately, but keep the page visible while the first
+    // health-check retry burst runs.
+    setBlocked(true, false);
 
     // Capture-phase guard prevents submission even if another script is already loaded.
     document.addEventListener("submit", stopUnsafeAction, true);
@@ -103,5 +146,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
 
-  console.log("🛑 SPARKD contest-safety-gate.js v1.0 loaded.");
+  console.log("🛑 SPARKD contest-safety-gate.js v1.1 loaded.");
 })();
