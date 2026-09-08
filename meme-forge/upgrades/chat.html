@@ -375,6 +375,9 @@ const connection =
 let currentWallet = null;
 let userBalance = 0;
 
+const SHARED_WALLET_DISCONNECTED_KEY =
+  "sparkd_wallet_explicitly_disconnected";
+
 
 /* =====================================================
    UI
@@ -423,6 +426,14 @@ function getBS58() {
 async function connectWallet() {
 
   try {
+
+    localStorage.removeItem(
+      SHARED_WALLET_DISCONNECTED_KEY
+    );
+
+    localStorage.removeItem(
+      "sparkd_contest_wallet_explicitly_disconnected"
+    );
 
     const isMobile =
       /Android|iPhone|iPad|iPod/i.test(
@@ -729,6 +740,16 @@ function updateWalletUI() {
 ===================================================== */
 
 function disconnect() {
+
+  localStorage.setItem(
+    SHARED_WALLET_DISCONNECTED_KEY,
+    "1"
+  );
+
+  localStorage.setItem(
+    "sparkd_contest_wallet_explicitly_disconnected",
+    "1"
+  );
 
   currentWallet = null;
   userBalance = 0;
@@ -1120,6 +1141,9 @@ window.addEventListener(
 
 
     if (
+      localStorage.getItem(
+        SHARED_WALLET_DISCONNECTED_KEY
+      ) !== "1" &&
       provider?.isConnected &&
       provider.publicKey
     ) {
