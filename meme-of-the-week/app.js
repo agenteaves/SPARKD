@@ -1570,6 +1570,9 @@ let currentWallet = null;
 const CONTEST_WALLET_DISCONNECTED_KEY =
     "sparkd_contest_wallet_explicitly_disconnected";
 
+const SHARED_WALLET_DISCONNECTED_KEY =
+    "sparkd_wallet_explicitly_disconnected";
+
 
 ////////////////////////////////////////////////////
 // GET PHANTOM PROVIDER
@@ -1829,6 +1832,10 @@ async function connectContestWallet() {
             CONTEST_WALLET_DISCONNECTED_KEY
         );
 
+        localStorage.removeItem(
+            SHARED_WALLET_DISCONNECTED_KEY
+        );
+
 
         showContestWallet(
             publicKey
@@ -1896,6 +1903,11 @@ async function disconnectContestWallet() {
 
         localStorage.setItem(
             CONTEST_WALLET_DISCONNECTED_KEY,
+            "1"
+        );
+
+        localStorage.setItem(
+            SHARED_WALLET_DISCONNECTED_KEY,
             "1"
         );
 
@@ -2031,6 +2043,9 @@ async function checkContestWallet() {
     if (
         localStorage.getItem(
             CONTEST_WALLET_DISCONNECTED_KEY
+        ) === "1" ||
+        localStorage.getItem(
+            SHARED_WALLET_DISCONNECTED_KEY
         ) === "1"
     ) {
 
@@ -2169,6 +2184,9 @@ function setupContestWallet() {
                 if (
                     localStorage.getItem(
                         CONTEST_WALLET_DISCONNECTED_KEY
+                    ) === "1" ||
+                    localStorage.getItem(
+                        SHARED_WALLET_DISCONNECTED_KEY
                     ) === "1"
                 ) {
 
@@ -2242,6 +2260,9 @@ function setupContestWallet() {
                     publicKey &&
                     localStorage.getItem(
                         CONTEST_WALLET_DISCONNECTED_KEY
+                    ) !== "1" &&
+                    localStorage.getItem(
+                        SHARED_WALLET_DISCONNECTED_KEY
                     ) !== "1"
                 ) {
 
