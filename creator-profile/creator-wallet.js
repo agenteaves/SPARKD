@@ -249,7 +249,7 @@
 
 
             connectButton.innerHTML =
-                "🔌 Wallet Connected";
+                "🔌 Disconnect Wallet";
 
 
             console.log(
@@ -629,12 +629,66 @@
 
 
         ////////////////////////////////////////////////////
-        // CONNECT BUTTON
+        // DISCONNECT WALLET
+        ////////////////////////////////////////////////////
+
+        async function disconnectWallet() {
+
+            const provider =
+                getProvider();
+
+            try {
+
+                if (
+                    provider &&
+                    typeof provider.disconnect === "function"
+                ) {
+
+                    await provider.disconnect();
+
+                }
+
+            }
+            catch (error) {
+
+                console.warn(
+                    "SPARKD Wallet: Phantom disconnect returned an error:",
+                    error
+                );
+
+            }
+
+            showDisconnected();
+
+        }
+
+
+        ////////////////////////////////////////////////////
+        // CONNECT / DISCONNECT BUTTON
         ////////////////////////////////////////////////////
 
         connectButton.addEventListener(
             "click",
-            connectWallet
+            async function () {
+
+                const provider =
+                    getProvider();
+
+                if (
+                    provider &&
+                    provider.isConnected &&
+                    provider.publicKey
+                ) {
+
+                    await disconnectWallet();
+
+                    return;
+
+                }
+
+                await connectWallet();
+
+            }
         );
 
 
@@ -677,7 +731,57 @@
         }
         else {
 
-            showDisconnected();
+            // Restore a previously trusted SPARKD Phantom session
+            // without opening an approval popup.
+            if (
+                provider &&
+                typeof provider.connect === "function"
+            ) {
+
+                try {
+
+                    const response =
+                        await provider.connect({
+                            onlyIfTrusted:
+                                true
+                        });
+
+                    const trustedPublicKey =
+                        response &&
+                        response.publicKey
+                            ? response.publicKey
+                            : provider.publicKey;
+
+                    if (trustedPublicKey) {
+
+                        showWallet(
+                            trustedPublicKey
+                        );
+
+                        await saveWalletToProfile(
+                            trustedPublicKey.toString()
+                        );
+
+                    }
+                    else {
+
+                        showDisconnected();
+
+                    }
+
+                }
+                catch (error) {
+
+                    showDisconnected();
+
+                }
+
+            }
+            else {
+
+                showDisconnected();
+
+            }
 
         }
 
