@@ -18,6 +18,9 @@
     const SUPABASE_ANON_KEY =
         "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
 
+    const SHARED_WALLET_DISCONNECTED_KEY =
+        "sparkd_wallet_explicitly_disconnected";
+
 
     ////////////////////////////////////////////////////
     // WALLET INITIALIZATION
@@ -565,6 +568,15 @@
 
             try {
 
+                // Explicit user action: allow SPARKD to use the wallet again.
+                localStorage.removeItem(
+                    SHARED_WALLET_DISCONNECTED_KEY
+                );
+
+                localStorage.removeItem(
+                    "sparkd_contest_wallet_explicitly_disconnected"
+                );
+
                 console.log(
                     "🔗 SPARKD Wallet: Connecting to Phantom..."
                 );
@@ -633,6 +645,17 @@
         ////////////////////////////////////////////////////
 
         async function disconnectWallet() {
+
+            // Persist the user's choice across SPARKD navigation/reloads.
+            localStorage.setItem(
+                SHARED_WALLET_DISCONNECTED_KEY,
+                "1"
+            );
+
+            localStorage.setItem(
+                "sparkd_contest_wallet_explicitly_disconnected",
+                "1"
+            );
 
             const provider =
                 getProvider();
@@ -704,7 +727,17 @@
         // CHECK EXISTING CONNECTION
         ////////////////////////////////////////////////////
 
-        if (
+        const explicitlyDisconnected =
+            localStorage.getItem(
+                SHARED_WALLET_DISCONNECTED_KEY
+            ) === "1";
+
+        if (explicitlyDisconnected) {
+
+            showDisconnected();
+
+        }
+        else if (
             provider &&
             provider.isConnected &&
             provider.publicKey
@@ -799,6 +832,16 @@
                 ) {
 
                     if (!publicKey) {
+
+                        return;
+
+                    }
+
+                    if (
+                        localStorage.getItem(
+                            SHARED_WALLET_DISCONNECTED_KEY
+                        ) === "1"
+                    ) {
 
                         return;
 
