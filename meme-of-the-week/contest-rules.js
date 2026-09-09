@@ -5,7 +5,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.4";
+  const VERSION = "1.5";
   const ROOT_ID = "sparkdContestRules";
   const MODAL_ID = "sparkdContestRulesModal";
   const STYLE_ID = "sparkdContestRulesStyles";
@@ -24,6 +24,7 @@
       items: [
         "Contest entries must be submitted through the official SPARKD Meme of the Week submission system.",
         "The meme must be a valid SPARKD Meme Forge PNG that passes Forge DNA verification.",
+        "The meme may be about any subject or theme. It does not need to be about SPARKD, the SPARKD community, the token, or SPARKD Man.",
         "The submitting wallet must hold at least 2,000 SPARKD at the time the entry is prepared.",
         "Entering a meme requires a verified burn of exactly 2,000 SPARKD.",
         "The burn is an on-chain token burn. Once successfully broadcast and confirmed, burned SPARKD cannot be returned.",
