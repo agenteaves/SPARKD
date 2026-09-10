@@ -124,4 +124,27 @@
     if (!patchContestVerification()) {
         window.addEventListener("load", patchContestVerification);
     }
+
+    ////////////////////////////////////////////////////
+    // CONTEST-PAGE FORGE INTEGRITY GATE
+    ////////////////////////////////////////////////////
+
+    // The walletless compatibility layer is loaded by both the Meme
+    // Forge and Meme of the Week pages. On the contest page, load a
+    // separate guard that verifies the PNG metadata signature and the
+    // pixel image lock BEFORE the normal submission flow can reach the
+    // Phantom burn step.
+    if (document.getElementById("motmSubmitFinalButton")) {
+        const existingGate = document.querySelector(
+            'script[data-sparkd-forge-integrity-gate="1"]'
+        );
+
+        if (!existingGate) {
+            const gateScript = document.createElement("script");
+            gateScript.src = "/meme-of-the-week/contest-forge-integrity-gate.js?v=1";
+            gateScript.async = false;
+            gateScript.dataset.sparkdForgeIntegrityGate = "1";
+            document.head.appendChild(gateScript);
+        }
+    }
 })();
