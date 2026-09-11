@@ -110,23 +110,20 @@
     }
 
     function forgeSignature(forgeData) {
-        // IMPORTANT: This reproduces the exact property order used by
-        // forge-layer.js when the original signature is created.
-        const originalRecord = {
-            forge: forgeData.forge,
-            version: forgeData.version,
-            created: forgeData.created,
-            creatorID: forgeData.creatorID,
-            wallet: forgeData.wallet,
-            reputation: forgeData.reputation,
-            memeID: forgeData.memeID,
-            DNA: forgeData.DNA,
-            imageFingerprint: forgeData.imageFingerprint,
-            imageLock: forgeData.imageLock,
-            contract: forgeData.contract
-        };
+        // forge-export.js is authoritative for the signature embedded
+        // in the final PNG. It sorts every metadata key alphabetically
+        // (except signature) before hashing. Reproduce that exact rule.
+        const sorted = {};
 
-        const text = JSON.stringify(originalRecord);
+        Object.keys(forgeData)
+            .sort()
+            .forEach(function (key) {
+                if (key !== "signature") {
+                    sorted[key] = forgeData[key];
+                }
+            });
+
+        const text = JSON.stringify(sorted);
         let hash = 0;
 
         for (let i = 0; i < text.length; i++) {
