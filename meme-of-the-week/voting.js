@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD MEME OF THE WEEK — VOTING UI
-// voting.js v2.1
+// voting.js v2.2
 //
 // NEW STANDALONE MODULE.
 // Does not modify contest-submit.js or app.js.
@@ -15,7 +15,7 @@
 (function () {
     "use strict";
 
-    const VERSION = "2.1";
+    const VERSION = "2.2";
 
     const VOTING_ENDPOINT =
         "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-voting";
@@ -662,20 +662,20 @@
 
         if (state.userVote) {
             ui.message.textContent = state.publicVoting
-                ? "✅ You already voted in this weekly contest."
-                : "✅ This wallet has already voted in this weekly contest.";
+                ? "✅ You already voted in this weekly contest. Live vote totals stay hidden until voting closes."
+                : "✅ This wallet has already voted in this weekly contest. Live vote totals stay hidden until voting closes.";
         }
         else if (state.publicVoting) {
             ui.message.textContent =
-                "Choose one meme and vote. No wallet is required. One vote per browser per weekly contest.";
+                "Choose one meme and vote. No wallet is required. One vote per browser per weekly contest. Live vote totals are hidden until voting closes.";
         }
         else if (!wallet) {
             ui.message.textContent =
-                "🔌 Connect your Phantom wallet before casting your vote.";
+                "🔌 Connect your Phantom wallet before casting your vote. Live vote totals are hidden until voting closes.";
         }
         else {
             ui.message.textContent =
-                "Choose one meme. Phantom will ask you to sign a message proving wallet ownership. No token transaction or burn is performed.";
+                "Choose one meme. Phantom will ask you to sign a message proving wallet ownership. No token transaction or burn is performed. Live vote totals are hidden until voting closes.";
         }
 
         for (
@@ -760,18 +760,7 @@
                 "sparkd-vote-count";
 
             count.textContent =
-                Number(
-                    submission.voteCount ||
-                    0
-                ) +
-                (
-                    Number(
-                        submission.voteCount ||
-                        0
-                    ) === 1
-                        ? " vote"
-                        : " votes"
-                );
+                "🔒 Vote totals hidden until voting closes";
 
             const voteButton =
                 document.createElement(
@@ -1074,7 +1063,7 @@
 
     if (
         document.readyState ===
-        "loading"
+            "loading"
     ) {
         document.addEventListener(
             "DOMContentLoaded",
