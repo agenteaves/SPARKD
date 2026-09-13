@@ -130,7 +130,7 @@
         }
 
         themeMusic.volume =
-            0.12;
+            0.28;
 
         themeMusic.loop =
             true;
