@@ -1,5 +1,5 @@
 -- SPARKD Contest Anti-Cheat: unique participant podium
--- Production migration: contest_unique_participant_podium
+-- Production migrations: contest_unique_participant_podium + lock_down_participant_resolver
 
 create table if not exists public.meme_week_participant_aliases (
   id uuid primary key default gen_random_uuid(),
@@ -59,13 +59,20 @@ begin
 end;
 $$;
 
--- Replace the top-three selection inside run_meme_week_lifecycle() with this ranking.
--- The production migration applies this same logic to the lifecycle function.
---
+-- This helper is server-internal. Do not expose it as a public RPC.
+revoke all on function public.resolve_meme_week_participant_key(text,text)
+  from public, anon, authenticated;
+grant execute on function public.resolve_meme_week_participant_key(text,text)
+  to service_role;
+
+-- Core ranking used by public.run_meme_week_lifecycle():
 -- 1) score every eligible submission
 -- 2) partition by resolved participant
 -- 3) retain only each participant's best submission
 -- 4) rank the remaining unique participants for the podium
+--
+-- In the lifecycle function, replace the placeholder contest ID below with
+-- contest_row.id and select podium_rank 1, 2, and 3 into the winner rows.
 
 with submission_scores as (
   select
@@ -79,7 +86,7 @@ with submission_scores as (
   left join public.meme_week_votes v
     on v.submission_id=s.id
    and v.contest_id=s.contest_id
-  where s.contest_id = null::uuid -- documentation placeholder; lifecycle supplies contest_row.id
+  where s.contest_id = null::uuid -- documentation placeholder
     and s.dna_verified=true
     and s.burn_verified=true
     and s.status<>'rejected'
@@ -103,6 +110,5 @@ podium as (
 )
 select * from podium order by podium_rank;
 
--- NOTE: The live production function public.run_meme_week_lifecycle() has already
--- been updated to use the ranking above for first/second/third place. This file
--- intentionally keeps the core ranking readable for audits and future migrations.
+-- NOTE: The live production function public.run_meme_week_lifecycle() is already
+-- using this unique-participant ranking for first/second/third place.
