@@ -6,6 +6,7 @@ const read = p => fs.readFileSync(path.join(root, p), "utf8");
 const exists = p => fs.existsSync(path.join(root, p));
 
 const index = read("meme-of-the-week/index.html");
+const app = read("meme-of-the-week/app.js");
 const voting = read("meme-of-the-week/voting.js");
 const status = read("meme-of-the-week/contest-status.js");
 const rules = read("meme-of-the-week/contest-rules.js");
@@ -19,6 +20,10 @@ const check = (ok, message) => { if (!ok) failures.push(message); };
 check(!exists("meme-of-the-week/voting-ux.js"), "legacy voting-ux.js must not exist");
 check(!/voting-ux\.js/.test(index), "index.html must not load voting-ux.js");
 check(/contest-config\.js/.test(index), "index.html must load contest-config.js");
+check(/id="completedContestBurned"/.test(index), "contest page must show the completed-contest burn total");
+check(index.indexOf('id="completedContestBurned"') > index.indexOf('id="totalBurned"'), "completed-contest burn total must appear below the current burn amount");
+check(app.includes("data.completedContestBurned"), "contest app must use the authoritative completed-contest burn total");
+check(app.includes("COMPLETED_BURN_CACHE_KEY"), "contest app must preserve the latest completed-contest burn total during temporary request failures");
 check(/voting\.js\?v=public-voting-2/.test(index), "index.html must load the public voting module");
 check(/VOTING_WINDOW_MS:\s*12\s*\*\s*60\s*\*\s*60\s*\*\s*1000/.test(config), "shared voting window must remain 12 hours");
 check(status.includes("SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS"), "contest-status.js must consume shared voting window config");
