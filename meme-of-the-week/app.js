@@ -64,6 +64,70 @@ const totalBurned =
     );
 
 
+const completedContestBurned =
+    document.getElementById(
+        "completedContestBurned"
+    );
+
+
+const COMPLETED_BURN_CACHE_KEY =
+    "sparkdCompletedContestBurned";
+
+
+function formatSparkdAmount(
+    value
+) {
+
+    const amount =
+        Number(value);
+
+
+    return (
+        Number.isFinite(amount) &&
+        amount >= 0
+            ? amount
+            : 0
+    ).toLocaleString(
+        "en-US",
+        {
+            maximumFractionDigits:
+                6
+        }
+    );
+
+}
+
+
+function readCachedCompletedBurned() {
+
+    try {
+
+        return formatSparkdAmount(
+            window.localStorage.getItem(
+                COMPLETED_BURN_CACHE_KEY
+            )
+        );
+
+    }
+    catch {
+
+        return "0";
+
+    }
+
+}
+
+
+if (
+    completedContestBurned
+) {
+
+    completedContestBurned.textContent =
+        readCachedCompletedBurned();
+
+}
+
+
 const daysRemaining =
     document.getElementById(
         "daysRemaining"
@@ -404,6 +468,16 @@ async function loadContestStatistics() {
             totalBurned.textContent =
                 "0";
 
+
+            if (
+                completedContestBurned
+            ) {
+
+                completedContestBurned.textContent =
+                    readCachedCompletedBurned();
+
+            }
+
             return;
 
         }
@@ -522,19 +596,53 @@ async function loadContestStatistics() {
 
 
         totalBurned.textContent =
-            (
-                Number.isFinite(
-                    verifiedBurnTotal
-                )
-                    ? verifiedBurnTotal
-                    : 0
-            ).toLocaleString(
-                "en-US",
-                {
-                    maximumFractionDigits:
-                        6
-                }
+            formatSparkdAmount(
+                verifiedBurnTotal
             );
+
+
+        ////////////////////////////////////////////////////
+        // UPDATE COMPLETED-CONTEST BURN TOTAL
+        ////////////////////////////////////////////////////
+
+        const completedBurnTotal =
+            Number(
+                data.completedContestBurned ??
+                data.lifetimeBurned
+            );
+
+
+        if (
+            completedContestBurned &&
+            Number.isFinite(
+                completedBurnTotal
+            ) &&
+            completedBurnTotal >= 0
+        ) {
+
+            completedContestBurned.textContent =
+                formatSparkdAmount(
+                    completedBurnTotal
+                );
+
+
+            try {
+
+                window.localStorage.setItem(
+                    COMPLETED_BURN_CACHE_KEY,
+                    String(
+                        completedBurnTotal
+                    )
+                );
+
+            }
+            catch {
+
+                // The server remains authoritative if storage is unavailable.
+
+            }
+
+        }
 
 
 
@@ -561,6 +669,16 @@ async function loadContestStatistics() {
 
         totalBurned.textContent =
             "0";
+
+
+        if (
+            completedContestBurned
+        ) {
+
+            completedContestBurned.textContent =
+                readCachedCompletedBurned();
+
+        }
 
     }
 
