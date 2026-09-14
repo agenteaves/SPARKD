@@ -56,12 +56,10 @@
 
     function buildShareUrl(title) {
         const cleanTitle = String(title || "SPARKD Meme").trim();
-        const text = `I entered the SPARKD Meme of the Week ⚡ Vote for my meme!\n\n${cleanTitle}\n\n#SPARKD #Solana #Memecoin #CryptoMemes #MemeContest`;
+        const text = `I entered the SPARKD Meme of the Week ⚡ Vote for my meme!\n\n${cleanTitle}\n\n${contestUrl()}\n\n#SPARKD #Solana #Memecoin #CryptoMemes #MemeContest`;
         return (
             "https://twitter.com/intent/tweet?text=" +
-            encodeURIComponent(text) +
-            "&url=" +
-            encodeURIComponent(contestUrl())
+            encodeURIComponent(text)
         );
     }
 
