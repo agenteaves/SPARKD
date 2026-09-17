@@ -1103,104 +1103,21 @@ if (deleteBtn) {
                 );
 
                 ////////////////////////////////////////////////////
-                // iPHONE / iPAD SAFARI EXPORT
+                // AUTOMATIC DOWNLOAD ON EVERY DEVICE
                 //
-                // iOS Safari can ignore delayed synthetic downloads
-                // for client-generated blob/data URLs. Prefer the
-                // native share sheet with the exact PNG file instead.
-                // Desktop/Android keep the existing download path.
+                // Keep one browser-native download path for desktop,
+                // Android, iPhone and iPad. Mobile compatibility code
+                // must not replace this click with a share sheet or
+                // navigate away from Meme Forge.
                 ////////////////////////////////////////////////////
 
-                const isiOS =
-                    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                    (
-                        navigator.platform === "MacIntel" &&
-                        navigator.maxTouchPoints > 1
-                    );
-
-                if (isiOS) {
-
-                    try {
-
-                        const pngResponse =
-                            await fetch(link.href);
-
-                        const pngBlob =
-                            await pngResponse.blob();
-
-                        const pngFile =
-                            new File(
-                                [pngBlob],
-                                "SPARKD-meme.png",
-                                {
-                                    type: "image/png"
-                                }
-                            );
-
-                        const canShareFile =
-                            typeof navigator.share === "function" &&
-                            typeof navigator.canShare === "function" &&
-                            navigator.canShare({
-                                files: [pngFile]
-                            });
-
-                        if (canShareFile) {
-
-                            await navigator.share({
-                                files: [pngFile],
-                                title: "SPARKD Meme"
-                            });
-
-                        }
-                        else {
-
-                            // Older iOS fallback. Keep the normal
-                            // download behavior without adding a
-                            // server dependency.
-                            link.click();
-
-                        }
-
-                    }
-                    catch (iosExportError) {
-
-                        if (
-                            iosExportError &&
-                            iosExportError.name === "AbortError"
-                        ) {
-                            console.log(
-                                "ℹ️ SPARKD iPhone export cancelled."
-                            );
-                        }
-                        else {
-
-                            console.error(
-                                "❌ SPARKD iPhone export failed:",
-                                iosExportError
-                            );
-
-                            alert(
-                                "The iPhone export could not start. Please try again."
-                            );
-
-                        }
-
-                    }
-
-                }
-                else {
-
-                    // Existing desktop/Android export path.
-                    link.click();
-
-                }
+                link.click();
 
                 link.remove();
 
                 if (
                     link.href &&
-                    link.href.startsWith("blob:") &&
-                    !isiOS
+                    link.href.startsWith("blob:")
                 ) {
 
                     setTimeout(function () {
