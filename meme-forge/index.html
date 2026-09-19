@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  (function () {
+    var isPhone = navigator.userAgentData
+      ? navigator.userAgentData.mobile
+      : /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent);
+
+    if (isPhone) {
+      window.location.replace("/meme-forge-mobile/");
+    }
+  })();
+</script>
 <title>SPARKD Meme Forge</title>
 <meta name="description" content="Create, customize and share SPARKD community memes.">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Bangers&display=swap" rel="stylesheet">
