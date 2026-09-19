@@ -1,0 +1,157 @@
+/*
+  SPARKD Mobile Meme Forge
+  ------------------------
+  Mobile-only presentation layer. All Forge behavior remains shared with
+  /meme-forge/app.js and /meme-forge/upgrades/.
+*/
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  padding:
+    env(safe-area-inset-top, 0)
+    env(safe-area-inset-right, 0)
+    env(safe-area-inset-bottom, 0)
+    env(safe-area-inset-left, 0);
+}
+
+#app {
+  width: 100%;
+  min-height: 100dvh;
+}
+
+header {
+  width: 100%;
+  padding: 12px 12px 8px;
+}
+
+#homeBtn,
+#chatBtn,
+#profileBtn {
+  position: static;
+  display: flex;
+  width: min(94vw, 420px);
+  min-height: 48px;
+  height: auto;
+  margin: 6px auto;
+  align-items: center;
+  justify-content: center;
+}
+
+header h1 {
+  margin-top: 14px;
+  font-size: clamp(26px, 8.5vw, 38px);
+  line-height: 1.05;
+  letter-spacing: 1px;
+}
+
+header p {
+  margin: 8px 12px 4px;
+  font-size: 13px;
+}
+
+#textToolbar,
+#sideToolbar {
+  position: static;
+  width: min(94vw, 620px);
+  margin: 8px auto;
+  padding: 0;
+  transform: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+#textInput,
+#addTextBtn,
+#sideToolbar button {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 50px;
+  margin: 0;
+  font-size: 16px;
+}
+
+#workspace {
+  width: 100%;
+  margin-top: 12px;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+#editor,
+#canvasBox {
+  width: min(94vw, 620px);
+  max-width: min(94vw, 620px);
+}
+
+#canvasBox {
+  height: min(94vw, 620px);
+  max-height: min(94vw, 620px);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.canvas-container,
+.canvas-container canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  touch-action: none;
+}
+
+#dailyChallenge {
+  width: min(94vw, 620px);
+  max-width: min(94vw, 620px);
+  min-height: 0;
+  flex: 0 0 auto;
+  padding: 16px;
+}
+
+#emojiPicker {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(88vw, 340px);
+  transform: translate(-50%, -50%);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+#watermarkSection,
+footer {
+  width: min(94vw, 620px);
+  text-align: center;
+}
+
+button,
+.nav-link,
+input {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 540px) {
+  #sideToolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  header h1,
+  header p {
+    display: none;
+  }
+
+  #canvasBox {
+    width: min(78vh, 620px);
+    height: min(78vh, 620px);
+  }
+}
