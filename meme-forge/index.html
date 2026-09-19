@@ -46,7 +46,7 @@
   <div id="sideToolbar">
     <button id="uploadBtn" type="button" aria-label="Upload an image into Meme Forge">🖼 Upload Image</button>
     <button id="clearBtn" type="button" aria-label="Clear all objects from the Meme Forge canvas">🧹 Clear All</button>
-    <input type="file" id="imageInput" accept="image/*" hidden>
+    <input type="file" id="imageInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden>
     <button id="deleteBtn" type="button" aria-label="Delete the selected canvas object">🗑 Delete</button>
 
     <div class="emojiContainer">
@@ -127,7 +127,7 @@
 <script src="/meme-forge/upgrades/server-nudenet-guard.js?v=1"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
-<script src="app.js?v=17"></script>
+<script src="app.js?v=18"></script>
 
 <script>
   document.getElementById("homeBtn").onclick = function() {
