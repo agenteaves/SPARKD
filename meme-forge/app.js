@@ -981,9 +981,17 @@ if (deleteBtn) {
     const mobileSaveBtn =
         document.getElementById("mobileSaveBtn");
 
+    const isMobileDevice =
+        navigator.userAgentData
+            ? navigator.userAgentData.mobile
+            : /Android|iPhone|iPad|iPod|Mobile/i.test(
+                navigator.userAgent
+            );
+
     if (
         mobileSaveBtn &&
         downloadBtn &&
+        isMobileDevice &&
         typeof navigator.share === "function"
     ) {
         mobileSaveBtn.hidden = false;
