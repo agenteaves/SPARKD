@@ -549,6 +549,8 @@ if (uploadBtn && imageInput) {
             return;
         }
 
+        const displayFile = file;
+
         ////////////////////////////////////////////////////
         // NORMALIZE PHONE FILE LABELS
         //
@@ -702,29 +704,13 @@ if (uploadBtn && imageInput) {
         // LOAD APPROVED IMAGE INTO CANVAS
         ////////////////////////////////////////////////////
 
-        const objectUrl =
-            URL.createObjectURL(file);
-
-        const imageElement =
-            new Image();
-
-        imageElement.onload = function () {
-
-            URL.revokeObjectURL(objectUrl);
+        function placeImageOnCanvas(imageSource) {
 
             const img =
-                new fabric.Image(imageElement);
-
-            ////////////////////////////////////////////////////
-            // CANVAS SIZE
-            ////////////////////////////////////////////////////
+                new fabric.Image(imageSource);
 
             const canvasSize =
                 1080;
-
-            ////////////////////////////////////////////////////
-            // SCALE IMAGE TO FIT
-            ////////////////////////////////////////////////////
 
             const scale =
                 Math.min(
@@ -733,10 +719,6 @@ if (uploadBtn && imageInput) {
                 );
 
             img.scale(scale);
-
-            ////////////////////////////////////////////////////
-            // CENTER IMAGE
-            ////////////////////////////////////////////////////
 
             img.set({
                 left:
@@ -758,10 +740,6 @@ if (uploadBtn && imageInput) {
                     false
             });
 
-            ////////////////////////////////////////////////////
-            // ADD, POSITION AND SELECT IMAGE
-            ////////////////////////////////////////////////////
-
             canvas.add(img);
             canvas.sendToBack(img);
             canvas.setActiveObject(img);
@@ -770,25 +748,64 @@ if (uploadBtn && imageInput) {
             console.log(
                 "✅ APPROVED IMAGE LOADED INTO SPARKD MEME FORGE"
             );
-        };
+        }
 
-        imageElement.onerror = function (error) {
+        async function loadApprovedImage() {
 
-            URL.revokeObjectURL(objectUrl);
+            ////////////////////////////////////////////////////
+            // ANDROID / MODERN MOBILE DECODER
+            ////////////////////////////////////////////////////
 
-            console.error(
-                "❌ SPARKD could not decode the approved image:",
-                error
-            );
+            if (typeof createImageBitmap === "function") {
+                try {
+                    const bitmap =
+                        await createImageBitmap(displayFile);
 
-            alert(
-                "⚠️ The image passed validation but could not be displayed. Please save it again as a JPG or PNG and retry."
-            );
+                    placeImageOnCanvas(bitmap);
+                    return;
+                }
+                catch (bitmapError) {
+                    console.warn(
+                        "⚠️ Direct bitmap decoding failed; trying compatible image loader.",
+                        bitmapError
+                    );
+                }
+            }
 
-            imageInput.value = "";
-        };
+            ////////////////////////////////////////////////////
+            // COMPATIBILITY FALLBACK
+            ////////////////////////////////////////////////////
 
-        imageElement.src = objectUrl;
+            const objectUrl =
+                URL.createObjectURL(displayFile);
+
+            const imageElement =
+                new Image();
+
+            imageElement.onload = function () {
+                URL.revokeObjectURL(objectUrl);
+                placeImageOnCanvas(imageElement);
+            };
+
+            imageElement.onerror = function (error) {
+                URL.revokeObjectURL(objectUrl);
+
+                console.error(
+                    "❌ SPARKD could not decode the approved image:",
+                    error
+                );
+
+                alert(
+                    "⚠️ This JPG or PNG could not be displayed by the browser. Please try a different image."
+                );
+
+                imageInput.value = "";
+            };
+
+            imageElement.src = objectUrl;
+        }
+
+        await loadApprovedImage();
 
     };
 
