@@ -978,6 +978,22 @@ if (deleteBtn) {
     const downloadBtn =
         document.getElementById("downloadBtn");
 
+    const mobileSaveBtn =
+        document.getElementById("mobileSaveBtn");
+
+    if (
+        mobileSaveBtn &&
+        downloadBtn &&
+        typeof navigator.share === "function"
+    ) {
+        mobileSaveBtn.hidden = false;
+
+        mobileSaveBtn.onclick = function () {
+            downloadBtn.dataset.phoneSave = "1";
+            downloadBtn.click();
+        };
+    }
+
     if (downloadBtn) {
 
         downloadBtn.onclick = async function () {
@@ -1167,59 +1183,100 @@ if (deleteBtn) {
                 const link =
                     document.createElement("a");
 
+                let exportBlob =
+                    null;
+
                 if (
+                    window.SPARKD_PNG &&
+                    forgeRecord &&
+                    typeof window.SPARKD_PNG.createBlob === "function"
+                ) {
+                    exportBlob =
+                        window.SPARKD_PNG.createBlob(
+                            finalCanvas,
+                            forgeRecord
+                        );
+
+                    link.href =
+                        URL.createObjectURL(exportBlob);
+                }
+                else if (
                     window.SPARKD_PNG &&
                     forgeRecord &&
                     typeof window.SPARKD_PNG.attach === "function"
                 ) {
-
                     link.href =
                         window.SPARKD_PNG.attach(
                             finalCanvas,
                             forgeRecord
                         );
-
                 }
                 else {
-
                     link.href =
-                        finalCanvas.toDataURL(
-                            "image/png"
-                        );
+                        finalCanvas.toDataURL("image/png");
                 }
 
                 link.download =
                     "SPARKD-meme.png";
 
+                const usePhoneSave =
+                    downloadBtn.dataset.phoneSave === "1";
+
+                delete downloadBtn.dataset.phoneSave;
+
+                if (usePhoneSave) {
+                    if (
+                        exportBlob &&
+                        typeof navigator.share === "function"
+                    ) {
+                        const exportFile =
+                            new File(
+                                [exportBlob],
+                                "SPARKD-meme.png",
+                                { type: "image/png" }
+                            );
+
+                        const canShareFile =
+                            typeof navigator.canShare !== "function" ||
+                            navigator.canShare({ files: [exportFile] });
+
+                        if (canShareFile) {
+                            await navigator.share({
+                                files: [exportFile],
+                                title: "SPARKD Meme"
+                            });
+
+                            if (link.href.startsWith("blob:")) {
+                                URL.revokeObjectURL(link.href);
+                            }
+
+                            finishExport();
+                            return;
+                        }
+                    }
+
+                    alert(
+                        "Phone saving is not supported by this browser. Please update Chrome or use the Export button."
+                    );
+
+                    if (link.href.startsWith("blob:")) {
+                        URL.revokeObjectURL(link.href);
+                    }
+
+                    finishExport();
+                    return;
+                }
+
                 link.style.display =
                     "none";
 
-                document.body.appendChild(
-                    link
-                );
-
-                ////////////////////////////////////////////////////
-                // AUTOMATIC DOWNLOAD ON EVERY DEVICE
-                //
-                // Keep one browser-native download path for desktop,
-                // Android, iPhone and iPad. Mobile compatibility code
-                // must not replace this click with a share sheet or
-                // navigate away from Meme Forge.
-                ////////////////////////////////////////////////////
-
+                document.body.appendChild(link);
                 link.click();
-
                 link.remove();
 
-                if (
-                    link.href &&
-                    link.href.startsWith("blob:")
-                ) {
-
+                if (link.href.startsWith("blob:")) {
                     setTimeout(function () {
-                        URL.revokeObjectURL(
-                            link.href
-                        );
+                        URL.revokeObjectURL(link.href);
                     }, 5000);
                 }
 
@@ -1227,6 +1284,16 @@ if (deleteBtn) {
 
             }
             catch (exportError) {
+
+                delete downloadBtn.dataset.phoneSave;
+
+                if (
+                    exportError &&
+                    exportError.name === "AbortError"
+                ) {
+                    finishExport();
+                    return;
+                }
 
                 console.error(
                     "❌ SPARKD Meme Forge export failed:",
