@@ -486,7 +486,7 @@ if (uploadBtn && imageInput) {
 
     imageInput.onchange = async function (e) {
 
-        const file =
+        let file =
             e.target.files[0];
 
 
@@ -501,27 +501,94 @@ if (uploadBtn && imageInput) {
         // ALLOW ONLY JPG / JPEG / PNG
         ////////////////////////////////////////////////////
 
-        const allowedImageTypes = [
-            "image/jpeg",
-            "image/png"
-        ];
+        let headerBytes;
 
-        const hasAllowedExtension =
-            /\\.(jpe?g|png)$/i.test(file.name);
+        try {
+            headerBytes =
+                new Uint8Array(
+                    await file.slice(0, 12).arrayBuffer()
+                );
+        }
+        catch (error) {
+            console.error(
+                "❌ SPARKD could not read the selected image:",
+                error
+            );
 
-        if (
-            !allowedImageTypes.includes(file.type) ||
-            !hasAllowedExtension
-        ) {
+            alert(
+                "⚠️ This image could not be read. Please choose a JPG or PNG image."
+            );
 
+            imageInput.value = "";
+            return;
+        }
+
+        const isJpeg =
+            headerBytes.length >= 3 &&
+            headerBytes[0] === 0xff &&
+            headerBytes[1] === 0xd8 &&
+            headerBytes[2] === 0xff;
+
+        const isPng =
+            headerBytes.length >= 8 &&
+            headerBytes[0] === 0x89 &&
+            headerBytes[1] === 0x50 &&
+            headerBytes[2] === 0x4e &&
+            headerBytes[3] === 0x47 &&
+            headerBytes[4] === 0x0d &&
+            headerBytes[5] === 0x0a &&
+            headerBytes[6] === 0x1a &&
+            headerBytes[7] === 0x0a;
+
+        if (!isJpeg && !isPng) {
             alert(
                 "⚠️ Unsupported image type. Please upload a JPG or PNG image only."
             );
 
             imageInput.value = "";
-
             return;
+        }
 
+        ////////////////////////////////////////////////////
+        // NORMALIZE PHONE FILE LABELS
+        //
+        // Some mobile browsers provide a genuine JPG/PNG
+        // with a missing or nonstandard MIME type/extension.
+        // After verifying the real file signature above,
+        // give the safety scanner a standard label.
+        ////////////////////////////////////////////////////
+
+        const canonicalType =
+            isPng
+                ? "image/png"
+                : "image/jpeg";
+
+        const canonicalExtension =
+            isPng
+                ? ".png"
+                : ".jpg";
+
+        const baseName =
+            (file.name || "SPARKD-upload")
+                .replace(/\\.[^.]*$/, "");
+
+        if (
+            file.type !== canonicalType ||
+            !new RegExp(
+                isPng
+                    ? "\\\\.png$"
+                    : "\\\\.jpe?g$",
+                "i"
+            ).test(file.name)
+        ) {
+            file = new File(
+                [file],
+                baseName + canonicalExtension,
+                {
+                    type: canonicalType,
+                    lastModified: file.lastModified
+                }
+            );
         }
 
 
