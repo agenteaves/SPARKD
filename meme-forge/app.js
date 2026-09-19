@@ -702,109 +702,93 @@ if (uploadBtn && imageInput) {
         // LOAD APPROVED IMAGE INTO CANVAS
         ////////////////////////////////////////////////////
 
-        const reader =
-            new FileReader();
+        const objectUrl =
+            URL.createObjectURL(file);
 
+        const imageElement =
+            new Image();
 
-        reader.onload =
-            function (event) {
+        imageElement.onload = function () {
 
+            URL.revokeObjectURL(objectUrl);
 
-                fabric.Image.fromURL(
-                    event.target.result,
-                    function (img) {
+            const img =
+                new fabric.Image(imageElement);
 
+            ////////////////////////////////////////////////////
+            // CANVAS SIZE
+            ////////////////////////////////////////////////////
 
-                        ////////////////////////////////////////////////////
-                        // CANVAS SIZE
-                        ////////////////////////////////////////////////////
+            const canvasSize =
+                1080;
 
-                        const canvasSize =
-                            1080;
+            ////////////////////////////////////////////////////
+            // SCALE IMAGE TO FIT
+            ////////////////////////////////////////////////////
 
-
-                        ////////////////////////////////////////////////////
-                        // SCALE IMAGE TO FIT
-                        ////////////////////////////////////////////////////
-
-                        const scale =
-                            Math.min(
-                                canvasSize / img.width,
-                                canvasSize / img.height
-                            );
-
-
-                        img.scale(scale);
-
-
-                        ////////////////////////////////////////////////////
-                        // CENTER IMAGE
-                        ////////////////////////////////////////////////////
-
-                        img.set({
-
-                            left:
-                                (
-                                    canvasSize -
-                                    img.getScaledWidth()
-                                ) / 2,
-
-                            top:
-                                (
-                                    canvasSize -
-                                    img.getScaledHeight()
-                                ) / 2,
-
-                            cornerColor:
-                                "#ff6600",
-
-                            transparentCorners:
-                                false
-
-                        });
-
-
-                        ////////////////////////////////////////////////////
-                        // ADD IMAGE
-                        ////////////////////////////////////////////////////
-
-                        canvas.add(img);
-
-
-                        ////////////////////////////////////////////////////
-                        // KEEP IMAGE BEHIND TEXT
-                        ////////////////////////////////////////////////////
-
-                        canvas.sendToBack(img);
-
-
-                        ////////////////////////////////////////////////////
-                        // SELECT IMAGE
-                        ////////////////////////////////////////////////////
-
-                        canvas.setActiveObject(
-                            img
-                        );
-
-
-                        ////////////////////////////////////////////////////
-                        // REFRESH CANVAS
-                        ////////////////////////////////////////////////////
-
-                        canvas.renderAll();
-
-
-                        console.log(
-                            "✅ APPROVED IMAGE LOADED INTO SPARKD MEME FORGE"
-                        );
-
-                    }
+            const scale =
+                Math.min(
+                    canvasSize / img.width,
+                    canvasSize / img.height
                 );
 
-            };
+            img.scale(scale);
 
+            ////////////////////////////////////////////////////
+            // CENTER IMAGE
+            ////////////////////////////////////////////////////
 
-        reader.readAsDataURL(file);
+            img.set({
+                left:
+                    (
+                        canvasSize -
+                        img.getScaledWidth()
+                    ) / 2,
+
+                top:
+                    (
+                        canvasSize -
+                        img.getScaledHeight()
+                    ) / 2,
+
+                cornerColor:
+                    "#ff6600",
+
+                transparentCorners:
+                    false
+            });
+
+            ////////////////////////////////////////////////////
+            // ADD, POSITION AND SELECT IMAGE
+            ////////////////////////////////////////////////////
+
+            canvas.add(img);
+            canvas.sendToBack(img);
+            canvas.setActiveObject(img);
+            canvas.requestRenderAll();
+
+            console.log(
+                "✅ APPROVED IMAGE LOADED INTO SPARKD MEME FORGE"
+            );
+        };
+
+        imageElement.onerror = function (error) {
+
+            URL.revokeObjectURL(objectUrl);
+
+            console.error(
+                "❌ SPARKD could not decode the approved image:",
+                error
+            );
+
+            alert(
+                "⚠️ The image passed validation but could not be displayed. Please save it again as a JPG or PNG and retry."
+            );
+
+            imageInput.value = "";
+        };
+
+        imageElement.src = objectUrl;
 
     };
 
