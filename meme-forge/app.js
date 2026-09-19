@@ -570,16 +570,16 @@ if (uploadBtn && imageInput) {
 
         const baseName =
             (file.name || "SPARKD-upload")
-                .replace(/\\.[^.]*$/, "");
+                .replace(/\.[^.]*$/, "");
+
+        const hasCanonicalExtension =
+            isPng
+                ? /\\.png$/i.test(file.name)
+                : /\\.jpe?g$/i.test(file.name);
 
         if (
             file.type !== canonicalType ||
-            !new RegExp(
-                isPng
-                    ? "\\\\.png$"
-                    : "\\\\.jpe?g$",
-                "i"
-            ).test(file.name)
+            !hasCanonicalExtension
         ) {
             file = new File(
                 [file],
