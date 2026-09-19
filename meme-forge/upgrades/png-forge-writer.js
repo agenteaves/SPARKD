@@ -7,7 +7,7 @@
 window.SPARKD_PNG = {
 
 
-    attach:function(canvas, forgeRecord){
+    createBlob:function(canvas, forgeRecord){
 
 
         console.log(
@@ -142,10 +142,20 @@ window.SPARKD_PNG = {
         );
 
 
-        return URL.createObjectURL(
-            blob
-        );
+        return blob;
 
+
+    },
+
+
+    attach:function(canvas, forgeRecord){
+
+        return URL.createObjectURL(
+            this.createBlob(
+                canvas,
+                forgeRecord
+            )
+        );
 
     }
 
