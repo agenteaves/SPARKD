@@ -497,6 +497,34 @@ if (uploadBtn && imageInput) {
         }
 
 
+        ////////////////////////////////////////////////////
+        // ALLOW ONLY JPG / JPEG / PNG
+        ////////////////////////////////////////////////////
+
+        const allowedImageTypes = [
+            "image/jpeg",
+            "image/png"
+        ];
+
+        const hasAllowedExtension =
+            /\\.(jpe?g|png)$/i.test(file.name);
+
+        if (
+            !allowedImageTypes.includes(file.type) ||
+            !hasAllowedExtension
+        ) {
+
+            alert(
+                "⚠️ Unsupported image type. Please upload a JPG or PNG image only."
+            );
+
+            imageInput.value = "";
+
+            return;
+
+        }
+
+
         console.log(
             "🖼️ SPARKD image selected:",
             file.name
