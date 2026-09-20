@@ -1,5 +1,12 @@
 package com.sparkd.community
 import android.graphics.BitmapFactory
+import android.widget.Toast
+import java.net.HttpURLConnection
+import java.net.URL
+import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -40,15 +47,30 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  var src by remember{mutableStateOf<android.graphics.Bitmap?>(null)};var title by remember{mutableStateOf("")};var layers by remember{mutableStateOf(listOf<ForgeSticker>())}
  var selected by remember{mutableStateOf<Int?>(null)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
  var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")}
+ var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf<String?>(null)}
  val emojis=listOf("😂","🤣","🔥","⚡","💀","❤️","😎","🤡","👀","🚀","💎","🤑","🤔","😭","😡","🎉","👍","👎")
- val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){u->u?.let{ctx.contentResolver.openInputStream(it)?.use{x->src=BitmapFactory.decodeStream(x)}}}
+ val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){u->
+  if(u!=null){safetyChecking=true;safetyMessage="🛡 Inspecting image before opening Forge..."
+   kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch{
+    try{
+     val bytes=withContext(Dispatchers.IO){ctx.contentResolver.openInputStream(u)?.use{it.readBytes()}?:throw Exception("Unable to read image.")}
+     val mime=ctx.contentResolver.getType(u)?:"image/jpeg"
+     val result=withContext(Dispatchers.IO){checkForgeImageSafety(bytes,mime)}
+     if(result.first){src=BitmapFactory.decodeByteArray(bytes,0,bytes.size);layers=emptyList();selected=null;safetyMessage="✅ Image passed content inspection."}
+     else{safetyMessage="🚫 "+result.second;Toast.makeText(ctx,result.second,Toast.LENGTH_LONG).show()}
+    }catch(e:Exception){safetyMessage="🚫 Content protection could not verify this image.";Toast.makeText(ctx,"Image blocked: content inspection unavailable.",Toast.LENGTH_LONG).show()}
+    finally{safetyChecking=false}
+   }
+  }
+ }
  LaunchedEffect(src,layers){png=src?.let{MemeForge.render(it,"","",layers)}}
  if(textPopup) AlertDialog(onDismissRequest={textPopup=false},title={Text("Add text")},text={OutlinedTextField(newText,{newText=it},label={Text("Text")})},confirmButton={Button({if(newText.isNotBlank()){layers=layers+ForgeSticker(newText);selected=layers.lastIndex;newText=""};textPopup=false}){Text("Add")}},dismissButton={TextButton({textPopup=false}){Text("Cancel")}})
  if(emojiPopup) AlertDialog(onDismissRequest={emojiPopup=false},title={Text("Choose emoji")},text={LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){items(emojis){e->AssistChip(onClick={layers=layers+ForgeSticker(e);selected=layers.lastIndex;emojiPopup=false},label={Text(e,fontSize=26.sp)})}}},confirmButton={TextButton({emojiPopup=false}){Text("Close")}})
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
   item{Text("Meme Forge",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Create the meme directly on the image.",color=Color.LightGray)}
   item{OutlinedTextField(title,{title=it},label={Text("Meme title")},modifier=Modifier.fillMaxWidth(),singleLine=true)}
-  item{OutlinedButton({pick.launch("image/*")},Modifier.fillMaxWidth()){Text("Choose image")}}
+  item{OutlinedButton({if(!safetyChecking)pick.launch("image/*")},Modifier.fillMaxWidth(),enabled=!safetyChecking){Text(if(safetyChecking)"Inspecting image..." else "Choose image")}}
+  safetyMessage?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else if(m.startsWith("🚫"))Gold else Color.LightGray,fontSize=12.sp)}}
   png?.let{b->item{Box(Modifier.fillMaxWidth().aspectRatio(1f).onSizeChanged{canvasPx=it.width.toFloat().coerceAtLeast(1f)}){
    // MemeForge.render() already paints every text/emoji layer into this bitmap.
    // Use transparent gesture handles here so the editor does not draw each layer a second time.
@@ -72,3 +94,20 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 @Composable fun Winners(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Winner>())};LaunchedEffect(Unit){list=r.winners()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("Hall of Winners",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Weekly results and payouts.",color=Color.LightGray)};items(list){w->Surface(shape=RoundedCornerShape(18.dp)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text(if(w.place==1)"🥇" else if(w.place==2)"🥈" else "🥉",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(w.title,fontWeight=FontWeight.Bold);Text(w.creator,color=Color.LightGray)};Text(if(w.paid)"PAID ✓" else "PENDING",color=Green)}}}}}
 @Composable fun Profile(){Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){Text("My SPARKD",fontSize=30.sp,fontWeight=FontWeight.Black);Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp)){Text("Creator ID",color=Color.Gray);Text("PREVIEW-CREATOR",fontWeight=FontWeight.Bold);Spacer(Modifier.height(12.dp));Text("Wallet",color=Color.Gray);Text("Not connected",color=Gold)}};OutlinedButton({},enabled=false,modifier=Modifier.fillMaxWidth()){Text("Connect Phantom Wallet")};Notice()}}
 @Composable fun Notice(){Surface(color=Color(0xFF30280B),shape=RoundedCornerShape(16.dp)){Text("🛡 Preview mode — intentionally disconnected from production contests.",Modifier.padding(14.dp),color=Gold,fontWeight=FontWeight.Bold)}}
+
+private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
+ val boundary="----SPARKDAndroid"+System.currentTimeMillis()
+ val conn=(URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety").openConnection() as HttpURLConnection).apply{
+  requestMethod="POST";doOutput=true;connectTimeout=20000;readTimeout=30000
+  setRequestProperty("Content-Type","multipart/form-data; boundary=$boundary")
+ }
+ conn.outputStream.use{out->
+  out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload\"\r\nContent-Type: $mime\r\n\r\n").toByteArray())
+  out.write(bytes);out.write(("\r\n--$boundary--\r\n").toByteArray())
+ }
+ val code=conn.responseCode
+ val stream=if(code in 200..299)conn.inputStream else conn.errorStream
+ val body=stream?.bufferedReader()?.use{it.readText()}.orEmpty()
+ if(code !in 200..299)return false to "Content protection could not verify this image."
+ return try{val j=JSONObject(body);if(j.optBoolean("success")&&j.optBoolean("checked")&&j.optBoolean("safe")&&!j.optBoolean("blocked"))true to "Approved" else false to j.optString("reason",j.optString("error","Image did not pass content inspection."))}catch(_:Exception){false to "Content protection returned an invalid result."}
+}
