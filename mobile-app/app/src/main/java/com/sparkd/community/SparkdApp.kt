@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 
 val Green=Color(0xFF41F16B);val Gold=Color(0xFFFFC83D);val Ink=Color(0xFF07110B);val Card=Color(0xFF102018)
+private object ForgeDraft{var src:android.graphics.Bitmap?=null;var title="";var layers:List<ForgeSticker> = emptyList();var selected:Int?=null;var safetyMessage:String?=null}
 enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),Winners("Winners"),Profile("Profile")}
 @Composable fun SparkdApp(){
  MaterialTheme(colorScheme=darkColorScheme(primary=Green,secondary=Gold,background=Ink,surface=Card)){
@@ -47,10 +48,11 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 @Composable fun Home(r:SparkdRepository,go:(Tab)->Unit){var c by remember{mutableStateOf<Contest?>(null)};LaunchedEffect(Unit){c=r.contest()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){item{Text("Create. Enter. Vote. Win.",fontSize=29.sp,fontWeight=FontWeight.Black);Text("SPARKD built for your phone.",color=Color.LightGray)};item{c?.let{Surface(shape=RoundedCornerShape(22.dp)){Column(Modifier.padding(20.dp)){Text(it.phase,color=Green,fontWeight=FontWeight.Bold);Text(it.title,fontSize=25.sp,fontWeight=FontWeight.Black);Text(it.prize,color=Gold);Text(it.entries.toString()+" contenders")}}}};item{Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){Button({go(Tab.Forge)},Modifier.weight(1f).height(70.dp)){Text("🔥 Forge")};Button({go(Tab.Contest)},Modifier.weight(1f).height(70.dp)){Text("🗳 Vote")}}};item{Notice()}}}
 @Composable fun Forge(){
  val ctx=LocalContext.current
- var src by remember{mutableStateOf<android.graphics.Bitmap?>(null)};var title by remember{mutableStateOf("")};var layers by remember{mutableStateOf(listOf<ForgeSticker>())}
- var selected by remember{mutableStateOf<Int?>(null)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
+ var src by remember{mutableStateOf(ForgeDraft.src)};var title by remember{mutableStateOf(ForgeDraft.title)};var layers by remember{mutableStateOf(ForgeDraft.layers)}
+ var selected by remember{mutableStateOf(ForgeDraft.selected)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
  var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")}
- var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf<String?>(null)}
+ var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf(ForgeDraft.safetyMessage)}
+ DisposableEffect(Unit){onDispose{ForgeDraft.src=src;ForgeDraft.title=title;ForgeDraft.layers=layers;ForgeDraft.selected=selected;ForgeDraft.safetyMessage=safetyMessage}}
  val emojis=listOf("😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓")
  val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){u->
   if(u!=null){safetyChecking=true;safetyMessage="🛡 Inspecting image before opening Forge..."
@@ -106,7 +108,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 
 private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
  val boundary="----SPARKDAndroid"+System.currentTimeMillis()
- val conn=(URL("https://sparkd-nudenet-server.onrender.com/scan").openConnection() as HttpURLConnection).apply{
+ val conn=(URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety").openConnection() as HttpURLConnection).apply{
   requestMethod="POST";doOutput=true;connectTimeout=20000;readTimeout=30000
   setRequestProperty("Content-Type","multipart/form-data; boundary=$boundary")
  }
