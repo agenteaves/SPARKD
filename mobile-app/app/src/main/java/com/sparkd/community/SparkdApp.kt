@@ -50,11 +50,15 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
   item{OutlinedTextField(title,{title=it},label={Text("Meme title")},modifier=Modifier.fillMaxWidth(),singleLine=true)}
   item{OutlinedButton({pick.launch("image/*")},Modifier.fillMaxWidth()){Text("Choose image")}}
   png?.let{b->item{Box(Modifier.fillMaxWidth().aspectRatio(1f).onSizeChanged{canvasPx=it.width.toFloat().coerceAtLeast(1f)}){
+   // MemeForge.render() already paints every text/emoji layer into this bitmap.
+   // Use transparent gesture handles here so the editor does not draw each layer a second time.
    Image(BitmapFactory.decodeByteArray(b,0,b.size).asImageBitmap(),null,Modifier.fillMaxSize())
    layers.forEachIndexed{i,l->
     Box(Modifier.align(Alignment.TopStart).offset{IntOffset((l.x*canvasPx-60).toInt(),(l.y*canvasPx-60).toInt())}.size(120.dp).pointerInput(i){
      detectDragGestures(onDragStart={selected=i}){change,drag->change.consume();if(i<layers.size){val n=layers.toMutableList();val cur=n[i];n[i]=cur.copy(x=(cur.x+drag.x/canvasPx).coerceIn(.05f,.95f),y=(cur.y+drag.y/canvasPx).coerceIn(.05f,.95f));layers=n}}
-    },contentAlignment=Alignment.Center){Text(l.text,fontSize=(l.size/3f).coerceIn(18f,60f).sp,fontWeight=FontWeight.Black,color=if(selected==i) Gold else Color.Transparent)}
+    },contentAlignment=Alignment.Center){
+     if(selected==i) Box(Modifier.size(112.dp).border(2.dp,Gold,RoundedCornerShape(10.dp)))
+    }
    }
   }}}
   item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button({textPopup=true},Modifier.weight(1f)){Text("＋ Text")};Button({emojiPopup=true},Modifier.weight(1f)){Text("😀 Emoji")}}}
