@@ -111,12 +111,13 @@ private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,Stri
   setRequestProperty("Content-Type","multipart/form-data; boundary=$boundary")
  }
  conn.outputStream.use{out->
-  out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload\"\r\nContent-Type: $mime\r\n\r\n").toByteArray())
+  val ext=when{mime.contains("png",true)->"png";mime.contains("webp",true)->"webp";else->"jpg"}
+  out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload.$ext\"\r\nContent-Type: $mime\r\n\r\n").toByteArray())
   out.write(bytes);out.write(("\r\n--$boundary--\r\n").toByteArray())
  }
  val code=conn.responseCode
  val stream=if(code in 200..299)conn.inputStream else conn.errorStream
  val body=stream?.bufferedReader()?.use{it.readText()}.orEmpty()
- if(code !in 200..299)return false to "Content protection could not verify this image."
+ if(code !in 200..299)return false to try{JSONObject(body).optString("error","Content protection could not verify this image.")}catch(_:Exception){"Content protection could not verify this image. (HTTP $code)"}
  return try{val j=JSONObject(body);if(j.optBoolean("success")&&j.optBoolean("checked")&&j.optBoolean("safe")&&!j.optBoolean("blocked"))true to "Approved" else false to j.optString("reason",j.optString("error","Image did not pass content inspection."))}catch(_:Exception){false to "Content protection returned an invalid result."}
 }
