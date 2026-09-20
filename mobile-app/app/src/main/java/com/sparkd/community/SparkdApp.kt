@@ -5,6 +5,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -34,20 +38,41 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  val ctx=LocalContext.current
  var src by remember{mutableStateOf<android.graphics.Bitmap?>(null)}
  var top by remember{mutableStateOf("")};var bottom by remember{mutableStateOf("")};var custom by remember{mutableStateOf("")}
- var layers by remember{mutableStateOf(listOf<ForgeSticker>())};var png by remember{mutableStateOf<ByteArray?>(null)}
+ var layers by remember{mutableStateOf(listOf<ForgeSticker>())};var selected by remember{mutableStateOf<Int?>(null)};var png by remember{mutableStateOf<ByteArray?>(null)}
+ var canvasPx by remember{mutableStateOf(1f)}
  val emojis=listOf("😂","🤣","🔥","⚡","💀","❤️","😎","🤡","👀","🚀","💎","🤑")
  val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){u->u?.let{ctx.contentResolver.openInputStream(it)?.use{x->src=BitmapFactory.decodeStream(x)}}}
  LaunchedEffect(src,top,bottom,layers){png=src?.let{MemeForge.render(it,top,bottom,layers)}}
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-  item{Text("Meme Forge",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Build your meme, then preview the final image.",color=Color.LightGray)}
+  item{Text("Meme Forge",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Tap a layer, drag it where you want it, then resize it below.",color=Color.LightGray)}
   item{OutlinedButton({pick.launch("image/*")},Modifier.fillMaxWidth()){Text("Choose image")}}
-  png?.let{b->item{Image(BitmapFactory.decodeByteArray(b,0,b.size).asImageBitmap(),null,Modifier.fillMaxWidth().aspectRatio(1f))}}
+  png?.let{b->item{
+   Box(Modifier.fillMaxWidth().aspectRatio(1f).onSizeChanged{canvasPx=it.width.toFloat().coerceAtLeast(1f)}){
+    Image(BitmapFactory.decodeByteArray(b,0,b.size).asImageBitmap(),null,Modifier.fillMaxSize())
+    layers.forEachIndexed{i,l->
+     Box(Modifier.fillMaxSize().pointerInput(i,l,layers){
+      detectDragGestures(onDragStart={selected=i}){change,drag->
+       change.consume();val n=layers.toMutableList();val cur=n[i]
+       n[i]=cur.copy(x=(cur.x+drag.x/canvasPx).coerceIn(.04f,.96f),y=(cur.y+drag.y/canvasPx).coerceIn(.06f,.94f));layers=n
+      }
+     }){
+      Text(l.text,fontSize=(l.size/3f).coerceIn(18f,48f).sp,fontWeight=FontWeight.Black,color=if(selected==i) Gold else Color.Transparent,
+       modifier=Modifier.offset(x=((l.x-.5f)*canvasPx).dp,y=((l.y-.5f)*canvasPx).dp).align(Alignment.Center))
+     }
+    }
+   }
+  }}
   item{OutlinedTextField(top,{top=it},label={Text("Top text")},modifier=Modifier.fillMaxWidth())}
   item{OutlinedTextField(bottom,{bottom=it},label={Text("Bottom text")},modifier=Modifier.fillMaxWidth())}
-  item{Text("Add text",fontWeight=FontWeight.Bold);Row(verticalAlignment=Alignment.CenterVertically){OutlinedTextField(custom,{custom=it},label={Text("Text layer")},modifier=Modifier.weight(1f));Spacer(Modifier.width(8.dp));Button({if(custom.isNotBlank()){layers=layers+ForgeSticker(custom);custom=""}}){Text("Add")}}}
-  item{Text("Add emoji",fontWeight=FontWeight.Bold);LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){items(emojis){e->AssistChip(onClick={layers=layers+ForgeSticker(e)},label={Text(e,fontSize=24.sp)})}}}
-  if(layers.isNotEmpty()) item{Text("Layers",fontWeight=FontWeight.Bold);layers.forEachIndexed{i,l->Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(l.text,Modifier.weight(1f),fontSize=20.sp);TextButton({layers=layers.toMutableList().also{it.removeAt(i)}}){Text("Delete")}}};OutlinedButton({layers=emptyList()},Modifier.fillMaxWidth()){Text("Clear added layers")}}
-  item{Text("Drag/resize controls are next; added text and emoji are already rendered into the final 1080×1080 PNG.",color=Color.LightGray,fontSize=12.sp)}
+  item{Text("Add text",fontWeight=FontWeight.Bold);Row(verticalAlignment=Alignment.CenterVertically){OutlinedTextField(custom,{custom=it},label={Text("Text layer")},modifier=Modifier.weight(1f));Spacer(Modifier.width(8.dp));Button({if(custom.isNotBlank()){layers=layers+ForgeSticker(custom);selected=layers.lastIndex;custom=""}}){Text("Add")}}}
+  item{Text("Add emoji",fontWeight=FontWeight.Bold);LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){items(emojis){e->AssistChip(onClick={layers=layers+ForgeSticker(e);selected=layers.lastIndex},label={Text(e,fontSize=24.sp)})}}}
+  if(layers.isNotEmpty()) item{
+   Text("Layers",fontWeight=FontWeight.Bold)
+   layers.forEachIndexed{i,l->Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){TextButton({selected=i},Modifier.weight(1f)){Text((if(selected==i)"✓ " else "")+l.text,fontSize=18.sp)};TextButton({layers=layers.toMutableList().also{it.removeAt(i)};selected=null}){Text("Delete")}}}
+   selected?.takeIf{it in layers.indices}?.let{i->val l=layers[i];Text("Size: "+l.size.toInt());Slider(value=l.size,onValueChange={v->val n=layers.toMutableList();n[i]=n[i].copy(size=v);layers=n},valueRange=36f..180f)}
+   Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({selected?.let{i->if(i in layers.indices){val n=layers.toMutableList();n[i]=n[i].copy(x=.5f,y=.5f);layers=n}}},Modifier.weight(1f)){Text("Center")};OutlinedButton({layers=emptyList();selected=null},Modifier.weight(1f)){Text("Clear")}}
+  }
+  item{Text("The preview is the flattened 1080×1080 PNG. Dragged positions and sizes are baked into that image.",color=Color.LightGray,fontSize=12.sp)}
   item{Button({},enabled=false,modifier=Modifier.fillMaxWidth()){Text("Enter Meme of the Week")}}
   item{Notice()}
  }
