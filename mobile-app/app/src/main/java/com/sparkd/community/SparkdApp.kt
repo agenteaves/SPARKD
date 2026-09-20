@@ -13,6 +13,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -66,7 +68,13 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  }
  LaunchedEffect(src,layers){png=src?.let{MemeForge.render(it,"","",layers)}}
  if(textPopup) AlertDialog(onDismissRequest={textPopup=false},title={Text("Add text")},text={OutlinedTextField(newText,{newText=it},label={Text("Text")})},confirmButton={Button({if(newText.isNotBlank()){layers=layers+ForgeSticker(newText);selected=layers.lastIndex;newText=""};textPopup=false}){Text("Add")}},dismissButton={TextButton({textPopup=false}){Text("Cancel")}})
- if(emojiPopup) AlertDialog(onDismissRequest={emojiPopup=false},title={Text("Choose emoji")},text={LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){items(emojis){e->AssistChip(onClick={layers=layers+ForgeSticker(e);selected=layers.lastIndex;emojiPopup=false},label={Text(e,fontSize=26.sp)})}}},confirmButton={TextButton({emojiPopup=false}){Text("Close")}})
+ if(emojiPopup) AlertDialog(
+ onDismissRequest={emojiPopup=false},
+ title={Text("Choose emoji")},
+ text={LazyVerticalGrid(columns=androidx.compose.foundation.lazy.grid.GridCells.Fixed(6),modifier=Modifier.fillMaxWidth().heightIn(min=240.dp,max=380.dp),horizontalArrangement=Arrangement.spacedBy(4.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){items(emojis.size){idx->val e=emojis[idx];TextButton(onClick={val n=layers+ForgeSticker(e);layers=n;selected=n.lastIndex;emojiPopup=false},contentPadding=PaddingValues(2.dp),modifier=Modifier.size(48.dp)){Text(e,fontSize=27.sp)}}}},
+ confirmButton={TextButton({emojiPopup=false}){Text("Close")}},
+ modifier=Modifier.fillMaxWidth(.92f)
+)
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
   item{Text("Meme Forge",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Create the meme directly on the image.",color=Color.LightGray)}
   item{OutlinedTextField(title,{title=it},label={Text("Meme title")},modifier=Modifier.fillMaxWidth(),singleLine=true)}
@@ -98,7 +106,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 
 private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
  val boundary="----SPARKDAndroid"+System.currentTimeMillis()
- val conn=(URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety").openConnection() as HttpURLConnection).apply{
+ val conn=(URL("https://sparkd-nudenet-server.onrender.com/scan").openConnection() as HttpURLConnection).apply{
   requestMethod="POST";doOutput=true;connectTimeout=20000;readTimeout=30000
   setRequestProperty("Content-Type","multipart/form-data; boundary=$boundary")
  }
