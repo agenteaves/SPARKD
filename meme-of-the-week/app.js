@@ -180,16 +180,12 @@ async function loadCurrentContest() {
                 .select(
                     "*"
                 )
-                .eq(
+                .in(
                     "status",
-                    "submission"
+                    ["submission", "voting"]
                 )
                 .lte(
                     "week_start",
-                    now
-                )
-                .gte(
-                    "week_end",
                     now
                 )
                 .order(
