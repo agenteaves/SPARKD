@@ -23,7 +23,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 @Composable fun SparkdApp(){
  MaterialTheme(colorScheme=darkColorScheme(primary=Green,secondary=Gold,background=Ink,surface=Card)){
   var tab by remember{mutableStateOf(Tab.Home)};val repo=remember{PreviewRepository()}
-  Scaffold(topBar={Header()},bottomBar={NavigationBar(containerColor=Color(0xFF09160E)){Tab.entries.forEach{t->NavigationBarItem(tab==t,{tab=t},{Icon(when(t){Tab.Home->Icons.Default.Home;Tab.Forge->Icons.Default.Edit;Tab.Contest->Icons.Default.EmojiEvents;Tab.Winners->Icons.Default.WorkspacePremium;Tab.Profile->Icons.Default.Person},t.label)},{Text(t.label)})}}}){p->
+  Scaffold(topBar={Header()},bottomBar={NavigationBar(containerColor=Color(0xFF09160E)){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(when(t){Tab.Home->Icons.Default.Home;Tab.Forge->Icons.Default.Edit;Tab.Contest->Icons.Default.EmojiEvents;Tab.Winners->Icons.Default.WorkspacePremium;Tab.Profile->Icons.Default.Person},t.label)},label={Text(t.label)})}}}){p->
    Box(Modifier.padding(p).fillMaxSize()){when(tab){Tab.Home->Home(repo){tab=it};Tab.Forge->Forge();Tab.Contest->Contest(repo);Tab.Winners->Winners(repo);Tab.Profile->Profile()}}
   }
  }
