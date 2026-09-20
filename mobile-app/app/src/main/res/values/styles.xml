@@ -1,0 +1,1 @@
+<resources><style name="Theme.SPARKD" parent="android:style/Theme.Material.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:statusBarColor">#07110B</item><item name="android:navigationBarColor">#07110B</item></style></resources>
