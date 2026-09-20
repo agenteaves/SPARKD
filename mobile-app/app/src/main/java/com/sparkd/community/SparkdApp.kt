@@ -69,7 +69,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
   }
  }
  LaunchedEffect(src,layers){png=src?.let{MemeForge.render(it,"","",layers)}}
- if(textPopup) AlertDialog(onDismissRequest={textPopup=false},title={Text("Add text")},text={OutlinedTextField(newText,{newText=it},label={Text("Text")})},confirmButton={Button({if(newText.isNotBlank()){layers=layers+ForgeSticker(newText);selected=layers.lastIndex;newText=""};textPopup=false}){Text("Add")}},dismissButton={TextButton({textPopup=false}){Text("Cancel")}})
+ if(textPopup) AlertDialog(onDismissRequest={textPopup=false},title={Text("Add text")},text={OutlinedTextField(newText,{newText=it},label={Text("Text")})},confirmButton={Button({if(newText.isNotBlank()){val n=layers+ForgeSticker(newText);layers=n;selected=n.lastIndex;newText=""};textPopup=false}){Text("Add")}},dismissButton={TextButton({textPopup=false}){Text("Cancel")}})
  if(emojiPopup) AlertDialog(
  onDismissRequest={emojiPopup=false},
  title={Text("Choose emoji")},
@@ -87,7 +87,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
    // Use transparent gesture handles here so the editor does not draw each layer a second time.
    Image(BitmapFactory.decodeByteArray(b,0,b.size).asImageBitmap(),null,Modifier.fillMaxSize())
    layers.forEachIndexed{i,l->
-    Box(Modifier.align(Alignment.TopStart).offset{IntOffset((l.x*canvasPx-60).toInt(),(l.y*canvasPx-60).toInt())}.size(120.dp).pointerInput(i){
+    Box(Modifier.align(Alignment.TopStart).offset{val half=(120.dp.toPx()/2f);IntOffset((l.x*canvasPx-half).toInt(),(l.y*canvasPx-half).toInt())}.size(120.dp).pointerInput(i){
      detectDragGestures(onDragStart={selected=i}){change,drag->change.consume();if(i<layers.size){val n=layers.toMutableList();val cur=n[i];n[i]=cur.copy(x=(cur.x+drag.x/canvasPx).coerceIn(.05f,.95f),y=(cur.y+drag.y/canvasPx).coerceIn(.05f,.95f));layers=n}}
     },contentAlignment=Alignment.Center){
      if(selected==i) Box(Modifier.size(112.dp).border(2.dp,Gold,RoundedCornerShape(10.dp)))
