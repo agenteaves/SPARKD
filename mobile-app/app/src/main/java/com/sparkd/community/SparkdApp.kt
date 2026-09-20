@@ -80,7 +80,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
   item{Text("Meme Forge",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Create the meme directly on the image.",color=Color.LightGray)}
   item{OutlinedTextField(title,{title=it},label={Text("Meme title")},modifier=Modifier.fillMaxWidth(),singleLine=true)}
-  item{OutlinedButton({if(!safetyChecking)pick.launch("image/*")},Modifier.fillMaxWidth(),enabled=!safetyChecking){Text(if(safetyChecking)"Inspecting image..." else "Choose image")}}
+  item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(!safetyChecking)pick.launch("image/*")},Modifier.weight(1f),enabled=!safetyChecking){Text(if(safetyChecking)"Inspecting..." else if(src==null)"Choose image" else "Replace image")};if(src!=null)OutlinedButton({src=null;png=null;layers=emptyList();selected=null;safetyMessage=null;ForgeDraft.src=null;ForgeDraft.layers=emptyList();ForgeDraft.selected=null;ForgeDraft.safetyMessage=null},Modifier.weight(1f)){Text("🗑 Delete image")}}}
   safetyMessage?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else if(m.startsWith("🚫"))Gold else Color.LightGray,fontSize=12.sp)}}
   png?.let{b->item{Box(Modifier.fillMaxWidth().aspectRatio(1f).onSizeChanged{canvasPx=it.width.toFloat().coerceAtLeast(1f)}){
    // MemeForge.render() already paints every text/emoji layer into this bitmap.
