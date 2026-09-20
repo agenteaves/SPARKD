@@ -131,6 +131,23 @@ function openDeveloperPanel(){
 
     <div class="devSection">
 
+        <h3>Weekly Contest Votes</h3>
+
+        <button id="loadContestVotesBtn">
+        🗳 View Current Vote Totals
+        </button>
+
+        <div id="contestVoteTotals" style="margin-top:12px;">
+        Vote totals are admin-only.
+        </div>
+
+    </div>
+
+
+
+
+    <div class="devSection">
+
         <h3>Reset Tools</h3>
 
 
@@ -195,6 +212,95 @@ document.getElementById(
     }
 
 };
+
+    document.getElementById("loadContestVotesBtn").onclick =
+    async function(){
+
+        const output =
+        document.getElementById("contestVoteTotals");
+
+        const key = window.prompt(
+            "Enter SPARKD admin access key:"
+        );
+
+        if(!key){
+            return;
+        }
+
+        output.textContent =
+        "Loading current contest votes...";
+
+        try{
+
+            const response = await fetch(
+                "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-admin-health",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-sparkd-admin-key": key
+                    },
+                    body: JSON.stringify({
+                        action: "vote_totals"
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if(!response.ok || !data.success){
+                throw new Error(
+                    data.error || "Unable to load vote totals."
+                );
+            }
+
+            if(!data.contest){
+                output.textContent =
+                "No active weekly contest found.";
+                return;
+            }
+
+            const start =
+            new Date(data.contest.week_start)
+            .toLocaleDateString();
+
+            const end =
+            new Date(data.contest.week_end)
+            .toLocaleDateString();
+
+            const rows = (data.submissions || [])
+            .map(function(item){
+                const title = String(item.memeTitle || "Untitled Meme")
+                    .replace(/&/g,"&amp;")
+                    .replace(/</g,"&lt;")
+                    .replace(/>/g,"&gt;")
+                    .replace(/"/g,"&quot;")
+                    .replace(/'/g,"&#039;");
+
+                return "<div style=\"padding:8px 0;border-bottom:1px solid rgba(255,255,255,.15);\">" +
+                    "<strong>" + title + "</strong><br>" +
+                    "🗳 " + Number(item.voteCount || 0).toLocaleString() + " votes" +
+                    "</div>";
+            })
+            .join("");
+
+            output.innerHTML =
+                "<p><strong>" + start + " — " + end + "</strong><br>" +
+                "Total votes: <strong>" +
+                Number(data.totalVotes || 0).toLocaleString() +
+                "</strong></p>" +
+                (rows || "<p>No eligible memes entered yet.</p>");
+
+        }
+        catch(error){
+
+            output.textContent =
+            "❌ " + (error.message || String(error));
+
+        }
+
+    };
+
 
     document.getElementById("add100").onclick =
     function(){
