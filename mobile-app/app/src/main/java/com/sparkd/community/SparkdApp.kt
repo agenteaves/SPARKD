@@ -49,7 +49,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  var selected by remember{mutableStateOf<Int?>(null)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
  var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")}
  var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf<String?>(null)}
- val emojis=listOf("😂","🤣","🔥","⚡","💀","❤️","😎","🤡","👀","🚀","💎","🤑","🤔","😭","😡","🎉","👍","👎")
+ val emojis=listOf("😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓")
  val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){u->
   if(u!=null){safetyChecking=true;safetyMessage="🛡 Inspecting image before opening Forge..."
    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch{
