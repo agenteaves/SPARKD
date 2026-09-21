@@ -20,6 +20,8 @@ jobs:
         working-directory: mobile-app
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: mobile-app-development
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -27,6 +29,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
+      - name: Verify preview source
+        run: |
+          echo "BUILD_SHA=$(git rev-parse HEAD)"
+          grep 'versionCode=2' app/build.gradle.kts
+          grep '@drawable/sparkd_exact_loops' app/src/main/AndroidManifest.xml
+          test -s app/src/main/res/drawable/sparkd_exact_loops.png
       - run: gradle :app:assembleDebug
       - name: Prepare preview APK
         run: cp app/build/outputs/apk/debug/app-debug.apk SPARKD-Mobile-Preview.apk
