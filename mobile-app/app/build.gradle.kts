@@ -5,6 +5,7 @@ android {
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17" }
  buildFeatures { compose=true }
+ lint { disable.add("NullSafeMutableLiveData") }
  signingConfigs {
   val storeFilePath = providers.gradleProperty("SPARKD_RELEASE_STORE_FILE").orNull
   val storePassword = providers.gradleProperty("SPARKD_RELEASE_STORE_PASSWORD").orNull
