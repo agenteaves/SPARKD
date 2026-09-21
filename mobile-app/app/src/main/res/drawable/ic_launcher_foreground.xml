@@ -1,27 +1,5 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp" android:height="108dp"
-    android:viewportWidth="108" android:viewportHeight="108">
-  <!-- SPARKD original interlocking heart/infinity loops -->
-  <path android:fillColor="@android:color/transparent"
-      android:strokeColor="#171B18" android:strokeWidth="13"
-      android:strokeLineCap="round" android:strokeLineJoin="round"
-      android:pathData="M54,77 L31,55 C20,45 20,29 30,22 C40,15 49,20 54,27 C59,20 68,15 78,22 C88,29 88,45 77,55 L64,68"/>
-  <path android:fillColor="@android:color/transparent"
-      android:strokeColor="#65D968" android:strokeWidth="9"
-      android:strokeLineCap="round" android:strokeLineJoin="round"
-      android:pathData="M54,77 L31,55 C20,45 20,29 30,22 C40,15 49,20 54,27 C59,20 68,15 78,22 C88,29 88,45 77,55 L64,68"/>
-  <path android:fillColor="@android:color/transparent"
-      android:strokeColor="#171B18" android:strokeWidth="13"
-      android:strokeLineCap="round" android:strokeLineJoin="round"
-      android:pathData="M43,68 L31,55 C23,47 23,35 31,29 C39,23 47,27 52,35 L65,54 C70,62 77,63 83,58 C91,51 91,38 83,31 C76,25 68,27 63,35 L46,59"/>
-  <path android:fillColor="@android:color/transparent"
-      android:strokeColor="#65D968" android:strokeWidth="9"
-      android:strokeLineCap="round" android:strokeLineJoin="round"
-      android:pathData="M43,68 L31,55 C23,47 23,35 31,29 C39,23 47,27 52,35 L65,54 C70,62 77,63 83,58 C91,51 91,38 83,31 C76,25 68,27 63,35 L46,59"/>
-  <path android:fillColor="@android:color/transparent"
-      android:strokeColor="#B8FFAE" android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:pathData="M29,50 C24,42 25,33 32,28 C39,23 46,27 50,34 M62,33 C68,25 77,25 83,31"/>
-  <path android:fillColor="#65D968" android:strokeColor="#171B18" android:strokeWidth="3"
-      android:strokeLineJoin="round" android:pathData="M45,72 L54,81 L63,72 L58,68 L54,72 L50,68 Z"/>
+ android:width="108dp" android:height="108dp"
+ android:viewportWidth="230" android:viewportHeight="230">
+ <path android:fillColor="#65D968" android:fillType="evenOdd" android:pathData="M84,174 L105,196 L115,196 L136,174 L123,171 L111,183 L109,183 L97,171 L87,173 L85,175 Z M23,79 L20,94 L17,99 L17,108 L17,105 L19,105 L19,117 L18,118 L17,115 L17,118 L20,119 L20,129 L21,127 L25,136 L24,138 L25,137 L31,145 L30,147 L31,146 L49,162 L68,169 L87,170 L99,166 L99,164 L106,160 L99,152 L101,149 L113,160 L129,169 L151,170 L160,167 L175,159 L189,145 L195,135 L199,122 L201,120 L200,108 L202,108 L202,113 L202,106 L200,95 L188,72 L181,64 L170,56 L154,49 L151,50 L151,48 L133,48 L121,52 L121,55 L117,54 L118,55 L114,59 L109,58 L110,59 L108,60 L106,58 L107,57 L105,58 L103,56 L105,55 L103,54 L104,55 L102,56 L98,52 L92,52 L91,51 L93,50 L87,47 L67,47 L53,53 L49,53 L33,66 L32,69 L29,70 L28,75 Z M101,98 L125,122 L125,125 L111,141 L95,126 L96,120 L106,110 L106,108 L99,101 Z M33,91 L35,90 L37,83 L43,78 L49,70 L59,64 L64,64 L69,61 L81,61 L91,65 L92,64 L101,71 L103,71 L109,77 L113,75 L119,68 L131,62 L135,63 L141,61 L150,61 L164,66 L179,79 L184,87 L188,98 L189,115 L180,137 L171,147 L172,148 L168,149 L169,150 L167,152 L164,151 L157,157 L146,161 L133,160 L122,154 L111,144 L103,151 L94,157 L82,161 L69,160 L57,155 L45,145 L37,134 L32,121 L31,106 Z M59,92 L61,84 L67,77 L76,73 L84,73 L91,76 L99,84 L109,98 L119,84 L127,77 L136,73 L145,73 L153,76 L161,83 L166,92 L167,103 L164,112 L156,122 L148,128 L141,129 L135,126 L128,117 L118,103 L109,91 L99,103 L89,117 L82,126 L75,129 L68,127 L60,120 L55,112 L52,103 L54,96 Z M95,102 L107,114 L107,119 L100,126 L95,122 L95,118 L100,112 L100,109 Z"/>
 </vector>
