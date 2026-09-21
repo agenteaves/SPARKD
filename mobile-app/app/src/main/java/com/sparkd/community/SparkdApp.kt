@@ -4,6 +4,7 @@ import android.widget.Toast
 import java.net.HttpURLConnection
 import java.net.URL
 import java.io.ByteArrayOutputStream
+import java.math.RoundingMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
@@ -165,12 +167,42 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 @Composable fun Winners(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Winner>())};LaunchedEffect(Unit){while(isActive){runCatching{r.winners()}.onSuccess{list=it};delay(15_000)}};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("Hall of Winners",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Weekly results and payouts.",color=Color.LightGray)};items(list){w->Surface(shape=RoundedCornerShape(18.dp)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text(if(w.place==1)"🥇" else if(w.place==2)"🥈" else "🥉",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(w.title,fontWeight=FontWeight.Bold);Text(w.creator,color=Color.LightGray)};Text("CHAMPION",color=Green)}}}}}
 
 @Composable fun Profile(wallet:WalletSession){
- val scope=rememberCoroutineScope();var address by remember{mutableStateOf(wallet.address)};var status by remember{mutableStateOf<String?>(null)}
- Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+ val scope=rememberCoroutineScope();val uriHandler=LocalUriHandler.current;val balances=remember{SparkdBalanceRepository()}
+ var address by remember{mutableStateOf(wallet.address)};var status by remember{mutableStateOf<String?>(null)}
+ var balance by remember{mutableStateOf<String?>(null)};var balanceError by remember{mutableStateOf<String?>(null)}
+ LaunchedEffect(address){
+  val owner=address
+  if(owner==null){balance=null;balanceError=null;return@LaunchedEffect}
+  while(isActive){
+   runCatching{balances.balance(owner)}
+    .onSuccess{amount->balance=amount.setScale(2,RoundingMode.DOWN).toPlainString();balanceError=null}
+    .onFailure{balanceError=it.message?:"Unable to load balance."}
+   delay(15_000)
+  }
+ }
+ LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+  item{
   Text("My SPARKD",fontSize=30.sp,fontWeight=FontWeight.Black)
+  }
+  item{
   Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp)){Text("Wallet",color=Color.Gray);Text(address?:"Not connected",color=if(address==null)Gold else Green)}}
+  }
+  item{
+   Surface(shape=RoundedCornerShape(20.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(20.dp)){
+    Text("SPARKD Balance",color=Color.Gray)
+    Text(when{address==null->"Connect wallet to view";balance!=null->balance+" SPARKD";else->"Loading…"},fontSize=25.sp,fontWeight=FontWeight.Black,color=if(balance!=null)Green else Gold)
+    balanceError?.let{Text(it,color=Color.LightGray,fontSize=12.sp)}
+   }}
+  }
+  item{
+   Button({uriHandler.openUri(SparkdBalanceRepository.BUY_URL)},modifier=Modifier.fillMaxWidth()){Text("Buy More SPARKD")}
+  }
+  item{
   OutlinedButton({if(address!=null){wallet.disconnect();address=null;status="Wallet disconnected."}else scope.launch{status="Opening your Solana wallet…";runCatching{wallet.connect()}.onSuccess{address=it;status="Wallet connected."}.onFailure{status=it.message?:"Wallet connection failed."}}},modifier=Modifier.fillMaxWidth()){Text(if(address==null)"Connect Solana Wallet" else "Disconnect Wallet")}
+  }
+  item{
   status?.let{Text(it,color=Color.LightGray)}
+  }
  }
 }
 
