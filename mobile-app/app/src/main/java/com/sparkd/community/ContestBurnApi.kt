@@ -36,6 +36,31 @@ class ContestBurnApi {
         result
     }
 
+
+    /** Checks the same server-side Forge record validator used by sparkdcoin.com.
+     * This is read-only and never uploads or burns anything. */
+    suspend fun verifyForge(wallet: String, forge: ForgeDnaRecord) {
+        require(wallet.length in 32..50) { "Invalid wallet address." }
+        val data = JSONObject()
+            .put("forge", forge.forge).put("version", forge.version)
+            .put("memeID", forge.memeID).put("DNA", forge.DNA)
+            .put("imageFingerprint", forge.imageFingerprint).put("imageLock", forge.imageLock)
+            .put("created", forge.created).put("contract", forge.contract)
+            .put("creatorID", forge.creatorID).put("wallet", forge.wallet)
+            .put("reputation", forge.reputation).put("signature", forge.signature)
+        val result = call(JSONObject().put("action", "verify_dna").put("wallet", wallet).put("mint", mint).put("forgeData", data))
+        check(result.optBoolean("verified")) {
+            result.optString("reason", result.optString("error", "SPARKD Forge verification failed."))
+        }
+    }
+
+    /** Checks whether this wallet already has a submission; it never changes contest state. */
+    suspend fun hasExistingSubmission(wallet: String): Boolean {
+        require(wallet.length in 32..50) { "Invalid wallet address." }
+        val result = call(JSONObject().put("action", "check_submission").put("wallet", wallet))
+        return result.optBoolean("alreadySubmitted") || result.optBoolean("submitted") || result.optBoolean("exists")
+    }
+
     suspend fun prepare(wallet: String, contestId: String): PreparedBurn {
         require(wallet.length in 32..50) { "Invalid wallet address." }
         val token = call(JSONObject().put("action", "find_token_account").put("wallet", wallet))
