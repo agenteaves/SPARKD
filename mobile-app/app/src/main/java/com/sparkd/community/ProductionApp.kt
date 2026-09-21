@@ -1,5 +1,9 @@
 package com.sparkd.community
 
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,13 +14,18 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun ProductionApp(wallet: WalletSession) {
@@ -55,12 +64,19 @@ import kotlinx.coroutines.launch
                         label = { Text(tab.label) }
                     )
                 }
+                NavigationBarItem(
+                    selected = page == "submit",
+                    onClick = { page = "submit" },
+                    icon = { Icon(Icons.Default.UploadFile, "Submit") },
+                    label = { Text("Submit") }
+                )
             }
         }
     ) { padding ->
         when (page) {
             "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) { page = "entry" } }
             "contest" -> Box(Modifier.padding(padding)) { Contest(repo) }
+            "submit" -> Box(Modifier.padding(padding)) { SubmitMeme(wallet) { page = "entry" } }
             "winners" -> Box(Modifier.padding(padding)) { Winners(repo) }
             "profile" -> Box(Modifier.padding(padding)) { Profile(wallet) }
             "entry" -> Box(Modifier.padding(padding)) { ContestEntry(wallet, repo) }
@@ -89,6 +105,7 @@ import kotlinx.coroutines.launch
         } } }
         item { Button({ go("forge") }, Modifier.fillMaxWidth()) { Text("🔥 Open Meme Forge") } }
         item { Button({ go("contest") }, Modifier.fillMaxWidth()) { Text("🗳 View live contenders") } }
+        item { OutlinedButton({ go("submit") }, Modifier.fillMaxWidth()) { Text("📤 Submit exported meme") } }
         item {
             OutlinedButton({
                 if (walletAddress != null) {
@@ -106,6 +123,68 @@ import kotlinx.coroutines.launch
             }
         }
         if (message.isNotBlank()) item { Text(message) }
+    }
+}
+
+@Composable private fun SubmitMeme(wallet: WalletSession, onReady: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var title by remember { mutableStateOf(ForgeDraft.submissionTitle) }
+    var selectedPng by remember { mutableStateOf(ForgeDraft.exportedPng) }
+    var record by remember { mutableStateOf(ForgeDraft.exportedRecord) }
+    var status by remember { mutableStateOf(if (record == null) "Choose the exact PNG exported from SPARKD Meme Forge." else "Verified SPARKD Forge PNG selected.") }
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) scope.launch {
+            status = "Verifying SPARKD Forge DNA and image pixels…"
+            runCatching {
+                val bytes = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                        ?: error("Unable to read the selected PNG.")
+                }
+                val verified = withContext(Dispatchers.Default) { ForgeDna.extractAndVerify(bytes) }
+                bytes to verified
+            }.onSuccess { (bytes, verified) ->
+                selectedPng = bytes
+                record = verified
+                ForgeDraft.exportedPng = bytes
+                ForgeDraft.exportedRecord = verified
+                status = "Verified SPARKD Forge PNG selected."
+            }.onFailure {
+                selectedPng = null
+                record = null
+                status = it.message ?: "This PNG did not pass SPARKD Forge verification."
+            }
+        }
+    }
+
+    LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
+        item { Text("Select the same PNG you exported from the mobile Forge. Its embedded Forge DNA and image pixels will be verified before contest entry.") }
+        item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
+        item { Button({ picker.launch("image/png") }, Modifier.fillMaxWidth()) { Text("Choose exported SPARKD PNG") } }
+        selectedPng?.let { bytes ->
+            item {
+                val bitmap = remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
+                bitmap?.let { Image(it.asImageBitmap(), "Selected exported meme", Modifier.fillMaxWidth()) }
+            }
+        }
+        item { Text(status, color = if (record != null) Green else Gold) }
+        record?.let { forge ->
+            item { Card { Column(Modifier.padding(16.dp)) {
+                Text("Forge verification passed", fontWeight = FontWeight.Bold, color = Green)
+                Text("Meme ID: " + forge.memeID)
+                Text("Export wallet: " + if (forge.wallet == "NOT_CONNECTED") "Not connected during export" else forge.wallet.take(6) + "…" + forge.wallet.takeLast(4))
+            } } }
+        }
+        item {
+            Button({
+                ForgeDraft.submissionTitle = title.trim()
+                onReady()
+            }, Modifier.fillMaxWidth(), enabled = record != null && selectedPng != null && title.isNotBlank()) {
+                Text("Continue to secure contest entry")
+            }
+        }
     }
 }
 
