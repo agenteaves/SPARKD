@@ -1,0 +1,66 @@
+name: SPARKD Signed Production APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag, for example v1.0.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  signed-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: mobile-app-development
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SPARKD_RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/SPARKD-release.jks"
+          test -s "$RUNNER_TEMP/SPARKD-release.jks"
+      - name: Build signed APK
+        env:
+          STORE_PASSWORD: ${{ secrets.SPARKD_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SPARKD_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SPARKD_RELEASE_KEY_PASSWORD }}
+        run: |
+          gradle :app:assembleRelease \
+            -PSPARKD_RELEASE_STORE_FILE="$RUNNER_TEMP/SPARKD-release.jks" \
+            -PSPARKD_RELEASE_STORE_PASSWORD="$STORE_PASSWORD" \
+            -PSPARKD_RELEASE_KEY_ALIAS="$KEY_ALIAS" \
+            -PSPARKD_RELEASE_KEY_PASSWORD="$KEY_PASSWORD"
+      - name: Verify production signature
+        run: |
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
+      - name: Prepare signed APK
+        run: cp app/build/outputs/apk/release/app-release.apk SPARKD-Mobile.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sparkd-mobile-signed-apk
+          path: mobile-app/SPARKD-Mobile.apk
+      - name: Publish signed APK release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ inputs.release_tag }}" SPARKD-Mobile.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "SPARKD Mobile ${{ inputs.release_tag }}" \
+            --notes "Signed Android release for SPARKD Mobile."
