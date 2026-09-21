@@ -1,0 +1,55 @@
+package com.sparkd.community
+
+import android.util.Base64
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+
+data class PreparedBurn(
+    val contestId: String,
+    val tokenAccount: String,
+    val unsignedTransaction: ByteArray,
+    val lastValidBlockHeight: Long
+)
+
+/**
+ * Native counterpart to the website's read-only / prepare stages.
+ * It never sends a transaction or burns tokens.
+ */
+class ContestBurnApi {
+    private val endpoint = "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler"
+    private val mint = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
+    private val token2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+
+    private suspend fun call(payload: JSONObject): JSONObject = withContext(Dispatchers.IO) {
+        val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"; doOutput = true; connectTimeout = 15_000; readTimeout = 30_000
+            setRequestProperty("Content-Type", "application/json")
+        }
+        connection.outputStream.use { it.write(payload.toString().toByteArray()) }
+        val status = connection.responseCode
+        val body = (if (status in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty()
+        val result = runCatching { JSONObject(body) }.getOrElse { throw IllegalStateException("SPARKD contest service returned an invalid response.") }
+        if (status !in 200..299 || !result.optBoolean("success")) throw IllegalStateException(result.optString("error", "SPARKD contest service request failed."))
+        result
+    }
+
+    suspend fun prepare(wallet: String, contestId: String): PreparedBurn {
+        require(wallet.length in 32..50) { "Invalid wallet address." }
+        val token = call(JSONObject().put("action", "find_token_account").put("wallet", wallet))
+        check(token.optBoolean("found")) { "No SPARKD Token-2022 account was found." }
+        check(token.optString("mint") == mint && token.optString("program") == token2022) { "Unexpected SPARKD token account." }
+        check(token.optInt("decimals") == 6 && token.optBoolean("sufficientBalance")) { "You need at least 2,000 SPARKD to enter." }
+        val tokenAccount = token.getString("tokenAccount")
+        val prepared = call(JSONObject().put("action", "prepare_burn").put("wallet", wallet).put("contestId", contestId).put("tokenAccount", tokenAccount))
+        check(prepared.optBoolean("prepared") && prepared.optBoolean("transactionBuilt")) { "SPARKD burn could not be prepared." }
+        check(prepared.optInt("signerCount") == 1 && prepared.optInt("instructionCount") == 1 && !prepared.optBoolean("durableNonce")) { "Unexpected SPARKD transaction layout." }
+        check(prepared.optString("mint") == mint && prepared.optString("tokenProgram") == token2022) { "Unexpected SPARKD burn token." }
+        check(prepared.optString("rawBurnAmount") == "2000000000" && prepared.optInt("decimals") == 6) { "Unexpected SPARKD burn amount." }
+        val bytes = runCatching { Base64.decode(prepared.getString("unsignedTransaction"), Base64.DEFAULT) }.getOrElse { throw IllegalStateException("SPARKD server returned an invalid transaction.") }
+        check(bytes.isNotEmpty()) { "SPARKD server returned an empty transaction." }
+        return PreparedBurn(contestId, tokenAccount, bytes, prepared.getLong("lastValidBlockHeight"))
+    }
+}
