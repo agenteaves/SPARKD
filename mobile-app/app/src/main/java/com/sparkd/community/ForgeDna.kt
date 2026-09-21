@@ -27,7 +27,7 @@ object ForgeDna {
             "created" to Instant.now().toString(), "contract" to "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
             "creatorID" to creatorId, "wallet" to (wallet ?: "NOT_CONNECTED"), "reputation" to 100
         )
-        val signature = "SIG-" + jsHash(canonical(base, true)).toUInt().toString(16).uppercase()
+        val signature = "SIG-" + hexAbs(jsHash(canonical(base, true)))
         return ForgeDnaRecord(
             memeID = base.getValue("memeID") as String, DNA = base.getValue("DNA") as String,
             imageFingerprint = fingerprint, imageLock = fingerprint, created = base.getValue("created") as String,
@@ -49,7 +49,7 @@ object ForgeDna {
     private fun id(prefix: String, length: Int): String = buildString {
         append(prefix); repeat(length) { append(alphabet[random.nextInt(alphabet.length)]) }
     }
-    private fun dna(): String = "DNA-" + jsHash(System.currentTimeMillis().toString()).toUInt().toString(16).uppercase()
+    private fun dna(): String = "DNA-" + hexAbs(jsHash(System.currentTimeMillis().toString()))
 
     private fun pixelFingerprint(bitmap: Bitmap): String {
         val pixels = IntArray(bitmap.width * bitmap.height)
@@ -58,11 +58,15 @@ object ForgeDna {
         for (pixel in pixels) for (value in intArrayOf(
             (pixel shr 16) and 255, (pixel shr 8) and 255, pixel and 255, (pixel ushr 24) and 255
         )) hash = (hash shl 5) - hash + value
-        return "IMG-" + hash.toUInt().toString(16).uppercase()
+        return "IMG-" + hexAbs(hash)
     }
 
     private fun jsHash(text: String): Int {
         var hash = 0; text.forEach { hash = (hash shl 5) - hash + it.code }; return hash
+    }
+    private fun hexAbs(value: Int): String {
+        val absolute = if (value < 0) -value.toLong() else value.toLong()
+        return absolute.toString(16).uppercase()
     }
     private fun canonical(values: Map<String, Any>, sort: Boolean): String {
         val entries = if (sort) values.toSortedMap() else values
