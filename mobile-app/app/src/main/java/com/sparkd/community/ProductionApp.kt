@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
     var page by remember { mutableStateOf("home") }
     Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("SPARKD", fontWeight = FontWeight.Black) }) }) { padding ->
         when (page) {
-            "forge" -> Box(Modifier.padding(padding)) { Forge() }
+            "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) }
             "contest" -> Box(Modifier.padding(padding)) { Contest(repo) }
             else -> LiveHome(Modifier.padding(padding), repo, wallet, { page = it })
         }
