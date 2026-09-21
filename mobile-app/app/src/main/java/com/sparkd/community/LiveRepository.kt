@@ -38,5 +38,15 @@ class LiveRepository : SparkdRepository {
         return List(rows.length()) { i -> rows.getJSONObject(i).let { Meme(it.optString("meme_title", "Untitled SPARKD Meme"), it.optString("wallet_address", "SPARKD Creator"), 0, it.optString("id"), it.optString("meme_image_url").takeIf { url -> url.isNotBlank() && url != "null" }) } }
     }
 
-    override suspend fun winners(): List<Winner> = emptyList()
+    override suspend fun winners(): List<Winner> {
+        val contests = get("meme_week_contests?select=winner_submission_id,week_start&winner_submission_id=not.is.null&order=week_start.desc&limit=25")
+        val ids = List(contests.length()) { i -> contests.getJSONObject(i).optString("winner_submission_id") }
+            .filter { it.isNotBlank() }
+        if (ids.isEmpty()) return emptyList()
+        val submissions = get("meme_week_submissions?select=id,meme_title,wallet_address&id=in.(" + ids.joinToString(",") + ")")
+        val byId = List(submissions.length()) { i -> submissions.getJSONObject(i) }.associateBy { it.optString("id") }
+        return ids.mapNotNull { id -> byId[id]?.let {
+            Winner(1, it.optString("meme_title", "SPARKD Champion"), it.optString("wallet_address", "SPARKD Creator"), true)
+        } }
+    }
 }
