@@ -46,7 +46,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 }
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun Header(){TopAppBar(title={Row(verticalAlignment=Alignment.CenterVertically){Text("⚡",fontSize=26.sp);Spacer(Modifier.width(8.dp));Column{Text("SPARKD",fontWeight=FontWeight.Black);Text("COMMUNITY APP",fontSize=10.sp,color=Gold)}}},colors=TopAppBarDefaults.topAppBarColors(containerColor=Color(0xFF09160E)))}
 @Composable fun Home(r:SparkdRepository,go:(Tab)->Unit){var c by remember{mutableStateOf<Contest?>(null)};LaunchedEffect(Unit){c=r.contest()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){item{Text("Create. Enter. Vote. Win.",fontSize=29.sp,fontWeight=FontWeight.Black);Text("SPARKD built for your phone.",color=Color.LightGray)};item{c?.let{Surface(shape=RoundedCornerShape(22.dp)){Column(Modifier.padding(20.dp)){Text(it.phase,color=Green,fontWeight=FontWeight.Bold);Text(it.title,fontSize=25.sp,fontWeight=FontWeight.Black);Text(it.prize,color=Gold);Text(it.entries.toString()+" contenders")}}}};item{Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){Button({go(Tab.Forge)},Modifier.weight(1f).height(70.dp)){Text("🔥 Forge")};Button({go(Tab.Contest)},Modifier.weight(1f).height(70.dp)){Text("🗳 Vote")}}}}}
-@Composable fun Forge(wallet:WalletSession?=null){
+@Composable fun Forge(wallet:WalletSession?=null,onEntryReady:(()->Unit)?=null){
  val ctx=LocalContext.current
  var src by remember{mutableStateOf(ForgeDraft.src)};var title by remember{mutableStateOf(ForgeDraft.title)};var layers by remember{mutableStateOf(ForgeDraft.layers)}
  var selected by remember{mutableStateOf(ForgeDraft.selected)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
@@ -139,6 +139,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
    }.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}
   },enabled=png!=null,modifier=Modifier.fillMaxWidth()){Text("Export Verified Forge PNG")}}
   exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
+  if(ForgeDraft.exportedPng!=null&&ForgeDraft.exportedRecord!=null&&onEntryReady!=null)item{OutlinedButton({onEntryReady()},Modifier.fillMaxWidth()){Text("Continue to secure contest entry")}}
  }
 }
 @Composable fun Contest(r:SparkdRepository){
