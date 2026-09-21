@@ -45,6 +45,32 @@ class WalletSession(private val activity: Activity, private val lifecycle: Lifec
             scenario.close().get(2, TimeUnit.SECONDS)
         }
     }
+
+    /**
+     * Signs an already validated transaction. It deliberately does not broadcast it:
+     * the SPARKD server receives these exact signed bytes, records recovery state,
+     * and broadcasts/validates the receipt.
+     */
+    suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray = withContext(Dispatchers.IO) {
+        val token = authToken ?: error("Connect your wallet before signing.")
+        val scenario = LocalAssociationScenario(60_000)
+        val intent = LocalAssociationIntentCreator.createAssociationIntent(walletUri, scenario.port, scenario.session)
+        withContext(Dispatchers.Main) { launcher.launch(WalletIntentParams(intent, CompletableDeferred())) }
+        try {
+            val client = scenario.start().get(60, TimeUnit.SECONDS)
+            val authorization = client.reauthorize(
+                Uri.parse("https://sparkdcoin.com"), Uri.parse("favicon.ico"), "SPARKD", token
+            ).get() ?: error("Wallet authorization expired. Please reconnect.")
+            val account = authorization.accounts.firstOrNull() ?: error("Wallet did not provide an account.")
+            val authorizedAddress = Base58.encode(account.publicKey)
+            check(authorizedAddress == address) { "The active wallet changed. Reconnect before signing." }
+            client.signTransactions(arrayOf(unsignedTransaction)).get()?.signedPayloads?.singleOrNull()
+                ?: error("Wallet did not return a signed transaction.")
+        } finally {
+            scenario.close().get(2, TimeUnit.SECONDS)
+        }
+    }
+
 }
 
 data class WalletIntentParams(val intent: Intent, val finished: CompletableDeferred<Unit>)
