@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -91,9 +93,12 @@ import kotlinx.coroutines.withContext
     var walletAddress by remember { mutableStateOf(wallet.address) }
     var message by remember { mutableStateOf("Loading the live SPARKD contest…") }
     LaunchedEffect(Unit) {
-        runCatching { repo.contest() }
-            .onSuccess { contest = it; message = "" }
-            .onFailure { message = it.message ?: "Unable to load the contest." }
+        while (isActive) {
+            runCatching { repo.contest() }
+                .onSuccess { contest = it; message = "" }
+                .onFailure { message = it.message ?: "Unable to load the contest." }
+            delay(15_000)
+        }
     }
     LazyColumn(modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Create. Enter. Vote. Win.", fontSize = 30.sp, fontWeight = FontWeight.Black) }
