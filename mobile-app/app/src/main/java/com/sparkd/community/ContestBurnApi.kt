@@ -57,13 +57,20 @@ class ContestBurnApi {
 
     /** Sends only the exact bytes returned by the wallet after user approval. */
     suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray): String {
-        require(signedTransaction.isNotEmpty()) { "Signed transaction is empty." }
+        validateSignedLegacyTransaction(signedTransaction)
         val encoded = Base64.encodeToString(signedTransaction, Base64.NO_WRAP)
         val result = call(JSONObject().put("action", "send_signed_transaction")
             .put("wallet", wallet).put("contestId", contestId).put("signedTransaction", encoded))
         check(result.optBoolean("sent")) { "SPARKD server did not accept the signed transaction." }
         return result.optString("transactionSignature").takeIf { it.isNotBlank() }
             ?: error("SPARKD server returned no transaction signature.")
+    }
+
+    private fun validateSignedLegacyTransaction(bytes: ByteArray) {
+        // The server prepares one legacy transaction with exactly one wallet signer.
+        // A legacy short-vector signature count of 1 is encoded as a single byte.
+        check(bytes.size >= 65 && bytes[0].toInt() == 1) { "Unexpected signed transaction format." }
+        check(bytes.copyOfRange(1, 65).any { it.toInt() != 0 }) { "Wallet returned an empty signature." }
     }
 
     /** Confirms the server observed and validated the exact on-chain burn. */
