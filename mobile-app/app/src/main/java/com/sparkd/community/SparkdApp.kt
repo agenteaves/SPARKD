@@ -108,7 +108,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 
 private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
  val boundary="----SPARKDAndroid"+System.currentTimeMillis()
- val conn=(URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety").openConnection() as HttpURLConnection).apply{
+ val conn=(URL("https://sparkd-nudenet-server.onrender.com/scan").openConnection() as HttpURLConnection).apply{
   requestMethod="POST";doOutput=true;connectTimeout=20000;readTimeout=30000
   setRequestProperty("Content-Type","multipart/form-data; boundary=$boundary")
  }
