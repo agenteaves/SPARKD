@@ -9,8 +9,19 @@ object MemeForge{
   val size=1080
   val out=Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888)
   val c=Canvas(out); c.drawColor(Color.BLACK)
-  val crop=if(source.width>source.height) Rect((source.width-source.height)/2,0,(source.width+source.height)/2,source.height) else Rect(0,(source.height-source.width)/2,source.width,(source.height+source.width)/2)
-  c.drawBitmap(source,crop,Rect(0,0,size,size),Paint(Paint.ANTI_ALIAS_FLAG))
+
+  // Fit the entire uploaded image inside the square Forge canvas.
+  // Do not center-crop: portrait and landscape images must remain fully visible.
+  val scale=minOf(
+   size.toFloat()/source.width.toFloat(),
+   size.toFloat()/source.height.toFloat()
+  )
+  val drawWidth=source.width*scale
+  val drawHeight=source.height*scale
+  val left=(size-drawWidth)/2f
+  val topOffset=(size-drawHeight)/2f
+  val destination=RectF(left,topOffset,left+drawWidth,topOffset+drawHeight)
+  c.drawBitmap(source,null,destination,Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
   fun drawLabel(s:String,y:Float){
    if(s.isBlank())return
    val p=Paint(Paint.ANTI_ALIAS_FLAG).apply{color=Color.WHITE;textAlign=Paint.Align.CENTER;typeface=Typeface.DEFAULT_BOLD;textSize=72f;style=Paint.Style.FILL;setShadowLayer(10f,0f,4f,Color.BLACK)}
