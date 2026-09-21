@@ -39,3 +39,53 @@ import kotlinx.coroutines.launch
         if (message.isNotBlank()) item { Text(message) }
     }
 }
+
+
+@Composable private fun ContestEntry(wallet: WalletSession, repo: LiveRepository) {
+    val scope = rememberCoroutineScope()
+    val api = remember { ContestBurnApi() }
+    var status by remember { mutableStateOf("Export a verified Forge PNG, then review the secure entry checks here.") }
+    var prepared by remember { mutableStateOf<PreparedBurn?>(null) }
+    val forge = ForgeDraft.exportedRecord
+    val bytes = ForgeDraft.exportedPng
+    LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item { Text("Secure Contest Entry", fontSize = 28.sp, fontWeight = FontWeight.Black) }
+        item { Text("Entry requires a 2,000 SPARKD burn. The app verifies the exact server-built transaction before it can ever ask your wallet to sign.", color = androidx.compose.ui.graphics.Color.LightGray) }
+        item { Card { Column(Modifier.padding(16.dp)) {
+            Text("Forge export", fontWeight = FontWeight.Bold)
+            Text(forge?.memeID ?: "No verified Forge export is available.")
+            Text(if (bytes == null) "Export a meme from the Forge first." else "Verified PNG is retained on this device.")
+        } } }
+        item { Button({
+            scope.launch {
+                prepared = null
+                runCatching {
+                    val address = wallet.address ?: wallet.connect()
+                    val record = forge ?: error("Export a verified Forge PNG first.")
+                    check(record.wallet == address) { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
+                    val contest = repo.contest()
+                    check(contest.id.isNotBlank()) { "The live contest is unavailable." }
+                    check(contest.phase.contains("OPEN")) { "Submissions are not open for the current contest." }
+                    check(!api.hasExistingSubmission(address)) { "This wallet already has a contest submission." }
+                    api.verifyForge(address, record)
+                    api.prepare(address, contest.id)
+                }.onSuccess {
+                    prepared = it
+                    status = "Entry checks passed. Review the exact burn details below."
+                }.onFailure {
+                    status = it.message ?: "Unable to prepare secure contest entry."
+                }
+            }
+        }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null) { Text("Review secure entry") } }
+        item { Text(status, color = if (prepared != null) Green else Gold) }
+        prepared?.let { burn ->
+            item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Transaction review", fontSize = 20.sp, fontWeight = FontWeight.Black)
+                Text("Burn amount: 2,000 SPARKD", fontWeight = FontWeight.Bold, color = Gold)
+                Text("Token account: " + burn.tokenAccount.take(6) + "…" + burn.tokenAccount.takeLast(4))
+                Text("One signer • one burn instruction • Token-2022 verified")
+                Text("Your wallet signature and submission broadcast are not enabled until the final safety audit is complete.", color = androidx.compose.ui.graphics.Color.LightGray)
+            } } }
+        }
+    }
+}
