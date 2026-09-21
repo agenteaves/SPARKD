@@ -46,6 +46,12 @@ class WalletSession(private val activity: Activity, private val lifecycle: Lifec
         }
     }
 
+    fun disconnect() {
+        address = null
+        authToken = null
+        walletUri = null
+    }
+
     /**
      * Signs an already validated transaction. It deliberately does not broadcast it:
      * the SPARKD server receives these exact signed bytes, records recovery state,
