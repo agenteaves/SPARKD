@@ -50,7 +50,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  val ctx=LocalContext.current
  var src by remember{mutableStateOf(ForgeDraft.src)};var title by remember{mutableStateOf(ForgeDraft.title)};var layers by remember{mutableStateOf(ForgeDraft.layers)}
  var selected by remember{mutableStateOf(ForgeDraft.selected)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
- var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")}
+ var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")};var newTextColor by remember{mutableStateOf(android.graphics.Color.WHITE)}
  var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf(ForgeDraft.safetyMessage)}
  DisposableEffect(Unit){onDispose{ForgeDraft.src=src;ForgeDraft.title=title;ForgeDraft.layers=layers;ForgeDraft.selected=selected;ForgeDraft.safetyMessage=safetyMessage}}
  val emojis=listOf("😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓")
@@ -69,7 +69,32 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
   }
  }
  LaunchedEffect(src,layers){png=src?.let{MemeForge.render(it,"","",layers)}}
- if(textPopup) AlertDialog(onDismissRequest={textPopup=false},title={Text("Add text")},text={OutlinedTextField(newText,{newText=it},label={Text("Text")})},confirmButton={Button({if(newText.isNotBlank()){val n=layers+ForgeSticker(newText);layers=n;selected=n.lastIndex;newText=""};textPopup=false}){Text("Add")}},dismissButton={TextButton({textPopup=false}){Text("Cancel")}})
+ if(textPopup) AlertDialog(
+ onDismissRequest={textPopup=false},
+ title={Text("Add text")},
+ text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
+  OutlinedTextField(newText,{newText=it},label={Text("Text")})
+  Text("Text color",fontSize=12.sp,color=Color.LightGray)
+  val textColors=listOf(
+   android.graphics.Color.WHITE,android.graphics.Color.BLACK,android.graphics.Color.YELLOW,
+   android.graphics.Color.RED,android.graphics.Color.GREEN,android.graphics.Color.CYAN,
+   android.graphics.Color.BLUE,android.graphics.Color.MAGENTA
+  )
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
+   textColors.forEach{c->
+    val selectedColor=newTextColor==c
+    Box(
+     Modifier.size(30.dp)
+      .background(Color(c),RoundedCornerShape(50))
+      .border(if(selectedColor)3.dp else 1.dp,if(selectedColor)Gold else Color.Gray,RoundedCornerShape(50))
+      .clickable{newTextColor=c}
+    )
+   }
+  }
+ }},
+ confirmButton={Button({if(newText.isNotBlank()){val n=layers+ForgeSticker(newText,color=newTextColor);layers=n;selected=n.lastIndex;newText="";newTextColor=android.graphics.Color.WHITE};textPopup=false}){Text("Add")}},
+ dismissButton={TextButton({textPopup=false}){Text("Cancel")}}
+)
  if(emojiPopup) AlertDialog(
  onDismissRequest={emojiPopup=false},
  title={Text("Choose emoji")},
