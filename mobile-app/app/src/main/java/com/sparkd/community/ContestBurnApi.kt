@@ -54,6 +54,25 @@ class ContestBurnApi {
         }
     }
 
+
+    /** Sends only the exact bytes returned by the wallet after user approval. */
+    suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray): String {
+        require(signedTransaction.isNotEmpty()) { "Signed transaction is empty." }
+        val encoded = Base64.encodeToString(signedTransaction, Base64.NO_WRAP)
+        val result = call(JSONObject().put("action", "send_signed_transaction")
+            .put("wallet", wallet).put("contestId", contestId).put("signedTransaction", encoded))
+        check(result.optBoolean("sent")) { "SPARKD server did not accept the signed transaction." }
+        return result.optString("transactionSignature").takeIf { it.isNotBlank() }
+            ?: error("SPARKD server returned no transaction signature.")
+    }
+
+    /** Confirms the server observed and validated the exact on-chain burn. */
+    suspend fun verifyBurn(wallet: String, signature: String): Boolean {
+        val result = call(JSONObject().put("action", "verify_burn").put("wallet", wallet).put("burnTransaction", signature))
+        check(result.optBoolean("verified")) { result.optString("reason", "SPARKD burn could not be verified.") }
+        return true
+    }
+
     /** Checks whether this wallet already has a submission; it never changes contest state. */
     suspend fun hasExistingSubmission(wallet: String): Boolean {
         require(wallet.length in 32..50) { "Invalid wallet address." }
