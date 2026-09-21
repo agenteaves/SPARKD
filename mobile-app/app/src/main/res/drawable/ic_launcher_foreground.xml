@@ -1,8 +1,17 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:gravity="center">
+    <!--
+      The source PNG is a 216x216 adaptive-icon master.
+      Android renders adaptive-icon foreground drawables inside a larger
+      108dp viewport, so an unscaled bitmap is effectively cropped/zoomed.
+      Constrain the artwork to the 66dp adaptive-icon safe zone.
+    -->
+    <item
+        android:width="66dp"
+        android:height="66dp"
+        android:gravity="center">
         <bitmap
             android:src="@drawable/sparkd_exact_loops"
-            android:gravity="center"
+            android:gravity="fill"
             android:filter="true" />
     </item>
 </layer-list>
