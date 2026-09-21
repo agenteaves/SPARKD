@@ -1,4 +1,5 @@
 name: SPARKD Mobile Preview Build
+# Rebuild marker: text-color-picker
 on:
   push:
     branches: [ mobile-app-development ]
