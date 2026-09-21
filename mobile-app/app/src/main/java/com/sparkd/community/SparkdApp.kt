@@ -46,10 +46,16 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
 }
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun Header(){TopAppBar(title={Row(verticalAlignment=Alignment.CenterVertically){Text("⚡",fontSize=26.sp);Spacer(Modifier.width(8.dp));Column{Text("SPARKD",fontWeight=FontWeight.Black);Text("COMMUNITY APP • PREVIEW",fontSize=10.sp,color=Gold)}}},colors=TopAppBarDefaults.topAppBarColors(containerColor=Color(0xFF09160E)))}
 @Composable fun Home(r:SparkdRepository,go:(Tab)->Unit){var c by remember{mutableStateOf<Contest?>(null)};LaunchedEffect(Unit){c=r.contest()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){item{Text("Create. Enter. Vote. Win.",fontSize=29.sp,fontWeight=FontWeight.Black);Text("SPARKD built for your phone.",color=Color.LightGray)};item{c?.let{Surface(shape=RoundedCornerShape(22.dp)){Column(Modifier.padding(20.dp)){Text(it.phase,color=Green,fontWeight=FontWeight.Bold);Text(it.title,fontSize=25.sp,fontWeight=FontWeight.Black);Text(it.prize,color=Gold);Text(it.entries.toString()+" contenders")}}}};item{Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){Button({go(Tab.Forge)},Modifier.weight(1f).height(70.dp)){Text("🔥 Forge")};Button({go(Tab.Contest)},Modifier.weight(1f).height(70.dp)){Text("🗳 Vote")}}};item{Notice()}}}
-@Composable fun Forge(){
+@Composable fun Forge(wallet:WalletSession?=null){
  val ctx=LocalContext.current
  var src by remember{mutableStateOf(ForgeDraft.src)};var title by remember{mutableStateOf(ForgeDraft.title)};var layers by remember{mutableStateOf(ForgeDraft.layers)}
  var selected by remember{mutableStateOf(ForgeDraft.selected)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
+ var exportBytes by remember{mutableStateOf<ByteArray?>(null)};var exportStatus by remember{mutableStateOf<String?>(null)}
+ val creatorId=remember{ctx.getSharedPreferences("sparkd-forge",0).getString("creator-id",null)?:ForgeDna.newCreatorId().also{ctx.getSharedPreferences("sparkd-forge",0).edit().putString("creator-id",it).apply()}}
+ val exportPng=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")){uri->
+  val bytes=exportBytes
+  if(uri!=null&&bytes!=null)runCatching{ctx.contentResolver.openOutputStream(uri)?.use{it.write(bytes)}?:error("Unable to open the selected save location.")}.onSuccess{exportStatus="✅ Verified SPARKD Forge PNG saved. It is ready for contest entry."}.onFailure{exportStatus="🚫 Export failed: "+(it.message?:"Unable to save PNG.")}
+ }
  var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")};var newTextColor by remember{mutableStateOf(android.graphics.Color.WHITE)}
  var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf(ForgeDraft.safetyMessage)}
  DisposableEffect(Unit){onDispose{ForgeDraft.src=src;ForgeDraft.title=title;ForgeDraft.layers=layers;ForgeDraft.selected=selected;ForgeDraft.safetyMessage=safetyMessage}}
@@ -122,8 +128,15 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
   item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button({textPopup=true},Modifier.weight(1f)){Text("＋ Text")};Button({emojiPopup=true},Modifier.weight(1f)){Text("😀 Emoji")}}}
   selected?.takeIf{it in layers.indices}?.let{i->item{Surface(shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(14.dp)){Text("Selected: "+layers[i].text,fontWeight=FontWeight.Bold);Text("Resize");Slider(value=layers[i].size,onValueChange={v->if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(size=v);layers=n}},valueRange=36f..180f);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(x=.5f,y=.5f);layers=n}},Modifier.weight(1f)){Text("Center")};OutlinedButton({if(i<layers.size){layers=layers.toMutableList().also{it.removeAt(i)};selected=null}},Modifier.weight(1f)){Text("Delete")}}}}}}
   if(layers.isNotEmpty()) item{Text("Tip: drag the text or emoji directly on the image. Tap a layer below to select it.",color=Color.LightGray,fontSize=12.sp);LazyRow(horizontalArrangement=Arrangement.spacedBy(6.dp)){items(layers.size){i->AssistChip(onClick={selected=i},label={Text(layers[i].text)})}}}
-  item{Button({},enabled=false,modifier=Modifier.fillMaxWidth()){Text("Enter Meme of the Week")}}
-  item{Notice()}
+  item{Button({
+   runCatching{
+    val raw=png?:error("Choose an image before exporting.")
+    val record=ForgeDna.create(raw,creatorId,wallet?.address)
+    exportBytes=ForgeDna.embed(raw,record)
+    exportPng.launch("SPARKD-"+record.memeID+".png")
+   }.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}
+  },enabled=png!=null,modifier=Modifier.fillMaxWidth()){Text("Export Verified Forge PNG")}}
+  exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
  }
 }
 @Composable fun Contest(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Meme>())};LaunchedEffect(Unit){list=r.memes()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("This Week's Contenders",fontSize=27.sp,fontWeight=FontWeight.Black);Text("Voting layout preview",color=Gold)};items(list){m->Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(16.dp)){Box(Modifier.fillMaxWidth().aspectRatio(1.4f).background(Color(0xFF182A20),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){Text("MEME PREVIEW",color=Color.Gray)};Spacer(Modifier.height(10.dp));Text(m.title,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(m.creator,color=Color.LightGray);Button({},enabled=false,modifier=Modifier.fillMaxWidth()){Text("🗳 Vote")}}}}}}
