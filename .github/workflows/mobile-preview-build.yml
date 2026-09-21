@@ -32,7 +32,7 @@ jobs:
       - name: Verify preview source
         run: |
           echo "BUILD_SHA=$(git rev-parse HEAD)"
-          grep 'versionCode=2' app/build.gradle.kts
+          grep 'versionCode=3' app/build.gradle.kts
           grep '@mipmap/ic_launcher' app/src/main/AndroidManifest.xml
           test -s app/src/main/res/drawable/sparkd_exact_loops.png
       - run: gradle :app:assembleDebug
