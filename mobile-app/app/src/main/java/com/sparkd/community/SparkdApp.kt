@@ -167,7 +167,7 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
   Text("My SPARKD",fontSize=30.sp,fontWeight=FontWeight.Black)
   Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp)){Text("Wallet",color=Color.Gray);Text(address?:"Not connected",color=if(address==null)Gold else Green)}}
-  OutlinedButton({scope.launch{status="Opening your Solana wallet…";runCatching{wallet.connect()}.onSuccess{address=it;status="Wallet connected."}.onFailure{status=it.message?:"Wallet connection failed."}}},modifier=Modifier.fillMaxWidth()){Text(if(address==null)"Connect Solana Wallet" else "Reconnect Wallet")}
+  OutlinedButton({if(address!=null){wallet.disconnect();address=null;status="Wallet disconnected."}else scope.launch{status="Opening your Solana wallet…";runCatching{wallet.connect()}.onSuccess{address=it;status="Wallet connected."}.onFailure{status=it.message?:"Wallet connection failed."}}},modifier=Modifier.fillMaxWidth()){Text(if(address==null)"Connect Solana Wallet" else "Disconnect Wallet")}
   status?.let{Text(it,color=Color.LightGray)}
  }
 }
