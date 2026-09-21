@@ -1,5 +1,5 @@
 name: SPARKD Mobile Preview Build
-# Rebuild marker: text-color-picker
+# Rebuild marker: text-color-picker-default-workflow-enabled
 "on":
   push:
     branches:
