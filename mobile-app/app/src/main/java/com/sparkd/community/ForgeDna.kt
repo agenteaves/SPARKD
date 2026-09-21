@@ -57,7 +57,7 @@ object ForgeDna {
             val type = String(png, offset + 4, 4, Charsets.ISO_8859_1)
             if (type == "tEXt") {
                 val data = png.copyOfRange(offset + 8, offset + 8 + length)
-                val zero = data.indexOf(0)
+                val zero = data.indexOf(0.toByte())
                 if (zero > 0 && String(data, 0, zero, Charsets.UTF_8) == "SPARKD-FORGE") {
                     payloads += String(data, zero + 1, data.size - zero - 1, Charsets.UTF_8)
                 }
