@@ -1,10 +1,13 @@
 name: SPARKD Mobile Preview Build
 # Rebuild marker: text-color-picker
-on:
+"on":
   push:
-    branches: [ mobile-app-development ]
-    paths: [ 'mobile-app/**', '.github/workflows/mobile-preview-build.yml' ]
-  workflow_dispatch:
+    branches:
+      - mobile-app-development
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/mobile-preview-build.yml'
+  workflow_dispatch: {}
 permissions:
   contents: write
 jobs:
