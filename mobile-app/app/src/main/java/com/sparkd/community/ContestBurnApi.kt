@@ -65,7 +65,6 @@ class ContestBurnApi {
         check(result.optBoolean("sent")) { "SPARKD server did not accept the signed transaction." }
         val signature = result.optString("transactionSignature").takeIf { it.isNotBlank() }
             ?: error("SPARKD server returned no transaction signature.")
-        recovery.clear()
         return signature
     }
 
