@@ -5,6 +5,18 @@ android {
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17" }
  buildFeatures { compose=true }
+ signingConfigs {
+  val storeFilePath = providers.gradleProperty("SPARKD_RELEASE_STORE_FILE").orNull
+  val storePassword = providers.gradleProperty("SPARKD_RELEASE_STORE_PASSWORD").orNull
+  val keyAlias = providers.gradleProperty("SPARKD_RELEASE_KEY_ALIAS").orNull
+  val keyPassword = providers.gradleProperty("SPARKD_RELEASE_KEY_PASSWORD").orNull
+  if (storeFilePath != null && storePassword != null && keyAlias != null && keyPassword != null) {
+   create("release") { storeFile = file(storeFilePath); this.storePassword = storePassword; this.keyAlias = keyAlias; this.keyPassword = keyPassword }
+  }
+ }
+ buildTypes {
+  getByName("release") { signingConfigs.findByName("release")?.let { signingConfig = it }; isMinifyEnabled = false }
+ }
 }
 dependencies {
  implementation(platform("androidx.compose:compose-bom:2025.05.01"))
