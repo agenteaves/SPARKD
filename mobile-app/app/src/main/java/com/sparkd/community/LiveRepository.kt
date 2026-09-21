@@ -30,7 +30,7 @@ class LiveRepository : SparkdRepository {
         return Contest(c.optString("title", "Meme of the Week"),
             c.optString("status", "OPEN").uppercase().replace('_', ' '),
             c.optString("prize", c.optString("prize_description", "Weekly SPARKD prize")),
-            c.optInt("submission_count", 0))
+            c.optInt("submission_count", 0), c.optString("id"))
     }
 
     override suspend fun memes(): List<Meme> {
