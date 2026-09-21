@@ -45,6 +45,56 @@ object ForgeDna {
         return insertTextChunk(png, "SPARKD-FORGE", canonical(fields, false))
     }
 
+    fun extractAndVerify(png: ByteArray): ForgeDnaRecord {
+        require(png.size >= 20 && png.copyOfRange(0, 8).contentEquals(byteArrayOf(137.toByte(),80,78,71,13,10,26,10))) {
+            "Choose the PNG exported by SPARKD Meme Forge."
+        }
+        val payloads = mutableListOf<String>()
+        var offset = 8
+        while (offset + 12 <= png.size) {
+            val length = readInt(png, offset)
+            require(length >= 0 && offset + 12 + length <= png.size) { "SPARKD PNG is damaged." }
+            val type = String(png, offset + 4, 4, Charsets.ISO_8859_1)
+            if (type == "tEXt") {
+                val data = png.copyOfRange(offset + 8, offset + 8 + length)
+                val zero = data.indexOf(0)
+                if (zero > 0 && String(data, 0, zero, Charsets.UTF_8) == "SPARKD-FORGE") {
+                    payloads += String(data, zero + 1, data.size - zero - 1, Charsets.UTF_8)
+                }
+            }
+            offset += 12 + length
+            if (type == "IEND") break
+        }
+        require(payloads.size == 1) { if (payloads.isEmpty()) "No SPARKD Forge DNA was found in this PNG." else "Conflicting SPARKD Forge DNA was found." }
+        val json = runCatching { JSONObject(payloads.single()) }.getOrElse { error("SPARKD Forge DNA is corrupted.") }
+        val record = ForgeDnaRecord(
+            forge = json.getString("forge"), version = json.getString("version"),
+            memeID = json.getString("memeID"), DNA = json.getString("DNA"),
+            imageFingerprint = json.getString("imageFingerprint"), imageLock = json.getString("imageLock"),
+            created = json.getString("created"), contract = json.getString("contract"),
+            creatorID = json.getString("creatorID"), wallet = json.getString("wallet"),
+            reputation = json.getInt("reputation"), signature = json.getString("signature")
+        )
+        check(record.forge == "SPARKD Meme Forge" && record.contract == "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump") { "This is not an official SPARKD Forge PNG." }
+        check(record.imageFingerprint == record.imageLock) { "SPARKD image-lock metadata does not match." }
+        val unsigned = linkedMapOf<String, Any>(
+            "forge" to record.forge, "version" to record.version, "memeID" to record.memeID,
+            "DNA" to record.DNA, "imageFingerprint" to record.imageFingerprint, "imageLock" to record.imageLock,
+            "created" to record.created, "contract" to record.contract, "creatorID" to record.creatorID,
+            "wallet" to record.wallet, "reputation" to record.reputation
+        )
+        check(record.signature == "SIG-" + hexAbs(jsHash(canonical(unsigned, true)))) { "SPARKD Forge DNA signature was altered." }
+        val bitmap = BitmapFactory.decodeByteArray(png, 0, png.size) ?: error("Unable to decode the selected PNG.")
+        check(pixelFingerprint(bitmap) == record.imageLock) { "The meme pixels changed after leaving SPARKD Meme Forge." }
+        return record
+    }
+
+    private fun readInt(source: ByteArray, offset: Int): Int =
+        ((source[offset].toInt() and 255) shl 24) or
+        ((source[offset + 1].toInt() and 255) shl 16) or
+        ((source[offset + 2].toInt() and 255) shl 8) or
+        (source[offset + 3].toInt() and 255)
+
     fun newCreatorId(): String = id("CREATOR-", 8)
     private fun id(prefix: String, length: Int): String = buildString {
         append(prefix); repeat(length) { append(alphabet[random.nextInt(alphabet.length)]) }
