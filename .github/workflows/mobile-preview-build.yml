@@ -37,6 +37,7 @@ jobs:
           test -s ../.github/workflows/144f9ff06447caca416f47fd69ee376c_1.jpg
       - name: Build launcher assets from uploaded SPARKD artwork
         run: |
+          python3 -m pip install --user Pillow
           python3 - <<'PY'
           from PIL import Image
           from pathlib import Path
