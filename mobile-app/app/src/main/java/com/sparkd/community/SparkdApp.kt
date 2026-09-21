@@ -158,3 +158,31 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
  }
 }
 @Composable fun Winners(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Winner>())};LaunchedEffect(Unit){list=r.winners()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("Hall of Winners",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Weekly results and payouts.",color=Color.LightGray)};items(list){w->Surface(shape=RoundedCornerShape(18.dp)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text(if(w.place==1)"🥇" else if(w.place==2)"🥈" else "🥉",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(w.title,fontWeight=FontWeight.Bold);Text(w.creator,color=Color.LightGray)};Text(if(w.paid)"PAID ✓" else "PENDING",color=Green)}}}}}
+
+@Composable fun Profile(wallet:WalletSession){
+ val scope=rememberCoroutineScope();var address by remember{mutableStateOf(wallet.address)};var status by remember{mutableStateOf<String?>(null)}
+ Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+  Text("My SPARKD",fontSize=30.sp,fontWeight=FontWeight.Black)
+  Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp)){Text("Wallet",color=Color.Gray);Text(address?:"Not connected",color=if(address==null)Gold else Green)}}
+  OutlinedButton({scope.launch{status="Opening your Solana wallet…";runCatching{wallet.connect()}.onSuccess{address=it;status="Wallet connected."}.onFailure{status=it.message?:"Wallet connection failed."}}},modifier=Modifier.fillMaxWidth()){Text(if(address==null)"Connect Solana Wallet" else "Reconnect Wallet")}
+  status?.let{Text(it,color=Color.LightGray)}
+ }
+}
+
+private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
+ val boundary="----SPARKDAndroid"+System.currentTimeMillis()
+ val conn=(URL("https://sparkd-nudenet-server.onrender.com/scan").openConnection() as HttpURLConnection).apply{
+  requestMethod="POST";doOutput=true;connectTimeout=20000;readTimeout=30000
+  setRequestProperty("Content-Type","multipart/form-data; boundary="+boundary)
+ }
+ conn.outputStream.use{out->
+  val ext=when{mime.contains("png",true)->"png";mime.contains("webp",true)->"webp";else->"jpg"}
+  out.write(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload."+ext+"\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray())
+  out.write(bytes);out.write(("\r\n--"+boundary+"--\r\n").toByteArray())
+ }
+ val code=conn.responseCode
+ val stream=if(code in 200..299)conn.inputStream else conn.errorStream
+ val body=stream?.bufferedReader()?.use{it.readText()}.orEmpty()
+ if(code !in 200..299)return false to try{JSONObject(body).optString("error","Content protection could not verify this image.")}catch(_:Exception){"Content protection could not verify this image. (HTTP "+code+")"}
+ return try{val j=JSONObject(body);if(j.optBoolean("success")&&j.optBoolean("checked")&&j.optBoolean("safe")&&!j.optBoolean("blocked"))true to "Approved" else false to j.optString("reason",j.optString("error","Image did not pass content inspection."))}catch(_:Exception){false to "Content protection returned an invalid result."}
+}
