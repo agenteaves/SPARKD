@@ -54,7 +54,8 @@ jobs:
               im=crop.copy()
               im.thumbnail((int(s*.82),int(s*.82)),Image.Resampling.LANCZOS)
               canvas.paste(im,((s-im.width)//2,(s-im.height)//2))
-              canvas.save(out/"ic_launcher.png","PNG")\n              canvas.save(out/"ic_launcher_art.png","PNG")
+              canvas.save(out/"ic_launcher.png","PNG")
+              canvas.save(out/"ic_launcher_art.png","PNG")
           PY
       - run: gradle :app:assembleDebug
       - name: Inspect built APK launcher resources
