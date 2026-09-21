@@ -34,8 +34,8 @@ class LiveRepository : SparkdRepository {
     }
 
     override suspend fun memes(): List<Meme> {
-        val rows = get("meme_week_submissions?select=id,meme_title,wallet_address,status,created_at&status=eq.approved&order=created_at.desc")
-        return List(rows.length()) { i -> rows.getJSONObject(i).let { Meme(it.optString("meme_title", "Untitled SPARKD Meme"), it.optString("wallet_address", "SPARKD Creator"), 0) } }
+        val rows = get("meme_week_submissions?select=id,meme_title,meme_image_url,wallet_address,status,created_at&status=eq.approved&order=created_at.desc")
+        return List(rows.length()) { i -> rows.getJSONObject(i).let { Meme(it.optString("meme_title", "Untitled SPARKD Meme"), it.optString("wallet_address", "SPARKD Creator"), 0, it.optString("id"), it.optString("meme_image_url").takeIf { url -> url.isNotBlank() && url != "null" }) } }
     }
 
     override suspend fun winners(): List<Winner> = emptyList()
