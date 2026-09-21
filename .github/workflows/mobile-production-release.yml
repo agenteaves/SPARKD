@@ -7,6 +7,11 @@ on:
         description: 'Release tag, for example v1.0.0'
         required: true
         type: string
+      publish_release:
+        description: 'Publish this APK as a public GitHub release'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -56,6 +61,7 @@ jobs:
           name: sparkd-mobile-signed-apk
           path: mobile-app/SPARKD-Mobile.apk
       - name: Publish signed APK release
+        if: inputs.publish_release == true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
