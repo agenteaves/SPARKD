@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 
 val Green=Color(0xFF41F16B);val Gold=Color(0xFFFFC83D);val Ink=Color(0xFF07110B);val Card=Color(0xFF102018)
-private object ForgeDraft{var src:android.graphics.Bitmap?=null;var title="";var layers:List<ForgeSticker> = emptyList();var selected:Int?=null;var safetyMessage:String?=null}
+private object ForgeDraft{var src:android.graphics.Bitmap?=null;var title="";var layers:List<ForgeSticker> = emptyList();var selected:Int?=null;var safetyMessage:String?=null;var exportedPng:ByteArray?=null;var exportedRecord:ForgeDnaRecord?=null}
 enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),Winners("Winners"),Profile("Profile")}
 @Composable fun SparkdApp(wallet:WalletSession){
  MaterialTheme(colorScheme=darkColorScheme(primary=Green,secondary=Gold,background=Ink,surface=Card)){
@@ -132,7 +132,9 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
    runCatching{
     val raw=png?:error("Choose an image before exporting.")
     val record=ForgeDna.create(raw,creatorId,wallet?.address)
-    exportBytes=ForgeDna.embed(raw,record)
+    val verified=ForgeDna.embed(raw,record)
+    ForgeDraft.exportedRecord=record;ForgeDraft.exportedPng=verified
+    exportBytes=verified
     exportPng.launch("SPARKD-"+record.memeID+".png")
    }.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}
   },enabled=png!=null,modifier=Modifier.fillMaxWidth()){Text("Export Verified Forge PNG")}}
