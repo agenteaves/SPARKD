@@ -139,7 +139,24 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
   exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
  }
 }
-@Composable fun Contest(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Meme>())};LaunchedEffect(Unit){list=r.memes()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("This Week's Contenders",fontSize=27.sp,fontWeight=FontWeight.Black);Text("Voting layout preview",color=Gold)};items(list){m->Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(16.dp)){Box(Modifier.fillMaxWidth().aspectRatio(1.4f).background(Color(0xFF182A20),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){Text("MEME PREVIEW",color=Color.Gray)};Spacer(Modifier.height(10.dp));Text(m.title,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(m.creator,color=Color.LightGray);Button({},enabled=false,modifier=Modifier.fillMaxWidth()){Text("🗳 Vote")}}}}}}
+@Composable fun Contest(r:SparkdRepository){
+ var list by remember{mutableStateOf(emptyList<Meme>())};var message by remember{mutableStateOf("Loading live contenders…")}
+ LaunchedEffect(Unit){runCatching{r.memes()}.onSuccess{list=it;message=if(it.isEmpty())"No approved entries yet." else ""}.onFailure{message=it.message?:"Unable to load live contenders."}}
+ LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+  item{Text("This Week's Contenders",fontSize=27.sp,fontWeight=FontWeight.Black);Text("Live entries from SPARKD Meme of the Week.",color=Gold)}
+  if(message.isNotBlank())item{Text(message,color=Color.LightGray)}
+  items(list){m->Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(16.dp)){
+   m.imageUrl?.let{RemoteMemeImage(it)}?:Box(Modifier.fillMaxWidth().aspectRatio(1.4f).background(Color(0xFF182A20),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){Text("Image unavailable",color=Color.Gray)}
+   Spacer(Modifier.height(10.dp));Text(m.title,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(m.creator,color=Color.LightGray)
+  }}}
+ }
+}
+@Composable private fun RemoteMemeImage(url:String){
+ val bitmap by produceState<android.graphics.Bitmap?>(initialValue=null,url){value=withContext(Dispatchers.IO){runCatching{URL(url).openStream().use{BitmapFactory.decodeStream(it)}}.getOrNull()}}
+ Box(Modifier.fillMaxWidth().aspectRatio(1.4f).background(Color(0xFF182A20),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){
+  bitmap?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}?:CircularProgressIndicator()
+ }
+}
 @Composable fun Winners(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Winner>())};LaunchedEffect(Unit){list=r.winners()};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("Hall of Winners",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Weekly results and payouts.",color=Color.LightGray)};items(list){w->Surface(shape=RoundedCornerShape(18.dp)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text(if(w.place==1)"🥇" else if(w.place==2)"🥈" else "🥉",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(w.title,fontWeight=FontWeight.Bold);Text(w.creator,color=Color.LightGray)};Text(if(w.paid)"PAID ✓" else "PENDING",color=Green)}}}}}
 @Composable fun Profile(){Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){Text("My SPARKD",fontSize=30.sp,fontWeight=FontWeight.Black);Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp)){Text("Creator ID",color=Color.Gray);Text("PREVIEW-CREATOR",fontWeight=FontWeight.Bold);Spacer(Modifier.height(12.dp));Text("Wallet",color=Color.Gray);Text("Not connected",color=Gold)}};OutlinedButton({},enabled=false,modifier=Modifier.fillMaxWidth()){Text("Connect Phantom Wallet")};Notice()}}
 @Composable fun Notice(){Surface(color=Color(0xFF30280B),shape=RoundedCornerShape(16.dp)){Text("🛡 Preview mode — intentionally disconnected from production contests.",Modifier.padding(14.dp),color=Gold,fontWeight=FontWeight.Bold)}}
