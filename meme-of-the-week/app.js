@@ -948,6 +948,101 @@ if (submissionImage) {
 
 
 ////////////////////////////////////////////////////
+// PREVIOUS WEEK RESULTS
+////////////////////////////////////////////////////
+
+let showingPreviousWeek = false;
+
+async function loadPreviousWeekResults() {
+    const grid = document.getElementById("submissionsGrid");
+    const button = document.getElementById("previousWeekButton");
+    const label = document.getElementById("previousWeekLabel");
+    if (!grid || !button) return;
+
+    button.disabled = true;
+    button.textContent = "LOADING...";
+
+    try {
+        const response = await fetch(
+            "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "previous_contest_results" })
+            }
+        );
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Unable to load previous contest.");
+        }
+
+        const contest = result.contest;
+        const submissions = result.submissions || [];
+        grid.innerHTML = "";
+
+        if (!contest || submissions.length === 0) {
+            grid.innerHTML = '<div class="empty-submissions"><span>🖼️</span><p>No memes found for the previous contest.</p></div>';
+        } else {
+            submissions.sort((a, b) => Number(b.vote_count || 0) - Number(a.vote_count || 0));
+            for (const submission of submissions) {
+                const imageUrl = supabaseClient.storage
+                    .from("sparkd-contest-submissions")
+                    .getPublicUrl(submission.meme_image_url).data.publicUrl;
+                const card = document.createElement("div");
+                card.className = "submission-card";
+                card.innerHTML = `
+                    <div class="submission-image">
+                        <img src="${imageUrl}" alt="${escapeHtml(submission.meme_title || "SPARKD Meme")}" loading="lazy">
+                    </div>
+                    <div class="submission-info">
+                        <h3>${escapeHtml(submission.meme_title || "Untitled SPARKD Meme")}</h3>
+                        <p>👻 ${submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet"}</p>
+                        <p style="font-weight:900;font-size:1.05rem;">🗳️ ${Number(submission.vote_count || 0).toLocaleString("en-US")} VOTES</p>
+                    </div>`;
+                const image = card.querySelector("img");
+                if (image) {
+                    image.style.cursor = "pointer";
+                    image.addEventListener("click", () => openSubmissionViewer(imageUrl, submission.meme_title || "SPARKD Meme"));
+                }
+                grid.appendChild(card);
+            }
+        }
+
+        if (label && contest) {
+            const start = new Date(contest.week_start).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+            const end = new Date(contest.week_end).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+            label.textContent = "Previous Contest: " + start + " — " + end;
+            label.hidden = false;
+        }
+        showingPreviousWeek = true;
+        button.textContent = "▶ CURRENT WEEK";
+    } catch (error) {
+        console.error("❌ Could not load previous contest results:", error);
+        grid.innerHTML = '<div class="empty-submissions"><span>⚠️</span><p>Unable to load previous contest results.</p></div>';
+        button.textContent = "◀ PREVIOUS WEEK";
+    } finally {
+        button.disabled = false;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("previousWeekButton");
+    if (!button) return;
+    button.addEventListener("click", async function () {
+        const label = document.getElementById("previousWeekLabel");
+        if (showingPreviousWeek) {
+            showingPreviousWeek = false;
+            if (label) label.hidden = true;
+            button.textContent = "◀ PREVIOUS WEEK";
+            await loadCommunitySubmissions();
+        } else {
+            await loadPreviousWeekResults();
+        }
+    });
+});
+
+
+////////////////////////////////////////////////////
 // HTML ESCAPE HELPER
 ////////////////////////////////////////////////////
 
