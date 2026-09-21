@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable fun ProductionApp(wallet: WalletSession) {
     val repo = remember { LiveRepository() }
     var page by remember { mutableStateOf("home") }
