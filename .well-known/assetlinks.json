@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.sparkd.community",
+      "sha256_cert_fingerprints": [
+        "1E:8E:50:CE:3E:F7:A9:BB:34:19:CD:38:D4:FC:AD:77:82:B6:61:AF:D9:DF:8E:A2:A3:B4:BC:C2:84:18:79:DC"
+      ]
+    }
+  }
+]
