@@ -56,14 +56,17 @@ class ContestBurnApi {
 
 
     /** Sends only the exact bytes returned by the wallet after user approval. */
-    suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray): String {
+    suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
         validateSignedLegacyTransaction(signedTransaction)
+        recovery.save(contestId, wallet, signedTransaction)
         val encoded = Base64.encodeToString(signedTransaction, Base64.NO_WRAP)
         val result = call(JSONObject().put("action", "send_signed_transaction")
             .put("wallet", wallet).put("contestId", contestId).put("signedTransaction", encoded))
         check(result.optBoolean("sent")) { "SPARKD server did not accept the signed transaction." }
-        return result.optString("transactionSignature").takeIf { it.isNotBlank() }
+        val signature = result.optString("transactionSignature").takeIf { it.isNotBlank() }
             ?: error("SPARKD server returned no transaction signature.")
+        recovery.clear()
+        return signature
     }
 
     private fun validateSignedLegacyTransaction(bytes: ByteArray) {
