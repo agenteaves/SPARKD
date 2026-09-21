@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 
 val Green=Color(0xFF41F16B);val Gold=Color(0xFFFFC83D);val Ink=Color(0xFF07110B);val Card=Color(0xFF102018)
-internal object ForgeDraft{var src:android.graphics.Bitmap?=null;var title="";var layers:List<ForgeSticker> = emptyList();var selected:Int?=null;var safetyMessage:String?=null;var exportedPng:ByteArray?=null;var exportedRecord:ForgeDnaRecord?=null}
+internal object ForgeDraft{var src:android.graphics.Bitmap?=null;var title="";var layers:List<ForgeSticker> = emptyList();var selected:Int?=null;var safetyMessage:String?=null;var exportedPng:ByteArray?=null;var exportedRecord:ForgeDnaRecord?=null;var submissionTitle:String=""}
 enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),Winners("Winners"),Profile("Profile")}
 @Composable fun SparkdApp(wallet:WalletSession){
  MaterialTheme(colorScheme=darkColorScheme(primary=Green,secondary=Gold,background=Ink,surface=Card)){
