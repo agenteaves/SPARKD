@@ -4,18 +4,26 @@ import android.content.Context
 import android.util.Base64
 import org.json.JSONObject
 
-data class PendingBurn(val contestId: String, val wallet: String, val signedTransaction: ByteArray)
+data class PendingBurn(
+    val contestId: String,
+    val wallet: String,
+    val signedTransaction: ByteArray,
+    val transactionSignature: String?,
+    val lastValidBlockHeight: Long?
+)
 
 class BurnRecoveryStore(context: Context) {
     private val prefs = context.getSharedPreferences("sparkd-burn-recovery", Context.MODE_PRIVATE)
 
-    fun save(contestId: String, wallet: String, signedTransaction: ByteArray) {
+    fun save(contestId: String, wallet: String, signedTransaction: ByteArray, transactionSignature: String? = null, lastValidBlockHeight: Long? = null) {
         require(contestId.isNotBlank() && wallet.isNotBlank() && signedTransaction.isNotEmpty())
-        prefs.edit().putString("pending", JSONObject()
+        val json = JSONObject()
             .put("contestId", contestId)
             .put("wallet", wallet)
             .put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP))
-            .toString()).apply()
+        transactionSignature?.let { json.put("transactionSignature", it) }
+        lastValidBlockHeight?.let { json.put("lastValidBlockHeight", it) }
+        prefs.edit().putString("pending", json.toString()).apply()
     }
 
     fun pending(): PendingBurn? {
@@ -25,12 +33,12 @@ class BurnRecoveryStore(context: Context) {
             PendingBurn(
                 json.getString("contestId"),
                 json.getString("wallet"),
-                Base64.decode(json.getString("signedTransaction"), Base64.DEFAULT)
+                Base64.decode(json.getString("signedTransaction"), Base64.DEFAULT),
+                json.optString("transactionSignature").takeIf { it.isNotBlank() },
+                if (json.has("lastValidBlockHeight")) json.getLong("lastValidBlockHeight") else null
             )
         }.getOrNull()
     }
 
-    fun clear() {
-        prefs.edit().remove("pending").apply()
-    }
+    fun clear() { prefs.edit().remove("pending").apply() }
 }
