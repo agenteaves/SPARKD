@@ -43,12 +43,10 @@ class WalletSession(private val sender: ActivityResultSender) {
     suspend fun signAndSendTransaction(unsignedTransaction: ByteArray): String {
         val expectedAddress = address ?: error("Connect your wallet before signing.")
 
-        // Start the signing association without carrying a previous authorization handle.
-        // Phantom has been observed accepting reauthorization and immediately returning to
-        // SPARKD before presenting the transaction approval UI. A fresh authorization here
-        // keeps authorize + signTransactions in the same MWA session.
-        walletAdapter.authToken = null
-
+        // Keep the authorization returned by connect(). The official MWA KTX flow
+        // reuses that auth token and reauthorizes inside the same transact session before
+        // signAndSendTransactions. Clearing it here caused Phantom to start a fresh authorize
+        // handoff and then fall back to the wallet home screen instead of showing approval.
         return when (val result = walletAdapter.transact(sender) { authResult ->
             val account = authResult.accounts.firstOrNull()
                 ?: error("Wallet did not provide an account.")
@@ -67,11 +65,16 @@ class WalletSession(private val sender: ActivityResultSender) {
             }
             is TransactionResult.NoWalletFound ->
                 error("No compatible Solana wallet was found. Install a Mobile Wallet Adapter compatible wallet and try again.")
-            is TransactionResult.Failure ->
+            is TransactionResult.Failure -> {
+                // A stale authorization can be repaired safely without sending anything:
+                // clear it and require the user to reconnect/review before another burn attempt.
+                walletAdapter.authToken = null
+                address = null
                 throw IllegalStateException(
-                    "Wallet transaction was cancelled or closed before approval. No SPARKD was burned. Unlock Phantom and try again.",
+                    "Phantom could not continue the wallet session. No new burn was requested by SPARKD. Reconnect Phantom, review the entry again, then approve once.",
                     result.e
                 )
+            }
         }
     }
 }
