@@ -169,7 +169,14 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
             Text(contest?.title ?: message, fontSize = 23.sp, fontWeight = FontWeight.Black)
             contest?.let { Text(it.prize) }
         } } }
-        item { Button({ go("forge") }, Modifier.fillMaxWidth()) { Text("🔥 Open Meme Forge") } }
+        item { Button({
+            if (walletAddress != null) go("forge") else scope.launch {
+                message = "Connect your Solana wallet before creating a contest meme…"
+                runCatching { wallet.connect() }
+                    .onSuccess { walletAddress = it; message = "Wallet connected. Opening Meme Forge…"; go("forge") }
+                    .onFailure { message = it.message ?: "Wallet connection failed." }
+            }
+        }, Modifier.fillMaxWidth()) { Text(if (walletAddress == null) "🔥 Connect wallet & open Meme Forge" else "🔥 Open Meme Forge") } }
         item { Button({ go("contest") }, Modifier.fillMaxWidth()) { Text("🗳 View live contenders") } }
         item { OutlinedButton({ go("submit") }, Modifier.fillMaxWidth()) { Text("📤 Submit exported meme") } }
         item {
