@@ -89,14 +89,15 @@ class ContestBurnApi {
         return result.optBoolean("alreadySubmitted") || result.optBoolean("submitted") || result.optBoolean("exists")
     }
 
-    suspend fun prepare(wallet: String, contestId: String): PreparedBurn {
+    suspend fun prepare(wallet: String, contestId: String, creatorId: String): PreparedBurn {
         require(wallet.length in 32..50) { "Invalid wallet address." }
+        require(creatorId.isNotBlank()) { "Creator identity is missing from this Forge export." }
         val token = call(JSONObject().put("action", "find_token_account").put("wallet", wallet))
         check(token.optBoolean("found")) { "No SPARKD Token-2022 account was found." }
         check(token.optString("mint") == mint && token.optString("program") == token2022) { "Unexpected SPARKD token account." }
         check(token.optInt("decimals") == 6 && token.optBoolean("sufficientBalance")) { "You need at least 2,000 SPARKD to enter." }
         val tokenAccount = token.getString("tokenAccount")
-        val prepared = call(JSONObject().put("action", "prepare_burn").put("wallet", wallet).put("contestId", contestId).put("tokenAccount", tokenAccount))
+        val prepared = call(JSONObject().put("action", "prepare_burn").put("wallet", wallet).put("contestId", contestId).put("tokenAccount", tokenAccount).put("creatorId", creatorId))
         check(prepared.optBoolean("prepared") && prepared.optBoolean("transactionBuilt")) { "SPARKD burn could not be prepared." }
         check(prepared.optInt("signerCount") == 1 && prepared.optInt("instructionCount") == 1 && !prepared.optBoolean("durableNonce")) { "Unexpected SPARKD transaction layout." }
         check(prepared.optString("mint") == mint && prepared.optString("tokenProgram") == token2022) { "Unexpected SPARKD burn token." }
