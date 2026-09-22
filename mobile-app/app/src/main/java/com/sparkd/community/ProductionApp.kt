@@ -334,19 +334,14 @@ import kotlinx.coroutines.withContext
                             status = "Uploading the verified contest PNG…"
                             val imagePath = api.uploadMeme(address, burn.contestId, png)
 
-                            val pending = recovery.pending()
-                            val signed = if (pending != null && pending.contestId == burn.contestId && pending.wallet == address) {
-                                status = "Recovering the previously signed burn. No second burn will be created…"
-                                pending.signedTransaction
-                            } else {
-                                status = "Waiting for wallet approval to burn exactly 2,000 SPARKD…"
-                                wallet.signTransaction(burn.unsignedTransaction)
+                            check(recovery.pending() == null) {
+                                "A previous burn is saved for recovery. DO NOT BURN AGAIN. Install the prior recovery build or contact SPARKD support before retrying."
                             }
 
-                            status = "Broadcasting the exact wallet-signed burn…"
-                            val signature = api.sendSignedTransaction(address, burn.contestId, signed, burn.unsignedTransaction, recovery)
+                            status = "Waiting for Phantom approval to burn exactly 2,000 SPARKD…"
+                            val signature = wallet.signAndSendTransaction(burn.unsignedTransaction)
 
-                            status = "Verifying the 2,000 SPARKD burn on-chain…"
+                            status = "Phantom submitted the transaction. Verifying the exact 2,000 SPARKD burn on-chain…"
                             api.verifyBurn(address, signature)
 
                             status = "Recording the verified burn receipt…"
