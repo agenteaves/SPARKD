@@ -137,8 +137,12 @@ class ContestBurnApi {
 
 
     /** Sends only the exact bytes returned by the wallet after user approval. */
-    suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
+    suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, expectedUnsignedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
         validateSignedLegacyTransaction(signedTransaction)
+        check(expectedUnsignedTransaction.size >= 65 && signedTransaction.size == expectedUnsignedTransaction.size &&
+            signedTransaction.copyOfRange(65, signedTransaction.size).contentEquals(expectedUnsignedTransaction.copyOfRange(65, expectedUnsignedTransaction.size))) {
+            "Wallet returned a transaction that does not match the reviewed SPARKD burn. Nothing was broadcast."
+        }
         recovery.save(contestId, wallet, signedTransaction)
         val encoded = Base64.encodeToString(signedTransaction, Base64.NO_WRAP)
         val result = call(JSONObject().put("action", "send_signed_transaction")
