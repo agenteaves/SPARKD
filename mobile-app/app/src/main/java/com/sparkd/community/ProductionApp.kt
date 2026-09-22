@@ -3,7 +3,6 @@ package com.sparkd.community
 import android.graphics.BitmapFactory
 import android.content.Intent
 import android.net.Uri
-import com.sparkd.community.BuildConfig
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -40,7 +39,7 @@ import kotlinx.coroutines.withContext
     LaunchedEffect(Unit) {
         runCatching { AppUpdateRepository().latest() }
             .onSuccess { latest ->
-                if (latest != null && latest.versionCode > BuildConfig.VERSION_CODE) availableUpdate = latest
+                if (latest != null && latest.versionCode > 4) availableUpdate = latest
             }
     }
     var page by remember { mutableStateOf("home") }
