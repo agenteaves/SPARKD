@@ -369,7 +369,8 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                                         }
                                         expiry != null && api.currentBlockHeight(address) > expiry -> {
                                             recovery.clear()
-                                            error("The previously signed transaction expired without landing. No burn was sent. Review again to build a fresh transaction.")
+                                            prepared = null
+                                            error("The previously signed transaction expired without landing. No burn was sent. Tap Review secure entry; SPARKD will build a fresh transaction.")
                                         }
                                         else -> {
                                             val resent = api.resendSignedTransaction(address, burn.contestId, pending.signedTransaction)
@@ -378,10 +379,11 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                                         }
                                     }
                                 } else {
-                                    // Legacy 1.0.20 marker: the server rejected it as expired before broadcast.
-                                    // Its blockhash is already known expired from the prior response, so it cannot land.
+                                    // Legacy 1.0.20 marker: it was already rejected as expired before broadcast.
+                                    // Clear both recovery and the stale review so the next review always gets a fresh blockhash.
                                     recovery.clear()
-                                    error("The saved transaction expired before broadcast. No burn was sent. Tap Review secure entry to build a fresh transaction.")
+                                    prepared = null
+                                    error("The saved transaction expired before broadcast. No burn was sent. Tap Review secure entry; SPARKD will build a fresh transaction.")
                                 }
                             } else {
                                 status = "Waiting for Phantom approval to sign exactly the reviewed 2,000 SPARKD burn…"
