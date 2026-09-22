@@ -4,6 +4,7 @@ import android.net.Uri
 import com.solana.mobilewalletadapter.clientlib.ActivityResultSender
 import com.solana.mobilewalletadapter.clientlib.ConnectionIdentity
 import com.solana.mobilewalletadapter.clientlib.MobileWalletAdapter
+import com.solana.mobilewalletadapter.clientlib.Solana
 import com.solana.mobilewalletadapter.clientlib.TransactionResult
 
 class WalletSession(private val sender: ActivityResultSender) {
@@ -16,7 +17,9 @@ class WalletSession(private val sender: ActivityResultSender) {
             iconUri = Uri.parse("favicon.ico"),
             identityName = "SPARKD"
         )
-    )
+    ).apply {
+        blockchain = Solana.Mainnet
+    }
 
     suspend fun connect(): String {
         return when (val result = walletAdapter.connect(sender)) {
