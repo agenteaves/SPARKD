@@ -122,7 +122,11 @@ import kotlinx.coroutines.withContext
         while (isActive) {
             runCatching { repo.contest() }
                 .onSuccess { contest = it; message = "" }
-                .onFailure { message = it.message ?: "Unable to load the contest." }
+                .onFailure {
+                    // Keep the last successfully loaded contest on transient network/DNS failures.
+                    // Avoid exposing low-level host/network errors to users.
+                    if (contest == null) message = "Live contest data is temporarily unavailable. Retrying automatically…"
+                }
             delay(15_000)
         }
     }
