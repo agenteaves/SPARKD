@@ -67,13 +67,17 @@ jobs:
         with:
           name: sparkd-mobile-signed-apk
           path: mobile-app/SPARKD-Mobile.apk
-      - name: Publish signed APK release
-        if: inputs.publish_release == true
+      - name: Publish live Android download
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ inputs.release_tag }}" SPARKD-Mobile.apk \
+          if ! gh release view android-production --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create android-production \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "SPARKD Android" \
+              --notes "Current production-signed SPARKD Android app."
+          fi
+          gh release upload android-production SPARKD-Mobile.apk \
             --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
-            --title "SPARKD Mobile ${{ inputs.release_tag }}" \
-            --notes "Signed Android release for SPARKD Mobile."
+            --clobber
