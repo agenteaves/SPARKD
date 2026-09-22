@@ -43,44 +43,36 @@ class WalletSession(private val sender: ActivityResultSender) {
     suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray {
         val expectedAddress = address ?: error("Connect your wallet before signing.")
 
-        suspend fun attempt(): ByteArray? = when (val result = walletAdapter.transact(sender) { authResult ->
+        // Start the signing association without carrying a previous authorization handle.
+        // Phantom has been observed accepting reauthorization and immediately returning to
+        // SPARKD before presenting the transaction approval UI. A fresh authorization here
+        // keeps authorize + signTransactions in the same MWA session.
+        walletAdapter.authToken = null
+
+        return when (val result = walletAdapter.transact(sender) { authResult ->
             val account = authResult.accounts.firstOrNull()
                 ?: error("Wallet did not provide an account.")
             check(Base58.encode(account.publicKey) == expectedAddress) {
                 "The active wallet changed. Reconnect before signing."
             }
             val signed = signTransactions(arrayOf(unsignedTransaction)).signedPayloads.singleOrNull()
+                ?: error("Wallet did not return a signed transaction.")
             Pair(authResult.authToken, signed)
         }) {
             is TransactionResult.Success -> {
-                val payload = result.payload ?: return null
+                val payload = result.payload
+                    ?: error("Wallet returned without a signed transaction. No SPARKD was burned.")
                 walletAdapter.authToken = payload.first
                 payload.second
             }
             is TransactionResult.NoWalletFound ->
                 error("No compatible Solana wallet was found. Install a Mobile Wallet Adapter compatible wallet and try again.")
-            is TransactionResult.Failure -> {
-                // A stale authorization can make some wallets immediately return to the app
-                // before rendering their approval screen. Clear it once and retry with a
-                // fresh authorization; no transaction can be broadcast by this method.
-                val message = buildString {
-                    append(result.message)
-                    append(' ')
-                    append(result.e.message.orEmpty())
-                }
-                if (message.contains("authorization", ignoreCase = true) ||
-                    message.contains("auth", ignoreCase = true)) {
-                    walletAdapter.authToken = null
-                    null
-                } else {
-                    throw result.e
-                }
-            }
+            is TransactionResult.Failure ->
+                throw IllegalStateException(
+                    "Wallet signing was cancelled or closed before approval. No SPARKD was burned. Unlock Phantom and try again.",
+                    result.e
+                )
         }
-
-        attempt()?.let { return it }
-        attempt()?.let { return it }
-        error("Wallet returned before the burn was signed. No SPARKD was burned. Unlock your wallet and tap submit again.")
     }
 }
 
