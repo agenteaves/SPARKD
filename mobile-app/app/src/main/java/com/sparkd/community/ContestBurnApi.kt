@@ -8,6 +8,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.UnknownHostException
 import java.io.IOException
+import java.util.UUID
 
 data class PreparedBurn(
     val contestId: String,
@@ -24,6 +25,9 @@ class ContestBurnApi {
     private val endpoint = "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler"
     private val mint = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
     private val token2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+    private val supabase = "https://uxpbgzksfizkyxubctep.supabase.co"
+    private val publishableKey = "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J"
+    private val bucket = "sparkd-contest-submissions"
 
     private suspend fun call(payload: JSONObject): JSONObject = withContext(Dispatchers.IO) {
         var lastNetworkError: IOException? = null
@@ -61,17 +65,70 @@ class ContestBurnApi {
     }
 
 
+    private fun forgeJson(forge: ForgeDnaRecord) = JSONObject()
+        .put("forge", forge.forge).put("version", forge.version)
+        .put("memeID", forge.memeID).put("DNA", forge.DNA)
+        .put("imageFingerprint", forge.imageFingerprint).put("imageLock", forge.imageLock)
+        .put("created", forge.created).put("contract", forge.contract)
+        .put("creatorID", forge.creatorID).put("wallet", forge.wallet)
+        .put("reputation", forge.reputation).put("signature", forge.signature)
+
+    suspend fun uploadMeme(wallet: String, contestId: String, png: ByteArray): String = withContext(Dispatchers.IO) {
+        require(png.isNotEmpty() && png.size <= 10 * 1024 * 1024) { "Contest PNG must be 10 MB or smaller." }
+        val path = "$contestId/${wallet.take(12)}-${System.currentTimeMillis()}.png"
+        val connection = (URL("$supabase/storage/v1/object/$bucket/$path").openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"; doOutput = true; connectTimeout = 15_000; readTimeout = 30_000
+            setRequestProperty("Content-Type", "image/png")
+            setRequestProperty("apikey", publishableKey)
+            setRequestProperty("Authorization", "Bearer $publishableKey")
+            setRequestProperty("x-upsert", "false")
+        }
+        try {
+            connection.outputStream.use { it.write(png) }
+            val code = connection.responseCode
+            if (code !in 200..299) {
+                val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+                val message = runCatching { JSONObject(body).optString("message") }.getOrNull()
+                throw IllegalStateException(message?.takeIf { it.isNotBlank() } ?: "SPARKD meme upload failed (HTTP $code).")
+            }
+            path
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    suspend fun recordBurnReceipt(wallet: String, contestId: String, signature: String) {
+        val result = call(JSONObject().put("action", "record_burn_receipt")
+            .put("wallet", wallet).put("contestId", contestId).put("burnTransaction", signature))
+        check(result.optBoolean("recorded") && result.optBoolean("verified")) {
+            result.optString("error", "Unable to record verified SPARKD burn receipt.")
+        }
+    }
+
+    suspend fun finalizeSubmission(
+        wallet: String, prepared: PreparedBurn, signature: String, forge: ForgeDnaRecord,
+        title: String, imagePath: String
+    ) {
+        val result = call(JSONObject().put("action", "finalize_submission")
+            .put("wallet", wallet)
+            .put("contestId", prepared.contestId)
+            .put("burnTransaction", signature)
+            .put("submissionId", UUID.randomUUID().toString())
+            .put("creatorId", forge.creatorID)
+            .put("memeTitle", title.ifBlank { "Untitled SPARKD Meme" })
+            .put("memeImageUrl", imagePath)
+            .put("dnaVerificationData", forgeJson(forge)))
+        check(result.optBoolean("finalized")) {
+            result.optString("error", "Unable to finalize SPARKD contest submission.")
+        }
+    }
+
+
     /** Checks the same server-side Forge record validator used by sparkdcoin.com.
      * This is read-only and never uploads or burns anything. */
     suspend fun verifyForge(wallet: String, forge: ForgeDnaRecord) {
         require(wallet.length in 32..50) { "Invalid wallet address." }
-        val data = JSONObject()
-            .put("forge", forge.forge).put("version", forge.version)
-            .put("memeID", forge.memeID).put("DNA", forge.DNA)
-            .put("imageFingerprint", forge.imageFingerprint).put("imageLock", forge.imageLock)
-            .put("created", forge.created).put("contract", forge.contract)
-            .put("creatorID", forge.creatorID).put("wallet", forge.wallet)
-            .put("reputation", forge.reputation).put("signature", forge.signature)
+        val data = forgeJson(forge)
         val result = call(JSONObject().put("action", "verify_dna").put("wallet", wallet).put("mint", mint).put("forgeData", data))
         check(result.optBoolean("verified")) {
             result.optString("reason", result.optString("error", "SPARKD Forge verification failed."))
@@ -101,9 +158,15 @@ class ContestBurnApi {
 
     /** Confirms the server observed and validated the exact on-chain burn. */
     suspend fun verifyBurn(wallet: String, signature: String): Boolean {
-        val result = call(JSONObject().put("action", "verify_burn").put("wallet", wallet).put("burnTransaction", signature))
-        check(result.optBoolean("verified")) { result.optString("reason", "SPARKD burn could not be verified.") }
-        return true
+        repeat(15) { attempt ->
+            val result = call(JSONObject().put("action", "verify_burn").put("wallet", wallet).put("burnTransaction", signature))
+            if (result.optBoolean("verified")) return true
+            if (result.optBoolean("transactionFound")) {
+                error(result.optString("reason", "The transaction was found but the SPARKD burn could not be verified."))
+            }
+            if (attempt < 14) kotlinx.coroutines.delay(1000)
+        }
+        error("The burn was sent but is not confirmed yet. DO NOT BURN AGAIN. Retry this submission to recover it.")
     }
 
     /** Checks whether this wallet already has a submission; it never changes contest state. */
