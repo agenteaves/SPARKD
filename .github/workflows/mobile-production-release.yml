@@ -1,6 +1,13 @@
 name: SPARKD Signed Production APK
 
 on:
+  push:
+    branches:
+      - mobile-app-development
+    paths:
+      - 'mobile-app/**'
+      - '.well-known/assetlinks.json'
+      - '.github/workflows/mobile-production-release.yml'
   workflow_dispatch:
     inputs:
       release_tag:
