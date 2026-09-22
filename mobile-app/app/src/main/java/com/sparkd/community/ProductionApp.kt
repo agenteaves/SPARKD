@@ -343,10 +343,19 @@ import kotlinx.coroutines.withContext
                                 "A previous burn is saved for recovery. DO NOT BURN AGAIN. Install the prior recovery build or contact SPARKD support before retrying."
                             }
 
-                            status = "Waiting for Phantom approval to burn exactly 2,000 SPARKD…"
-                            val signature = wallet.signAndSendTransaction(burn.unsignedTransaction)
+                            status = "Waiting for Phantom approval to sign exactly the reviewed 2,000 SPARKD burn…"
+                            val signedTransaction = wallet.signTransaction(burn.unsignedTransaction)
 
-                            status = "Phantom submitted the transaction. Verifying the exact 2,000 SPARKD burn on-chain…"
+                            status = "Phantom approved. Sending the exact signed transaction through SPARKD…"
+                            val signature = api.sendSignedTransaction(
+                                address,
+                                burn.contestId,
+                                signedTransaction,
+                                burn.unsignedTransaction,
+                                recovery
+                            )
+
+                            status = "SPARKD submitted the signed transaction. Verifying the exact 2,000 SPARKD burn on-chain…"
                             api.verifyBurn(address, signature)
 
                             status = "Recording the verified burn receipt…"
