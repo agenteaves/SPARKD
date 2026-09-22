@@ -265,6 +265,11 @@ import kotlinx.coroutines.withContext
                     check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
                     status = "Checking for an existing submission…"
                     check(!api.hasExistingSubmission(address)) { "This wallet already has a contest submission." }
+                    status = "Checking for a previously verified burn…"
+                    val existingBurn = api.getBurnReceipt(address, contest.id)
+                    check(existingBurn == null) {
+                        "A verified burn already exists for this contest. DO NOT BURN AGAIN. Recovery/finalization is required for transaction $existingBurn."
+                    }
                     status = "Verifying SPARKD Forge DNA…"
                     api.verifyForge(address, record)
                     status = "Checking SPARKD balance and preparing the burn review…"
