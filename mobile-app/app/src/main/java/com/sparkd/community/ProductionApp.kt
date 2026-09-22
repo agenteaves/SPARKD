@@ -1,6 +1,9 @@
 package com.sparkd.community
 
 import android.graphics.BitmapFactory
+import android.content.Intent
+import android.net.Uri
+import com.sparkd.community.BuildConfig
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -32,9 +35,33 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun ProductionApp(wallet: WalletSession) {
     val repo = remember { LiveRepository() }
+    val context = LocalContext.current
+    var availableUpdate by remember { mutableStateOf<AppUpdate?>(null) }
+    LaunchedEffect(Unit) {
+        runCatching { AppUpdateRepository().latest() }
+            .onSuccess { latest ->
+                if (latest != null && latest.versionCode > BuildConfig.VERSION_CODE) availableUpdate = latest
+            }
+    }
     var page by remember { mutableStateOf("home") }
     val goHome = { page = "home" }
     BackHandler(enabled = page != "home") { goHome() }
+
+    availableUpdate?.let { update ->
+        AlertDialog(
+            onDismissRequest = { availableUpdate = null },
+            title = { Text("SPARKD update available") },
+            text = { Text("Version ${update.versionName} is ready. Update to get the latest fixes and contest features.") },
+            confirmButton = {
+                Button(onClick = {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl)))
+                }) { Text("Update now") }
+            },
+            dismissButton = {
+                TextButton(onClick = { availableUpdate = null }) { Text("Later") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
