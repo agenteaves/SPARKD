@@ -40,7 +40,7 @@ class WalletSession(private val sender: ActivityResultSender) {
         walletAdapter.authToken = null
     }
 
-    suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray {
+    suspend fun signAndSendTransaction(unsignedTransaction: ByteArray): String {
         val expectedAddress = address ?: error("Connect your wallet before signing.")
 
         // Start the signing association without carrying a previous authorization handle.
@@ -55,13 +55,13 @@ class WalletSession(private val sender: ActivityResultSender) {
             check(Base58.encode(account.publicKey) == expectedAddress) {
                 "The active wallet changed. Reconnect before signing."
             }
-            val signed = signTransactions(arrayOf(unsignedTransaction)).signedPayloads.singleOrNull()
-                ?: error("Wallet did not return a signed transaction.")
-            Pair(authResult.authToken, signed)
+            val signature = signAndSendTransactions(arrayOf(unsignedTransaction)).signatures.singleOrNull()
+                ?: error("Wallet did not return a transaction signature.")
+            Pair(authResult.authToken, Base58.encode(signature))
         }) {
             is TransactionResult.Success -> {
                 val payload = result.payload
-                    ?: error("Wallet returned without a signed transaction. No SPARKD was burned.")
+                    ?: error("Wallet returned without a transaction signature. Check Phantom before retrying.")
                 walletAdapter.authToken = payload.first
                 payload.second
             }
@@ -69,7 +69,7 @@ class WalletSession(private val sender: ActivityResultSender) {
                 error("No compatible Solana wallet was found. Install a Mobile Wallet Adapter compatible wallet and try again.")
             is TransactionResult.Failure ->
                 throw IllegalStateException(
-                    "Wallet signing was cancelled or closed before approval. No SPARKD was burned. Unlock Phantom and try again.",
+                    "Wallet transaction was cancelled or closed before approval. No SPARKD was burned. Unlock Phantom and try again.",
                     result.e
                 )
         }
