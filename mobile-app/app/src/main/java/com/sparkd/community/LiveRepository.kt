@@ -34,8 +34,24 @@ class LiveRepository : SparkdRepository {
     }
 
     override suspend fun memes(): List<Meme> {
-        val rows = get("meme_week_submissions?select=id,meme_title,meme_image_url,wallet_address,status,created_at&status=eq.approved&order=created_at.desc")
-        return List(rows.length()) { i -> rows.getJSONObject(i).let { Meme(it.optString("meme_title", "Untitled SPARKD Meme"), it.optString("wallet_address", "SPARKD Creator"), 0, it.optString("id"), it.optString("meme_image_url").takeIf { url -> url.isNotBlank() && url != "null" }) } }
+        val liveContest = contest()
+        val rows = get("meme_week_submissions?select=id,meme_title,meme_image_url,wallet_address,status,created_at,dna_verified&contest_id=eq.${liveContest.id}&dna_verified=eq.true&status=neq.rejected&order=created_at.desc")
+        return List(rows.length()) { i ->
+            rows.getJSONObject(i).let {
+                val storedImage = it.optString("meme_image_url").takeIf { url -> url.isNotBlank() && url != "null" }
+                val imageUrl = storedImage?.let { path ->
+                    if (path.startsWith("http://") || path.startsWith("https://")) path
+                    else "$api/storage/v1/object/public/sparkd-contest-submissions/" + path.trimStart('/')
+                }
+                Meme(
+                    it.optString("meme_title", "Untitled SPARKD Meme"),
+                    it.optString("wallet_address", "SPARKD Creator"),
+                    0,
+                    it.optString("id"),
+                    imageUrl
+                )
+            }
+        }
     }
 
     override suspend fun winners(): List<Winner> {
