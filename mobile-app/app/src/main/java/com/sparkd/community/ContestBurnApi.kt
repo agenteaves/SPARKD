@@ -97,6 +97,20 @@ class ContestBurnApi {
         }
     }
 
+    suspend fun getBurnReceipt(wallet: String, contestId: String): String? {
+        require(wallet.length in 32..50) { "Invalid wallet address." }
+        require(contestId.isNotBlank()) { "Contest ID is required." }
+        val result = call(JSONObject().put("action", "get_burn_receipt")
+            .put("wallet", wallet).put("contestId", contestId))
+        val candidates = listOf(
+            result.optString("burnTransaction"),
+            result.optString("transactionSignature"),
+            result.optJSONObject("receipt")?.optString("burnTransaction").orEmpty(),
+            result.optJSONObject("receipt")?.optString("transactionSignature").orEmpty()
+        )
+        return candidates.firstOrNull { it.isNotBlank() }
+    }
+
     suspend fun recordBurnReceipt(wallet: String, contestId: String, signature: String) {
         val result = call(JSONObject().put("action", "record_burn_receipt")
             .put("wallet", wallet).put("contestId", contestId).put("burnTransaction", signature))
