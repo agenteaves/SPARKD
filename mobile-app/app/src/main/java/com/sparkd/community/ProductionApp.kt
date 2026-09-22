@@ -263,7 +263,7 @@ import kotlinx.coroutines.withContext
                     status = "Verifying SPARKD Forge DNA…"
                     api.verifyForge(address, record)
                     status = "Checking SPARKD balance and preparing the burn review…"
-                    api.prepare(address, contest.id)
+                    api.prepare(address, contest.id, record.creatorID)
                 }.onSuccess {
                     prepared = it
                     status = "Entry checks passed. Review the exact burn details below."
