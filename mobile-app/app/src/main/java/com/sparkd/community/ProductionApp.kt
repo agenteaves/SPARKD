@@ -267,9 +267,20 @@ import kotlinx.coroutines.withContext
                 }.onSuccess {
                     prepared = it
                     status = "Entry checks passed. Review the exact burn details below."
-                }.onFailure {
-                    status = it.message?.takeIf { message -> message.isNotBlank() }
-                        ?: "Unable to prepare secure contest entry. Please try again."
+                }.onFailure { error ->
+                    val raw = generateSequence(error as Throwable?) { it.cause }
+                        .mapNotNull { it.message }
+                        .joinToString(" ")
+                    status = if (
+                        raw.contains("Unable to resolve host", ignoreCase = true) ||
+                        raw.contains("No address associated with hostname", ignoreCase = true) ||
+                        raw.contains("temporarily unreachable", ignoreCase = true)
+                    ) {
+                        "SPARKD contest service is temporarily unreachable. Check your connection and tap Review secure entry again."
+                    } else {
+                        error.message?.takeIf { message -> message.isNotBlank() }
+                            ?: "Unable to prepare secure contest entry. Please try again."
+                    }
                 }
             }
         }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") } }
