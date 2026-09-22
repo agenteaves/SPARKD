@@ -351,21 +351,53 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                             status = "Uploading the verified contest PNG…"
                             val imagePath = api.uploadMeme(address, burn.contestId, png)
 
-                            check(recovery.pending() == null) {
-                                "A previous burn is saved for recovery. DO NOT BURN AGAIN. Install the prior recovery build or contact SPARKD support before retrying."
+                            val pending = recovery.pending()
+                            val signature = if (pending != null) {
+                                check(pending.wallet == address && pending.contestId == burn.contestId) {
+                                    "A saved burn belongs to a different wallet or contest. DO NOT BURN AGAIN."
+                                }
+                                val savedSignature = pending.transactionSignature
+                                val expiry = pending.lastValidBlockHeight
+                                if (savedSignature != null) {
+                                    status = "Recovering the previously approved SPARKD burn…"
+                                    val chain = api.transactionStatus(address, savedSignature)
+                                    when {
+                                        chain.found && !chain.failed -> savedSignature
+                                        chain.found && chain.failed -> {
+                                            recovery.clear()
+                                            error("The previously signed transaction failed on-chain. It cannot burn SPARKD. Review again to build a fresh transaction.")
+                                        }
+                                        expiry != null && api.currentBlockHeight(address) > expiry -> {
+                                            recovery.clear()
+                                            error("The previously signed transaction expired without landing. No burn was sent. Review again to build a fresh transaction.")
+                                        }
+                                        else -> {
+                                            val resent = api.resendSignedTransaction(address, burn.contestId, pending.signedTransaction)
+                                            check(resent == savedSignature) { "Recovered transaction signature changed. DO NOT BURN AGAIN." }
+                                            resent
+                                        }
+                                    }
+                                } else {
+                                    // Legacy 1.0.20 marker: the server rejected it as expired before broadcast.
+                                    // Its blockhash is already known expired from the prior response, so it cannot land.
+                                    recovery.clear()
+                                    error("The saved transaction expired before broadcast. No burn was sent. Tap Review secure entry to build a fresh transaction.")
+                                }
+                            } else {
+                                status = "Waiting for Phantom approval to sign exactly the reviewed 2,000 SPARKD burn…"
+                                val signedTransaction = wallet.signTransaction(burn.unsignedTransaction)
+                                recovery.save(burn.contestId, address, signedTransaction, lastValidBlockHeight = burn.lastValidBlockHeight)
+                                status = "Phantom approved. Sending the exact signed transaction through SPARKD…"
+                                val sent = api.sendSignedTransaction(
+                                    address,
+                                    burn.contestId,
+                                    signedTransaction,
+                                    burn.unsignedTransaction,
+                                    recovery
+                                )
+                                recovery.save(burn.contestId, address, signedTransaction, sent, burn.lastValidBlockHeight)
+                                sent
                             }
-
-                            status = "Waiting for Phantom approval to sign exactly the reviewed 2,000 SPARKD burn…"
-                            val signedTransaction = wallet.signTransaction(burn.unsignedTransaction)
-
-                            status = "Phantom approved. Sending the exact signed transaction through SPARKD…"
-                            val signature = api.sendSignedTransaction(
-                                address,
-                                burn.contestId,
-                                signedTransaction,
-                                burn.unsignedTransaction,
-                                recovery
-                            )
 
                             status = "SPARKD submitted the signed transaction. Verifying the exact 2,000 SPARKD burn on-chain…"
                             api.verifyBurn(address, signature)
