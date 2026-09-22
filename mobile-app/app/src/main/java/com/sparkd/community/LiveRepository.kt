@@ -24,7 +24,11 @@ class LiveRepository : SparkdRepository {
     }
 
     override suspend fun contest(): Contest {
-        val rows = get("meme_week_contests?select=*&order=week_start.desc&limit=1")
+        val now = java.time.Instant.now().toString()
+        var rows = get("meme_week_contests?select=*&status=in.(submission,voting)&week_start=lte.$now&order=week_start.desc&limit=1")
+        if (rows.length() == 0) {
+            rows = get("meme_week_contests?select=*&status=in.(upcoming,submission)&week_start=gt.$now&order=week_start.asc&limit=1")
+        }
         if (rows.length() == 0) throw IllegalStateException("No SPARKD contest is available right now.")
         val c = rows.getJSONObject(0)
         return Contest(c.optString("title", "Meme of the Week"),
