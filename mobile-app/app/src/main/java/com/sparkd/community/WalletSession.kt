@@ -43,6 +43,11 @@ class WalletSession(private val sender: ActivityResultSender) {
     suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray {
         val expectedAddress = address ?: error("Connect your wallet before signing.")
 
+        // Phantom previously reached and displayed the correct burn approval when signTransactions
+        // used a fresh authorization. Reusing the connect() token causes Phantom to flash open and
+        // close on affected devices. Force a fresh authorize, then sign inside that same MWA session.
+        walletAdapter.authToken = null
+
         // Phantom has proven reliable with MWA signTransactions for this app, while its
         // signAndSendTransactions handoff exits before showing approval on affected devices.
         // Match the website architecture: wallet signs only; SPARKD broadcasts and verifies.
