@@ -249,24 +249,30 @@ import kotlinx.coroutines.withContext
         item { Button({
             scope.launch {
                 prepared = null
+                status = if (wallet.address == null) "Waiting for wallet approval…" else "Checking contest entry…"
                 runCatching {
                     val address = wallet.address ?: wallet.connect()
+                    status = "Wallet confirmed. Checking the live contest…"
                     val record = forge ?: error("Export a verified Forge PNG first.")
                     check(record.wallet == address) { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
                     val contest = repo.contest()
                     check(contest.id.isNotBlank()) { "The live contest is unavailable." }
                     check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
+                    status = "Checking for an existing submission…"
                     check(!api.hasExistingSubmission(address)) { "This wallet already has a contest submission." }
+                    status = "Verifying SPARKD Forge DNA…"
                     api.verifyForge(address, record)
+                    status = "Checking SPARKD balance and preparing the burn review…"
                     api.prepare(address, contest.id)
                 }.onSuccess {
                     prepared = it
                     status = "Entry checks passed. Review the exact burn details below."
                 }.onFailure {
-                    status = it.message ?: "Unable to prepare secure contest entry."
+                    status = it.message?.takeIf { message -> message.isNotBlank() }
+                        ?: "Unable to prepare secure contest entry. Please try again."
                 }
             }
-        }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null) { Text("Review secure entry") } }
+        }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") } }
         item { Text(status, color = if (prepared != null) Green else Gold) }
         prepared?.let { burn ->
             item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
