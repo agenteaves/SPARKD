@@ -3,6 +3,7 @@ package com.sparkd.community
 import android.graphics.BitmapFactory
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -37,9 +38,16 @@ import kotlinx.coroutines.withContext
     val context = LocalContext.current
     var availableUpdate by remember { mutableStateOf<AppUpdate?>(null) }
     LaunchedEffect(Unit) {
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val installedVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            packageInfo.versionCode.toLong()
+        }
         runCatching { AppUpdateRepository().latest() }
             .onSuccess { latest ->
-                if (latest != null && latest.versionCode > 4) availableUpdate = latest
+                if (latest != null && latest.versionCode.toLong() > installedVersionCode) availableUpdate = latest
             }
     }
     var page by remember { mutableStateOf("home") }
