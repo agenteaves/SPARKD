@@ -17,6 +17,8 @@ data class PreparedBurn(
     val lastValidBlockHeight: Long
 )
 
+data class TransactionStatus(val found: Boolean, val failed: Boolean)
+
 /**
  * Native counterpart to the website's read-only / prepare stages.
  * It never sends a transaction or burns tokens.
@@ -232,6 +234,27 @@ class ContestBurnApi {
             shift += 7
         }
         error("Invalid transaction signature-count encoding.")
+    }
+
+    suspend fun transactionStatus(wallet: String, signature: String): TransactionStatus {
+        val result = call(JSONObject().put("action", "check_transaction_status")
+            .put("wallet", wallet).put("transactionSignature", signature))
+        return TransactionStatus(result.optBoolean("found"), result.has("err") && !result.isNull("err"))
+    }
+
+    suspend fun currentBlockHeight(wallet: String): Long {
+        val result = call(JSONObject().put("action", "get_block_height").put("wallet", wallet))
+        return result.getLong("blockHeight")
+    }
+
+    suspend fun resendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray): String {
+        validateSignedLegacyTransaction(signedTransaction)
+        val result = call(JSONObject().put("action", "send_signed_transaction")
+            .put("wallet", wallet).put("contestId", contestId)
+            .put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP)))
+        check(result.optBoolean("sent")) { "SPARKD server did not accept the saved signed transaction." }
+        return result.optString("transactionSignature").takeIf { it.isNotBlank() }
+            ?: error("SPARKD server returned no transaction signature.")
     }
 
     /** Confirms the server observed and validated the exact on-chain burn. */
