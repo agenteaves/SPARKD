@@ -51,7 +51,7 @@ class WalletSession(private val sender: ActivityResultSender) {
             signTransactions(arrayOf(unsignedTransaction))
         }) {
             is TransactionResult.Success ->
-                result.successPayload?.signedPayloads?.singleOrNull()
+                result.payload?.signedPayloads?.singleOrNull()
                     ?: error("Wallet did not return a signed transaction.")
             is TransactionResult.NoWalletFound -> error("No Mobile Wallet Adapter compatible wallet was found.")
             is TransactionResult.Failure -> throw result.e
