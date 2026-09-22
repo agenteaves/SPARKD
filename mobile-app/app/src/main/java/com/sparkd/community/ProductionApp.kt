@@ -32,6 +32,29 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private fun Throwable.fullMessage(): String =
+    generateSequence(this as Throwable?) { it.cause }.mapNotNull { it.message }.joinToString(" | ")
+
+private fun Throwable.isTransientContestNetworkError(): Boolean {
+    val raw = fullMessage()
+    return listOf("Unable to resolve host", "No address associated with hostname", "timed out", "timeout", "connection reset", "connection refused", "temporarily unreachable", "HTTP 502", "HTTP 503", "HTTP 504").any { raw.contains(it, true) }
+}
+
+private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T): T {
+    var last: Throwable? = null
+    repeat(3) { attempt ->
+        try { return block() } catch (t: Throwable) {
+            last = t
+            if (!t.isTransientContestNetworkError() || attempt == 2) {
+                val attempts = attempt + 1
+                throw IllegalStateException(stage + " failed after " + attempts + " attempt(s): " + t.fullMessage().ifBlank { t.javaClass.simpleName }, t)
+            }
+            delay(700L * (attempt + 1))
+        }
+    }
+    throw last ?: IllegalStateException(stage + " failed.")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun ProductionApp(wallet: WalletSession) {
     val repo = remember { LiveRepository() }
@@ -260,37 +283,26 @@ import kotlinx.coroutines.withContext
                     status = "Wallet confirmed. Checking the live contest…"
                     val record = forge ?: error("Export a verified Forge PNG first.")
                     check(record.wallet == address) { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
-                    val contest = repo.contest()
+                    val contest = contestPreflight("Live contest lookup") { repo.contest() }
                     check(contest.id.isNotBlank()) { "The live contest is unavailable." }
                     check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
                     status = "Checking for an existing submission…"
-                    check(!api.hasExistingSubmission(address)) { "This wallet already has a contest submission." }
+                    check(!contestPreflight("Existing submission check") { api.hasExistingSubmission(address) }) { "This wallet already has a contest submission." }
                     status = "Checking for a previously verified burn…"
-                    val existingBurn = api.getBurnReceipt(address, contest.id)
+                    val existingBurn = contestPreflight("Burn receipt check") { api.getBurnReceipt(address, contest.id) }
                     check(existingBurn == null) {
                         "A verified burn already exists for this contest. DO NOT BURN AGAIN. Recovery/finalization is required for transaction $existingBurn."
                     }
                     status = "Verifying SPARKD Forge DNA…"
-                    api.verifyForge(address, record)
+                    contestPreflight("Forge DNA verification") { api.verifyForge(address, record) }
                     status = "Checking SPARKD balance and preparing the burn review…"
-                    api.prepare(address, contest.id, record.creatorID)
+                    contestPreflight("Burn preparation") { api.prepare(address, contest.id, record.creatorID) }
                 }.onSuccess {
                     prepared = it
                     status = "Entry checks passed. Review the exact burn details below."
                 }.onFailure { error ->
-                    val raw = generateSequence(error as Throwable?) { it.cause }
-                        .mapNotNull { it.message }
-                        .joinToString(" ")
-                    status = if (
-                        raw.contains("Unable to resolve host", ignoreCase = true) ||
-                        raw.contains("No address associated with hostname", ignoreCase = true) ||
-                        raw.contains("temporarily unreachable", ignoreCase = true)
-                    ) {
-                        "SPARKD contest service is temporarily unreachable. Check your connection and tap Review secure entry again."
-                    } else {
-                        error.message?.takeIf { message -> message.isNotBlank() }
-                            ?: "Unable to prepare secure contest entry. Please try again."
-                    }
+                    status = error.message?.takeIf { message -> message.isNotBlank() }
+                        ?: "Unable to prepare secure contest entry. Please try again."
                 }
             }
         }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") } }
