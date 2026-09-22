@@ -139,9 +139,7 @@ class ContestBurnApi {
     /** Sends only the exact bytes returned by the wallet after user approval. */
     suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, expectedUnsignedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
         validateSignedLegacyTransaction(signedTransaction)
-        val reviewedMessage = serializedTransactionMessage(expectedUnsignedTransaction)
-        val signedMessage = serializedTransactionMessage(signedTransaction)
-        check(signedMessage.contentEquals(reviewedMessage)) {
+        check(walletSignedOnlyReviewedTransaction(expectedUnsignedTransaction, signedTransaction)) {
             "Wallet returned a transaction that does not match the reviewed SPARKD burn. Nothing was broadcast."
         }
         recovery.save(contestId, wallet, signedTransaction)
@@ -171,6 +169,35 @@ class ContestBurnApi {
      * blockhash and instruction data), not assume both envelopes are byte-identical
      * after a hard-coded 65-byte offset.
      */
+    private fun walletSignedOnlyReviewedTransaction(reviewed: ByteArray, signed: ByteArray): Boolean {
+        // MWA signTransactions returns the serialized transaction with the wallet signature
+        // populated. For a one-signer legacy transaction, the only permitted mutation is the
+        // 64-byte signature slot itself. Compare the parsed message first, then fall back to
+        // masking that slot in both envelopes. This accepts Phantom's valid serialization while
+        // still rejecting any account, blockhash, instruction, amount or program mutation.
+        val reviewedMessage = runCatching { serializedTransactionMessage(reviewed) }.getOrNull()
+        val signedMessage = runCatching { serializedTransactionMessage(signed) }.getOrNull()
+        if (reviewedMessage != null && signedMessage != null && signedMessage.contentEquals(reviewedMessage)) {
+            return true
+        }
+
+        val reviewedLayout = runCatching { signatureLayout(reviewed) }.getOrNull() ?: return false
+        val signedLayout = runCatching { signatureLayout(signed) }.getOrNull() ?: return false
+        if (reviewedLayout.first != 1 || signedLayout.first != 1) return false
+
+        val reviewedCopy = reviewed.copyOf()
+        val signedCopy = signed.copyOf()
+        reviewedCopy.fill(0, reviewedLayout.second, reviewedLayout.second + 64)
+        signedCopy.fill(0, signedLayout.second, signedLayout.second + 64)
+        return reviewedCopy.contentEquals(signedCopy)
+    }
+
+    private fun signatureLayout(bytes: ByteArray): Pair<Int, Int> {
+        val (count, prefixSize) = decodeShortVec(bytes)
+        check(prefixSize + count * 64 < bytes.size) { "Unexpected transaction serialization." }
+        return count to prefixSize
+    }
+
     private fun serializedTransactionMessage(bytes: ByteArray): ByteArray {
         val (signatureCount, prefixSize) = decodeShortVec(bytes)
         val messageOffset = prefixSize + signatureCount * 64
