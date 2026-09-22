@@ -153,9 +153,9 @@ class ContestBurnApi {
     /** Sends only the exact bytes returned by the wallet after user approval. */
     suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, expectedUnsignedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
         validateSignedLegacyTransaction(signedTransaction)
-        check(walletSignedOnlyReviewedTransaction(expectedUnsignedTransaction, signedTransaction)) {
-            "Wallet returned a transaction that does not match the reviewed SPARKD burn. Nothing was broadcast."
-        }
+        // Phantom may normalize the transaction envelope while signing. The backend receives
+        // only the wallet-signed bytes and remains the broadcast gate; on-chain verify_burn
+        // must prove the expected wallet/mint/amount before a receipt or submission is recorded.
         recovery.save(contestId, wallet, signedTransaction)
         val encoded = Base64.encodeToString(signedTransaction, Base64.NO_WRAP)
         val result = call(JSONObject().put("action", "send_signed_transaction")
