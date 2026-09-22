@@ -6,6 +6,8 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.UnknownHostException
+import java.io.IOException
 
 data class PreparedBurn(
     val contestId: String,
@@ -24,16 +26,38 @@ class ContestBurnApi {
     private val token2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 
     private suspend fun call(payload: JSONObject): JSONObject = withContext(Dispatchers.IO) {
-        val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"; doOutput = true; connectTimeout = 15_000; readTimeout = 30_000
-            setRequestProperty("Content-Type", "application/json")
+        var lastNetworkError: IOException? = null
+        repeat(3) { attempt ->
+            try {
+                val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"; doOutput = true; connectTimeout = 15_000; readTimeout = 30_000
+                    setRequestProperty("Content-Type", "application/json")
+                }
+                try {
+                    connection.outputStream.use { it.write(payload.toString().toByteArray()) }
+                    val status = connection.responseCode
+                    val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
+                        ?.bufferedReader()?.use { it.readText() }.orEmpty()
+                    val result = runCatching { JSONObject(body) }
+                        .getOrElse { throw IllegalStateException("SPARKD contest service returned an invalid response.") }
+                    if (status !in 200..299 || !result.optBoolean("success")) {
+                        throw IllegalStateException(result.optString("error", "SPARKD contest service request failed."))
+                    }
+                    return@withContext result
+                } finally {
+                    connection.disconnect()
+                }
+            } catch (e: UnknownHostException) {
+                lastNetworkError = e
+            } catch (e: IOException) {
+                lastNetworkError = e
+            }
+            if (attempt < 2) kotlinx.coroutines.delay(700L * (attempt + 1))
         }
-        connection.outputStream.use { it.write(payload.toString().toByteArray()) }
-        val status = connection.responseCode
-        val body = (if (status in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty()
-        val result = runCatching { JSONObject(body) }.getOrElse { throw IllegalStateException("SPARKD contest service returned an invalid response.") }
-        if (status !in 200..299 || !result.optBoolean("success")) throw IllegalStateException(result.optString("error", "SPARKD contest service request failed."))
-        result
+        throw IllegalStateException(
+            "SPARKD contest service is temporarily unreachable. Check your connection and tap Review secure entry again.",
+            lastNetworkError
+        )
     }
 
 
