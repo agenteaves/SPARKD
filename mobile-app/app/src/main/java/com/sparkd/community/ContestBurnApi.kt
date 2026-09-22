@@ -139,8 +139,9 @@ class ContestBurnApi {
     /** Sends only the exact bytes returned by the wallet after user approval. */
     suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, expectedUnsignedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
         validateSignedLegacyTransaction(signedTransaction)
-        check(expectedUnsignedTransaction.size >= 65 && signedTransaction.size == expectedUnsignedTransaction.size &&
-            signedTransaction.copyOfRange(65, signedTransaction.size).contentEquals(expectedUnsignedTransaction.copyOfRange(65, expectedUnsignedTransaction.size))) {
+        val reviewedMessage = serializedTransactionMessage(expectedUnsignedTransaction)
+        val signedMessage = serializedTransactionMessage(signedTransaction)
+        check(signedMessage.contentEquals(reviewedMessage)) {
             "Wallet returned a transaction that does not match the reviewed SPARKD burn. Nothing was broadcast."
         }
         recovery.save(contestId, wallet, signedTransaction)
@@ -154,10 +155,42 @@ class ContestBurnApi {
     }
 
     private fun validateSignedLegacyTransaction(bytes: ByteArray) {
-        // The server prepares one legacy transaction with exactly one wallet signer.
-        // A legacy short-vector signature count of 1 is encoded as a single byte.
-        check(bytes.size >= 65 && bytes[0].toInt() == 1) { "Unexpected signed transaction format." }
-        check(bytes.copyOfRange(1, 65).any { it.toInt() != 0 }) { "Wallet returned an empty signature." }
+        val (signatureCount, prefixSize) = decodeShortVec(bytes)
+        check(signatureCount == 1) { "Unexpected signed transaction format." }
+        val signatureStart = prefixSize
+        val signatureEnd = signatureStart + 64
+        check(bytes.size > signatureEnd) { "Unexpected signed transaction format." }
+        check(bytes.copyOfRange(signatureStart, signatureEnd).any { it.toInt() != 0 }) {
+            "Wallet returned an empty signature."
+        }
+    }
+
+    /**
+     * MWA wallets may normalize the serialized transaction envelope while signing.
+     * Security comparison must therefore compare the exact Solana message (accounts,
+     * blockhash and instruction data), not assume both envelopes are byte-identical
+     * after a hard-coded 65-byte offset.
+     */
+    private fun serializedTransactionMessage(bytes: ByteArray): ByteArray {
+        val (signatureCount, prefixSize) = decodeShortVec(bytes)
+        val messageOffset = prefixSize + signatureCount * 64
+        check(messageOffset in 1 until bytes.size) { "Unexpected transaction serialization." }
+        return bytes.copyOfRange(messageOffset, bytes.size)
+    }
+
+    private fun decodeShortVec(bytes: ByteArray): Pair<Int, Int> {
+        require(bytes.isNotEmpty()) { "Empty transaction serialization." }
+        var value = 0
+        var shift = 0
+        var index = 0
+        while (index < bytes.size && index < 3) {
+            val b = bytes[index].toInt() and 0xff
+            value = value or ((b and 0x7f) shl shift)
+            index++
+            if ((b and 0x80) == 0) return value to index
+            shift += 7
+        }
+        error("Invalid transaction signature-count encoding.")
     }
 
     /** Confirms the server observed and validated the exact on-chain burn. */
