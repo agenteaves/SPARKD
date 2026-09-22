@@ -255,7 +255,7 @@ import kotlinx.coroutines.withContext
                     check(record.wallet == address) { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
                     val contest = repo.contest()
                     check(contest.id.isNotBlank()) { "The live contest is unavailable." }
-                    check(contest.phase.contains("OPEN")) { "Submissions are not open for the current contest." }
+                    check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
                     check(!api.hasExistingSubmission(address)) { "This wallet already has a contest submission." }
                     api.verifyForge(address, record)
                     api.prepare(address, contest.id)
