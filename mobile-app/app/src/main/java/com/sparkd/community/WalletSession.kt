@@ -1,55 +1,38 @@
 package com.sparkd.community
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.lifecycle.Lifecycle
-import com.solana.mobilewalletadapter.clientlib.scenario.LocalAssociationIntentCreator
-import com.solana.mobilewalletadapter.clientlib.scenario.LocalAssociationScenario
-import com.solana.mobilewalletadapter.common.ProtocolContract
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
+import com.solana.mobilewalletadapter.clientlib.ActivityResultSender
+import com.solana.mobilewalletadapter.clientlib.ConnectionIdentity
+import com.solana.mobilewalletadapter.clientlib.MobileWalletAdapter
+import com.solana.mobilewalletadapter.clientlib.TransactionResult
 
-class WalletSession(private val activity: Activity, private val lifecycle: Lifecycle) {
-    var address: String? = null; private set
-    private var walletUri: Uri? = null
-    private var authToken: String? = null
-    private lateinit var launcher: ActivityResultLauncher<WalletIntentParams>
+class WalletSession(private val sender: ActivityResultSender) {
+    var address: String? = null
+        private set
 
-    fun register(register: (ActivityResultContract<WalletIntentParams, ActivityResult>, (ActivityResult) -> Unit) -> ActivityResultLauncher<WalletIntentParams>) {
-        launcher = register(WalletIntentContract()) { }
-    }
+    private val walletAdapter = MobileWalletAdapter(
+        connectionIdentity = ConnectionIdentity(
+            identityUri = Uri.parse("https://sparkdcoin.com"),
+            iconUri = Uri.parse("favicon.ico"),
+            identityName = "SPARKD"
+        )
+    )
 
-    suspend fun connect(): String = withContext(Dispatchers.IO) {
-        val scenario = LocalAssociationScenario(60_000)
-        val intent = LocalAssociationIntentCreator.createAssociationIntent(walletUri, scenario.port, scenario.session)
-        withContext(Dispatchers.Main) { launcher.launch(WalletIntentParams(intent, CompletableDeferred())) }
-        try {
-            val client = scenario.start().get(60, TimeUnit.SECONDS)
-            val result = client.authorize(
-                Uri.parse("https://sparkdcoin.com"), Uri.parse("favicon.ico"), "SPARKD",
-                ProtocolContract.CHAIN_SOLANA_MAINNET, null, null, null, null
-            ).get() ?: error("Wallet did not authorize SPARKD.")
-            val account = result.accounts.firstOrNull() ?: error("Wallet did not provide an account.")
-            address = Base58.encode(account.publicKey)
-            authToken = result.authToken
-            walletUri = result.walletUriBase
-            address!!
-        } finally {
-            scenario.close().get(2, TimeUnit.SECONDS)
+    suspend fun connect(): String {
+        return when (val result = walletAdapter.connect(sender)) {
+            is TransactionResult.Success -> {
+                val account = result.authResult.accounts.firstOrNull()
+                    ?: error("Wallet did not provide an account.")
+                Base58.encode(account.publicKey).also { address = it }
+            }
+            is TransactionResult.NoWalletFound -> error("No Mobile Wallet Adapter compatible wallet was found.")
+            is TransactionResult.Failure -> throw result.e
         }
     }
 
     fun disconnect() {
         address = null
-        authToken = null
-        walletUri = null
+        walletAdapter.authToken = null
     }
 
     /**
@@ -57,32 +40,23 @@ class WalletSession(private val activity: Activity, private val lifecycle: Lifec
      * the SPARKD server receives these exact signed bytes, records recovery state,
      * and broadcasts/validates the receipt.
      */
-    suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray = withContext(Dispatchers.IO) {
-        val token = authToken ?: error("Connect your wallet before signing.")
-        val scenario = LocalAssociationScenario(60_000)
-        val intent = LocalAssociationIntentCreator.createAssociationIntent(walletUri, scenario.port, scenario.session)
-        withContext(Dispatchers.Main) { launcher.launch(WalletIntentParams(intent, CompletableDeferred())) }
-        try {
-            val client = scenario.start().get(60, TimeUnit.SECONDS)
-            val authorization = client.reauthorize(
-                Uri.parse("https://sparkdcoin.com"), Uri.parse("favicon.ico"), "SPARKD", token
-            ).get() ?: error("Wallet authorization expired. Please reconnect.")
-            val account = authorization.accounts.firstOrNull() ?: error("Wallet did not provide an account.")
-            val authorizedAddress = Base58.encode(account.publicKey)
-            check(authorizedAddress == address) { "The active wallet changed. Reconnect before signing." }
-            client.signTransactions(arrayOf(unsignedTransaction)).get()?.signedPayloads?.singleOrNull()
-                ?: error("Wallet did not return a signed transaction.")
-        } finally {
-            scenario.close().get(2, TimeUnit.SECONDS)
+    suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray {
+        val expectedAddress = address ?: error("Connect your wallet before signing.")
+        return when (val result = walletAdapter.transact(sender) { authResult ->
+            val account = authResult.accounts.firstOrNull()
+                ?: error("Wallet did not provide an account.")
+            check(Base58.encode(account.publicKey) == expectedAddress) {
+                "The active wallet changed. Reconnect before signing."
+            }
+            signTransactions(arrayOf(unsignedTransaction))
+        }) {
+            is TransactionResult.Success ->
+                result.successPayload?.signedPayloads?.singleOrNull()
+                    ?: error("Wallet did not return a signed transaction.")
+            is TransactionResult.NoWalletFound -> error("No Mobile Wallet Adapter compatible wallet was found.")
+            is TransactionResult.Failure -> throw result.e
         }
     }
-
-}
-
-data class WalletIntentParams(val intent: Intent, val finished: CompletableDeferred<Unit>)
-private class WalletIntentContract : ActivityResultContract<WalletIntentParams, ActivityResult>() {
-    override fun createIntent(context: Context, input: WalletIntentParams): Intent = input.intent
-    override fun parseResult(resultCode: Int, intent: Intent?): ActivityResult = ActivityResult(resultCode, intent)
 }
 
 private object Base58 {
