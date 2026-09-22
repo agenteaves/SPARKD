@@ -40,43 +40,38 @@ class WalletSession(private val sender: ActivityResultSender) {
         walletAdapter.authToken = null
     }
 
-    suspend fun signAndSendTransaction(unsignedTransaction: ByteArray): String {
+    suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray {
         val expectedAddress = address ?: error("Connect your wallet before signing.")
 
-        // Keep the authorization returned by connect(). The official MWA KTX flow
-        // reuses that auth token and reauthorizes inside the same transact session before
-        // signAndSendTransactions. Clearing it here caused Phantom to start a fresh authorize
-        // handoff and then fall back to the wallet home screen instead of showing approval.
+        // Phantom has proven reliable with MWA signTransactions for this app, while its
+        // signAndSendTransactions handoff exits before showing approval on affected devices.
+        // Match the website architecture: wallet signs only; SPARKD broadcasts and verifies.
         return when (val result = walletAdapter.transact(sender) { authResult ->
             val account = authResult.accounts.firstOrNull()
                 ?: error("Wallet did not provide an account.")
             check(Base58.encode(account.publicKey) == expectedAddress) {
                 "The active wallet changed. Reconnect before signing."
             }
-            val signature = signAndSendTransactions(arrayOf(unsignedTransaction)).signatures.singleOrNull()
-                ?: error("Wallet did not return a transaction signature.")
-            Pair(authResult.authToken, Base58.encode(signature))
+            val signed = signTransactions(arrayOf(unsignedTransaction)).signedPayloads.singleOrNull()
+                ?: error("Wallet did not return a signed transaction.")
+            Pair(authResult.authToken, signed)
         }) {
             is TransactionResult.Success -> {
                 val payload = result.payload
-                    ?: error("Wallet returned without a transaction signature. Check Phantom before retrying.")
+                    ?: error("Wallet returned without a signed transaction. Nothing was broadcast.")
                 walletAdapter.authToken = payload.first
                 payload.second
             }
             is TransactionResult.NoWalletFound ->
                 error("No compatible Solana wallet was found. Install a Mobile Wallet Adapter compatible wallet and try again.")
-            is TransactionResult.Failure -> {
-                // A stale authorization can be repaired safely without sending anything:
-                // clear it and require the user to reconnect/review before another burn attempt.
-                walletAdapter.authToken = null
-                address = null
+            is TransactionResult.Failure ->
                 throw IllegalStateException(
-                    "Phantom could not continue the wallet session. No new burn was requested by SPARKD. Reconnect Phantom, review the entry again, then approve once.",
+                    "Phantom signing was cancelled or closed before approval. Nothing was broadcast and no new burn was requested.",
                     result.e
                 )
-            }
         }
     }
+
 }
 
 private object Base58 {
