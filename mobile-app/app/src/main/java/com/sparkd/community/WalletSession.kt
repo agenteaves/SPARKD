@@ -33,7 +33,7 @@ class WalletSession(private val activity: Activity, private val lifecycle: Lifec
         try {
             val client = scenario.start().get(60, TimeUnit.SECONDS)
             val result = client.authorize(
-                Uri.parse("https://sparkd-wallet-verification.newmodshere.workers.dev"), Uri.parse("favicon.ico"), "SPARKD",
+                Uri.parse("https://sparkdcoin.com"), Uri.parse("favicon.ico"), "SPARKD",
                 ProtocolContract.CHAIN_SOLANA_MAINNET, null, null, null, null
             ).get() ?: error("Wallet did not authorize SPARKD.")
             val account = result.accounts.firstOrNull() ?: error("Wallet did not provide an account.")
@@ -65,7 +65,7 @@ class WalletSession(private val activity: Activity, private val lifecycle: Lifec
         try {
             val client = scenario.start().get(60, TimeUnit.SECONDS)
             val authorization = client.reauthorize(
-                Uri.parse("https://sparkd-wallet-verification.newmodshere.workers.dev"), Uri.parse("favicon.ico"), "SPARKD", token
+                Uri.parse("https://sparkdcoin.com"), Uri.parse("favicon.ico"), "SPARKD", token
             ).get() ?: error("Wallet authorization expired. Please reconnect.")
             val account = authorization.accounts.firstOrNull() ?: error("Wallet did not provide an account.")
             val authorizedAddress = Base58.encode(account.publicKey)
