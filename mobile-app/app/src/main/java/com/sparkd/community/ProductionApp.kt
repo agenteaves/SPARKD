@@ -232,142 +232,65 @@ import kotlinx.coroutines.withContext
 }
 
 @Composable private fun ContestEntry(wallet: WalletSession, repo: LiveRepository) {
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val api = remember { ContestBurnApi() }
-    val recovery = remember { BurnRecoveryStore(context) }
-    var confirmBurn by remember { mutableStateOf(false) }
-    var submitting by remember { mutableStateOf(false) }
-    var completed by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("Export a verified Forge PNG, then review the secure entry checks here.") }
-    var prepared by remember { mutableStateOf<PreparedBurn?>(null) }
-    val forge = ForgeDraft.exportedRecord
-    val bytes = ForgeDraft.exportedPng
+
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Secure Contest Entry", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text("Entry requires a 2,000 SPARKD burn. The app verifies the exact server-built transaction before it can ever ask your wallet to sign.", color = androidx.compose.ui.graphics.Color.LightGray) }
-        item { Card { Column(Modifier.padding(16.dp)) {
-            Text("Forge export", fontWeight = FontWeight.Bold)
-            Text(forge?.memeID ?: "No verified Forge export is available.")
-            Text(if (bytes == null) "Export a meme from the Forge first." else "Verified PNG is retained on this device.")
-        } } }
-        item { Button({
-            scope.launch {
-                prepared = null
-                status = if (wallet.address == null) "Waiting for wallet approval…" else "Checking contest entry…"
-                runCatching {
-                    val address = wallet.address ?: wallet.connect()
-                    status = "Wallet confirmed. Checking the live contest…"
-                    val record = forge ?: error("Export a verified Forge PNG first.")
-                    check(record.wallet == address) { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
-                    val contest = repo.contest()
-                    check(contest.id.isNotBlank()) { "The live contest is unavailable." }
-                    check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
-                    status = "Checking for an existing submission…"
-                    check(!api.hasExistingSubmission(address)) { "This wallet already has a contest submission." }
-                    status = "Verifying SPARKD Forge DNA…"
-                    api.verifyForge(address, record)
-                    status = "Checking SPARKD balance and preparing the burn review…"
-                    api.prepare(address, contest.id, record.creatorID)
-                }.onSuccess {
-                    prepared = it
-                    status = "Entry checks passed. Review the exact burn details below."
-                }.onFailure { error ->
-                    val raw = generateSequence(error as Throwable?) { it.cause }
-                        .mapNotNull { it.message }
-                        .joinToString(" ")
-                    status = if (
-                        raw.contains("Unable to resolve host", ignoreCase = true) ||
-                        raw.contains("No address associated with hostname", ignoreCase = true) ||
-                        raw.contains("temporarily unreachable", ignoreCase = true)
-                    ) {
-                        "SPARKD contest service is temporarily unreachable. Check your connection and tap Review secure entry again."
-                    } else {
-                        error.message?.takeIf { message -> message.isNotBlank() }
-                            ?: "Unable to prepare secure contest entry. Please try again."
-                    }
+        item {
+            Text(
+                "Contest burns and final submission now use the same production flow as sparkdcoin.com. " +
+                    "This keeps the irreversible 2,000 SPARKD burn on the already-proven website path.",
+                color = androidx.compose.ui.graphics.Color.LightGray
+            )
+        }
+        item {
+            Card {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Website submission", fontSize = 20.sp, fontWeight = FontWeight.Black)
+                    Text("1. Open the SPARKD contest page.")
+                    Text("2. Select the exact PNG exported from Meme Forge.")
+                    Text("3. Enter its title and connect Phantom.")
+                    Text("4. Review and approve the 2,000 SPARKD burn once.")
+                    Text("The Android app does not perform a second burn or modify the website flow.")
                 }
             }
-        }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") } }
-        item { Text(status, color = if (prepared != null) Green else Gold) }
-        prepared?.let { burn ->
-            item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Transaction review", fontSize = 20.sp, fontWeight = FontWeight.Black)
-                Text("Burn amount: 2,000 SPARKD", fontWeight = FontWeight.Bold, color = Gold)
-                Text("Token account: " + burn.tokenAccount.take(6) + "…" + burn.tokenAccount.takeLast(4))
-                Text("One signer • one burn instruction • Token-2022 verified")
-                Text("Your wallet will show the final transaction before signing. The burn is irreversible once confirmed on-chain.", color = androidx.compose.ui.graphics.Color.LightGray)
-            } } }
-            item {
-                Button(
-                    onClick = { confirmBurn = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !submitting && !completed
-                ) { Text(if (completed) "Contest entry submitted" else "Burn 2,000 SPARKD & submit") }
+        }
+        item {
+            Button(
+                onClick = {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://sparkdcoin.com/meme-of-the-week/")
+                    ).apply {
+                        // Do not resolve this verified sparkdcoin.com App Link back into SPARKD.
+                        // The contest's proven Phantom provider flow must run in the user's browser.
+                        addCategory(Intent.CATEGORY_BROWSABLE)
+                        setPackage("com.android.chrome")
+                    }
+                    runCatching { context.startActivity(intent) }
+                        .onFailure {
+                            context.startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://sparkdcoin.com/meme-of-the-week/")
+                                ).apply {
+                                    addCategory(Intent.CATEGORY_BROWSABLE)
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                            )
+                        }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Open secure website submission")
             }
         }
-    }
-
-    if (confirmBurn) {
-        AlertDialog(
-            onDismissRequest = { if (!submitting) confirmBurn = false },
-            title = { Text("Confirm contest entry") },
-            text = { Text("This will ask your wallet to sign a transaction that permanently burns exactly 2,000 SPARKD. After the burn confirms, the verified PNG will be finalized as your contest entry. Do not approve unless you want to burn 2,000 SPARKD.") },
-            dismissButton = {
-                TextButton(onClick = { confirmBurn = false }, enabled = !submitting) { Text("Cancel") }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    confirmBurn = false
-                    submitting = true
-                    scope.launch {
-                        val burn = prepared
-                        val record = forge
-                        val png = bytes
-                        runCatching {
-                            requireNotNull(burn) { "Prepare the secure entry first." }
-                            requireNotNull(record) { "Verified Forge data is missing." }
-                            requireNotNull(png) { "Verified PNG is missing." }
-                            val address = wallet.address ?: error("Reconnect your wallet before submitting.")
-                            check(record.wallet == address) { "The connected wallet does not match this Forge export." }
-
-                            status = "Uploading the verified contest PNG…"
-                            val imagePath = api.uploadMeme(address, burn.contestId, png)
-
-                            check(recovery.pending() == null) {
-                                "A previous burn is saved for recovery. DO NOT BURN AGAIN. Install the prior recovery build or contact SPARKD support before retrying."
-                            }
-
-                            status = "Waiting for Phantom approval to burn exactly 2,000 SPARKD…"
-                            val signature = wallet.signAndSendTransaction(burn.unsignedTransaction)
-
-                            status = "Phantom submitted the transaction. Verifying the exact 2,000 SPARKD burn on-chain…"
-                            api.verifyBurn(address, signature)
-
-                            status = "Recording the verified burn receipt…"
-                            api.recordBurnReceipt(address, burn.contestId, signature)
-
-                            status = "Finalizing your contest submission…"
-                            api.finalizeSubmission(address, burn, signature, record, ForgeDraft.submissionTitle, imagePath)
-
-                            recovery.clear()
-                            signature
-                        }.onSuccess { signature ->
-                            completed = true
-                            status = "Contest entry submitted successfully. Burn verified: " + signature.take(8) + "…" + signature.takeLast(8)
-                        }.onFailure { error ->
-                            val pending = recovery.pending()
-                            status = if (pending != null) {
-                                "Submission did not finish, but the signed burn is saved for recovery. DO NOT BURN AGAIN. Tap submit again to resume safely. " +
-                                    (error.message ?: "")
-                            } else {
-                                error.message ?: "Contest submission failed before a signed burn was saved."
-                            }
-                        }
-                        submitting = false
-                    }
-                }, enabled = !submitting) { Text("Confirm 2,000 SPARKD burn") }
-            }
-        )
+        item {
+            Text(
+                "Your Forge PNG remains on this device; choose it from the website form when prompted.",
+                color = Gold
+            )
+        }
     }
 }
+
