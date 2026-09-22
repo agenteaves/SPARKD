@@ -158,7 +158,7 @@ class ContestBurnApi {
         // Phantom may normalize the transaction envelope while signing. The backend receives
         // only the wallet-signed bytes and remains the broadcast gate; on-chain verify_burn
         // must prove the expected wallet/mint/amount before a receipt or submission is recorded.
-        recovery.save(contestId, wallet, signedTransaction)
+        recovery.save(contestId, wallet, signedTransaction, lastValidBlockHeight = null)
         val encoded = Base64.encodeToString(signedTransaction, Base64.NO_WRAP)
         val result = call(JSONObject().put("action", "send_signed_transaction")
             .put("wallet", wallet).put("contestId", contestId).put("signedTransaction", encoded))
