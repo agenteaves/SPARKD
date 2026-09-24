@@ -6,7 +6,7 @@ settings:
   base:
     PRODUCT_BUNDLE_IDENTIFIER: com.sparkdcoin.native
     SWIFT_VERSION: 5.9
-    TARGETED_DEVICE_FAMILY: '1'
+    TARGETED_DEVICE_FAMILY: '1,2'
 targets:
   SPARKDNative:
     type: application
