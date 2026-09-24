@@ -60,6 +60,7 @@ struct MemeEditorView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     MemeArtwork(background: photo, top: topText, bottom: bottomText)
+                        .frame(maxWidth: 600)
                         .accessibilityLabel("Meme preview")
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
                         Label("Choose photo", systemImage: "photo.on.rectangle")
@@ -88,6 +89,8 @@ struct MemeEditorView: View {
                     if let message { Text(message).foregroundStyle(.orange) }
                 }
                 .padding()
+                .frame(maxWidth: 720)
+                .frame(maxWidth: .infinity)
             }
             .navigationTitle("SPARKD Meme Forge")
             .tint(.green)
