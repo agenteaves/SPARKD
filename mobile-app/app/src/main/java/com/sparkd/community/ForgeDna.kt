@@ -11,7 +11,8 @@ data class ForgeDnaRecord(
     val forge: String = "SPARKD Meme Forge", val version: String = "1.1",
     val memeID: String, val DNA: String, val imageFingerprint: String, val imageLock: String,
     val created: String, val contract: String = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
-    val creatorID: String, val wallet: String, val reputation: Int = 100, val signature: String
+    val creatorID: String, val wallet: String, val reputation: Int = 100, val signature: String,
+    val pngFingerprint: String? = null, val pngSignature: String? = null
 )
 
 object ForgeDna {
@@ -21,6 +22,7 @@ object ForgeDna {
     fun create(png: ByteArray, creatorId: String, wallet: String?): ForgeDnaRecord {
         val bitmap = BitmapFactory.decodeByteArray(png, 0, png.size) ?: error("Unable to read the Forge image.")
         val fingerprint = pixelFingerprint(bitmap)
+        val encodedFingerprint = pngFingerprint(png)
         val base = linkedMapOf<String, Any>(
             "forge" to "SPARKD Meme Forge", "version" to "1.1", "memeID" to id("SPK-", 12),
             "DNA" to dna(), "imageFingerprint" to fingerprint, "imageLock" to fingerprint,
@@ -31,7 +33,9 @@ object ForgeDna {
         return ForgeDnaRecord(
             memeID = base.getValue("memeID") as String, DNA = base.getValue("DNA") as String,
             imageFingerprint = fingerprint, imageLock = fingerprint, created = base.getValue("created") as String,
-            creatorID = creatorId, wallet = base.getValue("wallet") as String, signature = signature
+            creatorID = creatorId, wallet = base.getValue("wallet") as String, signature = signature,
+            pngFingerprint = encodedFingerprint,
+            pngSignature = pngSignature(encodedFingerprint, base.getValue("memeID") as String)
         )
     }
 
@@ -42,6 +46,8 @@ object ForgeDna {
             "created" to record.created, "contract" to record.contract, "creatorID" to record.creatorID,
             "wallet" to record.wallet, "reputation" to record.reputation, "signature" to record.signature
         )
+        record.pngFingerprint?.let { fields["pngFingerprint"] = it }
+        record.pngSignature?.let { fields["pngSignature"] = it }
         return insertTextChunk(png, "SPARKD-FORGE", canonical(fields, false))
     }
 
@@ -50,6 +56,8 @@ object ForgeDna {
             "Choose the PNG exported by SPARKD Meme Forge."
         }
         val payloads = mutableListOf<String>()
+        var forgeChunkStart = -1
+        var forgeChunkEnd = -1
         var offset = 8
         while (offset + 12 <= png.size) {
             val length = readInt(png, offset)
@@ -60,6 +68,8 @@ object ForgeDna {
                 val zero = data.indexOf(0.toByte())
                 if (zero > 0 && String(data, 0, zero, Charsets.UTF_8) == "SPARKD-FORGE") {
                     payloads += String(data, zero + 1, data.size - zero - 1, Charsets.UTF_8)
+                    forgeChunkStart = offset
+                    forgeChunkEnd = offset + 12 + length
                 }
             }
             offset += 12 + length
@@ -73,7 +83,9 @@ object ForgeDna {
             imageFingerprint = json.getString("imageFingerprint"), imageLock = json.getString("imageLock"),
             created = json.getString("created"), contract = json.getString("contract"),
             creatorID = json.getString("creatorID"), wallet = json.getString("wallet"),
-            reputation = json.getInt("reputation"), signature = json.getString("signature")
+            reputation = json.getInt("reputation"), signature = json.getString("signature"),
+            pngFingerprint = if (json.has("pngFingerprint")) json.getString("pngFingerprint") else null,
+            pngSignature = if (json.has("pngSignature")) json.getString("pngSignature") else null
         )
         check(record.forge == "SPARKD Meme Forge" && record.contract == "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump") { "This is not an official SPARKD Forge PNG." }
         check(record.imageFingerprint == record.imageLock) { "SPARKD image-lock metadata does not match." }
@@ -84,9 +96,37 @@ object ForgeDna {
             "wallet" to record.wallet, "reputation" to record.reputation
         )
         check(record.signature == "SIG-" + hexAbs(jsHash(canonical(unsigned, true)))) { "SPARKD Forge DNA signature was altered." }
-        val bitmap = BitmapFactory.decodeByteArray(png, 0, png.size) ?: error("Unable to decode the selected PNG.")
-        check(pixelFingerprint(bitmap) == record.imageLock) { "The meme pixels changed after leaving SPARKD Meme Forge." }
+        if (record.pngFingerprint != null) {
+            check(record.pngSignature == pngSignature(record.pngFingerprint, record.memeID)) {
+                "SPARKD PNG lock signature was altered."
+            }
+            val originalPng = png.copyOfRange(0, forgeChunkStart) + png.copyOfRange(forgeChunkEnd, png.size)
+            check(pngFingerprint(originalPng) == record.pngFingerprint) {
+                "The meme PNG changed after leaving SPARKD Meme Forge."
+            }
+        } else {
+            check(record.pngSignature == null) { "SPARKD PNG lock is missing." }
+            // Existing exports only have a decoded-pixel lock.
+            val bitmap = BitmapFactory.decodeByteArray(png, 0, png.size) ?: error("Unable to decode the selected PNG.")
+            check(pixelFingerprint(bitmap) == record.imageLock) { "The meme pixels changed after leaving SPARKD Meme Forge." }
+        }
         return record
+    }
+
+    private fun pngSignature(fingerprint: String, memeId: String): String =
+        "SIG-" + hexAbs(jsHash("$memeId:$fingerprint"))
+
+    private fun pngFingerprint(bytes: ByteArray): String {
+        var first = 2166136261L.toInt()
+        var second = 0
+        for (byte in bytes) {
+            val value = byte.toInt() and 255
+            first = (first xor value) * 16777619
+            second = second * 31 + value
+        }
+        return "PNG-${bytes.size.toString(16).uppercase()}-" +
+            first.toUInt().toString(16).uppercase().padStart(8, '0') + "-" +
+            second.toUInt().toString(16).uppercase().padStart(8, '0')
     }
 
     private fun readInt(source: ByteArray, offset: Int): Int =

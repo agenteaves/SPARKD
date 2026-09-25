@@ -178,7 +178,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
             }
         }, Modifier.fillMaxWidth()) { Text(if (walletAddress == null) "🔥 Connect wallet & open Meme Forge" else "🔥 Open Meme Forge") } }
         item { Button({ go("contest") }, Modifier.fillMaxWidth()) { Text("🗳 View live contenders") } }
-        item { OutlinedButton({ go("submit") }, Modifier.fillMaxWidth()) { Text("📤 Submit exported meme") } }
+        item { OutlinedButton({ go("submit") }, Modifier.fillMaxWidth()) { Text("📤 Submit saved Forge meme") } }
         item {
             OutlinedButton({
                 if (walletAddress != null) {
@@ -205,7 +205,25 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     var title by remember { mutableStateOf(ForgeDraft.submissionTitle) }
     var selectedPng by remember { mutableStateOf(ForgeDraft.exportedPng) }
     var record by remember { mutableStateOf(ForgeDraft.exportedRecord) }
-    var status by remember { mutableStateOf(if (record == null) "Choose the exact PNG exported from SPARKD Meme Forge." else "Verified SPARKD Forge PNG selected.") }
+    var status by remember { mutableStateOf(if (record == null) "Loading your saved Forge export…" else "Original SPARKD Forge export ready for entry.") }
+
+    LaunchedEffect(Unit) {
+        if (selectedPng == null || record == null) {
+            runCatching { withContext(Dispatchers.IO) { ForgeExportStore.load(context) } }
+                .onSuccess { saved ->
+                    if (saved != null) {
+                        selectedPng = saved.first
+                        record = saved.second
+                        ForgeDraft.exportedPng = saved.first
+                        ForgeDraft.exportedRecord = saved.second
+                        status = "Original SPARKD Forge export ready for entry."
+                    } else {
+                        status = "Create a meme in SPARKD Meme Forge, then export it for contest entry."
+                    }
+                }
+                .onFailure { status = "Saved Forge export could not be verified: ${it.message}" }
+        }
+    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) scope.launch {
@@ -216,6 +234,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         ?: error("Unable to read the selected PNG.")
                 }
                 val verified = withContext(Dispatchers.Default) { ForgeDna.extractAndVerify(bytes) }
+                withContext(Dispatchers.IO) { ForgeExportStore.save(context, bytes) }
                 bytes to verified
             }.onSuccess { (bytes, verified) ->
                 selectedPng = bytes
@@ -224,18 +243,17 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                 ForgeDraft.exportedRecord = verified
                 status = "Verified SPARKD Forge PNG selected."
             }.onFailure {
-                selectedPng = null
-                record = null
-                status = it.message ?: "This PNG did not pass SPARKD Forge verification."
+                status = (it.message ?: "This PNG did not pass SPARKD Forge verification.") +
+                    if (record != null) " Your original Forge export is still ready above." else ""
             }
         }
     }
 
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text("Select the same PNG you exported from the mobile Forge. Its embedded Forge DNA and image pixels will be verified before contest entry.") }
+        item { Text("Your latest Forge export is kept inside the app and used for entry. You can also select an older exported PNG below.") }
         item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
-        item { Button({ picker.launch("image/png") }, Modifier.fillMaxWidth()) { Text("Choose exported SPARKD PNG") } }
+        item { OutlinedButton({ picker.launch("image/png") }, Modifier.fillMaxWidth()) { Text("Choose an older SPARKD PNG") } }
         selectedPng?.let { bytes ->
             item {
                 val bitmap = remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
@@ -421,6 +439,9 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                             signature
                         }.onSuccess { signature ->
                             completed = true
+                            runCatching { ForgeExportStore.clear(context) }
+                            ForgeDraft.exportedPng = null
+                            ForgeDraft.exportedRecord = null
                             status = "Contest entry submitted successfully. Burn verified: " + signature.take(8) + "…" + signature.takeLast(8)
                         }.onFailure { error ->
                             val pending = recovery.pending()
