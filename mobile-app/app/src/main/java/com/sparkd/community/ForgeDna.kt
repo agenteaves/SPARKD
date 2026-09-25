@@ -12,7 +12,7 @@ data class ForgeDnaRecord(
     val memeID: String, val DNA: String, val imageFingerprint: String, val imageLock: String,
     val created: String, val contract: String = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
     val creatorID: String, val wallet: String, val reputation: Int = 100, val signature: String,
-    val pngFingerprint: String? = null
+    val pngFingerprint: String? = null, val pngSignature: String? = null
 )
 
 object ForgeDna {
@@ -27,15 +27,15 @@ object ForgeDna {
             "forge" to "SPARKD Meme Forge", "version" to "1.1", "memeID" to id("SPK-", 12),
             "DNA" to dna(), "imageFingerprint" to fingerprint, "imageLock" to fingerprint,
             "created" to Instant.now().toString(), "contract" to "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
-            "creatorID" to creatorId, "wallet" to (wallet ?: "NOT_CONNECTED"), "reputation" to 100,
-            "pngFingerprint" to encodedFingerprint
+            "creatorID" to creatorId, "wallet" to (wallet ?: "NOT_CONNECTED"), "reputation" to 100
         )
         val signature = "SIG-" + hexAbs(jsHash(canonical(base, true)))
         return ForgeDnaRecord(
             memeID = base.getValue("memeID") as String, DNA = base.getValue("DNA") as String,
             imageFingerprint = fingerprint, imageLock = fingerprint, created = base.getValue("created") as String,
             creatorID = creatorId, wallet = base.getValue("wallet") as String, signature = signature,
-            pngFingerprint = encodedFingerprint
+            pngFingerprint = encodedFingerprint,
+            pngSignature = pngSignature(encodedFingerprint, base.getValue("memeID") as String)
         )
     }
 
@@ -47,6 +47,7 @@ object ForgeDna {
             "wallet" to record.wallet, "reputation" to record.reputation, "signature" to record.signature
         )
         record.pngFingerprint?.let { fields["pngFingerprint"] = it }
+        record.pngSignature?.let { fields["pngSignature"] = it }
         return insertTextChunk(png, "SPARKD-FORGE", canonical(fields, false))
     }
 
@@ -83,7 +84,8 @@ object ForgeDna {
             created = json.getString("created"), contract = json.getString("contract"),
             creatorID = json.getString("creatorID"), wallet = json.getString("wallet"),
             reputation = json.getInt("reputation"), signature = json.getString("signature"),
-            pngFingerprint = if (json.has("pngFingerprint")) json.getString("pngFingerprint") else null
+            pngFingerprint = if (json.has("pngFingerprint")) json.getString("pngFingerprint") else null,
+            pngSignature = if (json.has("pngSignature")) json.getString("pngSignature") else null
         )
         check(record.forge == "SPARKD Meme Forge" && record.contract == "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump") { "This is not an official SPARKD Forge PNG." }
         check(record.imageFingerprint == record.imageLock) { "SPARKD image-lock metadata does not match." }
@@ -93,20 +95,26 @@ object ForgeDna {
             "created" to record.created, "contract" to record.contract, "creatorID" to record.creatorID,
             "wallet" to record.wallet, "reputation" to record.reputation
         )
-        record.pngFingerprint?.let { unsigned["pngFingerprint"] = it }
         check(record.signature == "SIG-" + hexAbs(jsHash(canonical(unsigned, true)))) { "SPARKD Forge DNA signature was altered." }
         if (record.pngFingerprint != null) {
+            check(record.pngSignature == pngSignature(record.pngFingerprint, record.memeID)) {
+                "SPARKD PNG lock signature was altered."
+            }
             val originalPng = png.copyOfRange(0, forgeChunkStart) + png.copyOfRange(forgeChunkEnd, png.size)
             check(pngFingerprint(originalPng) == record.pngFingerprint) {
                 "The meme PNG changed after leaving SPARKD Meme Forge."
             }
         } else {
+            check(record.pngSignature == null) { "SPARKD PNG lock is missing." }
             // Existing exports only have a decoded-pixel lock.
             val bitmap = BitmapFactory.decodeByteArray(png, 0, png.size) ?: error("Unable to decode the selected PNG.")
             check(pixelFingerprint(bitmap) == record.imageLock) { "The meme pixels changed after leaving SPARKD Meme Forge." }
         }
         return record
     }
+
+    private fun pngSignature(fingerprint: String, memeId: String): String =
+        "SIG-" + hexAbs(jsHash("$memeId:$fingerprint"))
 
     private fun pngFingerprint(bytes: ByteArray): String {
         var first = 2166136261L.toInt()
