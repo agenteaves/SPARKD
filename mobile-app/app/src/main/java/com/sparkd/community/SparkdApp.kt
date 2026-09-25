@@ -138,7 +138,8 @@ enum class Tab(val label:String){Home("Home"),Forge("Forge"),Contest("Contest"),
     val raw=png?:error("Choose an image before exporting.")
     val record=ForgeDna.create(raw,creatorId,address)
     val verified=ForgeDna.embed(raw,record)
-    ForgeDraft.exportedRecord=record;ForgeDraft.exportedPng=verified
+    val savedRecord=ForgeExportStore.save(ctx,verified)
+    ForgeDraft.exportedRecord=savedRecord;ForgeDraft.exportedPng=verified
     exportBytes=verified
     exportPng.launch("SPARKD-"+record.memeID+".png")
    }.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}
