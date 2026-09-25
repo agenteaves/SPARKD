@@ -131,6 +131,15 @@
             second.toString(16).toUpperCase().padStart(8, "0");
     }
 
+    function fingerprintSignature(memeID, fingerprint) {
+        const text = memeID + ":" + fingerprint;
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+        }
+        return "SIG-" + Math.abs(hash).toString(16).toUpperCase();
+    }
+
     function forgeSignature(forgeData) {
         // forge-export.js is authoritative for the signature embedded
         // in the final PNG. It sorts every metadata key alphabetically
@@ -140,7 +149,7 @@
         Object.keys(forgeData)
             .sort()
             .forEach(function (key) {
-                if (key !== "signature") {
+                if (key !== "signature" && key !== "pngFingerprint" && key !== "pngSignature") {
                     sorted[key] = forgeData[key];
                 }
             });
@@ -267,11 +276,18 @@
         validateForgeMetadata(forgeData);
 
         if (forgeData.pngFingerprint !== undefined) {
+            if (forgeData.pngSignature !== fingerprintSignature(forgeData.memeID, forgeData.pngFingerprint)) {
+                throw new Error("SPARKD PNG lock signature has been altered.");
+            }
             if (fingerprintPNGBytes(originalPNG) !== forgeData.pngFingerprint) {
                 throw new Error("The meme PNG was changed after leaving SPARKD Meme Forge.");
             }
 
             return true;
+        }
+
+        if (forgeData.pngSignature !== undefined) {
+            throw new Error("SPARKD PNG lock is missing.");
         }
 
         // Older Forge exports only contain the original canvas pixel lock.

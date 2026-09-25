@@ -106,9 +106,13 @@ window.SPARKD_PNG = {
         // pre-export canvas and decoding the PNG can yield different RGBA
         // values on Android even when the file has not been changed.
         forgeData.pngFingerprint = fingerprintPNGBytes(bytes);
-        forgeData.signature = createForgeSignature(forgeData);
+        forgeData.pngSignature = fingerprintSignature(
+            forgeData.memeID, forgeData.pngFingerprint
+        );
+        // The contest service signs the original fixed Forge fields.
+        // Keep that signature compatible while adding a separate PNG lock.
         forgeRecord.pngFingerprint = forgeData.pngFingerprint;
-        forgeRecord.signature = forgeData.signature;
+        forgeRecord.pngSignature = forgeData.pngSignature;
 
         const metadata = JSON.stringify(forgeData);
 
@@ -174,6 +178,15 @@ function fingerprintPNGBytes(bytes) {
     return "PNG-" + bytes.length.toString(16).toUpperCase() + "-" +
         first.toString(16).toUpperCase().padStart(8, "0") + "-" +
         second.toString(16).toUpperCase().padStart(8, "0");
+}
+
+function fingerprintSignature(memeID, fingerprint) {
+    const text = memeID + ":" + fingerprint;
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+    }
+    return "SIG-" + Math.abs(hash).toString(16).toUpperCase();
 }
 
 

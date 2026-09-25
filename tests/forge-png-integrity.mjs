@@ -26,6 +26,7 @@ const record = {
     created: "now", contract: "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
     creatorID: "x", wallet: "x", reputation: 100, signature: "old"
 };
+record.signature = vm.runInContext("createForgeSignature", context)(record);
 const canvas = { toDataURL: () => "data:image/png;base64," + png.toString("base64") };
 const bytes = new Uint8Array(await context.window.SPARKD_PNG.createBlob(canvas, record).arrayBuffer());
 
