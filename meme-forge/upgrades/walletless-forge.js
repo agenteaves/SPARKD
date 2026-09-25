@@ -141,7 +141,7 @@
 
         if (!existingGate) {
             const gateScript = document.createElement("script");
-            gateScript.src = "/meme-of-the-week/contest-forge-integrity-gate.js?v=1";
+            gateScript.src = "/meme-of-the-week/contest-forge-integrity-gate.js?v=2";
             gateScript.async = false;
             gateScript.dataset.sparkdForgeIntegrityGate = "1";
             document.head.appendChild(gateScript);

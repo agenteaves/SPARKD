@@ -67,18 +67,6 @@ window.SPARKD_PNG = {
         };
 
 
-        const metadata =
-        JSON.stringify(forgeData);
-
-
-
-        console.log(
-            "🔥 Forge DNA Payload:",
-            metadata
-        );
-
-
-
         const dataURL =
         canvas.toDataURL(
             "image/png"
@@ -113,6 +101,16 @@ window.SPARKD_PNG = {
             binary.charCodeAt(i);
 
         }
+
+        // Lock the encoded PNG that the user actually receives. Reading the
+        // pre-export canvas and decoding the PNG can yield different RGBA
+        // values on Android even when the file has not been changed.
+        forgeData.pngFingerprint = fingerprintPNGBytes(bytes);
+        forgeData.signature = createForgeSignature(forgeData);
+        forgeRecord.pngFingerprint = forgeData.pngFingerprint;
+        forgeRecord.signature = forgeData.signature;
+
+        const metadata = JSON.stringify(forgeData);
 
 
 
@@ -161,6 +159,22 @@ window.SPARKD_PNG = {
 
 
 };
+
+// Hash the complete PNG before the Forge tEXt chunk is inserted. The
+// validator removes that one chunk and hashes the same byte sequence.
+function fingerprintPNGBytes(bytes) {
+    let first = 2166136261;
+    let second = 0;
+
+    for (let i = 0; i < bytes.length; i++) {
+        first = Math.imul(first ^ bytes[i], 16777619) >>> 0;
+        second = (Math.imul(second, 31) + bytes[i]) >>> 0;
+    }
+
+    return "PNG-" + bytes.length.toString(16).toUpperCase() + "-" +
+        first.toString(16).toUpperCase().padStart(8, "0") + "-" +
+        second.toString(16).toUpperCase().padStart(8, "0");
+}
 
 
 

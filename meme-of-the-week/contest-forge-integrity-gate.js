@@ -53,6 +53,8 @@
 
         const decoder = new TextDecoder("latin1");
         const forgePayloads = [];
+        let forgeChunkStart = -1;
+        let forgeChunkEnd = -1;
         let offset = 8;
 
         while (offset + 12 <= bytes.length) {
@@ -78,6 +80,8 @@
                     if (keyword === "SPARKD-FORGE") {
                         const jsonText = decoder.decode(chunkData.slice(zeroIndex + 1));
                         forgePayloads.push(jsonText);
+                        forgeChunkStart = offset;
+                        forgeChunkEnd = next;
                     }
                 }
             }
@@ -106,7 +110,25 @@
             throw new Error("SPARKD Forge DNA is corrupted.");
         }
 
-        return forgeData;
+        const originalPNG = new Uint8Array(bytes.length - (forgeChunkEnd - forgeChunkStart));
+        originalPNG.set(bytes.subarray(0, forgeChunkStart));
+        originalPNG.set(bytes.subarray(forgeChunkEnd), forgeChunkStart);
+
+        return { forgeData, originalPNG };
+    }
+
+    function fingerprintPNGBytes(bytes) {
+        let first = 2166136261;
+        let second = 0;
+
+        for (let i = 0; i < bytes.length; i++) {
+            first = Math.imul(first ^ bytes[i], 16777619) >>> 0;
+            second = (Math.imul(second, 31) + bytes[i]) >>> 0;
+        }
+
+        return "PNG-" + bytes.length.toString(16).toUpperCase() + "-" +
+            first.toString(16).toUpperCase().padStart(8, "0") + "-" +
+            second.toString(16).toUpperCase().padStart(8, "0");
     }
 
     function forgeSignature(forgeData) {
@@ -241,9 +263,18 @@
             throw new Error("Contest submissions must be PNG images.");
         }
 
-        const forgeData = await extractForgeData(file);
+        const { forgeData, originalPNG } = await extractForgeData(file);
         validateForgeMetadata(forgeData);
 
+        if (forgeData.pngFingerprint !== undefined) {
+            if (fingerprintPNGBytes(originalPNG) !== forgeData.pngFingerprint) {
+                throw new Error("The meme PNG was changed after leaving SPARKD Meme Forge.");
+            }
+
+            return true;
+        }
+
+        // Older Forge exports only contain the original canvas pixel lock.
         const pixelFingerprint = await calculatePixelFingerprint(file);
 
         if (pixelFingerprint !== forgeData.imageLock) {
