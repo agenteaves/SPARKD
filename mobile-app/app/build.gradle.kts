@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="com.sparkd.community"; compileSdk=35
- defaultConfig { applicationId="com.sparkd.community"; minSdk=26; targetSdk=35; versionCode=26; versionName="1.0.23" }
+ defaultConfig { applicationId="com.sparkd.community"; minSdk=26; targetSdk=35; versionCode=27; versionName="1.0.24" }
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17" }
  buildFeatures { compose=true }
