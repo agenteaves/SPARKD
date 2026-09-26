@@ -187,453 +187,69 @@
                 </small>
             </div>
 
-
-
-            <!-- =================================================
-                 COMPETITION SCHEDULE
-                 ================================================= -->
-
             <div class="competition-schedule">
-
-
-                <div class="schedule-card">
-
-                    <span class="schedule-label">
-                        🟢 SUBMISSIONS OPEN
-                    </span>
-
-
-                    <strong>
-                        MONDAY — 8:00 AM
-                    </strong>
-
-                </div>
-
-
-
-                <div class="schedule-card">
-
-                    <span class="schedule-label">
-                        🔴 SUBMISSIONS CLOSE
-                    </span>
-
-
-                    <strong>
-                        SATURDAY — 8:00 PM
-                    </strong>
-
-                </div>
-
+                <div class="schedule-card"><span class="schedule-label">🟢 SUBMISSIONS OPEN</span><strong>MONDAY — 8:00 AM</strong></div>
+                <div class="schedule-card"><span class="schedule-label">🔴 SUBMISSIONS CLOSE</span><strong>SATURDAY — 8:00 PM</strong></div>
             </div>
-
-
-
-            <!-- =================================================
-                 COMPETITION STATS
-                 ================================================= -->
 
             <div class="competition-stats">
-
-
+                <div class="stat-card"><span class="stat-number" id="submissionCount">0</span><span class="stat-label">SUBMISSIONS</span></div>
                 <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="submissionCount"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="stat-label">
-                        SUBMISSIONS
-                    </span>
-
+                    <span class="stat-number" id="totalBurned">0</span><span class="stat-label">SPARKD BURNED</span>
+                    <span class="stat-lifetime-burned" style="display:block;margin-top:10px;font-size:.78rem;font-weight:800;line-height:1.45;"><strong id="completedContestBurned">0</strong> SPARKD BURNED ACROSS COMPLETED CONTESTS</span>
+                    <a href="https://solscan.io/token/BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:8px;font-size:.78rem;font-weight:700;">🔎 VERIFY BURNS ON SOLSCAN</a>
                 </div>
-
-
-
-                <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="totalBurned"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="stat-label">
-                        SPARKD BURNED
-                    </span>
-
-                    <span
-                        class="stat-lifetime-burned"
-                        style="display:block;margin-top:10px;font-size:.78rem;font-weight:800;line-height:1.45;"
-                    >
-                        <strong id="completedContestBurned">0</strong>
-                        SPARKD BURNED ACROSS COMPLETED CONTESTS
-                    </span>
-
-                    <a
-                        href="https://solscan.io/token/BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style="display:block;margin-top:8px;font-size:.78rem;font-weight:700;"
-                    >
-                        🔎 VERIFY BURNS ON SOLSCAN
-                    </a>
-
-                </div>
-
-
-
-                <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="daysRemaining"
-                    >
-                        --
-                    </span>
-
-
-                    <span class="stat-label" id="daysRemainingLabel">
-                        TIME REMAINING
-                    </span>
-
-                </div>
-
-
+                <div class="stat-card"><span class="stat-number" id="daysRemaining">--</span><span class="stat-label" id="daysRemainingLabel">TIME REMAINING</span></div>
             </div>
-
-
-
-            <!-- =================================================
-                 WALLET CONNECTION
-                 ================================================= -->
 
             <div class="contest-wallet">
-
-                <div
-                    id="contestWalletStatus"
-                    class="wallet-status"
-                >
-                    🔌 Wallet Not Connected
-                </div>
-
-
-                <button
-                    id="contestConnectWallet"
-                    class="motm-button"
-                    type="button"
-                >
-                    🔗 CONNECT SPARKD WALLET
-                </button>
-
+                <div id="contestWalletStatus" class="wallet-status">🔌 Wallet Not Connected</div>
+                <button id="contestConnectWallet" class="motm-button" type="button">🔗 CONNECT SPARKD WALLET</button>
             </div>
 
-
-
-            <!-- =================================================
-                 ENTER MEME OF THE WEEK
-                 ================================================= -->
-
-            <div
-                id="motmSubmissionArea"
-                style="margin-top:20px;"
-            >
-
-
-                <button
-                    id="submitMemeButton"
-                    class="motm-button"
-                    type="button"
-                >
-                    🔥 ENTER MEME OF THE WEEK
-                </button>
-
-
-
-                <!-- =================================================
-                     SUBMISSION FORM
-                     ================================================= -->
-
-                <div
-                    id="motmSubmissionForm"
-                    style="
-                        display:none;
-                        margin-top:20px;
-                    "
-                >
-
-
-                    <label
-                        for="motmMemeFile"
-                        style="
-                            display:block;
-                            margin-bottom:8px;
-                        "
-                    >
-                        🖼️ Select your SPARKD Forge PNG
-                    </label>
-
-
-                    <input
-                        id="motmMemeFile"
-                        type="file"
-                        accept="image/png"
-                    >
-
-
-
-                    <div
-                        style="
-                            margin-top:15px;
-                            margin-bottom:10px;
-                            padding:10px 12px;
-                            max-width:500px;
-                            border:1px solid rgba(255,210,60,.45);
-                            border-radius:10px;
-                            background:rgba(255,210,60,.07);
-                            font-weight:700;
-                        "
-                    >
-                        ⚠️ Don’t forget: Give your meme a title before submitting.
-                    </div>
-
-
-                    <label
-                        for="motmMemeTitle"
-                        style="
-                            display:block;
-                            margin-top:15px;
-                            margin-bottom:8px;
-                        "
-                    >
-                        🏆 Meme Title <strong>(Required)</strong>
-                    </label>
-
-
-                    <input
-                        id="motmMemeTitle"
-                        type="text"
-                        maxlength="100"
-                        placeholder="Enter your meme title"
-                        style="
-                            width:100%;
-                            max-width:500px;
-                            padding:10px;
-                        "
-                    >
-
-
-
+            <div id="motmSubmissionArea" style="margin-top:20px;">
+                <button id="submitMemeButton" class="motm-button" type="button">🔥 ENTER MEME OF THE WEEK</button>
+                <div id="motmSubmissionForm" style="display:none;margin-top:20px;">
+                    <label for="motmMemeFile" style="display:block;margin-bottom:8px;">🖼️ Select your SPARKD Forge PNG</label>
+                    <input id="motmMemeFile" type="file" accept="image/png">
+                    <div style="margin-top:15px;margin-bottom:10px;padding:10px 12px;max-width:500px;border:1px solid rgba(255,210,60,.45);border-radius:10px;background:rgba(255,210,60,.07);font-weight:700;">⚠️ Don’t forget: Give your meme a title before submitting.</div>
+                    <label for="motmMemeTitle" style="display:block;margin-top:15px;margin-bottom:8px;">🏆 Meme Title <strong>(Required)</strong></label>
+                    <input id="motmMemeTitle" type="text" maxlength="100" placeholder="Enter your meme title" style="width:100%;max-width:500px;padding:10px;">
                     <div style="margin-top:15px;">
-
-
-                        <button
-                            id="motmSubmitFinalButton"
-                            class="motm-button"
-                            type="button"
-                        >
-                            🚀 SUBMIT MEME
-                        </button>
-
-
-                        <button
-                            id="motmCancelButton"
-                            type="button"
-                            style="
-                                margin-left:10px;
-                                padding:10px 15px;
-                            "
-                        >
-                            CANCEL
-                        </button>
-
-
+                        <button id="motmSubmitFinalButton" class="motm-button" type="button">🚀 SUBMIT MEME</button>
+                        <button id="motmCancelButton" type="button" style="margin-left:10px;padding:10px 15px;">CANCEL</button>
                     </div>
-
-
-
-                    <p
-                        id="motmSubmissionStatus"
-                        style="margin-top:15px;"
-                    ></p>
-
-
+                    <p id="motmSubmissionStatus" style="margin-top:15px;"></p>
                 </div>
-
-
             </div>
 
-
-
-            <!-- =================================================
-                 ENTRY REQUIREMENT
-                 ================================================= -->
-
-            <p class="burn-note">
-
-                Entry requires holding at least
-                2,000 SPARKD and a verified entry burn.
-
-            </p>
-
-
+            <p class="burn-note">Entry requires holding at least 2,000 SPARKD and a verified entry burn.</p>
         </section>
-
-
-
-        <!-- =================================================
-             COMMUNITY SUBMISSIONS
-             ================================================= -->
 
         <section class="submissions-section">
-
-
-            <div class="section-label">
-                🖼️ COMMUNITY SUBMISSIONS
-            </div>
-
-
-            <h2>
-                This Week's Contenders
-            </h2>
-
-            <div style="text-align:center;margin:14px 0 22px;">
-                <button id="previousWeekButton" class="motm-button" type="button">
-                    ◀ PREVIOUS WEEK
-                </button>
-                <div id="previousWeekLabel" style="margin-top:10px;font-weight:800;" hidden></div>
-            </div>
-
-
-            <div
-                id="submissionsGrid"
-                class="submissions-grid"
-            >
-
-
-                <div class="empty-submissions">
-
-                    <span>
-                        🖼️
-                    </span>
-
-
-                    <p>
-                        No memes have entered
-                        the competition yet.
-                    </p>
-
-                </div>
-
-
-            </div>
-
-
+            <div class="section-label">🖼️ COMMUNITY SUBMISSIONS</div>
+            <h2>This Week's Contenders</h2>
+            <div style="text-align:center;margin:14px 0 22px;"><button id="previousWeekButton" class="motm-button" type="button">◀ PREVIOUS WEEK</button><div id="previousWeekLabel" style="margin-top:10px;font-weight:800;" hidden></div></div>
+            <div id="submissionsGrid" class="submissions-grid"><div class="empty-submissions"><span>🖼️</span><p>No memes have entered the competition yet.</p></div></div>
         </section>
-
-
-
-        <!-- =================================================
-             HALL OF FAME
-             ================================================= -->
 
         <section class="hall-section">
-
-
-            <div class="section-label">
-                🏅 SPARKD MEME HALL OF FAME
-            </div>
-
-
-            <h2>
-                Previous Champions
-            </h2>
-
-
-            <div
-                id="hallOfFame"
-                class="hall-grid"
-            >
-
-
-                <div class="empty-hall">
-
-                    🏆
-
-
-                    <p>
-                        The Hall of Fame will grow
-                        with every weekly champion.
-                    </p>
-
-                </div>
-
-
-            </div>
-
-
+            <div class="section-label">🏅 SPARKD MEME HALL OF FAME</div><h2>Previous Champions</h2>
+            <div id="hallOfFame" class="hall-grid"><div class="empty-hall">🏆<p>The Hall of Fame will grow with every weekly champion.</p></div></div>
         </section>
-
-
     </main>
 
+    <footer class="motm-footer"><p>⚡ SPARKD — Create. Compete. Burn.</p><a href="../index.html">Return to SPARKD</a></footer>
 
-
-    <!-- =====================================================
-         FOOTER
-         ===================================================== -->
-
-    <footer class="motm-footer">
-
-
-        <p>
-            ⚡ SPARKD — Create. Compete. Burn.
-        </p>
-
-
-        <a href="../index.html">
-            Return to SPARKD
-        </a>
-
-
-    </footer>
-
-
-
-    <!-- =====================================================
-         SCRIPTS
-         ===================================================== -->
-
-    <!-- Supabase browser library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-    <!-- Solana Web3.js -->
     <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
-
-
-    <!-- Solana SPL Token -->
     <script src="https://unpkg.com/@solana/spl-token@0.4.13/lib/index.iife.min.js"></script>
-
-
-    <!-- Meme of the Week contest engine -->
     <script src="app.js?v=previous-week-results-1"></script>
-
-
-    <!-- SPARKD contest submission system -->
     <script src="../meme-forge/upgrades/contest-submit.js?v=wallet-connect-5"></script>
-    <script src="../meme-forge/upgrades/walletless-forge.js?v=2"></script>
-
+    <script src="../meme-forge/upgrades/walletless-forge.js?v=3"></script>
     <script src="contest-config.js?v=1"></script>
     <script src="voting.js?v=public-voting-2"></script>
-
     <script src="contest-status.js?v=contest-open-3"></script>
-
     <script src="winner-health.js"></script>
     <script src="podium-display.js?v=1"></script>
     <script src="contest-safety-gate.js"></script>
@@ -641,9 +257,5 @@
     <script src="social-share.js"></script>
     <script src="contest-rules.js?v=open-theme-1"></script>
     <script src="voter-reward.js?v=public-voting-2"></script>
-    
-
-    
 </body>
-
 </html>
