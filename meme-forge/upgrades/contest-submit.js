@@ -1879,6 +1879,7 @@ if (
                         await this.resendSignedBurnTransaction(
                             wallet,
                             contest.id,
+                            forgeMemeID,
                             recoveryData.signedTransaction
                         );
 
@@ -2891,6 +2892,7 @@ const response =
    async buildSparkdBurnTransaction(
     wallet,
     contestId,
+    memeID,
     creatorId
 ) {
 
@@ -2964,6 +2966,9 @@ const response =
 
                             contestId:
                                 contestId,
+
+                            memeID:
+                                memeID,
 
                             creatorId:
                                 creatorId,
@@ -3529,12 +3534,14 @@ async getCurrentBlockHeight(
 async resendSignedBurnTransaction(
     wallet,
     contestId,
+    memeID,
     signedTransactionBase64
 ) {
 
     if (
         !wallet ||
         !contestId ||
+        !memeID ||
         !signedTransactionBase64
     ) {
 
@@ -3566,6 +3573,9 @@ async resendSignedBurnTransaction(
 
                         contestId:
                             contestId,
+
+                        memeID:
+                            memeID,
 
                         signedTransaction:
                             signedTransactionBase64
@@ -3731,6 +3741,7 @@ console.log(
         await this.buildSparkdBurnTransaction(
             wallet,
             contestId,
+            memeID,
             creatorId
         );
 
@@ -3977,6 +3988,9 @@ console.log(
 
                         contestId:
                             contestId,
+
+                        memeID:
+                            memeID,
 
                         signedTransaction:
                             signedTransactionBase64
