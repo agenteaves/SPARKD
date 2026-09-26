@@ -5,13 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
   (function () {
-    var isPhone = navigator.userAgentData
-      ? navigator.userAgentData.mobile
-      : /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent);
-
-    if (isPhone) {
-      window.location.replace("/meme-forge-mobile/");
-    }
+    var isPhone = navigator.userAgentData ? navigator.userAgentData.mobile : /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent);
+    if (isPhone) window.location.replace("/meme-forge-mobile/");
   })();
 </script>
 <title>SPARKD Meme Forge</title>
@@ -19,153 +14,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Bangers&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/fabric@5.3.1/dist/fabric.min.js'"></script>
-
 <script src="/sparkd-responsive.js"></script>
 </head>
 <body>
 <noscript><div style="margin:20px;padding:16px;background:#111;color:#fff;border:2px solid #ff6a00;border-radius:10px;">SPARKD Meme Forge requires JavaScript. Please enable JavaScript and reload this page.</div></noscript>
 <div id="app">
-
-  <!-- HEADER -->
-  <header>
-    <button id="homeBtn" type="button" aria-label="Return to SPARKD home">🏠 Home</button>
-    <a
-    href="../creator-profile/index.html"
-    id="profileBtn"
-    class="nav-link"
->
-    👤 Creator Profile
-</a>
-    
-   <a href="upgrades/chat.html" id="chatBtn" class="nav-link">
-    🔥 Holder Chat
-   </a>
-    <h1 id="sparkdLogo">
-      🔥 SPARKD
-      <span>MEME FORGE</span>
-    </h1>
-    <p>Forge the next viral SPARKD meme.</p>
-  </header>
-
-  <!-- TOP TEXT TOOL -->
-  <div id="textToolbar">
-    <input id="textInput" aria-label="Meme text" placeholder="SPARKD TO THE MOON">
-    <button id="addTextBtn" type="button">🔤 Add Text</button>
-  </div>
-
-  <!-- LEFT SIDE TOOLBAR -->
-  <div id="sideToolbar">
-    <button id="uploadBtn" type="button" aria-label="Upload an image into Meme Forge">🖼 Upload Image</button>
-    <button id="clearBtn" type="button" aria-label="Clear all objects from the Meme Forge canvas">🧹 Clear All</button>
-    <input type="file" id="imageInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden>
-    <button id="deleteBtn" type="button" aria-label="Delete the selected canvas object">🗑 Delete</button>
-
-    <div class="emojiContainer">
-      <button id="emojiBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="emojiPicker">😀 Emojis</button>
-      <div id="emojiPicker" role="group" aria-label="Meme emoji picker">
-        <span class="emojiOption">😀</span>
-        <span class="emojiOption">😂</span>
-        <span class="emojiOption">🤣</span>
-        <span class="emojiOption">😎</span>
-        <span class="emojiOption">😍</span>
-        <span class="emojiOption">🔥</span>
-        <span class="emojiOption">🚀</span>
-        <span class="emojiOption">💎</span>
-        <span class="emojiOption">❤️</span>
-        <span class="emojiOption">⚡</span>
-        <span class="emojiOption">🐸</span>
-        <span class="emojiOption">👑</span>
-        <span class="emojiOption">💰</span>
-        <span class="emojiOption">🤑</span>
-        <span class="emojiOption">💯</span>
-        <span class="emojiOption">👍</span>
-      </div>
-    </div>
-
-    <button id="downloadBtn" type="button" aria-label="Export Meme Forge image as PNG">⬇ Export</button>\n    <button id="mobileSaveBtn" type="button" aria-label="Save Meme Forge image using phone controls" hidden>📱 Save on Phone</button>
-  </div>
-
-  <!-- MAIN WORKSPACE -->
-  <div id="workspace">
-    <div id="editor">
-      <div id="canvasBox">
-        <canvas id="memeCanvas" width="1080" height="1080" aria-label="SPARKD Meme Forge editing canvas"></canvas>
-      </div>
-    </div>
-
-    <!-- DAILY CHALLENGE / MISSION CONTROL -->
-    <div id="dailyChallenge">
-      <h2>🚀 SPARKD Mission Control</h2>
-
-      <div id="sparkPoints">
-        🪙 SPARK Points
-        <strong id="sparkPointAmount">0</strong>
-      </div>
-
-      <div id="creatorLevel">
-        ⭐ Creator Level
-        <strong id="creatorLevelName">Level 1 - Meme Rookie</strong>
-      </div>
-
-      <div id="challengeCategory">Category: Loading...</div>
-      <p id="challengeText">Loading challenge...</p>
-      <div id="challengeDifficulty">Difficulty: ⭐</div>
-      <div id="challengeReward">Reward: +0 SPARK Points</div>
-
-      <button id="completeMissionBtn" type="button">✅ Complete Mission</button>
-    </div>
-  </div>
-
-  <!-- WATERMARK / TOKEN INFO -->
-  <div id="watermarkSection">
-    <label>Contract Watermark:</label>
-    <label>SPARKD Token:</label>
-    <p>Official Solana Contract Automatically Applied</p>
-  </div>
-
-  <footer>
-    SPARKD MEME FORGE v1.1
-  </footer>
-
+<header><button id="homeBtn" type="button" aria-label="Return to SPARKD home">🏠 Home</button><a href="../creator-profile/index.html" id="profileBtn" class="nav-link">👤 Creator Profile</a><a href="upgrades/chat.html" id="chatBtn" class="nav-link">🔥 Holder Chat</a><h1 id="sparkdLogo">🔥 SPARKD <span>MEME FORGE</span></h1><p>Forge the next viral SPARKD meme.</p></header>
+<div id="textToolbar"><input id="textInput" aria-label="Meme text" placeholder="SPARKD TO THE MOON"><button id="addTextBtn" type="button">🔤 Add Text</button></div>
+<div id="sideToolbar">
+<button id="uploadBtn" type="button" aria-label="Upload an image into Meme Forge">🖼 Upload Image</button><button id="clearBtn" type="button" aria-label="Clear all objects from the Meme Forge canvas">🧹 Clear All</button><input type="file" id="imageInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden><button id="deleteBtn" type="button" aria-label="Delete the selected canvas object">🗑 Delete</button>
+<div class="emojiContainer"><button id="emojiBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="emojiPicker">😀 Emojis</button><div id="emojiPicker" role="group" aria-label="Meme emoji picker"><span class="emojiOption">😀</span><span class="emojiOption">😂</span><span class="emojiOption">🤣</span><span class="emojiOption">😎</span><span class="emojiOption">😍</span><span class="emojiOption">🔥</span><span class="emojiOption">🚀</span><span class="emojiOption">💎</span><span class="emojiOption">❤️</span><span class="emojiOption">⚡</span><span class="emojiOption">🐸</span><span class="emojiOption">👑</span><span class="emojiOption">💰</span><span class="emojiOption">🤑</span><span class="emojiOption">💯</span><span class="emojiOption">👍</span></div></div>
+<button id="downloadBtn" type="button" aria-label="Export Meme Forge image as PNG">⬇ Export</button><button id="mobileSaveBtn" type="button" aria-label="Save Meme Forge image using phone controls" hidden>📱 Save on Phone</button>
 </div>
-
-<!-- SERVER-SIDE NUDENET CONTENT GUARD -->
-<script>
-  window.SPARKD_NUDENET_ENDPOINT =
-    "https://sparkd-nudenet-server.onrender.com/scan";
-</script>
-
-<script src="/meme-forge/upgrades/server-nudenet-guard.js?v=1"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
-<script src="app.js?v=22"></script>
-
-<script>
-  document.getElementById("homeBtn").onclick = function() {
-    window.location.href = "/";
-  };
-</script>
-
-<script src="upgrades/forge-layer.js"></script>
-<script src="upgrades/forge-export.js"></script>
-<script src="upgrades/png-forge-writer.js?v=3"></script>
-<script src="upgrades/forge-scanner.js?v=1"></script>
-<script src="upgrades/developer-panel.js"></script>
-<script src="upgrades/developer-mode.js"></script>
-<script src="upgrades/object-tools.js"></script>
-<script src="upgrades/daily-challenges-data.js"></script>
-<script src="upgrades/daily-challenge.js"></script>
-<script src="upgrades/spark-points.js"></script>
-<script src="upgrades/creator-levels.js"></script>
-<script src="upgrades/mission-completion.js"></script>
-<script src="upgrades/creator-starter-pack.js"></script>
-<script src="upgrades/text-color-picker.js"></script>
-<script src="upgrades/contest-submit.js"></script>
-<script src="upgrades/walletless-forge.js?v=1"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="upgrades/website-stats.js?v=2"></script>
-<script src="upgrades/website-stats-dashboard.js?v=3"></script>
-
-</body>
-</html>
+<div id="workspace"><div id="editor"><div id="canvasBox"><canvas id="memeCanvas" width="1080" height="1080" aria-label="SPARKD Meme Forge editing canvas"></canvas></div></div><div id="dailyChallenge"><h2>🚀 SPARKD Mission Control</h2><div id="sparkPoints">🪙 SPARK Points <strong id="sparkPointAmount">0</strong></div><div id="creatorLevel">⭐ Creator Level <strong id="creatorLevelName">Level 1 - Meme Rookie</strong></div><div id="challengeCategory">Category: Loading...</div><p id="challengeText">Loading challenge...</p><div id="challengeDifficulty">Difficulty: ⭐</div><div id="challengeReward">Reward: +0 SPARK Points</div><button id="completeMissionBtn" type="button">✅ Complete Mission</button></div></div>
+<div id="watermarkSection"><label>Contract Watermark:</label><label>SPARKD Token:</label><p>Official Solana Contract Automatically Applied</p></div><footer>SPARKD MEME FORGE v1.1</footer></div>
+<script>window.SPARKD_NUDENET_ENDPOINT="https://sparkd-nudenet-server.onrender.com/scan";</script>
+<script src="/meme-forge/upgrades/server-nudenet-guard.js?v=1"></script><script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script><script src="app.js?v=22"></script>
+<script>document.getElementById("homeBtn").onclick=function(){window.location.href="/";};</script>
+<script src="upgrades/forge-layer.js"></script><script src="upgrades/forge-export.js"></script><script src="upgrades/png-forge-writer.js?v=5"></script><script src="upgrades/forge-scanner.js?v=1"></script><script src="upgrades/developer-panel.js"></script><script src="upgrades/developer-mode.js"></script><script src="upgrades/object-tools.js"></script><script src="upgrades/daily-challenges-data.js"></script><script src="upgrades/daily-challenge.js"></script><script src="upgrades/spark-points.js"></script><script src="upgrades/creator-levels.js"></script><script src="upgrades/mission-completion.js"></script><script src="upgrades/creator-starter-pack.js"></script><script src="upgrades/text-color-picker.js"></script><script src="upgrades/contest-submit.js"></script><script src="upgrades/walletless-forge.js?v=2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="upgrades/website-stats.js?v=2"></script><script src="upgrades/website-stats-dashboard.js?v=3"></script>
+</body></html>
