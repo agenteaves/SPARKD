@@ -127,32 +127,34 @@ private fun prepareForgeSafetyImage(bytes:ByteArray):ByteArray{
 private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
  val boundary="----SPARKDAndroid"+System.currentTimeMillis()
  val url=URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety")
+ val prefix=("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-inspection.jpg\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray(Charsets.UTF_8)
+ val suffix=("\r\n--"+boundary+"--\r\n").toByteArray(Charsets.UTF_8)
+ val body=ByteArray(prefix.size+bytes.size+suffix.size)
+ System.arraycopy(prefix,0,body,0,prefix.size)
+ System.arraycopy(bytes,0,body,prefix.size,bytes.size)
+ System.arraycopy(suffix,0,body,prefix.size+bytes.size,suffix.size)
  val conn=(url.openConnection() as HttpURLConnection).apply{
   requestMethod="POST"
   doOutput=true
   useCaches=false
   connectTimeout=8_000
   readTimeout=20_000
-  setFixedLengthStreamingMode(bytes.size+512)
+  setFixedLengthStreamingMode(body.size)
   setRequestProperty("Accept","application/json")
   setRequestProperty("Content-Type","multipart/form-data; boundary="+boundary)
+  setRequestProperty("Connection","close")
  }
  try{
-  conn.outputStream.buffered().use{out->
-   out.write(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-inspection.jpg\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray(Charsets.UTF_8))
-   out.write(bytes)
-   out.write(("\r\n--"+boundary+"--\r\n").toByteArray(Charsets.UTF_8))
-   out.flush()
-  }
+  conn.outputStream.use{out->out.write(body);out.flush()}
   val code=conn.responseCode
   val stream=if(code in 200..299)conn.inputStream else conn.errorStream
-  val body=stream?.bufferedReader(Charsets.UTF_8)?.use{it.readText()}.orEmpty()
+  val response=stream?.bufferedReader(Charsets.UTF_8)?.use{it.readText()}.orEmpty()
   if(code !in 200..299){
-   val msg=try{JSONObject(body).optString("error").takeIf{it.isNotBlank()}?:"Content protection HTTP "+code}catch(_:Exception){"Content protection HTTP "+code}
+   val msg=try{JSONObject(response).optString("error").takeIf{it.isNotBlank()}?:"Content protection HTTP "+code}catch(_:Exception){"Content protection HTTP "+code}
    return false to msg
   }
   return try{
-   val j=JSONObject(body)
+   val j=JSONObject(response)
    if(j.optBoolean("success")&&j.optBoolean("checked")&&j.optBoolean("safe")&&!j.optBoolean("blocked")) true to "Approved"
    else false to j.optString("reason",j.optString("error","Image did not pass content inspection."))
   }catch(e:Exception){false to "Content protection returned an invalid result."}
