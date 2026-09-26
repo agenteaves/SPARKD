@@ -78,7 +78,9 @@
         const existingGate = document.querySelector('script[data-sparkd-forge-integrity-gate="1"]');
         if (!existingGate) {
             const gateScript = document.createElement("script");
-            gateScript.src = "/meme-of-the-week/contest-forge-integrity-gate.js?v=2";
+            // v3 forces browsers off the cached verifier that incorrectly
+            // included pngFingerprint/pngSignature in the Forge DNA signature.
+            gateScript.src = "/meme-of-the-week/contest-forge-integrity-gate.js?v=3";
             gateScript.async = false;
             gateScript.dataset.sparkdForgeIntegrityGate = "1";
             document.head.appendChild(gateScript);
