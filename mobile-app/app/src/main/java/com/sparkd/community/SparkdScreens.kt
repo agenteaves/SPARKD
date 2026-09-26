@@ -2,6 +2,7 @@ package com.sparkd.community
 
 import android.graphics.BitmapFactory
 import android.widget.Toast
+import java.io.ByteArrayOutputStream
 import java.math.RoundingMode
 import java.net.HttpURLConnection
 import java.net.URL
@@ -53,8 +54,8 @@ import androidx.compose.ui.unit.sp
    kotlinx.coroutines.CoroutineScope(Dispatchers.Main).launch{
     try{
      val bytes=withContext(Dispatchers.IO){ctx.contentResolver.openInputStream(u)?.use{it.readBytes()}?:throw Exception("Unable to read image.")}
-     val mime=ctx.contentResolver.getType(u)?:"image/jpeg"
-     val result=withContext(Dispatchers.IO){checkForgeImageSafety(bytes,mime)}
+     val safetyBytes=withContext(Dispatchers.Default){prepareForgeSafetyImage(bytes)}
+     val result=withContext(Dispatchers.IO){checkForgeImageSafety(safetyBytes,"image/jpeg")}
      if(result.first){src=BitmapFactory.decodeByteArray(bytes,0,bytes.size);layers=emptyList();selected=null;safetyMessage="✅ Image passed content inspection."}
      else{safetyMessage="🚫 "+result.second;Toast.makeText(ctx,result.second,Toast.LENGTH_LONG).show()}
     }catch(e:Exception){val detail=e.message?:e.javaClass.simpleName;safetyMessage="🚫 Content protection error: "+detail;Toast.makeText(ctx,"Image blocked: "+detail,Toast.LENGTH_LONG).show()}
@@ -101,6 +102,28 @@ import androidx.compose.ui.unit.sp
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){item{Text("My SPARKD",fontSize=30.sp,fontWeight=FontWeight.Black)};item{Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp)){Text("Wallet",color=Color.Gray);Text(address?:"Not connected",color=if(address==null)Gold else Green)}}};item{Surface(shape=RoundedCornerShape(20.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(20.dp)){Text("SPARKD Balance",color=Color.Gray);Text(when{address==null->"Connect wallet to view";balance!=null->balance+" SPARKD";else->"Loading…"},fontSize=25.sp,fontWeight=FontWeight.Black,color=if(balance!=null)Green else Gold);balanceError?.let{Text(it,color=Color.LightGray,fontSize=12.sp)}}}};item{Button({uriHandler.openUri(SparkdBalanceRepository.BUY_URL)},modifier=Modifier.fillMaxWidth()){Text("Buy More SPARKD")}};item{OutlinedButton({if(address!=null){wallet.disconnect();address=null;status="Wallet disconnected."}else scope.launch{status="Opening your Solana wallet…";runCatching{wallet.connect()}.onSuccess{address=it;status="Wallet connected."}.onFailure{status=it.message?:"Wallet connection failed."}}},modifier=Modifier.fillMaxWidth()){Text(if(address==null)"Connect Solana Wallet" else "Disconnect Wallet")}};item{status?.let{Text(it,color=Color.LightGray)}}}
 }
 
+private fun prepareForgeSafetyImage(bytes:ByteArray):ByteArray{
+ val bounds=BitmapFactory.Options().apply{inJustDecodeBounds=true}
+ BitmapFactory.decodeByteArray(bytes,0,bytes.size,bounds)
+ if(bounds.outWidth<=0||bounds.outHeight<=0) throw Exception("Unable to decode image for content inspection.")
+ var sample=1
+ while(bounds.outWidth/sample>1280||bounds.outHeight/sample>1280) sample*=2
+ val options=BitmapFactory.Options().apply{inSampleSize=sample}
+ val decoded=BitmapFactory.decodeByteArray(bytes,0,bytes.size,options)?:throw Exception("Unable to decode image for content inspection.")
+ val maxSide=1280
+ val scale=minOf(1f,maxSide.toFloat()/maxOf(decoded.width,decoded.height).toFloat())
+ val resized=if(scale<1f) android.graphics.Bitmap.createScaledBitmap(decoded,(decoded.width*scale).toInt().coerceAtLeast(1),(decoded.height*scale).toInt().coerceAtLeast(1),true) else decoded
+ return try{
+  ByteArrayOutputStream().use{out->
+   if(!resized.compress(android.graphics.Bitmap.CompressFormat.JPEG,82,out)) throw Exception("Unable to prepare image for content inspection.")
+   out.toByteArray()
+  }
+ }finally{
+  if(resized!==decoded) resized.recycle()
+  decoded.recycle()
+ }
+}
+
 private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
  val boundary="----SPARKDAndroid"+System.currentTimeMillis()
  val url=URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety")
@@ -109,15 +132,14 @@ private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,Stri
   doOutput=true
   useCaches=false
   connectTimeout=8_000
-  readTimeout=12_000
-  setChunkedStreamingMode(64*1024)
+  readTimeout=20_000
+  setFixedLengthStreamingMode(bytes.size+512)
   setRequestProperty("Accept","application/json")
   setRequestProperty("Content-Type","multipart/form-data; boundary="+boundary)
  }
  try{
   conn.outputStream.buffered().use{out->
-   val ext=when{mime.contains("png",true)->"png";mime.contains("webp",true)->"webp";else->"jpg"}
-   out.write(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload."+ext+"\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray(Charsets.UTF_8))
+   out.write(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-inspection.jpg\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray(Charsets.UTF_8))
    out.write(bytes)
    out.write(("\r\n--"+boundary+"--\r\n").toByteArray(Charsets.UTF_8))
    out.flush()
