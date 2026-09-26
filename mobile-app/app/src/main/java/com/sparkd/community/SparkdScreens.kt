@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.sp
      val result=withContext(Dispatchers.IO){checkForgeImageSafety(bytes,mime)}
      if(result.first){src=BitmapFactory.decodeByteArray(bytes,0,bytes.size);layers=emptyList();selected=null;safetyMessage="✅ Image passed content inspection."}
      else{safetyMessage="🚫 "+result.second;Toast.makeText(ctx,result.second,Toast.LENGTH_LONG).show()}
-    }catch(e:Exception){safetyMessage="🚫 Content protection could not verify this image.";Toast.makeText(ctx,"Image blocked: content inspection unavailable.",Toast.LENGTH_LONG).show()}
+    }catch(e:Exception){val detail=e.message?:e.javaClass.simpleName;safetyMessage="🚫 Content protection error: "+detail;Toast.makeText(ctx,"Image blocked: "+detail,Toast.LENGTH_LONG).show()}
     finally{safetyChecking=false}
    }
   }
@@ -102,7 +102,39 @@ import androidx.compose.ui.unit.sp
 }
 
 private fun checkForgeImageSafety(bytes:ByteArray,mime:String):Pair<Boolean,String>{
- val boundary="----SPARKDAndroid"+System.currentTimeMillis();val conn=(URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety").openConnection() as HttpURLConnection).apply{requestMethod="POST";doOutput=true;connectTimeout=20000;readTimeout=30000;setRequestProperty("Content-Type","multipart/form-data; boundary="+boundary)}
- conn.outputStream.use{out->val ext=when{mime.contains("png",true)->"png";mime.contains("webp",true)->"webp";else->"jpg"};out.write(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload."+ext+"\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray());out.write(bytes);out.write(("\r\n--"+boundary+"--\r\n").toByteArray())}
- val code=conn.responseCode;val stream=if(code in 200..299)conn.inputStream else conn.errorStream;val body=stream?.bufferedReader()?.use{it.readText()}.orEmpty();if(code !in 200..299)return false to try{JSONObject(body).optString("error","Content protection could not verify this image.")}catch(_:Exception){"Content protection could not verify this image. (HTTP "+code+")"};return try{val j=JSONObject(body);if(j.optBoolean("success")&&j.optBoolean("checked")&&j.optBoolean("safe")&&!j.optBoolean("blocked"))true to "Approved" else false to j.optString("reason",j.optString("error","Image did not pass content inspection."))}catch(_:Exception){false to "Content protection returned an invalid result."}
+ val boundary="----SPARKDAndroid"+System.currentTimeMillis()
+ val url=URL("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety")
+ val conn=(url.openConnection() as HttpURLConnection).apply{
+  requestMethod="POST"
+  doOutput=true
+  useCaches=false
+  connectTimeout=8_000
+  readTimeout=12_000
+  setChunkedStreamingMode(64*1024)
+  setRequestProperty("Accept","application/json")
+  setRequestProperty("Content-Type","multipart/form-data; boundary="+boundary)
+ }
+ try{
+  conn.outputStream.buffered().use{out->
+   val ext=when{mime.contains("png",true)->"png";mime.contains("webp",true)->"webp";else->"jpg"}
+   out.write(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"image\"; filename=\"forge-upload."+ext+"\"\r\nContent-Type: "+mime+"\r\n\r\n").toByteArray(Charsets.UTF_8))
+   out.write(bytes)
+   out.write(("\r\n--"+boundary+"--\r\n").toByteArray(Charsets.UTF_8))
+   out.flush()
+  }
+  val code=conn.responseCode
+  val stream=if(code in 200..299)conn.inputStream else conn.errorStream
+  val body=stream?.bufferedReader(Charsets.UTF_8)?.use{it.readText()}.orEmpty()
+  if(code !in 200..299){
+   val msg=try{JSONObject(body).optString("error").takeIf{it.isNotBlank()}?:"Content protection HTTP "+code}catch(_:Exception){"Content protection HTTP "+code}
+   return false to msg
+  }
+  return try{
+   val j=JSONObject(body)
+   if(j.optBoolean("success")&&j.optBoolean("checked")&&j.optBoolean("safe")&&!j.optBoolean("blocked")) true to "Approved"
+   else false to j.optString("reason",j.optString("error","Image did not pass content inspection."))
+  }catch(e:Exception){false to "Content protection returned an invalid result."}
+ }finally{
+  conn.disconnect()
+ }
 }
