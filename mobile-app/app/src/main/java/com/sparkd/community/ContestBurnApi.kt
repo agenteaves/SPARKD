@@ -21,6 +21,10 @@ class ContestBurnApi {
     private val supabase = "https://uxpbgzksfizkyxubctep.supabase.co"
     private val publishableKey = "sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J"
     private val bucket = "sparkd-contest-submissions"
+    @Volatile private var activeMemeId: String? = null
+
+    private fun requireMemeId(): String = activeMemeId?.takeIf { it.isNotBlank() }
+        ?: error("Verify the SPARKD Forge export before preparing or recovering a contest burn.")
 
     private suspend fun call(payload: JSONObject): JSONObject = withContext(Dispatchers.IO) {
         var lastNetworkError: IOException? = null
@@ -57,7 +61,7 @@ class ContestBurnApi {
 
     suspend fun getBurnReceipt(wallet: String, contestId: String): String? {
         require(wallet.length in 32..50) { "Invalid wallet address." }; require(contestId.isNotBlank()) { "Contest ID is required." }
-        val result = call(JSONObject().put("action", "get_burn_receipt").put("wallet", wallet).put("contestId", contestId))
+        val result = call(JSONObject().put("action", "get_burn_receipt").put("wallet", wallet).put("contestId", contestId).put("memeID", requireMemeId()))
         val receipt = result.optJSONObject("receipt")
         val signature = listOf(result.optString("burn_transaction"), result.optString("burnTransaction"), result.optString("transaction_signature"), result.optString("transactionSignature"), receipt?.optString("burn_transaction").orEmpty(), receipt?.optString("burnTransaction").orEmpty(), receipt?.optString("transaction_signature").orEmpty(), receipt?.optString("transactionSignature").orEmpty()).firstOrNull { it.isNotBlank() }
         val found = result.optBoolean("found", signature != null)
@@ -65,23 +69,25 @@ class ContestBurnApi {
         return signature?.takeIf { found && verified }
     }
 
-    suspend fun recordBurnReceipt(wallet: String, contestId: String, signature: String) { val result = call(JSONObject().put("action", "record_burn_receipt").put("wallet", wallet).put("contestId", contestId).put("burnTransaction", signature)); check(result.optBoolean("recorded") && result.optBoolean("verified")) { result.optString("error", "Unable to record verified SPARKD burn receipt.") } }
+    suspend fun recordBurnReceipt(wallet: String, contestId: String, signature: String) { val result = call(JSONObject().put("action", "record_burn_receipt").put("wallet", wallet).put("contestId", contestId).put("memeID", requireMemeId()).put("burnTransaction", signature)); check(result.optBoolean("recorded") && result.optBoolean("verified")) { result.optString("error", "Unable to record verified SPARKD burn receipt.") } }
 
     suspend fun finalizeSubmission(wallet: String, prepared: PreparedBurn, signature: String, forge: ForgeDnaRecord, title: String, imagePath: String) {
-        val result = call(JSONObject().put("action", "finalize_submission").put("wallet", wallet).put("contestId", prepared.contestId).put("burnTransaction", signature).put("submissionId", UUID.randomUUID().toString()).put("creatorId", forge.creatorID).put("memeTitle", title.ifBlank { "Untitled SPARKD Meme" }).put("memeImageUrl", imagePath).put("dnaVerificationData", forgeJson(forge)))
+        check(forge.memeID == requireMemeId()) { "The selected Forge meme changed after burn verification. Review secure entry again." }
+        val result = call(JSONObject().put("action", "finalize_submission").put("wallet", wallet).put("contestId", prepared.contestId).put("memeID", forge.memeID).put("burnTransaction", signature).put("submissionId", UUID.randomUUID().toString()).put("creatorId", forge.creatorID).put("memeTitle", title.ifBlank { "Untitled SPARKD Meme" }).put("memeImageUrl", imagePath).put("dnaVerificationData", forgeJson(forge)))
         check(result.optBoolean("finalized")) { result.optString("error", "Unable to finalize SPARKD contest submission.") }
     }
 
     suspend fun verifyForge(wallet: String, forge: ForgeDnaRecord) {
-        require(wallet.length in 32..50) { "Invalid wallet address." }
+        require(wallet.length in 32..50) { "Invalid wallet address." }; require(forge.memeID.isNotBlank()) { "Forge Meme ID is missing." }
         val data = forgeJson(forge); if (data.optString("wallet") == "NOT_CONNECTED") data.put("wallet", wallet)
         val result = call(JSONObject().put("action", "verify_dna").put("wallet", wallet).put("mint", mint).put("forgeData", data))
         check(result.optBoolean("verified")) { result.optString("reason", result.optString("error", "SPARKD Forge verification failed.")) }
+        activeMemeId = forge.memeID
     }
 
     suspend fun sendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray, expectedUnsignedTransaction: ByteArray, recovery: BurnRecoveryStore): String {
         validateSignedLegacyTransaction(signedTransaction); recovery.save(contestId, wallet, signedTransaction, lastValidBlockHeight = null)
-        val result = call(JSONObject().put("action", "send_signed_transaction").put("wallet", wallet).put("contestId", contestId).put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP)))
+        val result = call(JSONObject().put("action", "send_signed_transaction").put("wallet", wallet).put("contestId", contestId).put("memeID", requireMemeId()).put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP)))
         check(result.optBoolean("sent")) { "SPARKD server did not accept the signed transaction." }; return result.optString("transactionSignature").takeIf { it.isNotBlank() } ?: error("SPARKD server returned no transaction signature.")
     }
 
@@ -90,16 +96,17 @@ class ContestBurnApi {
 
     suspend fun transactionStatus(wallet: String, signature: String): TransactionStatus { val result = call(JSONObject().put("action", "check_transaction_status").put("wallet", wallet).put("transactionSignature", signature)); return TransactionStatus(result.optBoolean("found"), result.has("err") && !result.isNull("err")) }
     suspend fun currentBlockHeight(wallet: String): Long = call(JSONObject().put("action", "get_block_height").put("wallet", wallet)).getLong("blockHeight")
-    suspend fun resendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray): String { validateSignedLegacyTransaction(signedTransaction); val result = call(JSONObject().put("action", "send_signed_transaction").put("wallet", wallet).put("contestId", contestId).put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP))); check(result.optBoolean("sent")) { "SPARKD server did not accept the saved signed transaction." }; return result.optString("transactionSignature").takeIf { it.isNotBlank() } ?: error("SPARKD server returned no transaction signature.") }
+    suspend fun resendSignedTransaction(wallet: String, contestId: String, signedTransaction: ByteArray): String { validateSignedLegacyTransaction(signedTransaction); val result = call(JSONObject().put("action", "send_signed_transaction").put("wallet", wallet).put("contestId", contestId).put("memeID", requireMemeId()).put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP))); check(result.optBoolean("sent")) { "SPARKD server did not accept the saved signed transaction." }; return result.optString("transactionSignature").takeIf { it.isNotBlank() } ?: error("SPARKD server returned no transaction signature.") }
 
-    suspend fun verifyBurn(wallet: String, signature: String): Boolean { repeat(15) { attempt -> val result = call(JSONObject().put("action", "verify_burn").put("wallet", wallet).put("burnTransaction", signature)); if (result.optBoolean("verified")) return true; if (result.optBoolean("transactionFound")) error(result.optString("reason", "The transaction was found but the SPARKD burn could not be verified.")); if (attempt < 14) delay(1000) }; error("The burn was sent but is not confirmed yet. DO NOT BURN AGAIN. Retry this submission to recover it.") }
+    suspend fun verifyBurn(wallet: String, signature: String): Boolean { repeat(15) { attempt -> val result = call(JSONObject().put("action", "verify_burn").put("wallet", wallet).put("memeID", requireMemeId()).put("burnTransaction", signature)); if (result.optBoolean("verified")) return true; if (result.optBoolean("transactionFound")) error(result.optString("reason", "The transaction was found but the SPARKD burn could not be verified.")); if (attempt < 14) delay(1000) }; error("The burn was sent but is not confirmed yet. DO NOT BURN AGAIN. Retry this submission to recover it.") }
     suspend fun hasExistingSubmission(wallet: String): Boolean { require(wallet.length in 32..50) { "Invalid wallet address." }; val result = call(JSONObject().put("action", "check_submission").put("wallet", wallet)); return result.optBoolean("alreadySubmitted") || result.optBoolean("submitted") || result.optBoolean("exists") || result.optInt("submissionCount", 0) > 0 }
 
     suspend fun prepare(wallet: String, contestId: String, creatorId: String): PreparedBurn {
         require(wallet.length in 32..50) { "Invalid wallet address." }; require(creatorId.isNotBlank()) { "Creator identity is missing from this Forge export." }
+        val memeId = requireMemeId()
         val token = call(JSONObject().put("action", "find_token_account").put("wallet", wallet)); check(token.optBoolean("found")) { "No SPARKD Token-2022 account was found." }; check(token.optString("mint") == mint && token.optString("program") == token2022) { "Unexpected SPARKD token account." }; check(token.optInt("decimals") == 6 && token.optBoolean("sufficientBalance")) { "You need at least 2,000 SPARKD to enter." }
         val tokenAccount = token.getString("tokenAccount")
-        val prepared = call(JSONObject().put("action", "prepare_burn").put("wallet", wallet).put("contestId", contestId).put("tokenAccount", tokenAccount).put("creatorId", creatorId)); check(prepared.optBoolean("prepared") && prepared.optBoolean("transactionBuilt")) { "SPARKD burn could not be prepared." }; check(prepared.optInt("signerCount") == 1 && prepared.optInt("instructionCount") == 1 && !prepared.optBoolean("durableNonce")) { "Unexpected SPARKD transaction layout." }; check(prepared.optString("mint") == mint && prepared.optString("tokenProgram") == token2022) { "Unexpected SPARKD burn token." }; check(prepared.optString("rawBurnAmount") == "2000000000" && prepared.optInt("decimals") == 6) { "Unexpected SPARKD burn amount." }
+        val prepared = call(JSONObject().put("action", "prepare_burn").put("wallet", wallet).put("contestId", contestId).put("memeID", memeId).put("tokenAccount", tokenAccount).put("creatorId", creatorId)); check(prepared.optBoolean("prepared") && prepared.optBoolean("transactionBuilt")) { "SPARKD burn could not be prepared." }; check(prepared.optInt("signerCount") == 1 && prepared.optInt("instructionCount") == 1 && !prepared.optBoolean("durableNonce")) { "Unexpected SPARKD transaction layout." }; check(prepared.optString("mint") == mint && prepared.optString("tokenProgram") == token2022) { "Unexpected SPARKD burn token." }; check(prepared.optString("rawBurnAmount") == "2000000000" && prepared.optInt("decimals") == 6) { "Unexpected SPARKD burn amount." }
         val bytes = runCatching { Base64.decode(prepared.getString("unsignedTransaction"), Base64.DEFAULT) }.getOrElse { throw IllegalStateException("SPARKD server returned an invalid transaction.") }; check(bytes.isNotEmpty()) { "SPARKD server returned an empty transaction." }; return PreparedBurn(contestId, tokenAccount, bytes, prepared.getLong("lastValidBlockHeight"))
     }
 }
