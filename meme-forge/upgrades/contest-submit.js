@@ -2362,7 +2362,8 @@ else {
     await this.executeSparkdBurn(
         wallet,
         contest.id,
-        forgeMemeID
+        forgeMemeID,
+        creatorId
     );
 
     }
@@ -2889,7 +2890,8 @@ const response =
 
    async buildSparkdBurnTransaction(
     wallet,
-    contestId
+    contestId,
+    creatorId
 ) {
 
         console.log(
@@ -2962,6 +2964,9 @@ const response =
 
                             contestId:
                                 contestId,
+
+                            creatorId:
+                                creatorId,
 
                             tokenAccount:
                                 tokenAccountResult.tokenAccount
@@ -3602,7 +3607,8 @@ async resendSignedBurnTransaction(
 async executeSparkdBurn(
     wallet,
     contestId,
-    memeID
+    memeID,
+    creatorId
 ) {
 
     console.log(
@@ -3724,7 +3730,8 @@ console.log(
     const built =
         await this.buildSparkdBurnTransaction(
             wallet,
-            contestId
+            contestId,
+            creatorId
         );
 
     if (
