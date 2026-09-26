@@ -8,7 +8,7 @@ import java.time.Instant
 import java.util.zip.CRC32
 
 data class ForgeDnaRecord(
-    val forge: String = "SPARKD Meme Forge", val version: String = "1.1",
+    val forge: String = "SPARKD Meme Forge", val version: String = "1.2",
     val memeID: String, val DNA: String, val imageFingerprint: String, val imageLock: String,
     val created: String, val contract: String = "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
     val creatorID: String, val wallet: String, val reputation: Int = 100, val signature: String,
@@ -24,20 +24,16 @@ object ForgeDna {
         val fingerprint = pixelFingerprint(bitmap)
         val encodedFingerprint = pngFingerprint(png)
         val memeId = id("SPK-", 12)
-        val encodedSignature = pngSignature(encodedFingerprint, memeId)
-        val base = linkedMapOf<String, Any>(
-            "forge" to "SPARKD Meme Forge", "version" to "1.1", "memeID" to memeId,
-            "DNA" to dna(), "imageFingerprint" to fingerprint, "imageLock" to fingerprint,
-            "created" to Instant.now().toString(), "contract" to "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump",
-            "creatorID" to creatorId, "wallet" to (wallet ?: "NOT_CONNECTED"), "reputation" to 100,
-            "pngFingerprint" to encodedFingerprint, "pngSignature" to encodedSignature
-        )
+        val dna = dna()
+        val created = Instant.now().toString()
+        val walletValue = wallet ?: "NOT_CONNECTED"
+        val base = signatureFields("1.2", memeId, dna, fingerprint, created, creatorId, walletValue)
         val signature = "SIG-" + hexAbs(jsHash(canonical(base, true)))
         return ForgeDnaRecord(
-            memeID = memeId, DNA = base.getValue("DNA") as String,
-            imageFingerprint = fingerprint, imageLock = fingerprint, created = base.getValue("created") as String,
-            creatorID = creatorId, wallet = base.getValue("wallet") as String, signature = signature,
-            pngFingerprint = encodedFingerprint, pngSignature = encodedSignature
+            version = "1.2", memeID = memeId, DNA = dna,
+            imageFingerprint = fingerprint, imageLock = fingerprint, created = created,
+            creatorID = creatorId, wallet = walletValue, signature = signature,
+            pngFingerprint = encodedFingerprint, pngSignature = pngSignature(encodedFingerprint, memeId)
         )
     }
 
@@ -46,11 +42,10 @@ object ForgeDna {
             "forge" to record.forge, "version" to record.version, "memeID" to record.memeID,
             "DNA" to record.DNA, "imageFingerprint" to record.imageFingerprint, "imageLock" to record.imageLock,
             "created" to record.created, "contract" to record.contract, "creatorID" to record.creatorID,
-            "wallet" to record.wallet, "reputation" to record.reputation
+            "wallet" to record.wallet, "reputation" to record.reputation, "signature" to record.signature
         )
         record.pngFingerprint?.let { fields["pngFingerprint"] = it }
         record.pngSignature?.let { fields["pngSignature"] = it }
-        fields["signature"] = record.signature
         return insertTextChunk(png, "SPARKD-FORGE", canonical(fields, false))
     }
 
@@ -81,13 +76,7 @@ object ForgeDna {
         )
         check(record.forge == "SPARKD Meme Forge" && record.contract == "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump") { "This is not an official SPARKD Forge PNG." }
         check(record.imageFingerprint == record.imageLock) { "SPARKD image-lock metadata does not match." }
-        val unsigned = linkedMapOf<String, Any>(
-            "forge" to record.forge, "version" to record.version, "memeID" to record.memeID, "DNA" to record.DNA,
-            "imageFingerprint" to record.imageFingerprint, "imageLock" to record.imageLock, "created" to record.created,
-            "contract" to record.contract, "creatorID" to record.creatorID, "wallet" to record.wallet, "reputation" to record.reputation
-        )
-        record.pngFingerprint?.let { unsigned["pngFingerprint"] = it }
-        record.pngSignature?.let { unsigned["pngSignature"] = it }
+        val unsigned = signatureFields(record.version, record.memeID, record.DNA, record.imageFingerprint, record.created, record.creatorID, record.wallet, record.reputation)
         check(record.signature == "SIG-" + hexAbs(jsHash(canonical(unsigned, true)))) { "SPARKD Forge DNA signature was altered." }
         if (record.pngFingerprint != null) {
             check(record.pngSignature == pngSignature(record.pngFingerprint, record.memeID)) { "SPARKD PNG lock signature was altered." }
@@ -101,6 +90,12 @@ object ForgeDna {
         return record
     }
 
+    private fun signatureFields(version:String,memeId:String,dna:String,fingerprint:String,created:String,creatorId:String,wallet:String,reputation:Int=100)=linkedMapOf<String,Any>(
+        "forge" to "SPARKD Meme Forge", "version" to version, "memeID" to memeId, "DNA" to dna,
+        "imageFingerprint" to fingerprint, "imageLock" to fingerprint, "created" to created,
+        "contract" to "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump", "creatorID" to creatorId,
+        "wallet" to wallet, "reputation" to reputation
+    )
     private fun pngSignature(fingerprint:String,memeId:String):String="SIG-"+hexAbs(jsHash("$memeId:$fingerprint"))
     private fun pngFingerprint(bytes:ByteArray):String { var first=2166136261L.toInt();var second=0;for(byte in bytes){val value=byte.toInt() and 255;first=(first xor value)*16777619;second=second*31+value};return "PNG-${bytes.size.toString(16).uppercase()}-"+first.toUInt().toString(16).uppercase().padStart(8,'0')+"-"+second.toUInt().toString(16).uppercase().padStart(8,'0') }
     private fun readInt(source:ByteArray,offset:Int):Int=((source[offset].toInt() and 255) shl 24) or ((source[offset+1].toInt() and 255) shl 16) or ((source[offset+2].toInt() and 255) shl 8) or (source[offset+3].toInt() and 255)
