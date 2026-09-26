@@ -1,13 +1,9 @@
 package com.sparkd.community
 
-import android.graphics.BitmapFactory
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -21,7 +17,6 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -103,7 +98,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         when (page) {
             "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) { page = "entry" } }
             "contest" -> Box(Modifier.padding(padding)) { Contest(repo) }
-            "submit" -> Box(Modifier.padding(padding)) { SubmitMeme(wallet) { page = "entry" } }
+            "submit" -> Box(Modifier.padding(padding)) { SubmitMeme { page = "entry" } }
             "winners" -> Box(Modifier.padding(padding)) { Winners(repo) }
             "profile" -> Box(Modifier.padding(padding)) { Profile(wallet) }
             "entry" -> Box(Modifier.padding(padding)) { ContestEntry(wallet, repo) }
@@ -135,9 +130,8 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     }
 }
 
-@Composable private fun SubmitMeme(wallet: WalletSession, onReady: () -> Unit) {
+@Composable private fun SubmitMeme(onReady: () -> Unit) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     var title by remember { mutableStateOf(ForgeDraft.submissionTitle) }
     var selectedPng by remember { mutableStateOf(ForgeDraft.exportedPng) }
     var record by remember { mutableStateOf(ForgeDraft.exportedRecord) }
@@ -147,36 +141,22 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         if (selectedPng == null || record == null) {
             runCatching { withContext(Dispatchers.IO) { ForgeExportStore.load(context) } }.onSuccess { saved ->
                 if (saved != null) {
-                    selectedPng = saved.first; record = saved.second; ForgeDraft.exportedPng = saved.first; ForgeDraft.exportedRecord = saved.second
-                    status = "Original SPARKD Forge export ready for entry."
-                } else status = "Create a meme in SPARKD Meme Forge, then export it for contest entry."
+                    selectedPng = saved.first
+                    record = saved.second
+                    ForgeDraft.exportedPng = saved.first
+                    ForgeDraft.exportedRecord = saved.second
+                    status = "Verified SPARKD Forge export ready for contest entry."
+                } else status = "Create and export a meme in the SPARKD Meme Forge before submitting."
             }.onFailure { status = "Saved Forge export could not be verified: ${it.message}" }
-        }
-    }
-
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) scope.launch {
-            status = "Verifying SPARKD Forge DNA and image pixels…"
-            runCatching {
-                val bytes = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Unable to read the selected PNG.") }
-                val verified = withContext(Dispatchers.Default) { ForgeDna.extractAndVerify(bytes) }
-                withContext(Dispatchers.IO) { ForgeExportStore.save(context, bytes) }
-                bytes to verified
-            }.onSuccess { (bytes, verified) ->
-                selectedPng = bytes; record = verified; ForgeDraft.exportedPng = bytes; ForgeDraft.exportedRecord = verified
-                status = "Verified SPARKD Forge PNG selected. This image replaces the previous saved Forge export."
-            }.onFailure { status = (it.message ?: "This PNG did not pass SPARKD Forge verification.") + if (record != null) " Your current verified Forge export is still ready above." else "" }
         }
     }
 
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text("Your latest verified Forge export is used for entry. You may replace it with another valid exported SPARKD PNG before final submission.") }
+        item { Text("Your latest verified SPARKD Meme Forge export is used automatically. Contest submissions cannot be replaced with images from the device gallery.") }
         item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
-        item { OutlinedButton({ picker.launch("image/png") }, Modifier.fillMaxWidth()) { Text("Choose another SPARKD PNG") } }
-        selectedPng?.let { bytes -> item { remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }?.let { Image(it.asImageBitmap(), "Selected exported meme", Modifier.fillMaxWidth()) } } }
-        item { Text(status, color = if (record != null) Green else Gold) }
-        record?.let { forge -> item { Card { Column(Modifier.padding(16.dp)) { Text("Forge verification passed", fontWeight = FontWeight.Bold, color = Green); Text("Meme ID: " + forge.memeID); Text("Export wallet: " + if (forge.wallet == "NOT_CONNECTED") "Not connected during export" else forge.wallet.take(6) + "…" + forge.wallet.takeLast(4)) } } } }
+        item { Text(status, color = if (record != null && selectedPng != null) Green else Gold) }
+        record?.let { forge -> item { Card { Column(Modifier.padding(16.dp)) { Text("Forge verification passed", fontWeight = FontWeight.Bold, color = Green); Text("Meme ID: " + forge.memeID); Text("Export wallet: " + if (forge.wallet == "NOT_CONNECTED") "Not connected during export" else forge.wallet.take(6) + "…" + forge.wallet.takeLast(4)); Text("The verified Forge image is retained securely for submission and is not exposed through a gallery picker.") } } } }
         item { Button({ ForgeDraft.submissionTitle = title.trim(); onReady() }, Modifier.fillMaxWidth(), enabled = record != null && selectedPng != null && title.isNotBlank()) { Text("Continue to secure contest entry") } }
     }
 }
