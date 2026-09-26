@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07130e">
+  <meta name="description" content="Make a meme in the SPARKD Meme Forge and enter Meme of the Week.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SPARKD • Meme of the Week">
+  <meta property="og:description" content="Make a meme. Enter the weekly contest. Join the SPARKD community.">
+  <meta property="og:image" content="https://sparkdcoin.com/images/social-preview.png">
+  <link rel="icon" href="https://sparkdcoin.com/images/logo.png" type="image/png">
+  <title>SPARKD • Make a meme. Make your mark.</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #07130e; }
+    body { margin: 0; color: #f5f9f1; min-height: 100vh; background: radial-gradient(ellipse at 68% 39%, #174733 0, #0b2118 44%, #07130e 78%); }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .32; background-image: radial-gradient(#86fa93 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(90deg, transparent, black); }
+    .wrap { width: min(1120px, 100% - 40px); margin: 0 auto; position: relative; }
+    header { padding: 22px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 1000; font-size: 1.38rem; letter-spacing: .08em; }
+    .brand img { width: 49px; height: 35px; object-fit: contain; }
+    .header-link { color: #ccdfce; font-size: .87rem; text-decoration: none; border-bottom: 1px solid #89d48b; padding: 4px 0; }
+    main { display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; min-height: min(700px, calc(100svh - 125px)); gap: 20px; }
+    .copy { z-index: 2; padding: 28px 0 55px; }
+    .eyebrow { display: inline-flex; gap: 8px; align-items: center; border: 1px solid #347e4f; border-radius: 100px; color: #aafbab; background: #10321e; padding: 8px 14px; font-weight: 800; font-size: .74rem; letter-spacing: .13em; }
+    h1 { font-size: clamp(3.1rem, 7.3vw, 6.6rem); line-height: .97; max-width: 680px; letter-spacing: -.065em; margin: 24px 0; text-wrap: balance; }
+    h1 strong { display: block; color: #9afa83; text-shadow: 0 0 30px #4adb663d; }
+    .lede { max-width: 500px; color: #dfede0; font-size: clamp(1rem, 2vw, 1.25rem); line-height: 1.55; margin: 0 0 24px; }
+    .steps { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 29px; }
+    .steps span { padding: 8px 11px; background: #102c1d; border: 1px solid #397248; border-radius: 8px; color: #e3f7de; font-size: .83rem; font-weight: 750; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 55px; padding: 14px 21px; border-radius: 12px; text-decoration: none; text-align: center; font-weight: 900; transition: transform .15s ease, box-shadow .15s ease; }
+    .button:hover, .button:focus-visible { transform: translateY(-2px); }
+    .button:focus-visible, a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+    .button.primary { background: #98f47d; color: #0c2311; box-shadow: 0 12px 28px #44e65731; }
+    .button.secondary { color: #e9f9e5; background: #1b3b29; border: 1px solid #6bbf72; }
+    .fine { color: #afc9b1; font-size: .79rem; line-height: 1.5; max-width: 510px; margin-top: 20px; }
+    .hero { align-self: end; position: relative; display: flex; justify-content: center; min-height: 570px; }
+    .hero::before { content: ""; position: absolute; width: 95%; aspect-ratio: 1; top: 7%; border-radius: 50%; background: radial-gradient(circle, #39c95950, #14c94c1c 37%, transparent 68%); filter: blur(10px); }
+    .hero img { width: min(100%, 455px); max-height: 650px; object-fit: contain; object-position: bottom; position: relative; filter: drop-shadow(0 0 27px #32ca4570); }
+    footer { border-top: 1px solid #315c39; padding: 17px 0 22px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #a7c4ae; font-size: .78rem; }
+    footer a { color: #a7e39f; }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 32px, 560px); }
+      header { padding: 14px 0; }
+      main { display: flex; flex-direction: column; min-height: 0; gap: 0; }
+      .copy { padding: 28px 0 0; }
+      h1 { font-size: clamp(2.8rem, 13vw, 4.8rem); margin: 19px 0; }
+      .hero { min-height: 0; width: 100%; max-height: 390px; overflow: hidden; margin-top: 5px; }
+      .hero img { height: 390px; object-position: center top; }
+      .button { flex: 1 1 200px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .button { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="https://sparkdcoin.com/" aria-label="SPARKD home"><img src="https://sparkdcoin.com/images/logo.png" alt="">SPARKD</a>
+      <a class="header-link" href="https://sparkdcoin.com/">Official site ↗</a>
+    </header>
+    <main>
+      <section class="copy" aria-labelledby="headline">
+        <span class="eyebrow">✦ THE SPARKD MEME COMMUNITY</span>
+        <h1 id="headline">Make a meme. <strong>Make your mark.</strong></h1>
+        <p class="lede">Your next idea could become the community’s favorite. Create in the free SPARKD Meme Forge, then enter the weekly meme contest.</p>
+        <div class="steps" aria-label="How it works"><span>① Create</span><span>② Export PNG</span><span>③ Enter the contest</span></div>
+        <div class="actions">
+          <a class="button primary" data-destination="forge" href="https://sparkdcoin.com/meme-forge/">🔥 Make a meme</a>
+          <a class="button secondary" data-destination="contest" href="https://sparkdcoin.com/meme-of-the-week/">🏆 See the contest</a>
+        </div>
+        <p class="fine">Meme creation is free. Contest entry requires a wallet and a verified burn of 2,000 SPARKD when submissions are open. Check the live contest page for current rules and availability.</p>
+      </section>
+      <div class="hero"><img src="https://sparkdcoin.com/ChatGPT_Image_Sep_6__2026__11_43_49_PM-removebg-preview.png" alt="SPARKD Man, the green-caped SPARKD superhero" width="408" height="612" fetchpriority="high"></div>
+    </main>
+    <footer><span>SPARKD on Solana · Community powered</span><span><a href="https://sparkdcoin.com/">sparkdcoin.com</a> · <a href="https://x.com/deedsparks">Follow on X</a></span></footer>
+  </div>
+  <script>
+    // Label outbound traffic by exchange without accepting arbitrary redirect destinations.
+    const source = new URLSearchParams(location.search).get('source');
+    const safeSource = source && /^[a-z0-9_-]{1,40}$/i.test(source) ? source.toLowerCase() : 'traffic_exchange';
+    document.querySelectorAll('[data-destination]').forEach(link => {
+      const url = new URL(link.href);
+      url.searchParams.set('utm_source', safeSource);
+      url.searchParams.set('utm_medium', 'splash');
+      url.searchParams.set('utm_campaign', 'meme_of_the_week');
+      link.href = url.href;
+    });
+  </script>
+</body>
+</html>
