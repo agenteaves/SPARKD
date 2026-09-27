@@ -5,11 +5,17 @@ on:
     branches: [main]
     paths:
       - "meme-of-the-week/**"
+      - "meme-forge/**"
+      - "adaptive-burn-controller/**"
+      - "supabase/functions/sparkd-burn-quote/**"
       - ".github/workflows/contest-regression-checks.yml"
       - "tests/contest-regression.mjs"
   pull_request:
     paths:
       - "meme-of-the-week/**"
+      - "meme-forge/**"
+      - "adaptive-burn-controller/**"
+      - "supabase/functions/sparkd-burn-quote/**"
       - ".github/workflows/contest-regression-checks.yml"
       - "tests/contest-regression.mjs"
 
@@ -26,3 +32,11 @@ jobs:
           node-version: "22"
       - name: Run contest regression checks
         run: node tests/contest-regression.mjs
+      - name: Run adaptive burn controller checks
+        run: node adaptive-burn-controller/controller.test.js
+      - name: Audit canonical quote source
+        run: |
+          test -f supabase/functions/sparkd-burn-quote/index.ts
+          ! grep -q "frontend-api-v3.pump.fun" adaptive-burn-controller/edge-quote.ts
+          ! grep -q "previousBurnSparkd" supabase/functions/sparkd-burn-quote/index.ts
+          grep -q "serverAuthoritative: true" supabase/functions/sparkd-burn-quote/index.ts
