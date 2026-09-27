@@ -33,12 +33,15 @@ class LiveRepository : SparkdRepository {
         val phase = when (rawStatus.lowercase()) {
             "submission" -> "SUBMISSION"
             "upcoming" -> "UPCOMING"
-            "voting" -> "LEGACY VOTING"
-            else -> rawStatus.uppercase().replace('_', ' ')
+            else -> "DRAW IN PROGRESS"
         }
-        return Contest(c.optString("title", "Meme of the Week"), phase,
-            c.optString("prize", c.optString("prize_description", "$15 / $10 / $5 in SOL · equal-chance random draw")),
-            c.optInt("submission_count", 0), c.optString("id"))
+        return Contest(
+            c.optString("title", "Meme of the Week"),
+            phase,
+            "🥇 1st: $15 SOL  •  🥈 2nd: $10 SOL  •  🥉 3rd: $5 SOL",
+            c.optInt("submission_count", 0),
+            c.optString("id")
+        )
     }
 
     override suspend fun memes(): List<Meme> {
