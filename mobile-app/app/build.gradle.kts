@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="com.sparkd.community"; compileSdk=35
- defaultConfig { applicationId="com.sparkd.community"; minSdk=26; targetSdk=35; versionCode=40; versionName="1.0.37" }
+ defaultConfig { applicationId="com.sparkd.community"; minSdk=26; targetSdk=35; versionCode=41; versionName="1.0.38" }
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17" }
  buildFeatures { compose=true }
@@ -15,9 +15,7 @@ android {
    create("release") { storeFile = file(storeFilePath); this.storePassword = storePassword; this.keyAlias = keyAlias; this.keyPassword = keyPassword }
   }
  }
- buildTypes {
-  getByName("release") { signingConfigs.findByName("release")?.let { signingConfig = it }; isMinifyEnabled = false }
- }
+ buildTypes { getByName("release") { signingConfigs.findByName("release")?.let { signingConfig = it }; isMinifyEnabled = false } }
 }
 dependencies {
  implementation(platform("androidx.compose:compose-bom:2025.05.01"))
