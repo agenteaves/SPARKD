@@ -125,7 +125,6 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         item { Card { Column(Modifier.padding(18.dp)) { Text(contest?.phase ?: "LIVE", fontWeight = FontWeight.Bold); Text(contest?.title ?: message, fontSize = 23.sp, fontWeight = FontWeight.Black); contest?.let { Text(it.prize) } } } }
         item { Button({ if (walletAddress != null) go("forge") else scope.launch { message = "Opening your Solana wallet…"; runCatching { wallet.connect() }.onSuccess { walletAddress = it; go("forge") }.onFailure { message = it.message ?: "Wallet connection failed." } } }, Modifier.fillMaxWidth()) { Text(if (walletAddress == null) "🔥 Connect wallet & open Meme Forge" else "🔥 Open Meme Forge") } }
         item { Button({ go("contest") }, Modifier.fillMaxWidth()) { Text("🎲 View eligible contenders") } }
-        item { OutlinedButton({ go("submit") }, Modifier.fillMaxWidth()) { Text("📤 Submit saved Forge meme") } }
         item { OutlinedButton({ if (walletAddress != null) { wallet.disconnect(); walletAddress = null; message = "Wallet disconnected." } else scope.launch { runCatching { wallet.connect() }.onSuccess { walletAddress = it; message = "Wallet connected." }.onFailure { message = it.message ?: "Wallet connection failed." } } }, Modifier.fillMaxWidth()) { Text(if (walletAddress == null) "Connect Solana Wallet" else "Disconnect Wallet") } }
         if (message.isNotBlank()) item { Text(message) }
     }
@@ -270,23 +269,19 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         status = if (existingBurnSignature != null) "Existing verified contest burn found. No second burn is required." else "Entry checks passed. Review the exact burn details below."
                     }.onFailure { error -> status = error.message?.takeIf { it.isNotBlank() } ?: "Unable to prepare secure contest entry. Please try again." }
                 }
-            }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null && !completed
-            ) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
+            }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
         }
         item { Text(status, color = if (prepared != null) Green else Gold) }
         prepared?.let { burn ->
             if (existingBurnSignature != null) {
                 item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Existing burn verified", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("No additional SPARKD burn is required.", fontWeight = FontWeight.Bold, color = Green); Text("This verified meme will receive one equal chance in the random drawing.") } } }
                 item { Button(onClick = {
-                    submitting = true
-                    scope.launch {
+                    submitting = true; scope.launch {
                         val record = forge; val png = bytes; val signature = existingBurnSignature
-                        runCatching { finalizeWithExistingBurn(burn, requireNotNull(signature), requireNotNull(record), requireNotNull(png)) }
-                            .onSuccess { finishSuccess(it) }
-                            .onFailure { status = it.message ?: "Submission finalization failed. Your existing burn remains valid; do not burn again." }
+                        runCatching { finalizeWithExistingBurn(burn, requireNotNull(signature), requireNotNull(record), requireNotNull(png)) }.onSuccess { finishSuccess(it) }.onFailure { status = it.message ?: "Submission finalization failed. Your existing burn remains valid; do not burn again." }
                         submitting = false
                     }
-                }, modifier = Modifier.fillMaxWidth(), enabled = !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Submit selected meme — no new burn") } }
+                }, modifier = Modifier.fillMaxWidth(), enabled = !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Submit verified meme — no new burn") } }
             } else {
                 item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Transaction review", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Burn amount: 2,000 SPARKD", fontWeight = FontWeight.Bold, color = Gold); Text("Selection: one equal random chance"); Text("Token account: " + burn.tokenAccount.take(6) + "…" + burn.tokenAccount.takeLast(4)); Text("One signer • one burn instruction • Token-2022 verified"); Text("Your wallet will show the final transaction before signing. The burn is irreversible once confirmed on-chain.", color = androidx.compose.ui.graphics.Color.LightGray) } } }
                 item { Button(onClick = { confirmBurn = true }, modifier = Modifier.fillMaxWidth(), enabled = !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Burn 2,000 SPARKD & submit") } }
@@ -304,9 +299,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                 confirmBurn = false; submitting = true
                 scope.launch {
                     val burn = prepared; val record = forge; val png = bytes
-                    runCatching { finalizeWithNewBurn(requireNotNull(burn), requireNotNull(record), requireNotNull(png)) }
-                        .onSuccess { finishSuccess(it) }
-                        .onFailure { error -> status = if (recovery.pending() != null) "Submission did not finish, but the signed burn is saved for recovery. DO NOT BURN AGAIN. Tap submit again to resume safely. " + (error.message ?: "") else error.message ?: "Contest submission failed before a signed burn was saved." }
+                    runCatching { finalizeWithNewBurn(requireNotNull(burn), requireNotNull(record), requireNotNull(png)) }.onSuccess { finishSuccess(it) }.onFailure { error -> status = if (recovery.pending() != null) "Submission did not finish, but the signed burn is saved for recovery. DO NOT BURN AGAIN. Tap submit again to resume safely. " + (error.message ?: "") else error.message ?: "Contest submission failed before a signed burn was saved." }
                     submitting = false
                 }
             }, enabled = !submitting) { Text("Confirm 2,000 SPARKD burn") } }
