@@ -1,6 +1,12 @@
 name: SPARKD Mobile Integration Build
 
 on:
+  pull_request:
+    branches:
+      - mobile-app-development
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/mobile-preview-build.yml'
   push:
     branches:
       - mobile-app-development
@@ -20,8 +26,6 @@ jobs:
         working-directory: mobile-app
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: mobile-app-development
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
