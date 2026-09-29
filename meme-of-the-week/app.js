@@ -1452,6 +1452,11 @@ document.addEventListener(
 
         let handoffFile = null;
 
+        // The integrity gate must verify the same File that submission uses.
+        window.SPARKD_CONTEST_SELECTED_FILE = function () {
+            return handoffFile || memeFile.files[0] || null;
+        };
+
         const memeTitle =
             document.getElementById(
                 "motmMemeTitle"
