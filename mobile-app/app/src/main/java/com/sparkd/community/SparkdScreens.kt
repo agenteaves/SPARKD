@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable fun Forge(wallet:WalletSession?=null,onEntryReady:(()->Unit)?=null){
  val ctx=LocalContext.current
- var src by remember{mutableStateOf(ForgeDraft.src)};var title by remember{mutableStateOf(ForgeDraft.title)};var layers by remember{mutableStateOf(ForgeDraft.layers)}
+ var src by remember{mutableStateOf(ForgeDraft.src.takeIf{ForgeDraft.freshSourceSelected})};var title by remember{mutableStateOf(ForgeDraft.title)};var layers by remember{mutableStateOf(ForgeDraft.layers)}
  var selected by remember{mutableStateOf(ForgeDraft.selected)};var png by remember{mutableStateOf<ByteArray?>(null)};var canvasPx by remember{mutableStateOf(1f)}
  var exportBytes by remember{mutableStateOf<ByteArray?>(null)};var exportStatus by remember{mutableStateOf<String?>(null)}
  val creatorId=remember{ctx.getSharedPreferences("sparkd-forge",0).getString("creator-id",null)?:ForgeDna.newCreatorId().also{ctx.getSharedPreferences("sparkd-forge",0).edit().putString("creator-id",it).apply()}}
@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
  }
  var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")};var newTextColor by remember{mutableStateOf(android.graphics.Color.WHITE)}
  var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf(ForgeDraft.safetyMessage)}
- DisposableEffect(Unit){onDispose{ForgeDraft.src=src;ForgeDraft.title=title;ForgeDraft.layers=layers;ForgeDraft.selected=selected;ForgeDraft.safetyMessage=safetyMessage}}
+ DisposableEffect(Unit){onDispose{ForgeDraft.src=src.takeIf{ForgeDraft.freshSourceSelected};ForgeDraft.title=title;ForgeDraft.layers=layers;ForgeDraft.selected=selected;ForgeDraft.safetyMessage=safetyMessage}}
  val emojis=listOf("😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓")
  val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){u->
   if(u!=null){safetyChecking=true;safetyMessage="🛡 Inspecting image before opening Forge..."
@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.sp
      val bytes=withContext(Dispatchers.IO){ctx.contentResolver.openInputStream(u)?.use{it.readBytes()}?:throw Exception("Unable to read image.")}
      val safetyBytes=withContext(Dispatchers.Default){prepareForgeSafetyImage(bytes)}
      val result=withContext(Dispatchers.IO){checkForgeImageSafety(safetyBytes,"image/jpeg")}
-     if(result.first){src=BitmapFactory.decodeByteArray(bytes,0,bytes.size);layers=emptyList();selected=null;ForgeDraft.entryImageSelected=false;ForgeDraft.exportedPng=null;ForgeDraft.exportedRecord=null;safetyMessage="✅ Image passed content inspection."}
+     if(result.first){src=BitmapFactory.decodeByteArray(bytes,0,bytes.size);ForgeDraft.freshSourceSelected=src!=null;layers=emptyList();selected=null;ForgeDraft.entryImageSelected=false;ForgeDraft.exportedPng=null;ForgeDraft.exportedRecord=null;safetyMessage="✅ Image passed content inspection."}
      else{safetyMessage="🚫 "+result.second;Toast.makeText(ctx,result.second,Toast.LENGTH_LONG).show()}
     }catch(e:Exception){val detail=e.message?:e.javaClass.simpleName;safetyMessage="🚫 Content protection error: "+detail;Toast.makeText(ctx,"Image blocked: "+detail,Toast.LENGTH_LONG).show()}
     finally{safetyChecking=false}
@@ -73,7 +73,7 @@ import androidx.compose.ui.unit.sp
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
   item{Text("Meme Forge",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Create the meme directly on the image.",color=Color.LightGray)}
   item{OutlinedTextField(title,{title=it},label={Text("Meme title")},modifier=Modifier.fillMaxWidth(),singleLine=true)}
-  item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(!safetyChecking)pick.launch("image/*")},Modifier.weight(1f),enabled=!safetyChecking){Text(if(safetyChecking)"Inspecting..." else if(src==null)"Choose image" else "Replace image")};if(src!=null)OutlinedButton({src=null;png=null;layers=emptyList();selected=null;safetyMessage=null;ForgeDraft.src=null;ForgeDraft.layers=emptyList();ForgeDraft.selected=null;ForgeDraft.safetyMessage=null;ForgeDraft.entryImageSelected=false;ForgeDraft.exportedPng=null;ForgeDraft.exportedRecord=null},Modifier.weight(1f)){Text("🗑 Delete image")}}}
+  item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(!safetyChecking)pick.launch("image/*")},Modifier.weight(1f),enabled=!safetyChecking){Text(if(safetyChecking)"Inspecting..." else if(src==null)"Choose image" else "Replace image")};if(src!=null)OutlinedButton({src=null;png=null;layers=emptyList();selected=null;safetyMessage=null;ForgeDraft.src=null;ForgeDraft.layers=emptyList();ForgeDraft.selected=null;ForgeDraft.safetyMessage=null;ForgeDraft.freshSourceSelected=false;ForgeDraft.entryImageSelected=false;ForgeDraft.exportedPng=null;ForgeDraft.exportedRecord=null},Modifier.weight(1f)){Text("🗑 Delete image")}}}
   safetyMessage?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else if(m.startsWith("🚫"))Gold else Color.LightGray,fontSize=12.sp)}}
   png?.let{b->item{Box(Modifier.fillMaxWidth().aspectRatio(1f).onSizeChanged{canvasPx=it.width.toFloat().coerceAtLeast(1f)}){
    Image(BitmapFactory.decodeByteArray(b,0,b.size).asImageBitmap(),null,Modifier.fillMaxSize())
@@ -82,9 +82,9 @@ import androidx.compose.ui.unit.sp
   item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button({textPopup=true},Modifier.weight(1f)){Text("＋ Text")};Button({emojiPopup=true},Modifier.weight(1f)){Text("😀 Emoji")}}}
   selected?.takeIf{it in layers.indices}?.let{i->item{Surface(shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(14.dp)){Text("Selected: "+layers[i].text,fontWeight=FontWeight.Bold);Text("Resize");Slider(value=layers[i].size,onValueChange={v->if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(size=v);layers=n}},valueRange=36f..180f);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(x=.5f,y=.5f);layers=n}},Modifier.weight(1f)){Text("Center")};OutlinedButton({if(i<layers.size){layers=layers.toMutableList().also{it.removeAt(i)};selected=null}},Modifier.weight(1f)){Text("Delete")}}}}}}
   if(layers.isNotEmpty())item{Text("Tip: drag the text or emoji directly on the image. Tap a layer below to select it.",color=Color.LightGray,fontSize=12.sp);LazyRow(horizontalArrangement=Arrangement.spacedBy(6.dp)){items(layers.size){i->AssistChip(onClick={selected=i},label={Text(layers[i].text)})}}}
-  item{Button({runCatching{val address=wallet?.address?:error("Connect your Solana wallet before exporting a contest meme.");val raw=png?:error("Choose an image before exporting.");val record=ForgeDna.create(raw,creatorId,address);val verified=ForgeDna.embed(raw,record);val savedRecord=ForgeExportStore.save(ctx,verified);ForgeDraft.exportedRecord=savedRecord;ForgeDraft.exportedPng=verified;ForgeDraft.entryImageSelected=false;exportBytes=verified;exportPng.launch("SPARKD-"+record.memeID+".png")}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}},enabled=png!=null&&wallet?.address!=null,modifier=Modifier.fillMaxWidth()){Text(if(wallet?.address==null)"Connect wallet to export" else "Export Verified Forge PNG")}}
+  item{Button({runCatching{check(ForgeDraft.freshSourceSelected){"Choose an image in Meme Forge first."};val address=wallet?.address?:error("Connect your Solana wallet before exporting a contest meme.");val raw=png?:error("Choose an image before exporting.");val record=ForgeDna.create(raw,creatorId,address);val verified=ForgeDna.embed(raw,record);val savedRecord=ForgeExportStore.save(ctx,verified);ForgeDraft.exportedRecord=savedRecord;ForgeDraft.exportedPng=verified;ForgeDraft.entryImageSelected=false;exportBytes=verified;exportPng.launch("SPARKD-"+record.memeID+".png")}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null&&wallet?.address!=null,modifier=Modifier.fillMaxWidth()){Text(if(wallet?.address==null)"Connect wallet to export" else "Export Verified Forge PNG")}}
   exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
-  if(ForgeDraft.entryImageSelected&&ForgeDraft.exportedPng!=null&&ForgeDraft.exportedRecord!=null&&onEntryReady!=null)item{OutlinedButton({ForgeDraft.submissionTitle=title.trim();onEntryReady()},Modifier.fillMaxWidth(),enabled=title.isNotBlank()){Text("Continue to secure contest entry")}}
+  if(ForgeDraft.freshSourceSelected&&ForgeDraft.entryImageSelected&&ForgeDraft.exportedPng!=null&&ForgeDraft.exportedRecord!=null&&onEntryReady!=null)item{OutlinedButton({ForgeDraft.submissionTitle=title.trim();onEntryReady()},Modifier.fillMaxWidth(),enabled=title.isNotBlank()){Text("Continue to secure contest entry")}}
  }
 }
 
