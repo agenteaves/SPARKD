@@ -1,7 +1,7 @@
 /* ============================================================
    SPARKD SERVER NUDENET GUARD
    Client connector for server-hosted NudeNet ONNX inference.
-   Version: server-nudenet-v1
+   Version: server-nudenet-v2
    ============================================================ */
 
 (function () {
@@ -18,12 +18,50 @@
      * OR replace the empty string below after deployment.
      */
     const DEFAULT_ENDPOINT = "";
+    const MAX_INSPECTION_BYTES = 2.5 * 1024 * 1024;
 
     function endpoint() {
         return (
             window.SPARKD_NUDENET_ENDPOINT ||
             DEFAULT_ENDPOINT
         );
+    }
+
+    async function prepareInspectionFile(file) {
+        if (file.size <= MAX_INSPECTION_BYTES) return file;
+
+        // Resize only the inspection copy. The original remains in the Forge.
+        const image = await new Promise((resolve, reject) => {
+            const objectUrl = URL.createObjectURL(file);
+            const candidate = new Image();
+            candidate.onload = () => {
+                URL.revokeObjectURL(objectUrl);
+                resolve(candidate);
+            };
+            candidate.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error("The selected image could not be prepared for inspection."));
+            };
+            candidate.src = objectUrl;
+        });
+
+        const scale = Math.min(1, 1280 / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Image inspection could not start on this device.");
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        const resized = await new Promise((resolve, reject) => {
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Image inspection copy could not be created.")), "image/jpeg", 0.82);
+        });
+        if (resized.size > MAX_INSPECTION_BYTES) {
+            throw new Error("The selected image is too large to inspect. Please choose a smaller image.");
+        }
+        return new File([resized], "SPARKD-inspection.jpg", { type: "image/jpeg" });
     }
 
     async function check(file) {
@@ -48,7 +86,8 @@
 
         try {
             const form = new FormData();
-            form.append("image", file, file.name);
+            const inspectionFile = await prepareInspectionFile(file);
+            form.append("image", inspectionFile, inspectionFile.name);
 
             const response = await fetch(url, {
                 method: "POST",
@@ -72,9 +111,7 @@
                     result
                 );
 
-                alert(
-                    "🚫 SPARKD content protection could not verify this image. Upload blocked."
-                );
+                alert("🚫 " + (result?.error || "SPARKD content protection could not verify this image. Upload blocked."));
 
                 return false;
             }
@@ -126,9 +163,7 @@
                 error
             );
 
-            alert(
-                "🚫 SPARKD content protection could not verify this image. Upload blocked."
-            );
+            alert("🚫 " + (error.message || "SPARKD content protection could not verify this image. Upload blocked."));
 
             return false;
         }
@@ -139,7 +174,7 @@
         isReady: function () {
             return !!endpoint();
         },
-        version: "server-nudenet-v1"
+        version: "server-nudenet-v2"
     };
 
     console.log(
