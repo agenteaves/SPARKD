@@ -180,10 +180,7 @@ async function loadCurrentContest() {
                 .select(
                     "*"
                 )
-                .in(
-                    "status",
-                    ["submission", "voting"]
-                )
+                .eq("status", "submission")
                 .lte(
                     "week_start",
                     now
@@ -979,7 +976,6 @@ async function loadPreviousWeekResults() {
         if (!contest || submissions.length === 0) {
             grid.innerHTML = '<div class="empty-submissions"><span>🖼️</span><p>No memes found for the previous contest.</p></div>';
         } else {
-            submissions.sort((a, b) => Number(b.vote_count || 0) - Number(a.vote_count || 0));
             for (const submission of submissions) {
                 const imageUrl = supabaseClient.storage
                     .from("sparkd-contest-submissions")
@@ -993,7 +989,6 @@ async function loadPreviousWeekResults() {
                     <div class="submission-info">
                         <h3>${escapeHtml(submission.meme_title || "Untitled SPARKD Meme")}</h3>
                         <p>👻 ${submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet"}</p>
-                        <p style="font-weight:900;font-size:1.05rem;">🗳️ ${Number(submission.vote_count || 0).toLocaleString("en-US")} VOTES</p>
                     </div>`;
                 const image = card.querySelector("img");
                 if (image) {
@@ -1188,14 +1183,6 @@ function startCountdown() {
                 currentContest.week_end
             ).getTime();
 
-        const votingWindowMs =
-            window.SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS ||
-            12 * 60 * 60 * 1000;
-
-        const votingEnd =
-            end +
-            votingWindowMs;
-
         let target =
             end;
 
@@ -1216,23 +1203,7 @@ function startCountdown() {
                 "NEXT CONTEST OPENS IN";
 
         }
-        else if (
-            currentContest.status ===
-            "voting"
-        ) {
-
-            target =
-                votingEnd;
-
-            labelText =
-                "VOTING ENDS IN";
-
-        }
-        else if (
-            currentContest.status ===
-            "completed" ||
-            now >= votingEnd
-        ) {
+        else if (currentContest.status === "completed" || now >= end) {
 
             daysRemaining.textContent =
                 "CLOSED";
@@ -1537,6 +1508,12 @@ document.addEventListener(
 
                     }
 
+                    if (!memeTitle || !memeTitle.value.trim()) {
+                        alert("Enter a meme title before submitting.");
+                        memeTitle?.focus();
+                        return;
+                    }
+
 
                     if (
                         typeof currentWallet !==
@@ -1566,9 +1543,6 @@ document.addEventListener(
                     }
 
 
-                    if (!memeTitle || !memeTitle.value.trim()) {
-                        throw new Error("Give your meme a title before submitting it.");
-                    }
                     if (submissionStatus) submissionStatus.textContent = "Preparing and inspecting your image...";
                     const preparedImage = await window.SPARKD_CONTEST_IMAGE.prepare(file);
                     const entryData = preparedImage.entry;

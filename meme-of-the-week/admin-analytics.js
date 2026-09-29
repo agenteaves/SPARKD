@@ -169,8 +169,6 @@
         ["Pending Review", "sparkdA_currentPending"],
         ["Approved", "sparkdA_currentApproved"],
         ["Rejected", "sparkdA_currentRejected"],
-        ["Votes", "sparkdA_currentVotes"],
-        ["Voting Wallets", "sparkdA_currentVotingWallets"],
         ["Submitting Wallets", "sparkdA_currentParticipants"],
         ["Verified SPARKD Burned", "sparkdA_currentBurned", true]
       ])
@@ -179,9 +177,7 @@
     panel.appendChild(
       section("Previous Contest", [
         ["Submissions", "sparkdA_prevSubmissions"],
-        ["Votes", "sparkdA_prevVotes"],
         ["Submitting Wallets", "sparkdA_prevParticipants"],
-        ["Winner Votes", "sparkdA_prevWinnerVotes"],
         ["Verified SPARKD Burned", "sparkdA_prevBurned", true]
       ])
     );
@@ -192,9 +188,7 @@
         ["Completed Contests", "sparkdA_lifeCompleted"],
         ["Submissions", "sparkdA_lifeSubmissions"],
         ["Verified Submissions", "sparkdA_lifeVerified"],
-        ["Votes", "sparkdA_lifeVotes"],
         ["Unique Submitters", "sparkdA_lifeSubmitters"],
-        ["Unique Voters", "sparkdA_lifeVoters"],
         ["Winners", "sparkdA_lifeWinners"],
         ["Verified SPARKD Burned", "sparkdA_lifeBurned", true]
       ])
@@ -229,24 +223,18 @@
     setText("sparkdA_currentPending", fmtNumber(current?.pending));
     setText("sparkdA_currentApproved", fmtNumber(current?.approved));
     setText("sparkdA_currentRejected", fmtNumber(current?.rejected));
-    setText("sparkdA_currentVotes", fmtNumber(current?.votes));
-    setText("sparkdA_currentVotingWallets", fmtNumber(current?.votingWallets));
     setText("sparkdA_currentParticipants", fmtNumber(current?.participantWallets));
     setText("sparkdA_currentBurned", `${fmtNumber(current?.verifiedSparkdBurned)} SPARKD`);
 
     setText("sparkdA_prevSubmissions", fmtNumber(previous?.submissions));
-    setText("sparkdA_prevVotes", fmtNumber(previous?.votes));
     setText("sparkdA_prevParticipants", fmtNumber(previous?.participantWallets));
-    setText("sparkdA_prevWinnerVotes", fmtNumber(previous?.winnerVoteCount));
     setText("sparkdA_prevBurned", `${fmtNumber(previous?.verifiedSparkdBurned)} SPARKD`);
 
     setText("sparkdA_lifeContests", fmtNumber(lifetime?.contests));
     setText("sparkdA_lifeCompleted", fmtNumber(lifetime?.completedContests));
     setText("sparkdA_lifeSubmissions", fmtNumber(lifetime?.submissions));
     setText("sparkdA_lifeVerified", fmtNumber(lifetime?.verifiedSubmissions));
-    setText("sparkdA_lifeVotes", fmtNumber(lifetime?.votes));
     setText("sparkdA_lifeSubmitters", fmtNumber(lifetime?.uniqueSubmittingWallets));
-    setText("sparkdA_lifeVoters", fmtNumber(lifetime?.uniqueVotingWallets));
     setText("sparkdA_lifeWinners", fmtNumber(lifetime?.winners));
     setText("sparkdA_lifeBurned", `${fmtNumber(lifetime?.verifiedSparkdBurned)} SPARKD`);
 

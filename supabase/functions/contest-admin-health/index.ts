@@ -70,4 +70,3 @@ Deno.serve(async (req: Request) => {
     return json(req, { success: false, error: error instanceof Error ? error.message : "Unknown server error" }, 500);
   }
 });
-
