@@ -124,7 +124,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
         item { Text("Choose an image in Meme Forge, create your meme, then send it here for submission.") }
         item { Button(onClick = onOpenForge, modifier = Modifier.fillMaxWidth()) { Text("Open Meme Forge") } }
-        item { Text(if (ready) "Verified Forge meme ready: ${ForgeDraft.exportedRecord?.memeID}" else "No new Forge meme ready for entry.", color = if (ready) Green else Gold) }
+        item { Text(if (ready) "Meme ready for entry" else "No new meme ready for entry.", color = if (ready) Green else Gold) }
         if (ready && preview != null) item {
             Image(preview.asImageBitmap(), "Meme selected for contest entry", Modifier.fillMaxWidth().aspectRatio(1f))
         }
@@ -180,17 +180,18 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     var confirmBurn by remember { mutableStateOf(false) }
     var submitting by remember { mutableStateOf(false) }
     var completed by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("Export a verified Forge PNG, then review the secure entry checks here.") }
+    var status by remember { mutableStateOf("Send a meme to the Submit tab, then review the secure entry checks here.") }
     var prepared by remember { mutableStateOf<PreparedBurn?>(null) }
     var existingBurnSignature by remember { mutableStateOf<String?>(null) }
     var entryTitle by remember { mutableStateOf(ForgeDraft.submissionTitle) }
     val forge = ForgeDraft.exportedRecord
     val bytes = ForgeDraft.exportedPng
 
-    suspend fun verifiedSelectedPng(record: ForgeDnaRecord, png: ByteArray) {
+    suspend fun verifiedSelectedPng(record: MemeEntryRecord, png: ByteArray) {
         check(ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected && ForgeDraft.exportedPng === png) { "Choose an image in Meme Forge and export it before entering the contest." }
-        val verified = withContext(Dispatchers.Default) { ForgeDna.extractAndVerify(png) }
-        check(verified == record) { "The selected PNG no longer matches its Forge data. Select it again." }
+        check(record.memeID.isNotBlank() && record.creatorID.isNotBlank()) { "The selected meme is missing its recovery ID." }
+        check(png.isNotEmpty() && png.size <= 10 * 1024 * 1024) { "The selected PNG must be 10 MB or smaller." }
+        check(withContext(Dispatchers.Default) { BitmapFactory.decodeByteArray(png, 0, png.size) != null }) { "The selected PNG could not be displayed." }
     }
 
     fun requiredTitle(): String {
@@ -200,13 +201,13 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         return clean
     }
 
-    suspend fun finalizeWithExistingBurn(burn: PreparedBurn, signature: String, record: ForgeDnaRecord, png: ByteArray): String {
+    suspend fun finalizeWithExistingBurn(burn: PreparedBurn, signature: String, record: MemeEntryRecord, png: ByteArray): String {
         val title = requiredTitle()
         verifiedSelectedPng(record, png)
         val address = wallet.address ?: error("Reconnect your wallet before submitting.")
         status = "Verifying the existing 2,000 SPARKD burn…"
         api.verifyBurn(address, signature)
-        status = "Uploading your selected verified Forge PNG…"
+        status = "Uploading your selected meme…"
         val imagePath = api.uploadMeme(address, burn.contestId, png)
         status = "Finalizing your selected meme with the existing burn receipt…"
         api.finalizeSubmission(address, burn, signature, record, title, imagePath)
@@ -214,11 +215,11 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         return signature
     }
 
-    suspend fun finalizeWithNewBurn(burn: PreparedBurn, record: ForgeDnaRecord, png: ByteArray): String {
+    suspend fun finalizeWithNewBurn(burn: PreparedBurn, record: MemeEntryRecord, png: ByteArray): String {
         val title = requiredTitle()
         verifiedSelectedPng(record, png)
         val address = wallet.address ?: error("Reconnect your wallet before submitting.")
-        status = "Uploading the verified contest PNG…"
+        status = "Uploading the contest meme…"
         val imagePath = api.uploadMeme(address, burn.contestId, png)
         val pending = recovery.pending()
         val signature = if (pending != null) {
@@ -271,7 +272,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         item { Text("Secure Contest Entry", fontSize = 28.sp, fontWeight = FontWeight.Black) }
         item { OutlinedTextField(entryTitle, { entryTitle = it.take(80) }, label = { Text("Meme title (required)") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
         item { Text("Entry requires one 2,000 SPARKD burn per wallet and contest. Every finalized eligible meme gets exactly one equal chance in the automated draw.", color = androidx.compose.ui.graphics.Color.LightGray) }
-        item { Card { Column(Modifier.padding(16.dp)) { Text("Forge export", fontWeight = FontWeight.Bold); Text(forge?.memeID ?: "No verified Forge export is available."); Text(if (bytes == null) "Export a meme from the Forge first." else "Verified PNG is retained on this device.") } } }
+        item { Card { Column(Modifier.padding(16.dp)) { Text("Forge export", fontWeight = FontWeight.Bold); Text(forge?.memeID ?: "No meme is ready for submission."); Text(if (bytes == null) "Export a meme from the Forge first." else "Your meme is retained on this device.") } } }
         item {
             Button({
                 scope.launch {
@@ -279,8 +280,8 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                     status = if (wallet.address == null) "Waiting for wallet approval…" else "Checking contest entry…"
                     runCatching {
                         requiredTitle()
-                        val record = forge ?: error("Export a verified Forge PNG first.")
-                        val png = bytes ?: error("Select a verified Forge PNG first.")
+                        val record = forge ?: error("Send a meme from the Forge first.")
+                        val png = bytes ?: error("Select a meme first.")
                         verifiedSelectedPng(record, png)
                         val address = wallet.address ?: wallet.connect()
                         check(record.wallet == address || record.wallet == "NOT_CONNECTED") { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
@@ -288,8 +289,8 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         check(contest.id.isNotBlank()) { "The live contest is unavailable." }
                         check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
                         check(!contestPreflight("Existing submission check") { api.hasExistingSubmission(address) }) { "This wallet already has a finalized contest submission." }
-                        status = "Verifying SPARKD Forge DNA…"
-                        contestPreflight("Forge DNA verification") { api.verifyForge(address, record) }
+                        api.selectMeme(record)
+                        status = "Checking contest eligibility…"
                         status = "Checking for a previously verified burn…"
                         val existingBurn = contestPreflight("Burn receipt check") { api.getBurnReceipt(address, contest.id) }
                         if (existingBurn != null) {
@@ -309,14 +310,14 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         item { Text(status, color = if (prepared != null) Green else Gold) }
         prepared?.let { burn ->
             if (existingBurnSignature != null) {
-                item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Existing burn verified", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("No additional SPARKD burn is required.", fontWeight = FontWeight.Bold, color = Green); Text("This verified meme will receive one equal chance in the random drawing.") } } }
+                item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Existing burn verified", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("No additional SPARKD burn is required.", fontWeight = FontWeight.Bold, color = Green); Text("This meme will receive one equal chance in the random drawing.") } } }
                 item { Button(onClick = {
                     submitting = true; scope.launch {
                         val record = forge; val png = bytes; val signature = existingBurnSignature
                         runCatching { finalizeWithExistingBurn(burn, requireNotNull(signature), requireNotNull(record), requireNotNull(png)) }.onSuccess { finishSuccess(it) }.onFailure { status = it.message ?: "Submission finalization failed. Your existing burn remains valid; do not burn again." }
                         submitting = false
                     }
-                }, modifier = Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Submit verified meme — no new burn") } }
+                }, modifier = Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Submit meme — no new burn") } }
             } else {
                 item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Transaction review", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Burn amount: 2,000 SPARKD", fontWeight = FontWeight.Bold, color = Gold); Text("Selection: one equal random chance"); Text("Token account: " + burn.tokenAccount.take(6) + "…" + burn.tokenAccount.takeLast(4)); Text("One signer • one burn instruction • Token-2022 verified"); Text("Your wallet will show the final transaction before signing. The burn is irreversible once confirmed on-chain.", color = androidx.compose.ui.graphics.Color.LightGray) } } }
                 item { Button(onClick = { confirmBurn = true }, modifier = Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Burn 2,000 SPARKD & submit") } }

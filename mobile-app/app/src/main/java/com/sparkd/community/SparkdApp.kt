@@ -18,7 +18,7 @@ val Green=Color(0xFF41F16B);val Gold=Color(0xFFFFC83D);val Ink=Color(0xFF07110B)
 internal object ForgeDraft{
  var src:android.graphics.Bitmap?=null;var title="";var layers:List<ForgeSticker> = emptyList();var selected:Int?=null;var safetyMessage:String?=null
  var exportedPng by mutableStateOf<ByteArray?>(null)
- var exportedRecord by mutableStateOf<ForgeDnaRecord?>(null)
+ var exportedRecord by mutableStateOf<MemeEntryRecord?>(null)
  var entryImageSelected by mutableStateOf(false)
  var freshSourceSelected by mutableStateOf(false)
  var submissionTitle by mutableStateOf("")

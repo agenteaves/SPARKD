@@ -3,7 +3,7 @@ package com.sparkd.community
 /**
  * Single source of truth for the Android Forge -> Submit handoff.
  *
- * A contest entry must use the latest verified PNG produced by this app's
+ * A contest entry must use the latest PNG produced by this app's
  * Meme Forge. The Submit screen must never replace it with a gallery image.
  * Content moderation remains in the Forge before an export is created, so a
  * blocked image never becomes an eligible Forge export.
@@ -11,7 +11,7 @@ package com.sparkd.community
 object MobileForgeSubmissionBridge {
     data class SubmissionAsset(
         val png: ByteArray,
-        val forge: ForgeDnaRecord
+        val forge: MemeEntryRecord
     )
 
     fun current(): SubmissionAsset? {
@@ -24,8 +24,8 @@ object MobileForgeSubmissionBridge {
     fun requireCurrent(): SubmissionAsset = current()
         ?: error("Create an allowed meme in the SPARKD Meme Forge before submitting.")
 
-    fun installVerifiedExport(png: ByteArray, forge: ForgeDnaRecord) {
-        require(png.isNotEmpty()) { "Verified Forge PNG is empty." }
+    fun installExport(png: ByteArray, forge: MemeEntryRecord) {
+        require(png.isNotEmpty()) { "Meme PNG is empty." }
         ForgeDraft.exportedPng = png.copyOf()
         ForgeDraft.exportedRecord = forge
     }
