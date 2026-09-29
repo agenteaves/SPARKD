@@ -98,12 +98,38 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         when (page) {
             "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) { page = "entry" } }
             "contest" -> Box(Modifier.padding(padding)) { Contest(repo) }
-            "submit" -> Box(Modifier.padding(padding)) { SubmitMeme { page = "entry" } }
+            "submit" -> Box(Modifier.padding(padding)) { SubmitOrRecover(wallet, { page = "entry" }) }
             "winners" -> Box(Modifier.padding(padding)) { Winners(repo) }
             "profile" -> Box(Modifier.padding(padding)) { Profile(wallet) }
             "entry" -> Box(Modifier.padding(padding)) { ContestEntry(wallet, repo) }
             else -> LiveHome(Modifier.padding(padding), repo, wallet) { page = it }
         }
+    }
+}
+
+@Composable private fun SubmitOrRecover(wallet: WalletSession, onReady: () -> Unit) {
+    val context = LocalContext.current
+    val pending = remember { BurnRecoveryStore(context).pending() }
+    var message by remember { mutableStateOf("An earlier burn was approved. Resume that entry without burning again, or create a new meme in the Forge.") }
+    if (pending?.transactionSignature == null) {
+        Forge(wallet, onReady)
+        return
+    }
+    LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item { Text("Resume contest entry", fontSize = 28.sp, fontWeight = FontWeight.Black) }
+        item { Text(message) }
+        item { Button(onClick = {
+            runCatching {
+                val saved = ForgeExportStore.load(context) ?: error("The original Forge export is unavailable. Contact SPARKD support with your burn transaction.")
+                check(saved.second.wallet == pending.wallet) { "The saved meme belongs to a different wallet." }
+                ForgeDraft.exportedPng = saved.first
+                ForgeDraft.exportedRecord = saved.second
+                ForgeDraft.entryImageSelected = true
+                ForgeDraft.freshSourceSelected = true // Recovery only: this image was already made in the Forge for the approved burn.
+                onReady()
+            }.onFailure { message = it.message ?: "Could not recover the prior Forge export." }
+        }, modifier = Modifier.fillMaxWidth()) { Text("Resume approved burn") } }
+        item { Text("For a new entry, open Meme Forge and choose an image there.") }
     }
 }
 
@@ -130,34 +156,6 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     }
 }
 
-@Composable private fun SubmitMeme(onReady: () -> Unit) {
-    val context = LocalContext.current
-    var title by remember { mutableStateOf(ForgeDraft.submissionTitle) }
-    var selectedPng by remember { mutableStateOf(ForgeDraft.exportedPng.takeIf { ForgeDraft.entryImageSelected }) }
-    var record by remember { mutableStateOf(ForgeDraft.exportedRecord.takeIf { ForgeDraft.entryImageSelected }) }
-    var status by remember { mutableStateOf(if (record == null) "Choose your saved Forge export or create a new one before entry." else "SPARKD Forge export selected.") }
-
-    LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text("Create and export a meme in SPARKD Meme Forge, or explicitly select a previously saved verified export.") }
-        item { OutlinedButton(onClick = {
-            runCatching { ForgeExportStore.load(context) }.onSuccess { saved ->
-                if (saved == null) status = "No saved Forge export found. Create and export a meme first."
-                else {
-                    selectedPng = saved.first; record = saved.second
-                    ForgeDraft.exportedPng = saved.first; ForgeDraft.exportedRecord = saved.second
-                    ForgeDraft.entryImageSelected = true
-                    status = "Verified saved Forge PNG selected for contest entry."
-                }
-            }.onFailure { status = "Saved Forge export could not be verified: ${it.message}" }
-        }, modifier = Modifier.fillMaxWidth()) { Text("Select saved Forge export") } }
-        item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
-        item { Text(status, color = if (record != null && selectedPng != null) Green else Gold) }
-        record?.let { forge -> item { Card { Column(Modifier.padding(16.dp)) { Text("Forge verification passed", fontWeight = FontWeight.Bold, color = Green); Text("Meme ID: " + forge.memeID); Text("Export wallet: " + if (forge.wallet == "NOT_CONNECTED") "Not connected during export" else forge.wallet.take(6) + "…" + forge.wallet.takeLast(4)); Text("The verified Forge image is retained securely for submission and receives one equal chance after finalization.") } } } }
-        item { Button({ ForgeDraft.submissionTitle = title.trim(); onReady() }, Modifier.fillMaxWidth(), enabled = ForgeDraft.entryImageSelected && record != null && selectedPng != null && title.isNotBlank()) { Text("Continue to secure contest entry") } }
-    }
-}
-
 @Composable private fun ContestEntry(wallet: WalletSession, repo: LiveRepository) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -174,7 +172,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     val bytes = ForgeDraft.exportedPng
 
     suspend fun verifiedSelectedPng(record: ForgeDnaRecord, png: ByteArray) {
-        check(ForgeDraft.entryImageSelected && ForgeDraft.exportedPng === png) { "Select a verified Forge PNG before entering the contest." }
+        check(ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected && ForgeDraft.exportedPng === png) { "Choose an image in Meme Forge and export it before entering the contest." }
         val verified = withContext(Dispatchers.Default) { ForgeDna.extractAndVerify(png) }
         check(verified == record) { "The selected PNG no longer matches its Forge data. Select it again." }
     }
@@ -249,6 +247,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         ForgeDraft.exportedPng = null
         ForgeDraft.exportedRecord = null
         ForgeDraft.entryImageSelected = false
+        ForgeDraft.freshSourceSelected = false
         status = "Contest entry submitted successfully. Your meme now has one equal chance in the random draw. Burn verified: " + signature.take(8) + "…" + signature.takeLast(8)
     }
 
@@ -289,7 +288,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         status = if (existingBurnSignature != null) "Existing verified contest burn found. No second burn is required." else "Entry checks passed. Review the exact burn details below."
                     }.onFailure { error -> status = error.message?.takeIf { it.isNotBlank() } ?: "Unable to prepare secure contest entry. Please try again." }
                 }
-            }, Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && ForgeDraft.entryImageSelected && forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
+            }, Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected && forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
         }
         item { Text(status, color = if (prepared != null) Green else Gold) }
         prepared?.let { burn ->
