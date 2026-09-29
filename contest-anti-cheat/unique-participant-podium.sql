@@ -87,7 +87,6 @@ with submission_scores as (
     on v.submission_id=s.id
    and v.contest_id=s.contest_id
   where s.contest_id = null::uuid -- documentation placeholder
-    and s.dna_verified=true
     and s.burn_verified=true
     and s.status<>'rejected'
   group by s.id,s.creator_id,s.wallet_address,s.submitted_at

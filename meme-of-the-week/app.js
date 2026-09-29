@@ -731,15 +731,11 @@ console.log(
                     "meme_week_submissions"
                 )
                 .select(
-                    "id,meme_title,meme_image_url,wallet_address,dna_verified,status,created_at"
+                    "id,meme_title,meme_image_url,wallet_address,status,created_at"
                 )
                 .eq(
                     "contest_id",
                     currentContest.id
-                )
-                .eq(
-                    "dna_verified",
-                    true
                 )
                 .neq(
                     "status",
@@ -1490,9 +1486,9 @@ document.addEventListener(
             useForgeExportButton.addEventListener("click", async function () {
                 try {
                     handoffFile = await window.SPARKD_FORGE_HANDOFF?.load();
-                    if (!handoffFile) throw new Error("No recent Forge export is saved in this browser. Export your meme in this same browser first, or choose the downloaded PNG from Files.");
+                    if (!handoffFile) throw new Error("No recent Meme Forge export is saved here. Choose an image from your phone or export one in this browser.");
                     memeFile.value = "";
-                    if (submissionStatus) submissionStatus.textContent = "Verified Forge export selected: " + handoffFile.name;
+                    if (submissionStatus) submissionStatus.textContent = "Meme Forge image selected: " + handoffFile.name;
                 } catch (error) {
                     handoffFile = null;
                     if (submissionStatus) submissionStatus.textContent = error.message || "Could not load the Forge export.";
@@ -1534,7 +1530,7 @@ document.addEventListener(
                     if (!file) {
 
                         alert(
-                            "Select a SPARKD Forge PNG first."
+                            "Select a meme image first."
                         );
 
                         return;
@@ -1570,112 +1566,13 @@ document.addEventListener(
                     }
 
 
-                    if (submissionStatus) {
-                        submissionStatus.textContent =
-                            "Reading SPARKD Forge DNA...";
+                    if (!memeTitle || !memeTitle.value.trim()) {
+                        throw new Error("Give your meme a title before submitting it.");
                     }
-
-
-                    const forgeData =
-                        await new Promise(
-                            (resolve, reject) => {
-
-                                const reader =
-                                    new FileReader();
-
-
-                                reader.onerror =
-                                    function () {
-                                        reject(
-                                            new Error(
-                                                "Unable to read the selected PNG."
-                                            )
-                                        );
-                                    };
-
-
-                                reader.onload =
-                                    function (event) {
-
-                                        try {
-
-                                            const bytes =
-                                                new Uint8Array(
-                                                    event.target.result
-                                                );
-
-                                            const text =
-                                                new TextDecoder()
-                                                    .decode(bytes);
-
-                                            const marker =
-                                                "SPARKD-FORGE";
-
-                                            const markerPosition =
-                                                text.indexOf(
-                                                    marker
-                                                );
-
-                                            if (
-                                                markerPosition ===
-                                                -1
-                                            ) {
-                                                throw new Error(
-                                                    "No SPARKD Forge DNA found. Photos and image editors can remove it. Use 'Use My Latest Forge Export' in the same browser, or choose the original downloaded PNG from Files."
-                                                );
-                                            }
-
-                                            const jsonStart =
-                                                text.indexOf(
-                                                    "{",
-                                                    markerPosition
-                                                );
-
-                                            const jsonEnd =
-                                                text.indexOf(
-                                                    "}",
-                                                    jsonStart
-                                                );
-
-                                            if (
-                                                jsonStart === -1 ||
-                                                jsonEnd === -1
-                                            ) {
-                                                throw new Error(
-                                                    "SPARKD Forge metadata could not be read."
-                                                );
-                                            }
-
-                                            resolve(
-                                                JSON.parse(
-                                                    text.substring(
-                                                        jsonStart,
-                                                        jsonEnd + 1
-                                                    )
-                                                )
-                                            );
-
-                                        }
-                                        catch (error) {
-                                            reject(error);
-                                        }
-
-                                    };
-
-
-                                reader.readAsArrayBuffer(
-                                    file
-                                );
-
-                            }
-                        );
-
-
-                    console.log(
-                        "🔥 SPARKD Forge data:",
-                        forgeData
-                    );
-
+                    if (submissionStatus) submissionStatus.textContent = "Preparing and inspecting your image...";
+                    const preparedImage = await window.SPARKD_CONTEST_IMAGE.prepare(file);
+                    const entryData = preparedImage.entry;
+                    const contestFile = preparedImage.file;
 
                     const readyToBurn =
                         window.confirm(
@@ -1713,8 +1610,8 @@ document.addEventListener(
 
                     const result =
                         await window.SPARKD_CONTEST.submitMeme(
-                            file,
-                            forgeData,
+                            contestFile,
+                            entryData,
                             memeTitle
                                 ? memeTitle.value
                                 : "SPARKD Meme"
