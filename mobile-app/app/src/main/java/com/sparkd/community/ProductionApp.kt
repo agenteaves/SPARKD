@@ -98,7 +98,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         when (page) {
             "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) { page = "entry" } }
             "contest" -> Box(Modifier.padding(padding)) { Contest(repo) }
-            "submit" -> Box(Modifier.padding(padding)) { SubmitOrRecover(wallet, { page = "entry" }) }
+            "submit" -> Box(Modifier.padding(padding)) { SubmitOrRecover(onOpenForge = { page = "forge" }, onReady = { page = "entry" }) }
             "winners" -> Box(Modifier.padding(padding)) { Winners(repo) }
             "profile" -> Box(Modifier.padding(padding)) { Profile(wallet) }
             "entry" -> Box(Modifier.padding(padding)) { ContestEntry(wallet, repo) }
@@ -107,29 +107,36 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     }
 }
 
-@Composable private fun SubmitOrRecover(wallet: WalletSession, onReady: () -> Unit) {
+@Composable private fun SubmitOrRecover(onOpenForge: () -> Unit, onReady: () -> Unit) {
     val context = LocalContext.current
     val pending = remember { BurnRecoveryStore(context).pending() }
-    var message by remember { mutableStateOf("An earlier burn was approved. Resume that entry without burning again, or create a new meme in the Forge.") }
-    if (pending?.transactionSignature == null) {
-        Forge(wallet, onReady)
-        return
-    }
+    var message by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(ForgeDraft.submissionTitle.ifBlank { ForgeDraft.title }) }
+    val ready = ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected &&
+        ForgeDraft.exportedPng != null && ForgeDraft.exportedRecord != null
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { Text("Resume contest entry", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text(message) }
-        item { Button(onClick = {
-            runCatching {
-                val saved = ForgeExportStore.load(context) ?: error("The original Forge export is unavailable. Contact SPARKD support with your burn transaction.")
-                check(saved.second.wallet == pending.wallet) { "The saved meme belongs to a different wallet." }
-                ForgeDraft.exportedPng = saved.first
-                ForgeDraft.exportedRecord = saved.second
-                ForgeDraft.entryImageSelected = true
-                ForgeDraft.freshSourceSelected = true // Recovery only: this image was already made in the Forge for the approved burn.
-                onReady()
-            }.onFailure { message = it.message ?: "Could not recover the prior Forge export." }
-        }, modifier = Modifier.fillMaxWidth()) { Text("Resume approved burn") } }
-        item { Text("For a new entry, open Meme Forge and choose an image there.") }
+        item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
+        item { Text("Choose an image in Meme Forge, create your meme, and export the verified PNG before submitting.") }
+        item { Button(onClick = onOpenForge, modifier = Modifier.fillMaxWidth()) { Text("Open Meme Forge") } }
+        item { Text(if (ready) "Verified Forge meme ready: ${ForgeDraft.exportedRecord?.memeID}" else "No new Forge meme ready for entry.", color = if (ready) Green else Gold) }
+        item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title (required)") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
+        item { Button(onClick = { ForgeDraft.submissionTitle = title.trim(); onReady() }, modifier = Modifier.fillMaxWidth(), enabled = ready && title.isNotBlank()) { Text("Continue to secure contest entry") } }
+        if (pending?.transactionSignature != null) {
+            item { Text("Already approved a burn? Resume that entry without burning again.") }
+            item { OutlinedButton(onClick = {
+                runCatching {
+                    val saved = ForgeExportStore.load(context) ?: error("The original Forge export is unavailable. Contact SPARKD support with your burn transaction.")
+                    check(saved.second.wallet == pending.wallet) { "The saved meme belongs to a different wallet." }
+                    ForgeDraft.exportedPng = saved.first
+                    ForgeDraft.exportedRecord = saved.second
+                    ForgeDraft.entryImageSelected = true
+                    ForgeDraft.freshSourceSelected = true // Recovery only: this image was already made in the Forge for the approved burn.
+                    ForgeDraft.submissionTitle = title.trim()
+                    onReady()
+                }.onFailure { message = it.message ?: "Could not recover the prior Forge export." }
+            }, modifier = Modifier.fillMaxWidth(), enabled = title.isNotBlank()) { Text("Resume approved burn") } }
+        }
+        if (message.isNotBlank()) item { Text(message, color = Gold) }
     }
 }
 
