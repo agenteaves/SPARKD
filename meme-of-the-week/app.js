@@ -1414,6 +1414,16 @@ document.addEventListener(
                 "motmMemeFile"
             );
 
+        const useForgeExportButton =
+            document.getElementById("motmUseForgeExportButton");
+
+        let handoffFile = null;
+
+        // The integrity gate must verify the same File that submission uses.
+        window.SPARKD_CONTEST_SELECTED_FILE = function () {
+            return handoffFile || memeFile.files[0] || null;
+        };
+
         const memeTitle =
             document.getElementById(
                 "motmMemeTitle"
@@ -1437,6 +1447,24 @@ document.addEventListener(
 
             return;
 
+        }
+
+        memeFile.addEventListener("change", function () {
+            handoffFile = null;
+        });
+
+        if (useForgeExportButton) {
+            useForgeExportButton.addEventListener("click", async function () {
+                try {
+                    handoffFile = await window.SPARKD_FORGE_HANDOFF?.load();
+                    if (!handoffFile) throw new Error("No recent Meme Forge export is saved here. Choose an image from your phone or export one in this browser.");
+                    memeFile.value = "";
+                    if (submissionStatus) submissionStatus.textContent = "Meme Forge image selected: " + handoffFile.name;
+                } catch (error) {
+                    handoffFile = null;
+                    if (submissionStatus) submissionStatus.textContent = error.message || "Could not load the Forge export.";
+                }
+            });
         }
 
 
@@ -1467,13 +1495,13 @@ document.addEventListener(
                 try {
 
                     const file =
-                        memeFile.files[0];
+                        handoffFile || memeFile.files[0];
 
 
                     if (!file) {
 
                         alert(
-                            "Select a PNG image first."
+                            "Select a meme image first."
                         );
 
                         return;
@@ -1515,8 +1543,10 @@ document.addEventListener(
                     }
 
 
-                    const forgeData = null;
-
+                    if (submissionStatus) submissionStatus.textContent = "Preparing and inspecting your image...";
+                    const preparedImage = await window.SPARKD_CONTEST_IMAGE.prepare(file);
+                    const entryData = preparedImage.entry;
+                    const contestFile = preparedImage.file;
 
                     const readyToBurn =
                         window.confirm(
@@ -1554,8 +1584,8 @@ document.addEventListener(
 
                     const result =
                         await window.SPARKD_CONTEST.submitMeme(
-                            file,
-                            forgeData,
+                            contestFile,
+                            entryData,
                             memeTitle
                                 ? memeTitle.value
                                 : "SPARKD Meme"
@@ -1583,6 +1613,7 @@ document.addEventListener(
 
                     memeFile.value =
                         "";
+                    handoffFile = null;
 
                     if (memeTitle) {
                         memeTitle.value =

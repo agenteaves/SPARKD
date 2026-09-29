@@ -549,8 +549,6 @@ if (uploadBtn && imageInput) {
             return;
         }
 
-        const displayFile = file;
-
         ////////////////////////////////////////////////////
         // NORMALIZE PHONE FILE LABELS
         //
@@ -576,8 +574,8 @@ if (uploadBtn && imageInput) {
 
         const hasCanonicalExtension =
             isPng
-                ? /\\.png$/i.test(file.name)
-                : /\\.jpe?g$/i.test(file.name);
+                ? /\.png$/i.test(file.name)
+                : /\.jpe?g$/i.test(file.name);
 
         if (
             file.type !== canonicalType ||
@@ -604,8 +602,8 @@ if (uploadBtn && imageInput) {
         // SERVER-SIDE SPARKD CONTENT GUARD
         //
         // Uses window.SPARKD_GUARD.check(file), which sends
-        // the original selected file to the Supabase
-        // server-side moderation endpoint.
+        // a labelled image (resized if necessary) to the
+        // configured server-side moderation endpoint.
         //
         // No browser model readiness check is required.
         ////////////////////////////////////////////////////
@@ -633,6 +631,8 @@ if (uploadBtn && imageInput) {
         let allowedByServer =
             false;
 
+        let verifiedImageFile = null;
+
 
         try {
 
@@ -651,10 +651,11 @@ if (uploadBtn && imageInput) {
             );
 
 
-            allowedByServer =
-                await window.SPARKD_GUARD.check(
-                    file
-                );
+            const inspection =
+                await window.SPARKD_GUARD.check(file);
+
+            allowedByServer = inspection === true || (inspection?.approved === true && inspection.file instanceof File);
+            verifiedImageFile = inspection?.approved === true ? inspection.file : file;
 
 
         }
@@ -698,6 +699,10 @@ if (uploadBtn && imageInput) {
         console.log(
             "✅ IMAGE PASSED SPARKD CONTENT GUARD"
         );
+
+        // Use the file that actually passed inspection. This also gives
+        // mobile decoders a correctly labelled, manageable image Blob.
+        const displayFile = verifiedImageFile instanceof File ? verifiedImageFile : file;
 
 
         ////////////////////////////////////////////////////
@@ -991,13 +996,12 @@ if (deleteBtn) {
     if (
         mobileSaveBtn &&
         downloadBtn &&
-        isMobileDevice &&
-        typeof navigator.share === "function"
+        isMobileDevice
     ) {
         mobileSaveBtn.hidden = false;
+        mobileSaveBtn.textContent = "📱 Download Meme PNG";
 
         mobileSaveBtn.onclick = function () {
-            downloadBtn.dataset.phoneSave = "1";
             downloadBtn.click();
         };
     }
@@ -1005,318 +1009,56 @@ if (deleteBtn) {
     if (downloadBtn) {
 
         downloadBtn.onclick = async function () {
-
-            if (downloadBtn.dataset.exporting === "1") {
-                return;
-            }
-
+            if (downloadBtn.dataset.exporting === "1") return;
             downloadBtn.dataset.exporting = "1";
-            const originalButtonText = downloadBtn.textContent;
+            const previousText = downloadBtn.textContent;
             downloadBtn.textContent = "⏳ Exporting...";
-
-            const finishExport = function () {
-                downloadBtn.dataset.exporting = "0";
-                downloadBtn.textContent = originalButtonText;
-            };
-
             try {
-
-                ////////////////////////////////////////////////////
-                // CLEAR ACTIVE SELECTION
-                ////////////////////////////////////////////////////
-
                 canvas.discardActiveObject();
                 canvas.renderAll();
-
-
-                ////////////////////////////////////////////////////
-                // FIND UPLOADED IMAGE
-                ////////////////////////////////////////////////////
-
-                const image =
-                    canvas
-                        .getObjects()
-                        .find(
-                            obj => obj.type === "image"
-                        );
-
-                if (!image) {
-                    alert("Please upload an image first.");
-                    finishExport();
-                    return;
-                }
-
-
-                ////////////////////////////////////////////////////
-                // GET IMAGE BOUNDS
-                ////////////////////////////////////////////////////
-
-                const bounds =
-                    image.getBoundingRect(
-                        false,
-                        true
-                    );
-
-
-                ////////////////////////////////////////////////////
-                // SYNCHRONOUS EXPORT
-                //
-                // Keeping this inside the user's tap is important
-                // for mobile browsers that block delayed downloads.
-                ////////////////////////////////////////////////////
-
-                const finalCanvas =
-                    canvas.toCanvasElement(
-                        2,
-                        {
-                            left: bounds.left,
-                            top: bounds.top,
-                            width: bounds.width,
-                            height: bounds.height,
-                            enableRetinaScaling: true
-                        }
-                    );
-
-                const ctx =
-                    finalCanvas.getContext("2d");
-
-
-                ////////////////////////////////////////////////////
-                // ADD SPARKD CONTRACT
-                ////////////////////////////////////////////////////
-
+                const image = canvas.getObjects().find(object => object.type === "image");
+                if (!image) throw new Error("Please upload an image first.");
+                const bounds = image.getBoundingRect(false, true);
+                const finalCanvas = canvas.toCanvasElement(2, {
+                    left: bounds.left, top: bounds.top,
+                    width: bounds.width, height: bounds.height,
+                    enableRetinaScaling: true
+                });
+                const ctx = finalCanvas.getContext("2d");
                 ctx.font = "8px Arial";
                 ctx.textAlign = "right";
                 ctx.textBaseline = "bottom";
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = "#000000";
                 ctx.fillStyle = "#ffffff";
-
-                ctx.strokeText(
-                    SPARKD_CONTRACT,
-                    finalCanvas.width - 10,
-                    finalCanvas.height - 10
-                );
-
-                ctx.fillText(
-                    SPARKD_CONTRACT,
-                    finalCanvas.width - 10,
-                    finalCanvas.height - 10
-                );
-
-
-                ////////////////////////////////////////////////////
-                // CONTEST WALLET UX CHECK
-                //
-                // Meme Forge can still export without a wallet, but
-                // that PNG cannot pass Meme of the Week wallet matching.
-                // Warn before we permanently embed NOT_CONNECTED.
-                ////////////////////////////////////////////////////
-
-                let exportWallet =
-                    null;
-
-                if (
-                    window.SPARKD_FORGE &&
-                    typeof window.SPARKD_FORGE.getConnectedWallet === "function"
-                ) {
-
-                    exportWallet =
-                        window.SPARKD_FORGE.getConnectedWallet();
-
-                }
-
-                if (!exportWallet) {
-
-                    const continueWithoutWallet =
-                        window.confirm(
-                            "⚠️ NO CONTEST WALLET CONNECTED\n\n" +
-                            "You can still save this meme, but this PNG will NOT be eligible for Meme of the Week because no Phantom wallet will be attached to its Forge DNA.\n\n" +
-                            "Choose Cancel to connect the wallet you plan to use for the contest, then export again.\n\n" +
-                            "Choose OK only if you want a non-contest PNG."
-                        );
-
-                    if (!continueWithoutWallet) {
-                        finishExport();
-                        return;
-                    }
-
-                }
-
-                ////////////////////////////////////////////////////
-                // CREATE SPARKD FORGE BIRTH RECORD
-                ////////////////////////////////////////////////////
-
-                let forgeRecord =
-                    null;
-
-                if (
-                    window.SPARKD_FORGE &&
-                    typeof window.SPARKD_FORGE.createRecord === "function"
-                ) {
-
-                    forgeRecord =
-                        window.SPARKD_FORGE.createRecord(
-                            finalCanvas
-                        );
-
-                    console.log(
-                        "🔥 SPARKD Forge Birth:",
-                        forgeRecord
-                    );
-                }
-
-
-                ////////////////////////////////////////////////////
-                // CREATE HIDDEN FORGE DATA
-                ////////////////////////////////////////////////////
-
-                if (
-                    window.SPARKD_EXPORT &&
-                    forgeRecord &&
-                    typeof window.SPARKD_EXPORT.attachForgeData === "function"
-                ) {
-
-                    window.SPARKD_EXPORT.attachForgeData(
-                        finalCanvas,
-                        forgeRecord
-                    );
-                }
-
-
-                ////////////////////////////////////////////////////
-                // BUILD THE EXACT PNG FILE
-                ////////////////////////////////////////////////////
-
-                const link =
-                    document.createElement("a");
-
-                let exportBlob =
-                    null;
-
-                if (
-                    window.SPARKD_PNG &&
-                    forgeRecord &&
-                    typeof window.SPARKD_PNG.createBlob === "function"
-                ) {
-                    exportBlob =
-                        window.SPARKD_PNG.createBlob(
-                            finalCanvas,
-                            forgeRecord
-                        );
-
-                    link.href =
-                        URL.createObjectURL(exportBlob);
-                }
-                else if (
-                    window.SPARKD_PNG &&
-                    forgeRecord &&
-                    typeof window.SPARKD_PNG.attach === "function"
-                ) {
-                    link.href =
-                        window.SPARKD_PNG.attach(
-                            finalCanvas,
-                            forgeRecord
-                        );
-                }
-                else {
-                    link.href =
-                        finalCanvas.toDataURL("image/png");
-                }
-
-                link.download =
-                    "SPARKD-meme.png";
-
-                const usePhoneSave =
-                    downloadBtn.dataset.phoneSave === "1";
-
-                delete downloadBtn.dataset.phoneSave;
-
-                if (usePhoneSave) {
-                    if (
-                        exportBlob &&
-                        typeof navigator.share === "function"
-                    ) {
-                        const exportFile =
-                            new File(
-                                [exportBlob],
-                                "SPARKD-meme.png",
-                                { type: "image/png" }
-                            );
-
-                        const canShareFile =
-                            typeof navigator.canShare !== "function" ||
-                            navigator.canShare({ files: [exportFile] });
-
-                        if (canShareFile) {
-                            await navigator.share({
-                                files: [exportFile],
-                                title: "SPARKD Meme"
-                            });
-
-                            if (link.href.startsWith("blob:")) {
-                                URL.revokeObjectURL(link.href);
-                            }
-
-                            finishExport();
-                            return;
-                        }
-                    }
-
-                    alert(
-                        "Phone saving is not supported by this browser. Please update Chrome or use the Export button."
-                    );
-
-                    if (link.href.startsWith("blob:")) {
-                        URL.revokeObjectURL(link.href);
-                    }
-
-                    finishExport();
-                    return;
-                }
-
-                link.style.display =
-                    "none";
-
+                ctx.strokeText(SPARKD_CONTRACT, finalCanvas.width - 10, finalCanvas.height - 10);
+                ctx.fillText(SPARKD_CONTRACT, finalCanvas.width - 10, finalCanvas.height - 10);
+                const blob = await new Promise((resolve, reject) => finalCanvas.toBlob(
+                    result => result ? resolve(result) : reject(new Error("Could not export the meme.")), "image/png"
+                ));
+                if (blob.size > 10 * 1024 * 1024) throw new Error("This PNG is over the 10 MB contest limit.");
+                const filename = "SPARKD-meme.png";
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                link.style.display = "none";
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
-
-                if (link.href.startsWith("blob:")) {
-                    setTimeout(function () {
-                        URL.revokeObjectURL(link.href);
-                    }, 5000);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                if (window.SPARKD_FORGE_HANDOFF) {
+                    try { await window.SPARKD_FORGE_HANDOFF.save(blob, filename); }
+                    catch (error) { console.warn("Meme handoff unavailable; downloaded PNG remains usable.", error); }
                 }
-
-                finishExport();
-
+            } catch (error) {
+                console.error("SPARKD Meme Forge export failed:", error);
+                alert(error.message || "Could not export the meme.");
+            } finally {
+                downloadBtn.dataset.exporting = "0";
+                downloadBtn.textContent = previousText;
             }
-            catch (exportError) {
-
-                delete downloadBtn.dataset.phoneSave;
-
-                if (
-                    exportError &&
-                    exportError.name === "AbortError"
-                ) {
-                    finishExport();
-                    return;
-                }
-
-                console.error(
-                    "❌ SPARKD Meme Forge export failed:",
-                    exportError
-                );
-
-                alert(
-                    "Export failed. Please refresh the Meme Forge and try again."
-                );
-
-                finishExport();
-
-            }
-
-        };;
+        };
 
     }
 
