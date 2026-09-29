@@ -1447,6 +1447,11 @@ document.addEventListener(
                 "motmMemeFile"
             );
 
+        const useForgeExportButton =
+            document.getElementById("motmUseForgeExportButton");
+
+        let handoffFile = null;
+
         const memeTitle =
             document.getElementById(
                 "motmMemeTitle"
@@ -1470,6 +1475,24 @@ document.addEventListener(
 
             return;
 
+        }
+
+        memeFile.addEventListener("change", function () {
+            handoffFile = null;
+        });
+
+        if (useForgeExportButton) {
+            useForgeExportButton.addEventListener("click", async function () {
+                try {
+                    handoffFile = await window.SPARKD_FORGE_HANDOFF?.load();
+                    if (!handoffFile) throw new Error("No recent Forge export is saved in this browser. Export your meme in this same browser first, or choose the downloaded PNG from Files.");
+                    memeFile.value = "";
+                    if (submissionStatus) submissionStatus.textContent = "Verified Forge export selected: " + handoffFile.name;
+                } catch (error) {
+                    handoffFile = null;
+                    if (submissionStatus) submissionStatus.textContent = error.message || "Could not load the Forge export.";
+                }
+            });
         }
 
 
@@ -1500,7 +1523,7 @@ document.addEventListener(
                 try {
 
                     const file =
-                        memeFile.files[0];
+                        handoffFile || memeFile.files[0];
 
 
                     if (!file) {
@@ -1593,7 +1616,7 @@ document.addEventListener(
                                                 -1
                                             ) {
                                                 throw new Error(
-                                                    "No SPARKD Forge DNA found in this PNG."
+                                                    "No SPARKD Forge DNA found. Photos and image editors can remove it. Use 'Use My Latest Forge Export' in the same browser, or choose the original downloaded PNG from Files."
                                                 );
                                             }
 
@@ -1714,6 +1737,7 @@ document.addEventListener(
 
                     memeFile.value =
                         "";
+                    handoffFile = null;
 
                     if (memeTitle) {
                         memeTitle.value =

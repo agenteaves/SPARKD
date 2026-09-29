@@ -996,13 +996,12 @@ if (deleteBtn) {
     if (
         mobileSaveBtn &&
         downloadBtn &&
-        isMobileDevice &&
-        typeof navigator.share === "function"
+        isMobileDevice
     ) {
         mobileSaveBtn.hidden = false;
+        mobileSaveBtn.textContent = "📱 Download Verified PNG";
 
         mobileSaveBtn.onclick = function () {
-            downloadBtn.dataset.phoneSave = "1";
             downloadBtn.click();
         };
     }
