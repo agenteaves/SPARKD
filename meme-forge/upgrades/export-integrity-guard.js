@@ -59,18 +59,18 @@
             if (!hasForgeChunk(bytes)) throw new Error("Forge DNA verification failed before download");
 
             const filename = "SPARKD-" + forgeRecord.memeID + ".png";
-            const phoneSave = button.dataset.phoneSave === "1";
             delete button.dataset.phoneSave;
-            if (phoneSave && typeof navigator.share === "function") {
-                const file = new File([blob], filename, {type:"image/png"});
-                const canShare = typeof navigator.canShare !== "function" || navigator.canShare({files:[file]});
-                if (canShare) { await navigator.share({files:[file], title:"SPARKD Meme"}); return; }
-            }
+            const handoffSave = window.SPARKD_FORGE_HANDOFF
+                ? window.SPARKD_FORGE_HANDOFF.save(blob, filename).catch(error => {
+                    console.warn("Forge handoff could not be saved; download remains available.", error);
+                })
+                : Promise.resolve();
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url; link.download = filename; link.style.display = "none";
             document.body.appendChild(link); link.click(); link.remove();
             setTimeout(() => URL.revokeObjectURL(url), 5000);
+            await handoffSave;
             console.log("✅ SPARKD Forge DNA verified in downloaded bytes:", filename, forgeRecord);
         } catch (error) {
             delete button.dataset.phoneSave;
