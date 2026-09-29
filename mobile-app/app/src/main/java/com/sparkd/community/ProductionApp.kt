@@ -3,8 +3,10 @@ package com.sparkd.community
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -17,6 +19,7 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -96,7 +99,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         }
     ) { padding ->
         when (page) {
-            "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) { page = "entry" } }
+            "forge" -> Box(Modifier.padding(padding)) { Forge(wallet) { page = "submit" } }
             "contest" -> Box(Modifier.padding(padding)) { Contest(repo) }
             "submit" -> Box(Modifier.padding(padding)) { SubmitOrRecover(onOpenForge = { page = "forge" }, onReady = { page = "entry" }) }
             "winners" -> Box(Modifier.padding(padding)) { Winners(repo) }
@@ -114,11 +117,17 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     var title by remember { mutableStateOf(ForgeDraft.submissionTitle.ifBlank { ForgeDraft.title }) }
     val ready = ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected &&
         ForgeDraft.exportedPng != null && ForgeDraft.exportedRecord != null
+    val preview = remember(ForgeDraft.exportedPng) {
+        ForgeDraft.exportedPng?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+    }
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text("Choose an image in Meme Forge, create your meme, and export the verified PNG before submitting.") }
+        item { Text("Choose an image in Meme Forge, create your meme, then send it here for submission.") }
         item { Button(onClick = onOpenForge, modifier = Modifier.fillMaxWidth()) { Text("Open Meme Forge") } }
         item { Text(if (ready) "Verified Forge meme ready: ${ForgeDraft.exportedRecord?.memeID}" else "No new Forge meme ready for entry.", color = if (ready) Green else Gold) }
+        if (ready && preview != null) item {
+            Image(preview.asImageBitmap(), "Meme selected for contest entry", Modifier.fillMaxWidth().aspectRatio(1f))
+        }
         item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title (required)") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
         item { Button(onClick = { ForgeDraft.submissionTitle = title.trim(); onReady() }, modifier = Modifier.fillMaxWidth(), enabled = ready && title.isNotBlank()) { Text("Continue to secure contest entry") } }
         if (pending?.transactionSignature != null) {
