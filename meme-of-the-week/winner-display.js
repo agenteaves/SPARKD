@@ -54,12 +54,6 @@
         font-weight: 800;
       }
 
-      #${CARD_ID} .sparkd-winner-votes {
-        margin-top: 6px;
-        font-size: .98rem;
-        opacity: .86;
-      }
-
       #${CARD_ID} .sparkd-winner-note {
         margin-top: 8px;
         font-size: .85rem;
@@ -129,7 +123,6 @@
 
     const imageUrl = normalizeImageUrl(data.submission.meme_image_url);
     const title = data.submission.meme_title || "Meme of the Week";
-    const votes = Number(data.winner.vote_count || 0);
 
     card.innerHTML = `
       <div class="sparkd-winner-kicker">🏆 MEME OF THE WEEK CHAMPION 🏆</div>
@@ -147,7 +140,6 @@
       ` : ""}
 
       <div class="sparkd-winner-title">${title}</div>
-      <div class="sparkd-winner-votes">${votes} ${votes === 1 ? "vote" : "votes"}</div>
       <div class="sparkd-winner-note">Verified weekly champion</div>
     `;
 

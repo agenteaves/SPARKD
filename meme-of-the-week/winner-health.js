@@ -24,7 +24,7 @@
       }
 
       if (data.state === "completed_without_winner") {
-        console.info("🏆 SPARKD winner health: completed contest has no champion because no valid winning vote exists.", data);
+        console.info("🏆 SPARKD winner health: completed contest has no finalized champion yet.", data);
         return data;
       }
 

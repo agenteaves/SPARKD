@@ -36,7 +36,7 @@
           <div><span class="pill">${esc(s.status)}</span><span class="pill">Contest: ${esc(s.contest_status)}</span></div>
           <div class="small">Submitted: ${esc(fmt(s.submitted_at))}</div>
           <div class="small">Wallet: ${esc(s.wallet_address)}</div>
-          <div class="small">DNA verified: ${s.dna_verified ? "Yes" : "No"} · Burn verified: ${s.burn_verified ? "Yes" : "No"}</div>
+          <div class="small">Entry burn verified: ${s.burn_verified ? "Yes" : "No"}</div>
           ${s.rejection_reason ? `<div class="small">Reason: ${esc(s.rejection_reason)}</div>` : ""}
           ${pending ? `
             <textarea class="reason" placeholder="Rejection reason (required only when rejecting)"></textarea>

@@ -3,7 +3,7 @@
 // social-share.js v1.1
 //
 // Standalone frontend module.
-// Does NOT modify contest-submit.js, voting, lifecycle,
+// Does NOT modify contest-submit.js or lifecycle,
 // winner selection, or any Supabase write path.
 //
 // INSTALL:
@@ -40,7 +40,7 @@
 
     const text = hasWinner
       ? `Check out ${winnerName}, the ${winnerWeek || "current"} SPARKD Meme of the Week champion!`
-      : "Check out the SPARKD Meme of the Week contest — submit, vote, and see the weekly champion.";
+      : "Check out the SPARKD Meme of the Week contest — submit your meme and see the weekly champion.";
 
     const winnerImage =
       document.querySelector("#winnerDisplay img")?.src ||

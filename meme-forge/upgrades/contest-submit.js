@@ -1674,23 +1674,10 @@ async finalizeSubmission(
 );
 
 
-////////////////////////////////////////////////////
-// FORGE MEME ID — REQUIRED BEFORE BURN RECOVERY
-////////////////////////////////////////////////////
-
-if (
-    !forgeData ||
-    typeof forgeData !== "object" ||
-    typeof forgeData.memeID !== "string" ||
-    !forgeData.memeID.trim()
-) {
-    throw new Error(
-        "SPARKD Forge Meme ID is missing."
-    );
-}
-
-const forgeMemeID =
-    forgeData.memeID.trim();
+// Contest entries no longer depend on Forge DNA. Keep a stable entry key for
+// burn-recovery and legacy server fields, but derive it from this submission.
+const forgeMemeID = `SPK-${crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+forgeData = { memeID: forgeMemeID, creatorID: wallet, wallet };
 
 
    ////////////////////////////////////////////////////
@@ -2189,41 +2176,7 @@ else {
 }
 
 
-        ////////////////////////////////////////////////////
-        // STEP 8 — FORGE DATA
-        ////////////////////////////////////////////////////
-
-        if (
-            !forgeData ||
-            typeof forgeData !==
-                "object"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge verification data is missing."
-            );
-
-        }
-
-
-        ////////////////////////////////////////////////////
-        // STEP 9 — SERVER-SIDE FORGE VERIFICATION
-        ////////////////////////////////////////////////////
-
-        const forgeVerification =
-            await this.verifyForge(
-
-                wallet,
-
-                forgeData
-
-            );
-
-
-        console.log(
-            "🧬 SPARKD Forge DNA verified:",
-            forgeVerification
-        );
+        // Forge DNA is intentionally not read or verified for contest entry.
 
 
       ////////////////////////////////////////////////////
@@ -2234,9 +2187,7 @@ const submissionId =
     crypto.randomUUID();
 
 
-const creatorId =
-    forgeVerification.creatorID ||
-    forgeData.creatorID;
+const creatorId = wallet;
 
 
 ////////////////////////////////////////////////////

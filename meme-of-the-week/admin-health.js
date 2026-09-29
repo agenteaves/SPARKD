@@ -37,10 +37,9 @@
       $("nextTransition").textContent = fmt(c.next_transition_at);
       $("submissions").textContent = counts.submissions ?? 0;
       $("eligible").textContent = counts.eligible_submissions ?? 0;
-      $("votes").textContent = counts.votes ?? 0;
       $("cron").textContent = cron.active ? `✅ Active (${cron.schedule || ""})` : "❌ Inactive";
       $("lastRun").textContent = last.status ? `${last.status} — ${fmt(last.start_time)}` : "No run recorded";
-      $("winner").textContent = winner ? `${winner.meme_title || "Winner"} — ${winner.vote_count ?? 0} votes` : "No champion yet";
+      $("winner").textContent = winner ? (winner.meme_title || "Winner") : "No champion yet";
       $("raw").textContent = JSON.stringify(h, null, 2);
 
       $("message").textContent = `Last checked: ${fmt(h.checked_at)}`;
