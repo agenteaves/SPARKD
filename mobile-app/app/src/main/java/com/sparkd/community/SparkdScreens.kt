@@ -43,7 +43,23 @@ import androidx.compose.ui.unit.sp
  val creatorId=remember{ctx.getSharedPreferences("sparkd-forge",0).getString("creator-id",null)?:ForgeDna.newCreatorId().also{ctx.getSharedPreferences("sparkd-forge",0).edit().putString("creator-id",it).apply()}}
  val exportPng=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")){uri->
   val bytes=exportBytes
-  if(uri!=null&&bytes!=null)runCatching{ctx.contentResolver.openOutputStream(uri)?.use{it.write(bytes)}?:error("Unable to open the selected save location.")}.onSuccess{ForgeDraft.entryImageSelected=true;exportStatus="✅ Verified SPARKD Forge PNG saved. It is ready for contest entry."}.onFailure{ForgeDraft.entryImageSelected=false;exportStatus="🚫 Export failed: "+(it.message?:"Unable to save PNG.")}
+  if(uri!=null&&bytes!=null)runCatching{ctx.contentResolver.openOutputStream(uri)?.use{it.write(bytes)}?:error("Unable to open the selected save location.")}.onSuccess{exportStatus="✅ Verified SPARKD Forge PNG saved. It is ready for contest entry."}.onFailure{exportStatus="🚫 Export failed: "+(it.message?:"Unable to save PNG.")}
+ }
+ fun prepareEntry():ForgeDnaRecord{
+  check(ForgeDraft.freshSourceSelected && src!=null){"Choose an image in Meme Forge first."}
+  val address=wallet?.address?:error("Connect your Solana wallet before exporting a contest meme.")
+  // Render from the current source and layers, even if the preview effect has not run yet.
+  val raw=MemeForge.render(requireNotNull(src),"","",layers)
+  val record=ForgeDna.create(raw,creatorId,address)
+  val verified=ForgeDna.embed(raw,record)
+  val savedRecord=ForgeExportStore.save(ctx,verified)
+  ForgeDraft.exportedPng=verified
+  ForgeDraft.exportedRecord=savedRecord
+  ForgeDraft.exportedCanvasHash=raw.contentHashCode()
+  ForgeDraft.entryImageSelected=true
+  exportBytes=verified
+  ForgeDraft.submissionTitle=title.trim()
+  return savedRecord
  }
  var textPopup by remember{mutableStateOf(false)};var emojiPopup by remember{mutableStateOf(false)};var newText by remember{mutableStateOf("")};var newTextColor by remember{mutableStateOf(android.graphics.Color.WHITE)}
  var safetyChecking by remember{mutableStateOf(false)};var safetyMessage by remember{mutableStateOf(ForgeDraft.safetyMessage)}
@@ -63,7 +79,13 @@ import androidx.compose.ui.unit.sp
    }
   }
  }
- LaunchedEffect(src,layers){png=src?.let{MemeForge.render(it,"","",layers)}}
+ LaunchedEffect(src,layers){
+  png=src?.let{MemeForge.render(it,"","",layers)}
+  if(ForgeDraft.entryImageSelected && png?.contentHashCode()!=ForgeDraft.exportedCanvasHash){
+   ForgeDraft.entryImageSelected=false;ForgeDraft.exportedPng=null;ForgeDraft.exportedRecord=null
+   exportStatus="Meme changed. Send the updated image to Submit again."
+  }
+ }
  if(textPopup) AlertDialog(onDismissRequest={textPopup=false},title={Text("Add text")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
   OutlinedTextField(newText,{newText=it},label={Text("Text")});Text("Text color",fontSize=12.sp,color=Color.LightGray)
   val textColors=listOf(android.graphics.Color.WHITE,android.graphics.Color.BLACK,android.graphics.Color.YELLOW,android.graphics.Color.RED,android.graphics.Color.GREEN,android.graphics.Color.CYAN,android.graphics.Color.BLUE,android.graphics.Color.MAGENTA)
@@ -82,9 +104,9 @@ import androidx.compose.ui.unit.sp
   item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button({textPopup=true},Modifier.weight(1f)){Text("＋ Text")};Button({emojiPopup=true},Modifier.weight(1f)){Text("😀 Emoji")}}}
   selected?.takeIf{it in layers.indices}?.let{i->item{Surface(shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(14.dp)){Text("Selected: "+layers[i].text,fontWeight=FontWeight.Bold);Text("Resize");Slider(value=layers[i].size,onValueChange={v->if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(size=v);layers=n}},valueRange=36f..180f);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(x=.5f,y=.5f);layers=n}},Modifier.weight(1f)){Text("Center")};OutlinedButton({if(i<layers.size){layers=layers.toMutableList().also{it.removeAt(i)};selected=null}},Modifier.weight(1f)){Text("Delete")}}}}}}
   if(layers.isNotEmpty())item{Text("Tip: drag the text or emoji directly on the image. Tap a layer below to select it.",color=Color.LightGray,fontSize=12.sp);LazyRow(horizontalArrangement=Arrangement.spacedBy(6.dp)){items(layers.size){i->AssistChip(onClick={selected=i},label={Text(layers[i].text)})}}}
-  item{Button({runCatching{check(ForgeDraft.freshSourceSelected){"Choose an image in Meme Forge first."};val address=wallet?.address?:error("Connect your Solana wallet before exporting a contest meme.");val raw=png?:error("Choose an image before exporting.");val record=ForgeDna.create(raw,creatorId,address);val verified=ForgeDna.embed(raw,record);val savedRecord=ForgeExportStore.save(ctx,verified);ForgeDraft.exportedRecord=savedRecord;ForgeDraft.exportedPng=verified;ForgeDraft.entryImageSelected=false;exportBytes=verified;exportPng.launch("SPARKD-"+record.memeID+".png")}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null&&wallet?.address!=null,modifier=Modifier.fillMaxWidth()){Text(if(wallet?.address==null)"Connect wallet to export" else "Export Verified Forge PNG")}}
+  item{Button({runCatching{prepareEntry();onEntryReady?.invoke()}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to transfer the meme.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null&&wallet?.address!=null&&title.isNotBlank()&&onEntryReady!=null,modifier=Modifier.fillMaxWidth()){Text("Send meme to Submit tab")}}
+  item{OutlinedButton({runCatching{val record=prepareEntry();exportPng.launch("SPARKD-"+record.memeID+".png")}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null&&wallet?.address!=null,modifier=Modifier.fillMaxWidth()){Text(if(wallet?.address==null)"Connect wallet to export" else "Save Verified Forge PNG")}}
   exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
-  if(ForgeDraft.freshSourceSelected&&ForgeDraft.entryImageSelected&&ForgeDraft.exportedPng!=null&&ForgeDraft.exportedRecord!=null&&onEntryReady!=null)item{OutlinedButton({ForgeDraft.submissionTitle=title.trim();onEntryReady()},Modifier.fillMaxWidth(),enabled=title.isNotBlank()){Text("Continue to secure contest entry")}}
  }
 }
 
