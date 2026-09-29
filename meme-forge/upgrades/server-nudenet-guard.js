@@ -1,7 +1,7 @@
 /* ============================================================
    SPARKD SERVER NUDENET GUARD
    Client connector for server-hosted NudeNet ONNX inference.
-   Version: server-nudenet-v2
+   Version: server-nudenet-v3
    ============================================================ */
 
 (function () {
@@ -154,7 +154,10 @@
                 result
             );
 
-            return true;
+            // The caller must display these same inspected bytes. In
+            // particular, mobile file providers may give the original Blob
+            // an unusable MIME label, and large images are resized above.
+            return { approved: true, file: inspectionFile };
 
         } catch (error) {
 
@@ -174,7 +177,7 @@
         isReady: function () {
             return !!endpoint();
         },
-        version: "server-nudenet-v2"
+        version: "server-nudenet-v3"
     };
 
     console.log(

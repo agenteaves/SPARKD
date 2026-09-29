@@ -549,8 +549,6 @@ if (uploadBtn && imageInput) {
             return;
         }
 
-        const displayFile = file;
-
         ////////////////////////////////////////////////////
         // NORMALIZE PHONE FILE LABELS
         //
@@ -576,8 +574,8 @@ if (uploadBtn && imageInput) {
 
         const hasCanonicalExtension =
             isPng
-                ? /\\.png$/i.test(file.name)
-                : /\\.jpe?g$/i.test(file.name);
+                ? /\.png$/i.test(file.name)
+                : /\.jpe?g$/i.test(file.name);
 
         if (
             file.type !== canonicalType ||
@@ -604,8 +602,8 @@ if (uploadBtn && imageInput) {
         // SERVER-SIDE SPARKD CONTENT GUARD
         //
         // Uses window.SPARKD_GUARD.check(file), which sends
-        // the original selected file to the Supabase
-        // server-side moderation endpoint.
+        // a labelled image (resized if necessary) to the
+        // configured server-side moderation endpoint.
         //
         // No browser model readiness check is required.
         ////////////////////////////////////////////////////
@@ -633,6 +631,8 @@ if (uploadBtn && imageInput) {
         let allowedByServer =
             false;
 
+        let verifiedImageFile = null;
+
 
         try {
 
@@ -651,10 +651,11 @@ if (uploadBtn && imageInput) {
             );
 
 
-            allowedByServer =
-                await window.SPARKD_GUARD.check(
-                    file
-                );
+            const inspection =
+                await window.SPARKD_GUARD.check(file);
+
+            allowedByServer = inspection === true || (inspection?.approved === true && inspection.file instanceof File);
+            verifiedImageFile = inspection?.approved === true ? inspection.file : file;
 
 
         }
@@ -698,6 +699,10 @@ if (uploadBtn && imageInput) {
         console.log(
             "✅ IMAGE PASSED SPARKD CONTENT GUARD"
         );
+
+        // Use the file that actually passed inspection. This also gives
+        // mobile decoders a correctly labelled, manageable image Blob.
+        const displayFile = verifiedImageFile instanceof File ? verifiedImageFile : file;
 
 
         ////////////////////////////////////////////////////
