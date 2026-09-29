@@ -84,7 +84,7 @@ import androidx.compose.ui.unit.sp
   if(layers.isNotEmpty())item{Text("Tip: drag the text or emoji directly on the image. Tap a layer below to select it.",color=Color.LightGray,fontSize=12.sp);LazyRow(horizontalArrangement=Arrangement.spacedBy(6.dp)){items(layers.size){i->AssistChip(onClick={selected=i},label={Text(layers[i].text)})}}}
   item{Button({runCatching{val address=wallet?.address?:error("Connect your Solana wallet before exporting a contest meme.");val raw=png?:error("Choose an image before exporting.");val record=ForgeDna.create(raw,creatorId,address);val verified=ForgeDna.embed(raw,record);val savedRecord=ForgeExportStore.save(ctx,verified);ForgeDraft.exportedRecord=savedRecord;ForgeDraft.exportedPng=verified;ForgeDraft.entryImageSelected=false;exportBytes=verified;exportPng.launch("SPARKD-"+record.memeID+".png")}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare verified Forge PNG.")}},enabled=png!=null&&wallet?.address!=null,modifier=Modifier.fillMaxWidth()){Text(if(wallet?.address==null)"Connect wallet to export" else "Export Verified Forge PNG")}}
   exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
-  if(ForgeDraft.entryImageSelected&&ForgeDraft.exportedPng!=null&&ForgeDraft.exportedRecord!=null&&onEntryReady!=null)item{OutlinedButton({onEntryReady()},Modifier.fillMaxWidth()){Text("Continue to secure contest entry")}}
+  if(ForgeDraft.entryImageSelected&&ForgeDraft.exportedPng!=null&&ForgeDraft.exportedRecord!=null&&onEntryReady!=null)item{OutlinedButton({ForgeDraft.submissionTitle=title.trim();onEntryReady()},Modifier.fillMaxWidth(),enabled=title.isNotBlank()){Text("Continue to secure contest entry")}}
  }
 }
 
