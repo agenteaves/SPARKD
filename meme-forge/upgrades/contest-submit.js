@@ -351,130 +351,6 @@ window.SPARKD_CONTEST = {
 
 
     ////////////////////////////////////////////////////
-    // VERIFY FORGE DNA
-    //
-    // SERVER-SIDE VERIFICATION
-    //
-    // NO DATABASE INSERT
-    // NO TOKEN TRANSFER
-    // NO TOKEN BURN
-    ////////////////////////////////////////////////////
-
-    async verifyForge(
-        wallet,
-        forgeData
-    ) {
-
-
-        this.validateWallet(
-            wallet
-        );
-
-
-        if (
-            !forgeData ||
-            typeof forgeData !==
-                "object"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge verification data is missing."
-            );
-
-        }
-
-
-        console.log(
-            "🧬 SPARKD verifying Forge DNA..."
-        );
-
-
-        const response =
-            await fetch(
-
-               this.SUPER_HANDLER_URL,
-                
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            wallet:
-                                wallet,
-
-                            action:
-                                "verify_dna",
-
-                            forgeData:
-                                forgeData,
-
-                            mint:
-                                "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
-
-                        })
-
-                }
-
-            );
-
-
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-
-                "Forge verification service returned HTTP " +
-                response.status
-
-            );
-
-        }
-
-
-        const result =
-            await response.json();
-
-
-        if (
-            !result.success ||
-            !result.verified
-        ) {
-
-            throw new Error(
-
-                result.reason ||
-                result.error ||
-                "SPARKD Forge verification failed."
-
-            );
-
-        }
-
-
-        console.log(
-            "🔥 SPARKD Forge DNA verified:",
-            result
-        );
-
-
-        return result;
-
-    },
-
-
-    ////////////////////////////////////////////////////
     // CHECK EXISTING SUBMISSION
     //
     // READ ONLY
@@ -595,7 +471,7 @@ async getBurnReceipt(
     ) {
 
         throw new Error(
-            "Contest ID and Forge Meme ID are required."
+            "Contest ID and Meme ID are required."
         );
 
     }
@@ -711,7 +587,7 @@ async recordBurnReceipt(
     ) {
 
         throw new Error(
-            "Contest ID, burn transaction, and Forge Meme ID are required."
+            "Contest ID, burn transaction, and Meme ID are required."
         );
 
     }
@@ -796,7 +672,7 @@ async finalizeSubmission(
     creatorId,
     memeTitle,
     memeImageUrl,
-    dnaVerificationData
+    entryData
 ) {
 
     this.validateWallet(
@@ -842,8 +718,8 @@ async finalizeSubmission(
                         memeImageUrl:
                             memeImageUrl,
 
-                        dnaVerificationData:
-                            dnaVerificationData
+                        memeID:
+                            entryData.memeID
                     })
             }
         );
@@ -1039,7 +915,7 @@ async finalizeSubmission(
 
         wallet,
 
-        forgeData
+        entryData
 
     }) {
 
@@ -1092,19 +968,12 @@ async finalizeSubmission(
 
 
         ////////////////////////////////////////////////////
-        // STEP 5 — FORGE DNA
+        // STEP 5 — MEME IDENTITY (BURN RECOVERY ONLY)
         ////////////////////////////////////////////////////
 
-        const forgeVerification =
-            await this.verifyForge(
-                wallet,
-                forgeData
-            );
-
-
-        console.log(
-            "🔥 SPARKD Forge verified."
-        );
+        if (!entryData?.memeID || !entryData?.creatorID) {
+            throw new Error("Meme identity is missing. Choose the image again.");
+        }
 
 
         ////////////////////////////////////////////////////
@@ -1147,8 +1016,8 @@ async finalizeSubmission(
             requiredSparkd:
                 this.REQUIRED_SPARKD,
 
-            forgeVerification:
-                forgeVerification,
+            memeID:
+                entryData.memeID,
 
             storagePath:
                 upload.path
@@ -1178,7 +1047,7 @@ async finalizeSubmission(
 
     async submitMemeTest(
         file,
-        forgeData,
+        entryData,
         memeTitle
     ) {
 
@@ -1339,40 +1208,11 @@ async finalizeSubmission(
 
 
         ////////////////////////////////////////////////////
-        // STEP 6 — FORGE DATA CHECK
+        // STEP 6 — MEME IDENTITY
         ////////////////////////////////////////////////////
-
-        if (
-            !forgeData ||
-            typeof forgeData !==
-                "object"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge verification data is missing."
-            );
-
+        if (!entryData?.memeID || !entryData?.creatorID) {
+            throw new Error("Meme identity is missing.");
         }
-
-
-        ////////////////////////////////////////////////////
-        // STEP 7 — SERVER-SIDE FORGE VERIFICATION
-        ////////////////////////////////////////////////////
-
-        const forgeVerification =
-            await this.verifyForge(
-
-                wallet,
-
-                forgeData
-
-            );
-
-
-        console.log(
-            "🔥 TEST Forge DNA verified."
-        );
-
 
         ////////////////////////////////////////////////////
         // STEP 8 — UPLOAD IMAGE
@@ -1417,8 +1257,7 @@ async finalizeSubmission(
                 contest.id,
 
             creator_id:
-                forgeVerification.creatorID ||
-                forgeData.creatorID,
+                entryData.creatorID,
 
             wallet_address:
                 wallet,
@@ -1429,12 +1268,6 @@ async finalizeSubmission(
 
             meme_image_url:
                 upload.path,
-
-            dna_verified:
-                true,
-
-            dna_verification_data:
-                forgeData,
 
             burn_amount:
                 0,
@@ -1577,7 +1410,7 @@ async finalizeSubmission(
 
     async submitMeme(
         file,
-        forgeData,
+        entryData,
         memeTitle
     ) {
 
@@ -1679,18 +1512,18 @@ async finalizeSubmission(
 ////////////////////////////////////////////////////
 
 if (
-    !forgeData ||
-    typeof forgeData !== "object" ||
-    typeof forgeData.memeID !== "string" ||
-    !forgeData.memeID.trim()
+    !entryData ||
+    typeof entryData !== "object" ||
+    typeof entryData.memeID !== "string" ||
+    !entryData.memeID.trim()
 ) {
     throw new Error(
-        "SPARKD Forge Meme ID is missing."
+        "Meme ID is missing."
     );
 }
 
-const forgeMemeID =
-    forgeData.memeID.trim();
+const entryMemeID =
+    entryData.memeID.trim();
 
 
    ////////////////////////////////////////////////////
@@ -1707,7 +1540,7 @@ let existingBurnReceipt =
     await this.getBurnReceipt(
         wallet,
         contest.id,
-        forgeMemeID
+        entryMemeID
     );
 
 ////////////////////////////////////////////////////
@@ -1724,7 +1557,7 @@ let existingBurnReceipt =
 ////////////////////////////////////////////////////
 
 const burnRecoveryKey =
-    `sparkd_burn_recovery_${contest.id}_${wallet}_${forgeMemeID}`;
+    `sparkd_burn_recovery_${contest.id}_${wallet}_${entryMemeID}`;
 
 const savedBurnRecovery =
     localStorage.getItem(
@@ -1761,7 +1594,7 @@ if (
     const matchingRecovery =
         recoveryData?.contestId === contest.id &&
         recoveryData?.wallet === wallet &&
-        recoveryData?.memeID === forgeMemeID;
+        recoveryData?.memeID === entryMemeID;
 
     if (
         !matchingRecovery
@@ -1809,14 +1642,14 @@ if (
                 wallet,
                 contest.id,
                 recoverySignature,
-        forgeMemeID
+        entryMemeID
             );
 
             existingBurnReceipt =
                 await this.getBurnReceipt(
                     wallet,
                     contest.id,
-        forgeMemeID
+        entryMemeID
                 );
 
         }
@@ -1879,7 +1712,7 @@ if (
                         await this.resendSignedBurnTransaction(
                             wallet,
                             contest.id,
-                            forgeMemeID,
+                            entryMemeID,
                             recoveryData.signedTransaction
                         );
 
@@ -1898,14 +1731,14 @@ if (
                         wallet,
                         contest.id,
                         recoverySignature,
-        forgeMemeID
+        entryMemeID
                     );
 
                     existingBurnReceipt =
                         await this.getBurnReceipt(
                             wallet,
                             contest.id,
-        forgeMemeID
+        entryMemeID
                         );
 
                 }
@@ -1971,14 +1804,14 @@ if (
                 wallet,
                 contest.id,
                 recoveryData.burnTransaction,
-        forgeMemeID
+        entryMemeID
             );
 
             existingBurnReceipt =
                 await this.getBurnReceipt(
                     wallet,
                     contest.id,
-        forgeMemeID
+        entryMemeID
                 );
 
         }
@@ -2037,7 +1870,7 @@ if (
 ) {
 
     console.log(
-        "♻️ Verified SPARKD burn receipt found for this Forge Meme ID. Recovery mode enabled:",
+        "♻️ Verified SPARKD burn receipt found for this Meme ID. Recovery mode enabled:",
         existingBurnReceipt.receipt.burn_transaction
     );
 
@@ -2190,41 +2023,26 @@ else {
 
 
         ////////////////////////////////////////////////////
-        // STEP 8 — FORGE DATA
+        // STEP 8 — MEME IDENTITY
         ////////////////////////////////////////////////////
 
         if (
-            !forgeData ||
-            typeof forgeData !==
+            !entryData ||
+            typeof entryData !==
                 "object"
         ) {
 
             throw new Error(
-                "SPARKD Forge verification data is missing."
+                "Meme identity is missing."
             );
 
         }
 
 
         ////////////////////////////////////////////////////
-        // STEP 9 — SERVER-SIDE FORGE VERIFICATION
+        // STEP 9 — MEME IDENTITY FOR BURN RECOVERY
         ////////////////////////////////////////////////////
-
-        const forgeVerification =
-            await this.verifyForge(
-
-                wallet,
-
-                forgeData
-
-            );
-
-
-        console.log(
-            "🧬 SPARKD Forge DNA verified:",
-            forgeVerification
-        );
-
+        if (!entryData?.creatorID) throw new Error("Creator identity is missing.");
 
       ////////////////////////////////////////////////////
 // STEP 10 — PREPARE SUBMISSION ID
@@ -2235,8 +2053,7 @@ const submissionId =
 
 
 const creatorId =
-    forgeVerification.creatorID ||
-    forgeData.creatorID;
+    entryData.creatorID;
 
 
 ////////////////////////////////////////////////////
@@ -2363,7 +2180,7 @@ else {
     await this.executeSparkdBurn(
         wallet,
         contest.id,
-        forgeMemeID,
+        entryMemeID,
         creatorId
     );
 
@@ -2523,7 +2340,7 @@ try {
         wallet,
         contest.id,
         burnResult.burnTransaction,
-        forgeMemeID
+        entryMemeID
     );
 
 }
@@ -2567,7 +2384,7 @@ try {
             memeTitle ||
                 "Untitled SPARKD Meme",
             upload.path,
-            forgeData
+            entryData
         );
 
 }
@@ -2608,7 +2425,7 @@ console.log(
 ////////////////////////////////////////////////////
 
 localStorage.removeItem(
-    `sparkd_burn_recovery_${contest.id}_${wallet}_${forgeMemeID}`
+    `sparkd_burn_recovery_${contest.id}_${wallet}_${entryMemeID}`
 );
 
 console.log(
@@ -3634,7 +3451,7 @@ async executeSparkdBurn(
         !memeID.trim()
     ) {
         throw new Error(
-            "Forge Meme ID is required for a SPARKD burn."
+            "Meme ID is required for a SPARKD burn."
         );
     }
 
@@ -4267,7 +4084,7 @@ console.log(
 window.SPARKD_CONTEST_TEST =
     async function (
         file,
-        forgeData,
+        entryData,
         memeTitle
     ) {
 
@@ -4275,7 +4092,7 @@ window.SPARKD_CONTEST_TEST =
 
             file,
 
-            forgeData,
+            entryData,
 
             memeTitle
 

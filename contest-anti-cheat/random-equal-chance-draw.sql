@@ -3,7 +3,7 @@
 --
 -- Rules:
 -- * Every eligible submission gets exactly one equal chance.
--- * Eligibility: dna_verified=true, burn_verified=true, status<>'rejected'.
+-- * Eligibility: burn_verified=true, status<>'rejected'.
 -- * Votes do not influence random-draw winner selection.
 -- * Stage 1 cryptographically shuffles the complete eligible ID list and takes up to 3 unique finalists.
 -- * Stage 2 independently cryptographically shuffles those finalists into 1st/2nd/3rd placement.
