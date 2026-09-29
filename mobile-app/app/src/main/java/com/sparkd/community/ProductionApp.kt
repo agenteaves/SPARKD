@@ -133,31 +133,28 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
 @Composable private fun SubmitMeme(onReady: () -> Unit) {
     val context = LocalContext.current
     var title by remember { mutableStateOf(ForgeDraft.submissionTitle) }
-    var selectedPng by remember { mutableStateOf(ForgeDraft.exportedPng) }
-    var record by remember { mutableStateOf(ForgeDraft.exportedRecord) }
-    var status by remember { mutableStateOf(if (record == null) "Loading your saved Forge export…" else "Original SPARKD Forge export ready for entry.") }
-
-    LaunchedEffect(Unit) {
-        if (selectedPng == null || record == null) {
-            runCatching { withContext(Dispatchers.IO) { ForgeExportStore.load(context) } }.onSuccess { saved ->
-                if (saved != null) {
-                    selectedPng = saved.first
-                    record = saved.second
-                    ForgeDraft.exportedPng = saved.first
-                    ForgeDraft.exportedRecord = saved.second
-                    status = "Verified SPARKD Forge export ready for contest entry."
-                } else status = "Create and export a meme in the SPARKD Meme Forge before submitting."
-            }.onFailure { status = "Saved Forge export could not be verified: ${it.message}" }
-        }
-    }
+    var selectedPng by remember { mutableStateOf(ForgeDraft.exportedPng.takeIf { ForgeDraft.entryImageSelected }) }
+    var record by remember { mutableStateOf(ForgeDraft.exportedRecord.takeIf { ForgeDraft.entryImageSelected }) }
+    var status by remember { mutableStateOf(if (record == null) "Choose your saved Forge export or create a new one before entry." else "SPARKD Forge export selected.") }
 
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        item { Text("Your latest verified SPARKD Meme Forge export is used automatically. Every accepted meme receives one equal chance in the weekly random drawing.") }
+        item { Text("Create and export a meme in SPARKD Meme Forge, or explicitly select a previously saved verified export.") }
+        item { OutlinedButton(onClick = {
+            runCatching { ForgeExportStore.load(context) }.onSuccess { saved ->
+                if (saved == null) status = "No saved Forge export found. Create and export a meme first."
+                else {
+                    selectedPng = saved.first; record = saved.second
+                    ForgeDraft.exportedPng = saved.first; ForgeDraft.exportedRecord = saved.second
+                    ForgeDraft.entryImageSelected = true
+                    status = "Verified saved Forge PNG selected for contest entry."
+                }
+            }.onFailure { status = "Saved Forge export could not be verified: ${it.message}" }
+        }, modifier = Modifier.fillMaxWidth()) { Text("Select saved Forge export") } }
         item { OutlinedTextField(title, { title = it.take(80) }, label = { Text("Meme title") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
         item { Text(status, color = if (record != null && selectedPng != null) Green else Gold) }
         record?.let { forge -> item { Card { Column(Modifier.padding(16.dp)) { Text("Forge verification passed", fontWeight = FontWeight.Bold, color = Green); Text("Meme ID: " + forge.memeID); Text("Export wallet: " + if (forge.wallet == "NOT_CONNECTED") "Not connected during export" else forge.wallet.take(6) + "…" + forge.wallet.takeLast(4)); Text("The verified Forge image is retained securely for submission and receives one equal chance after finalization.") } } } }
-        item { Button({ ForgeDraft.submissionTitle = title.trim(); onReady() }, Modifier.fillMaxWidth(), enabled = record != null && selectedPng != null && title.isNotBlank()) { Text("Continue to secure contest entry") } }
+        item { Button({ ForgeDraft.submissionTitle = title.trim(); onReady() }, Modifier.fillMaxWidth(), enabled = ForgeDraft.entryImageSelected && record != null && selectedPng != null && title.isNotBlank()) { Text("Continue to secure contest entry") } }
     }
 }
 
@@ -175,7 +172,14 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     val forge = ForgeDraft.exportedRecord
     val bytes = ForgeDraft.exportedPng
 
+    suspend fun verifiedSelectedPng(record: ForgeDnaRecord, png: ByteArray) {
+        check(ForgeDraft.entryImageSelected && ForgeDraft.exportedPng === png) { "Select a verified Forge PNG before entering the contest." }
+        val verified = withContext(Dispatchers.Default) { ForgeDna.extractAndVerify(png) }
+        check(verified == record) { "The selected PNG no longer matches its Forge data. Select it again." }
+    }
+
     suspend fun finalizeWithExistingBurn(burn: PreparedBurn, signature: String, record: ForgeDnaRecord, png: ByteArray): String {
+        verifiedSelectedPng(record, png)
         val address = wallet.address ?: error("Reconnect your wallet before submitting.")
         status = "Verifying the existing 2,000 SPARKD burn…"
         api.verifyBurn(address, signature)
@@ -188,6 +192,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     }
 
     suspend fun finalizeWithNewBurn(burn: PreparedBurn, record: ForgeDnaRecord, png: ByteArray): String {
+        verifiedSelectedPng(record, png)
         val address = wallet.address ?: error("Reconnect your wallet before submitting.")
         status = "Uploading the verified contest PNG…"
         val imagePath = api.uploadMeme(address, burn.contestId, png)
@@ -233,6 +238,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         runCatching { ForgeExportStore.clear(context) }
         ForgeDraft.exportedPng = null
         ForgeDraft.exportedRecord = null
+        ForgeDraft.entryImageSelected = false
         status = "Contest entry submitted successfully. Your meme now has one equal chance in the random draw. Burn verified: " + signature.take(8) + "…" + signature.takeLast(8)
     }
 
@@ -246,8 +252,10 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                     prepared = null; existingBurnSignature = null
                     status = if (wallet.address == null) "Waiting for wallet approval…" else "Checking contest entry…"
                     runCatching {
-                        val address = wallet.address ?: wallet.connect()
                         val record = forge ?: error("Export a verified Forge PNG first.")
+                        val png = bytes ?: error("Select a verified Forge PNG first.")
+                        verifiedSelectedPng(record, png)
+                        val address = wallet.address ?: wallet.connect()
                         check(record.wallet == address || record.wallet == "NOT_CONNECTED") { "This Forge PNG was exported for a different wallet. Re-export after connecting this wallet." }
                         val contest = contestPreflight("Live contest lookup") { repo.contest() }
                         check(contest.id.isNotBlank()) { "The live contest is unavailable." }
@@ -269,7 +277,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         status = if (existingBurnSignature != null) "Existing verified contest burn found. No second burn is required." else "Entry checks passed. Review the exact burn details below."
                     }.onFailure { error -> status = error.message?.takeIf { it.isNotBlank() } ?: "Unable to prepare secure contest entry. Please try again." }
                 }
-            }, Modifier.fillMaxWidth(), enabled = forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
+            }, Modifier.fillMaxWidth(), enabled = ForgeDraft.entryImageSelected && forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
         }
         item { Text(status, color = if (prepared != null) Green else Gold) }
         prepared?.let { burn ->
