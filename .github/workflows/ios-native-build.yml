@@ -1,15 +1,20 @@
-name: Build native iPhone app
+name: Build native iPhone and iPad app
 
 on:
+  pull_request:
+    branches: [iphone-app]
+    paths:
+      - "ios/SPARKDNative/**"
+      - ".github/workflows/ios-native-build.yml"
   push:
-    branches: [feature/native-ios]
+    branches: [iphone-app]
     paths:
       - "ios/SPARKDNative/**"
       - ".github/workflows/ios-native-build.yml"
   workflow_dispatch:
 
 jobs:
-  simulator-build:
+  preview-build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +27,23 @@ jobs:
         working-directory: ios/SPARKDNative
         run: |
           xcodebuild -project SPARKDNative.xcodeproj -scheme SPARKDNative -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ios-build" CODE_SIGNING_ALLOWED=NO build
+      - name: Compile iPad device app
+        working-directory: ios/SPARKDNative
+        run: |
+          xcodebuild -project SPARKDNative.xcodeproj -scheme SPARKDNative -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/ipad-build" CODE_SIGNING_ALLOWED=NO build
+      - name: Package unsigned IPA for device signing
+        run: |
+          mkdir -p "$RUNNER_TEMP/ipad-package/Payload"
+          cp -R "$RUNNER_TEMP/ipad-build/Build/Products/Release-iphoneos/SPARKDNative.app" "$RUNNER_TEMP/ipad-package/Payload/"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleSupportedPlatforms:0' "$RUNNER_TEMP/ipad-package/Payload/SPARKDNative.app/Info.plist" | grep -x iPhoneOS
+          cd "$RUNNER_TEMP/ipad-package"
+          zip -qr "$GITHUB_WORKSPACE/SPARKD-iPad-Preview-unsigned.ipa" Payload
+      - name: Save device IPA for signing on iPad
+        uses: actions/upload-artifact@v4
+        with:
+          name: SPARKD-iPad-Preview-unsigned
+          path: SPARKD-iPad-Preview-unsigned.ipa
+          if-no-files-found: error
       - name: Save simulator app for build inspection
         uses: actions/upload-artifact@v4
         with:
