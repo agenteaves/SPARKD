@@ -59,16 +59,24 @@ class LiveRepository : SparkdRepository {
         if (contests.length() == 0) return emptyList()
         val contestIds = List(contests.length()) { i -> contests.getJSONObject(i).optString("id") }.filter { it.isNotBlank() }
         if (contestIds.isEmpty()) return emptyList()
-        val winnerRows = get("meme_week_winners?select=contest_id,submission_id,place,payout_status&contest_id=in.(" + contestIds.joinToString(",") + ")&order=place.asc")
-        val submissionIds = List(winnerRows.length()) { i -> winnerRows.getJSONObject(i).optString("submission_id") }.filter { it.isNotBlank() }.distinct()
+        val winnerRows = get("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,payout_verified&contest_id=in.(" + contestIds.joinToString(",") + ")")
+        val places = listOf("submission_id", "second_submission_id", "third_submission_id")
+        val submissionIds = List(winnerRows.length()) { i -> winnerRows.getJSONObject(i) }
+            .flatMap { row -> places.map { row.optString(it) } }
+            .filter { it.isNotBlank() && it != "null" }.distinct()
         if (submissionIds.isEmpty()) return emptyList()
-        val submissions = get("meme_week_submissions?select=id,meme_title,wallet_address&id=in.(" + submissionIds.joinToString(",") + ")")
+        val submissions = get("meme_week_submissions?select=id,meme_title,wallet_address,meme_image_url&id=in.(" + submissionIds.joinToString(",") + ")")
         val byId = List(submissions.length()) { i -> submissions.getJSONObject(i) }.associateBy { it.optString("id") }
-        val contestOrder = contestIds.withIndex().associate { it.value to it.index }
+        val weekByContest = List(contests.length()) { i -> contests.getJSONObject(i) }
+            .associate { it.optString("id") to it.optString("week_start").take(10) }
         return List(winnerRows.length()) { i -> winnerRows.getJSONObject(i) }
-            .sortedWith(compareBy({ contestOrder[it.optString("contest_id")] ?: Int.MAX_VALUE }, { it.optInt("place", 99) }))
-            .mapNotNull { row -> byId[row.optString("submission_id")]?.let { s ->
-                Winner(row.optInt("place", 1), s.optString("meme_title", "SPARKD Winner"), s.optString("wallet_address", "SPARKD Creator"), row.optString("payout_status").lowercase() in setOf("paid", "completed", "executed"))
+            .sortedByDescending { weekByContest[it.optString("contest_id")].orEmpty() }
+            .flatMap { row -> places.mapIndexedNotNull { index, field ->
+                byId[row.optString(field)]?.let { s ->
+                    val image = s.optString("meme_image_url").takeIf { it.isNotBlank() && it != "null" }
+                    val imageUrl = image?.let { if (it.startsWith("https://") || it.startsWith("http://")) it else "$api/storage/v1/object/public/sparkd-contest-submissions/" + it.trimStart('/') }
+                    Winner(index + 1, s.optString("meme_title", "SPARKD Winner"), s.optString("wallet_address", "SPARKD Creator"), index == 0 && row.optBoolean("payout_verified"), weekByContest[row.optString("contest_id")].orEmpty(), imageUrl)
+                }
             } }
     }
 }
