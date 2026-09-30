@@ -116,7 +116,30 @@ import androidx.compose.ui.unit.sp
  LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("This Week's Contenders",fontSize=27.sp,fontWeight=FontWeight.Black);Text("Live entries from SPARKD Meme of the Week.",color=Gold)};if(message.isNotBlank())item{Text(message,color=Color.LightGray)};items(list){m->Surface(shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(16.dp)){m.imageUrl?.let{RemoteMemeImage(it)}?:Box(Modifier.fillMaxWidth().aspectRatio(1.4f).background(Color(0xFF182A20),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){Text("Image unavailable",color=Color.Gray)};Spacer(Modifier.height(10.dp));Text(m.title,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(m.creator,color=Color.LightGray)}}}}
 }
 @Composable private fun RemoteMemeImage(url:String){val bitmap by produceState<android.graphics.Bitmap?>(initialValue=null,url){value=withContext(Dispatchers.IO){runCatching{URL(url).openStream().use{BitmapFactory.decodeStream(it)}}.getOrNull()}};Box(Modifier.fillMaxWidth().aspectRatio(1.4f).background(Color(0xFF182A20),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){bitmap?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}?:CircularProgressIndicator()}}
-@Composable fun Winners(r:SparkdRepository){var list by remember{mutableStateOf(emptyList<Winner>())};LaunchedEffect(Unit){while(isActive){runCatching{r.winners()}.onSuccess{list=it};delay(15_000)}};LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Text("Hall of Winners",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Weekly results and payouts.",color=Color.LightGray)};items(list){w->Surface(shape=RoundedCornerShape(18.dp)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text(if(w.place==1)"🥇" else if(w.place==2)"🥈" else "🥉",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(w.title,fontWeight=FontWeight.Bold);Text(w.creator,color=Color.LightGray)};Text("CHAMPION",color=Green)}}}}}
+@Composable fun Winners(r:SparkdRepository){
+ var list by remember{mutableStateOf(emptyList<Winner>())}
+ var message by remember{mutableStateOf("Loading winners…")}
+ LaunchedEffect(Unit){while(isActive){runCatching{r.winners()}.onSuccess{list=it;message=if(it.isEmpty())"No completed contests with winners yet." else ""}.onFailure{message=it.message?:"Unable to load winners."};delay(15_000)}}
+ LazyColumn(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+  item{Text("Hall of Winners",fontSize=30.sp,fontWeight=FontWeight.Black);Text("Weekly results from completed contests.",color=Color.LightGray)}
+  if(message.isNotBlank())item{Text(message,color=Color.LightGray)}
+  items(list){w->Surface(shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
+   Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+    w.imageUrl?.let{RemoteMemeImage(it)}
+    Row(verticalAlignment=Alignment.CenterVertically){
+     Text(when(w.place){1->"🥇";2->"🥈";else->"🥉"},fontSize=32.sp)
+     Spacer(Modifier.width(12.dp))
+     Column(Modifier.weight(1f)){
+      Text(w.title,fontWeight=FontWeight.Bold)
+      Text(w.creator,color=Color.LightGray,fontSize=12.sp)
+      if(w.weekStart.isNotBlank())Text("Week of ${w.weekStart}",color=Color.LightGray,fontSize=12.sp)
+     }
+     Text(when(w.place){1->"1ST";2->"2ND";else->"3RD"},color=Green,fontWeight=FontWeight.Bold)
+    }
+   }
+  }}
+ }
+}
 
 @Composable fun Profile(wallet:WalletSession){
  val scope=rememberCoroutineScope();val uriHandler=LocalUriHandler.current;val balances=remember{SparkdBalanceRepository()};var address by remember{mutableStateOf(wallet.address)};var status by remember{mutableStateOf<String?>(null)};var balance by remember{mutableStateOf<String?>(null)};var balanceError by remember{mutableStateOf<String?>(null)}
