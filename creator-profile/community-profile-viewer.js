@@ -335,14 +335,10 @@ function waitForProfileInterface(
             creator.profile_image
         ) {
 
-            preview.innerHTML = `
-
-                <img
-                    src="${creator.profile_image}"
-                    alt="SPARKD Creator Profile"
-                >
-
-            `;
+            const image = document.createElement("img");
+            image.src = creator.profile_image;
+            image.alt = "SPARKD Creator Profile";
+            preview.replaceChildren(image);
 
         }
 
@@ -700,4 +696,3 @@ function waitForProfileInterface(
 
 
 })();
-

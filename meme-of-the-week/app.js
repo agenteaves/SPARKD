@@ -826,17 +826,10 @@ console.log(
 
                <div
     class="submission-image"
-    onclick="openSubmissionViewer(
-        '${imageUrl}',
-        '${escapeHtml(
-            submission.meme_title ||
-            "SPARKD Meme"
-        )}'
-    )"
 >
 
     <img
-        src="${imageUrl}"
+        src=""
         alt="${escapeHtml(
             submission.meme_title ||
             "SPARKD Meme"
@@ -858,11 +851,11 @@ console.log(
 
 
                     <p>
-                        👻 ${submission.wallet_address
+                        👻 ${escapeHtml(submission.wallet_address
                             ? submission.wallet_address.slice(0, 6) +
                               "..." +
                               submission.wallet_address.slice(-4)
-                            : "Unknown Wallet"}
+                            : "Unknown Wallet")}
                     </p>
 
 
@@ -879,6 +872,8 @@ const submissionImage =
 
 
 if (submissionImage) {
+
+    submissionImage.src = imageUrl;
 
     submissionImage.style.cursor =
         "pointer";
@@ -984,14 +979,15 @@ async function loadPreviousWeekResults() {
                 card.className = "submission-card";
                 card.innerHTML = `
                     <div class="submission-image">
-                        <img src="${imageUrl}" alt="${escapeHtml(submission.meme_title || "SPARKD Meme")}" loading="lazy">
+                        <img alt="${escapeHtml(submission.meme_title || "SPARKD Meme")}" loading="lazy">
                     </div>
                     <div class="submission-info">
                         <h3>${escapeHtml(submission.meme_title || "Untitled SPARKD Meme")}</h3>
-                        <p>👻 ${submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet"}</p>
+                        <p>👻 ${escapeHtml(submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet")}</p>
                     </div>`;
                 const image = card.querySelector("img");
                 if (image) {
+                    image.src = imageUrl;
                     image.style.cursor = "pointer";
                     image.addEventListener("click", () => openSubmissionViewer(imageUrl, submission.meme_title || "SPARKD Meme"));
                 }
@@ -2444,7 +2440,7 @@ function openSubmissionViewer(
                 </button>
 
                 <img
-                    src="${imageUrl}"
+                    src=""
                     alt="${escapeHtml(
                         memeTitle
                     )}"
@@ -2461,6 +2457,8 @@ function openSubmissionViewer(
         </div>
 
     `;
+
+    viewer.querySelector("img").src = imageUrl;
 
 
     document.body.appendChild(
@@ -2651,7 +2649,7 @@ async function loadCurrentWinner() {
         winnerDisplay.innerHTML = `
             <div class="winner-placeholder">
                 <img
-                    src="${imageUrl}"
+                    src=""
                     alt="${escapeHtml(
                         submission.meme_title ||
                         "SPARKD Champion"
@@ -2670,6 +2668,8 @@ async function loadCurrentWinner() {
 
 
         if (image) {
+
+            image.src = imageUrl;
 
             image.addEventListener(
                 "click",
@@ -2905,7 +2905,7 @@ async function loadHallOfFame() {
                 <div class="hall-image">
 
                     <img
-                        src="${imageUrl}"
+                        src=""
                         alt="${escapeHtml(
                             submission.meme_title ||
                             "SPARKD Champion"
@@ -2951,13 +2951,13 @@ async function loadHallOfFame() {
 
                     <div class="hall-wallet">
 
-                        👻 ${
+                        👻 ${escapeHtml(
                             submission.wallet_address
                                 ? submission.wallet_address.slice(0, 6) +
                                   "..." +
                                   submission.wallet_address.slice(-4)
                                 : "Unknown Wallet"
-                        }
+                        )}
 
                     </div>
 
@@ -2977,6 +2977,8 @@ async function loadHallOfFame() {
 
 
             if (championImage) {
+
+                championImage.src = imageUrl;
 
                 championImage.style.cursor =
                     "pointer";

@@ -124,24 +124,32 @@
     const imageUrl = normalizeImageUrl(data.submission.meme_image_url);
     const title = data.submission.meme_title || "Meme of the Week";
 
-    card.innerHTML = `
-      <div class="sparkd-winner-kicker">🏆 MEME OF THE WEEK CHAMPION 🏆</div>
+    const kicker = document.createElement("div");
+    kicker.className = "sparkd-winner-kicker";
+    kicker.textContent = "🏆 MEME OF THE WEEK CHAMPION 🏆";
 
-      ${imageUrl ? `
-        <div class="sparkd-winner-image-wrap">
-          <img
-            class="sparkd-winner-image"
-            src="${imageUrl}"
-            alt="${title.replace(/"/g, "&quot;")}"
-            loading="lazy"
-            decoding="async"
-          >
-        </div>
-      ` : ""}
+    const heading = document.createElement("div");
+    heading.className = "sparkd-winner-title";
+    heading.textContent = title;
 
-      <div class="sparkd-winner-title">${title}</div>
-      <div class="sparkd-winner-note">Verified weekly champion</div>
-    `;
+    const note = document.createElement("div");
+    note.className = "sparkd-winner-note";
+    note.textContent = "Verified weekly champion";
+
+    const content = [kicker];
+    if (imageUrl) {
+      const wrap = document.createElement("div");
+      wrap.className = "sparkd-winner-image-wrap";
+      const image = document.createElement("img");
+      image.className = "sparkd-winner-image";
+      image.src = imageUrl;
+      image.alt = title;
+      image.loading = "lazy";
+      image.decoding = "async";
+      wrap.appendChild(image);
+      content.push(wrap);
+    }
+    card.replaceChildren(...content, heading, note);
 
     card.hidden = false;
   }

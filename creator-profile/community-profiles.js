@@ -429,29 +429,11 @@
                     creator.creator_id;
 
 
-                const image =
-                    creator.profile_image
-                    ?
-
-                    `<img
-                        src="${creator.profile_image}"
-                        alt="Creator profile"
-                    >`
-
-                    :
-
-                    `<div
-                        class="communityCreatorPlaceholder"
-                    >
-                        ⚡
-                    </div>`;
-
-
                 card.innerHTML = `
 
                     <div class="communityCreatorImage">
 
-                        ${image}
+                        <div class="communityCreatorPlaceholder">⚡</div>
 
                     </div>
 
@@ -459,15 +441,12 @@
                     <div class="communityCreatorInfo">
 
                         <strong>
-                            ${creator.display_name || "SPARKD Creator"}
                         </strong>
 
                         <span>
-                            @${creator.username || "creator"}
                         </span>
 
                         <small>
-                            ${creator.creator_rank || "Meme Rookie"}
                         </small>
 
                     </div>
@@ -480,6 +459,20 @@
                     </div>
 
                 `;
+
+                const imageContainer = card.querySelector(".communityCreatorImage");
+                if (creator.profile_image) {
+                    const image = document.createElement("img");
+                    image.src = creator.profile_image;
+                    image.alt = "Creator profile";
+                    imageContainer.replaceChildren(image);
+                }
+                card.querySelector(".communityCreatorInfo strong").textContent =
+                    creator.display_name || "SPARKD Creator";
+                card.querySelector(".communityCreatorInfo span").textContent =
+                    `@${creator.username || "creator"}`;
+                card.querySelector(".communityCreatorInfo small").textContent =
+                    creator.creator_rank || "Meme Rookie";
 
 
                 card.addEventListener(
@@ -619,4 +612,3 @@ function viewCreatorProfile(
 
 
 })();
-
