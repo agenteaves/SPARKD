@@ -1201,14 +1201,10 @@ async function loadProfile() {
 
         if (profile.profileImage) {
 
-            preview.innerHTML = `
-
-                <img
-                    src="${profile.profileImage}"
-                    alt="SPARKD Creator Profile"
-                >
-
-            `;
+            const image = document.createElement("img");
+            image.src = profile.profileImage;
+            image.alt = "SPARKD Creator Profile";
+            preview.replaceChildren(image);
 
         }
         else {
@@ -2015,4 +2011,3 @@ window.SPARKD_CREATOR_PROFILE = {
 
 
 })();
-
