@@ -6,4 +6,10 @@ This is a SwiftUI iPhone application, separate from the Android APK and website.
 
 To generate the Xcode project on macOS, install Xcode and XcodeGen, run `xcodegen generate` inside this directory, then open `SPARKDNative.xcodeproj`. Set a valid signing team and bundle identifier. Building and distribution require macOS/Xcode and Apple signing. This repository does not include a signed IPA or an App Store/TestFlight listing.
 
+## iPad device preview
+
+The `iphone-app` branch builds an unsigned **device** IPA on GitHub Actions alongside the simulator app. Open the latest successful [Build native iPhone and iPad app](https://github.com/agenteaves/SPARKD/actions/workflows/ios-native-build.yml) run and download the `SPARKD-iPad-Preview-unsigned` artifact. Unzip that artifact to obtain the `.ipa`. This IPA is for Apple ID signing through AltStore Classic; tapping it in Safari alone will not install it. No Apple ID credentials or recovery phrases belong in this repository or in a message to the developer.
+
+On a Windows PC, follow [AltStore's Windows setup](https://faq.altstore.io/altstore-classic/how-to-install-altstore-windows), connect and trust the iPad, install AltStore Classic, and enable Developer Mode on the iPad. Transfer the `.ipa` to Files on the iPad and import it in AltStore's My Apps tab while AltServer is running. A free Apple ID installation expires after seven days unless refreshed. This preview tests the editor, PNG export, and sharing; it does not connect a wallet or enter a contest.
+
 Do not link this unfinished build from the public homepage. Android remains untouched.
