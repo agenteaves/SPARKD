@@ -1,0 +1,21 @@
+{
+  "name": "SPARKD: Ready for Takeoff",
+  "network": "solana-mainnet",
+  "standard": "Metaplex Core",
+  "assetAddress": "8YKaY1srJoxvCnfrQ34Cp9LkTTRJiZC12tB4KqPGxH4F",
+  "collectionAddress": "4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4",
+  "collectionName": "SPARKD Creative Art",
+  "metadataUri": "https://sparkdcoin.com/nft/metadata/ready-for-takeoff.json",
+  "ownerAtVerification": "2dFYXBWy1s5kq3gZpZ9m3aQ4VkUDwVbUSnVes5rUXSe6",
+  "transactionSignature": "5j2ZqCvTbtyvrMotcvqkVVrb9hFpBZpGemANaF4vru3oNevyauhVwMiqEMcjG979uSqqkDXgiyxMqShxLNvxm2Wb",
+  "transactionSlot": 452439760,
+  "confirmationStatus": "finalized",
+  "transactionError": null,
+  "mintedAt": "2026-10-01T23:48:48.000Z",
+  "verifiedAt": "2026-10-01T23:51:35.898Z",
+  "accountVerificationSlot": 452440082,
+  "collectionSizeAtVerification": 3,
+  "verifiedVia": "Solana mainnet RPC, finalized accounts decoded using Metaplex Core SDK",
+  "assetExplorer": "https://core.metaplex.com/explorer/8YKaY1srJoxvCnfrQ34Cp9LkTTRJiZC12tB4KqPGxH4F?env=mainnet",
+  "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet"
+}
