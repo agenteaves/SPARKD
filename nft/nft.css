@@ -7,3 +7,6 @@
 /* Approved first artwork is displayed uncropped in its square collectible frame. */
 .minted-hero{height:auto;aspect-ratio:1}.minted-hero:before{display:none}.minted-hero img{width:100%;height:100%;max-width:100%;padding:0;object-fit:cover}.minted-hero .art-label{padding:7px 10px;background:#071109bd;border-radius:4px}.minted-card{border-color:#789b42}.minted-card .card-art img{width:100%;height:100%;object-fit:cover}.minted-card .card-info>.primary{margin-top:10px;width:100%}.collection-links{margin-top:20px}#preview-note{overflow-wrap:anywhere}#preview-art.hero:has(+div #preview-stage){border-radius:6px}
 .minted-card .card-art{position:relative}.minted-card .card-art img{position:absolute;inset:0}
+
+/* Preserve the full portrait janitor artwork within the square gallery frame. */
+.minted-card .card-art.origin img{object-fit:contain}

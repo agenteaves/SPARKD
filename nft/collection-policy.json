@@ -13,8 +13,9 @@
     },
     {
       "id": "secret-identity",
-      "status": "approved-awaiting-mint",
-      "metadataUri": "https://www.sparkdcoin.com/nft/metadata/secret-identity.json"
+      "status": "minted",
+      "metadataUri": "https://www.sparkdcoin.com/nft/metadata/secret-identity.json",
+      "assetAddress": "2LhUSq81EFD4cq8Ed8EnqbaKg1futsr3mW1WwmfohyDG"
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 Standalone static page at `/nft/`. Homepage placement remains undecided; no homepage navigation was changed.
 
-The First Spark is a verified Metaplex Core NFT on Solana mainnet inside SPARKD Creative Art. The other two catalog entries are reference artwork concepts, not minted NFTs. There is no public mint, wallet connection, sale price or marketplace listing configured on this page.
+The First Spark is a verified Metaplex Core NFT on Solana mainnet inside SPARKD Creative Art. The Secret Identity is the second verified mainnet NFT in the same collection. The Community Spark remains a reference concept. There is no public mint, wallet connection, sale price or marketplace listing configured on this page.
 
 - Asset: `6WGq2FpB9DCW62by7VGbfSsRyYB6Zg6GixbnfT862zYj`
 - Collection: `4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4`
@@ -15,3 +15,9 @@ For subsequent approved artwork, add an asset and metadata, then record the conf
 To link this page later, add `<a href="/nft/">SPARKD NFTs</a>` at the selected homepage location.
 
 Validation: JavaScript syntax, browser filters and previews, explorer links, loaded images, desktop/mobile/tablet widths, and visual screenshots checked.
+
+## Second mint
+- Secret Identity asset: `2LhUSq81EFD4cq8Ed8EnqbaKg1futsr3mW1WwmfohyDG`
+- Verification snapshot: `mints/secret-identity.json`.
+- Collection contains two assets as of this verification.
+- Issuance policy: one NFT per approved artwork; no additional editions.
