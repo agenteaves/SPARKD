@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore the first collection concepts for SPARKD community NFTs.">
+  <title>SPARKD | Community NFTs</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="nft.css">
+  <script src="collection.js" defer></script>
+  <script src="nft.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#collection">Skip to collection</a>
+  <header class="site-header wrap">
+    <a class="brand" href="../"><img src="../images/logo.png" alt="">SPARKD<span>NFT COLLECTION</span></a>
+    <a class="button quiet" href="../">Back to SPARKD ↗</a>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="dot"></span> THE NEXT SPARK OF CREATIVITY</p>
+        <h1 id="hero-title">Heroes. Stories.<br><em>SPARKD.</em></h1>
+        <p class="intro">A new home for digital collectibles inspired by SPARKD Man and the community that keeps his spark alive.</p>
+        <div class="actions"><a class="button primary" href="#collection">Explore the collection ↓</a><a class="button" href="#about">About the NFTs</a></div>
+        <p class="stage-note">COLLECTION IN DEVELOPMENT · ARTWORK CONCEPTS</p>
+      </div>
+      <div class="hero-art">
+        <span class="art-label">THE HERO BEHIND THE SPARK</span>
+        <img src="../sparkd-man-ai/sparkd-removebg-preview.png" alt="SPARKD Man in his green, black and gold superhero suit">
+        <div class="art-caption"><span>SPARKD MAN</span><span>COMMUNITY COLLECTION / 01</span></div>
+      </div>
+    </section>
+    <section id="collection" class="collection" aria-labelledby="collection-title">
+      <div class="section-heading"><div><p class="eyebrow">THE COLLECTION STARTS HERE</p><h2 id="collection-title">First sparks</h2></div><p>Three ideas. One SPARKD universe.</p></div>
+      <div class="filters" role="group" aria-label="Filter collection concepts">
+        <button type="button" class="filter active" data-filter="all" aria-pressed="true">All concepts</button>
+        <button type="button" class="filter" data-filter="heroes" aria-pressed="false">Heroes</button>
+        <button type="button" class="filter" data-filter="origins" aria-pressed="false">Origins</button>
+        <button type="button" class="filter" data-filter="community" aria-pressed="false">Community</button>
+      </div>
+      <p id="collection-status" class="sr-only" aria-live="polite"></p>
+      <div id="collection-grid" class="grid"></div>
+      <noscript><p>Enable JavaScript to browse the artwork concepts and their details.</p></noscript>
+      <div class="launch-note"><span class="dot"></span><p><strong>We're building the first collection.</strong> These are previews of collection ideas. Minting is not open; supply, pricing and release dates have not been announced.</p></div>
+    </section>
+    <section id="about" class="about" aria-labelledby="about-title">
+      <div><p class="eyebrow">BUILT AROUND OUR COMMUNITY</p><h2 id="about-title">Every spark<br>has a story.</h2></div>
+      <div class="about-copy"><p>From an ordinary janitor to a green-caped hero, SPARKD Man gives us a world of stories to turn into collectible artwork. This page is where that collection begins.</p><p>We'll develop original art, review it with the community, and share the collection details here before any NFTs become available.</p><a class="button" href="https://x.com/deedsparks" target="_blank" rel="noopener noreferrer">Follow SPARKD on X ↗</a></div>
+    </section>
+    <section class="faq" aria-labelledby="faq-title"><h2 id="faq-title">Good to know</h2>
+      <details><summary>Can I mint or buy one yet?</summary><p>No. The collection is in development. A verified mint or marketplace link will be added once the collection is ready.</p></details>
+      <details><summary>Are these final NFT images?</summary><p>No. Existing SPARKD artwork introduces the collection concepts. Each final collectible will get its own approved artwork and metadata.</p></details>
+      <details><summary>Do I need to connect my wallet?</summary><p>No wallet connection is needed to browse this page.</p></details>
+    </section>
+  </main>
+  <footer class="wrap"><span>© 2026 SPARKD</span><span>IGNITE THE FUTURE.</span><a href="../">sparkdcoin.com ↗</a></footer>
+  <dialog id="preview-dialog" aria-labelledby="preview-title">
+    <div class="dialog-top"><span class="eyebrow">COLLECTION CONCEPT</span><button type="button" id="close-preview" class="button quiet" aria-label="Close artwork preview">Close ×</button></div>
+    <div class="dialog-content"><div id="preview-art" class="card-art"><img id="preview-image" alt=""></div><div><p id="preview-category" class="eyebrow"></p><h2 id="preview-title"></h2><p id="preview-description"></p><p class="stage-note">CONCEPT PREVIEW · NOT MINTED</p><p>Final artwork, edition size and mint details will be announced when ready.</p></div></div>
+  </dialog>
+</body>
+</html>
