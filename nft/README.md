@@ -1,18 +1,17 @@
 # SPARKD NFT collection page
 
-Standalone static page at `/nft/`. The main site's navigation is intentionally untouched so placement can be chosen later.
+Standalone static page at `/nft/`. Homepage placement remains undecided; no homepage navigation was changed.
 
-## Files
-- `index.html`: page, collection filters, FAQ and accessible preview dialog.
-- `nft.css`: responsive green-and-gold design, scoped to this page.
-- `collection.js`: editable concept catalog.
-- `nft.js`: collection rendering, filtering and preview interactions.
+The First Spark is a verified Metaplex Core NFT on Solana mainnet inside SPARKD Creative Art. The other two catalog entries are reference artwork concepts, not minted NFTs. There is no public mint, wallet connection, sale price or marketplace listing configured on this page.
 
-The three initial entries are collection concepts using existing repository artwork as references. They are not minted NFTs or final NFT assets. No wallet calls, transactions, prices, supply counts, royalties or marketplace links are configured.
+- Asset: `6WGq2FpB9DCW62by7VGbfSsRyYB6Zg6GixbnfT862zYj`
+- Collection: `4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4`
+- Verification snapshot: `mints/first-spark.json`; owner and collection counts were checked at that time and are not live ownership data.
 
-## Add approved artwork
-Place final images in `nft/assets/`, then update the matching catalog image path, alt text and description. Keep each concept's `id` unique. Categories currently supported by the buttons: `heroes`, `origins`, `community`.
+`collection.js` holds catalog entries; `nft.js` renders filters and the accessible preview dialog. `assets/first-spark.png` is the full-resolution approved original. The deployed JSON and artwork URLs are referenced by the on-chain asset and collection: preserve those files. They are website-hosted, not permanent decentralized storage.
 
-Before enabling minting, decide the chain, collection name, supply, price, royalty policy and mint provider. Save final asset metadata and use verified collection/mint addresses. Update the development messaging only after those details are confirmed.
+For subsequent approved artwork, add an asset and metadata, then record the confirmed mint address before marking its catalog entry minted. A new mint in the same collection should use the existing collection address rather than creating another collection.
 
-To link this page later, add an anchor such as `<a href="/nft/">SPARKD NFTs</a>` to the chosen location on the main site.
+To link this page later, add `<a href="/nft/">SPARKD NFTs</a>` at the selected homepage location.
+
+Validation: JavaScript syntax, browser filters and previews, explorer links, loaded images, desktop/mobile/tablet widths, and visual screenshots checked.

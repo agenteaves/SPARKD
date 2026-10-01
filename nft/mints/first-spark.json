@@ -1,0 +1,20 @@
+{
+  "name": "SPARKD: The First Spark",
+  "network": "solana-mainnet",
+  "standard": "Metaplex Core",
+  "assetAddress": "6WGq2FpB9DCW62by7VGbfSsRyYB6Zg6GixbnfT862zYj",
+  "collectionAddress": "4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4",
+  "collectionName": "SPARKD Creative Art",
+  "metadataUri": "https://www.sparkdcoin.com/nft/metadata/first-spark.json",
+  "ownerAtVerification": "2dFYXBWy1s5kq3gZpZ9m3aQ4VkUDwVbUSnVes5rUXSe6",
+  "transactionSignature": "466dKcZ3mAKdW4kx7AeoBXa9U4fzX3XNjHSbJLnqCUmdDtG3oLvJQUqELUzkULLzwESpYobUKfsaji1RRbgNuBUz",
+  "transactionSlot": 452419271,
+  "confirmationStatus": "finalized",
+  "transactionError": null,
+  "mintedAt": "2026-10-01T22:17:15.000Z",
+  "verifiedAt": "2026-10-01T22:25:35.962Z",
+  "verifiedVia": "Solana mainnet RPC, finalized accounts decoded using Metaplex Core SDK",
+  "assetExplorer": "https://core.metaplex.com/explorer/6WGq2FpB9DCW62by7VGbfSsRyYB6Zg6GixbnfT862zYj?env=mainnet",
+  "collectionExplorer": "https://core.metaplex.com/explorer/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
+  "transactionExplorer": "https://solscan.io/tx/466dKcZ3mAKdW4kx7AeoBXa9U4fzX3XNjHSbJLnqCUmdDtG3oLvJQUqELUzkULLzwESpYobUKfsaji1RRbgNuBUz"
+}
