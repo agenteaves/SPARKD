@@ -1,8 +1,8 @@
 {
   "name": "SPARKD: The First Spark",
   "description": "SPARKD Man powers up above a nighttime city, surrounded by emerald energy and golden sparks. The first artwork in the SPARKD Creative Art collection. Created with AI assistance and selected by the SPARKD community developer.",
-  "image": "https://www.sparkdcoin.com/nft/assets/first-spark.png",
-  "external_url": "https://www.sparkdcoin.com/nft/",
+  "image": "https://sparkdcoin.com/nft/assets/first-spark.png",
+  "external_url": "https://sparkdcoin.com/nft/",
   "attributes": [
     {
       "trait_type": "Character",
@@ -24,7 +24,7 @@
   "properties": {
     "files": [
       {
-        "uri": "https://www.sparkdcoin.com/nft/assets/first-spark.png",
+        "uri": "https://sparkdcoin.com/nft/assets/first-spark.png",
         "type": "image/png"
       }
     ],

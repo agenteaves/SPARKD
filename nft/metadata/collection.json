@@ -1,12 +1,12 @@
 {
   "name": "SPARKD Creative Art",
   "description": "Original AI-assisted digital artwork inspired by SPARKD Man and the SPARKD community.",
-  "image": "https://www.sparkdcoin.com/images/logo.png",
-  "external_url": "https://www.sparkdcoin.com/nft/",
+  "image": "https://sparkdcoin.com/images/logo.png",
+  "external_url": "https://sparkdcoin.com/nft/",
   "properties": {
     "files": [
       {
-        "uri": "https://www.sparkdcoin.com/images/logo.png",
+        "uri": "https://sparkdcoin.com/images/logo.png",
         "type": "image/png"
       }
     ],
