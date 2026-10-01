@@ -10,3 +10,5 @@
 
 /* Preserve the full portrait janitor artwork within the square gallery frame. */
 .minted-card .card-art.origin img{object-fit:contain}
+
+.card-art.aviation{position:relative;background:#111811}.card-art.aviation img{position:absolute;inset:0;width:100%;height:100%;max-width:100%;object-fit:contain}
