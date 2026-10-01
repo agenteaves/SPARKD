@@ -14,9 +14,10 @@ function openPreview(concept, button) {
   image.src = concept.image;
   image.alt = concept.alt;
   const minted = concept.status === 'minted';
-  document.querySelector('#preview-kind').textContent = minted ? 'MINTED NFT' : 'COLLECTION CONCEPT';
-  document.querySelector('#preview-stage').textContent = minted ? 'MINTED ON SOLANA MAINNET' : 'CONCEPT PREVIEW · NOT MINTED';
-  document.querySelector('#preview-note').textContent = minted ? 'Verified asset: ' + concept.assetAddress : 'Final artwork, edition size and mint details will be announced when ready.';
+  const approved = concept.status === 'approved';
+  document.querySelector('#preview-kind').textContent = minted ? 'MINTED NFT' : approved ? 'APPROVED ARTWORK' : 'COLLECTION CONCEPT';
+  document.querySelector('#preview-stage').textContent = minted ? 'MINTED ON SOLANA MAINNET' : approved ? '1-OF-1 ARTWORK · AWAITING MINT' : 'CONCEPT PREVIEW · NOT MINTED';
+  document.querySelector('#preview-note').textContent = minted ? 'Verified asset: ' + concept.assetAddress : approved ? 'One NFT is planned for this artwork in SPARKD Creative Art. Minting has not been completed.' : 'Final artwork and mint details will be announced when ready.';
   const links = document.querySelector('#preview-links');
   links.replaceChildren();
   if (minted) {
@@ -41,6 +42,7 @@ function renderCollection(filter = 'all') {
   for (const concept of visible) {
     const card = document.createElement('article');
     const minted = concept.status === 'minted';
+    const approved = concept.status === 'approved';
     card.className = 'nft-card' + (minted ? ' minted-card' : '');
     const art = document.createElement('div');
     art.className = 'card-art ' + concept.style;
@@ -53,17 +55,17 @@ function renderCollection(filter = 'all') {
     info.className = 'card-info';
     const label = document.createElement('p');
     label.className = 'eyebrow';
-    label.textContent = concept.label + (minted ? ' / MINTED NFT' : ' / CONCEPT');
+    label.textContent = concept.label + (minted ? ' / MINTED NFT' : approved ? ' / APPROVED ARTWORK' : ' / CONCEPT');
     const title = document.createElement('h3');
     title.textContent = concept.title;
     const note = document.createElement('p');
     note.className = 'card-note';
-    note.textContent = minted ? 'Solana mainnet · SPARKD Creative Art' : 'Reference artwork · In development';
+    note.textContent = minted ? 'Solana mainnet · SPARKD Creative Art' : approved ? '1-of-1 planned · Awaiting mint' : 'Reference artwork · In development';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'button preview-button';
-    button.textContent = minted ? 'Preview artwork ↗' : 'View concept ↗';
-    button.setAttribute('aria-label', (minted ? 'Preview artwork: ' : 'View concept: ') + concept.title);
+    button.textContent = (minted || approved) ? 'Preview artwork ↗' : 'View concept ↗';
+    button.setAttribute('aria-label', ((minted || approved) ? 'Preview artwork: ' : 'View concept: ') + concept.title);
     button.addEventListener('click', () => openPreview(concept, button));
     info.append(label, title, note, button);
     if (minted) info.append(explorerLink(concept.explorer, 'View minted NFT ↗'));

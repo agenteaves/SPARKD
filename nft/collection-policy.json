@@ -1,0 +1,20 @@
+{
+  "collectionName": "SPARKD Creative Art",
+  "collectionAddress": "4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4",
+  "network": "solana-mainnet",
+  "issuancePolicy": "One NFT per approved artwork; no additional editions of that artwork.",
+  "initialReleaseTarget": 5,
+  "technicalNote": "This is the creator's issuance policy, not a blockchain-enforced prohibition on reusing images.",
+  "artworks": [
+    {
+      "id": "first-spark",
+      "status": "minted",
+      "assetAddress": "6WGq2FpB9DCW62by7VGbfSsRyYB6Zg6GixbnfT862zYj"
+    },
+    {
+      "id": "secret-identity",
+      "status": "approved-awaiting-mint",
+      "metadataUri": "https://www.sparkdcoin.com/nft/metadata/secret-identity.json"
+    }
+  ]
+}
