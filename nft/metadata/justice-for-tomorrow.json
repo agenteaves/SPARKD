@@ -1,0 +1,37 @@
+{
+  "name": "SPARKD: Justice for Tomorrow",
+  "description": "SPARKD Man escorts a handcuffed fictional rug puller toward a jail outside a justice building, surrounded by community members and police. The scene’s messages call for accountability, cleaner communities, and brighter tomorrows. The fifth approved artwork in SPARKD Creative Art. Created with AI assistance. Issuance policy: one NFT for this artwork, with no additional editions.",
+  "image": "https://sparkdcoin.com/nft/assets/justice-for-tomorrow.jpg",
+  "external_url": "https://sparkdcoin.com/nft/",
+  "attributes": [
+    {
+      "trait_type": "Character",
+      "value": "SPARKD Man"
+    },
+    {
+      "trait_type": "Scene",
+      "value": "Rug Puller Arrest"
+    },
+    {
+      "trait_type": "Theme",
+      "value": "Accountability"
+    },
+    {
+      "trait_type": "Edition",
+      "value": "1 of 1"
+    },
+    {
+      "trait_type": "Medium",
+      "value": "AI-assisted digital illustration"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://sparkdcoin.com/nft/assets/justice-for-tomorrow.jpg",
+        "type": "image/jpeg"
+      }
+    ],
+    "category": "image"
+  }
+}
