@@ -12,3 +12,5 @@
 .minted-card .card-art.origin img{object-fit:contain}
 
 .card-art.aviation{position:relative;background:#111811}.card-art.aviation img{position:absolute;inset:0;width:100%;height:100%;max-width:100%;object-fit:contain}
+
+.card-art.rescue{position:relative;background:#111811}.card-art.rescue img{position:absolute;inset:0;width:100%;height:100%;max-width:100%;object-fit:contain}
