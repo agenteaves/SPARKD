@@ -40,6 +40,41 @@ class WalletSession(private val sender: ActivityResultSender) {
         walletAdapter.authToken = null
     }
 
+    suspend fun signMessage(message: ByteArray): ByteArray {
+        val expectedAddress = address ?: error("Connect your wallet before confirming optional contest contact.")
+
+        // Request a free off-chain message signature without a token transfer.
+        walletAdapter.authToken = null
+        return when (val result = walletAdapter.transact(sender) { authResult ->
+            val account = authResult.accounts.firstOrNull()
+                ?: error("Wallet did not provide an account.")
+            check(Base58.encode(account.publicKey) == expectedAddress) {
+                "The active wallet changed. Reconnect before signing."
+            }
+            val signed = signMessagesDetached(arrayOf(message), arrayOf(account.publicKey))
+                .messages.singleOrNull()
+                ?.signatures
+                ?.singleOrNull()
+                ?: error("Wallet did not return a contact confirmation signature.")
+            check(signed.size == 64) { "Wallet returned an invalid contact confirmation signature." }
+            Pair(authResult.authToken, signed)
+        }) {
+            is TransactionResult.Success -> {
+                val payload = result.payload
+                    ?: error("Wallet returned without a contact confirmation signature.")
+                walletAdapter.authToken = payload.first
+                payload.second
+            }
+            is TransactionResult.NoWalletFound ->
+                error("No compatible Solana wallet was found.")
+            is TransactionResult.Failure ->
+                throw IllegalStateException(
+                    "Wallet signature was cancelled. Your contest entry remains submitted.",
+                    result.e
+                )
+        }
+    }
+
     suspend fun signTransaction(unsignedTransaction: ByteArray): ByteArray {
         val expectedAddress = address ?: error("Connect your wallet before signing.")
 
