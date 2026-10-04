@@ -1,381 +1,117 @@
--- Meme eligibility relies on a verified burn and moderation status, without PNG metadata.
-CREATE OR REPLACE FUNCTION public.run_meme_week_lifecycle()
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-declare
-  contest_row public.meme_week_contests%rowtype;
-  upcoming_row public.meme_week_contests%rowtype;
-  latest_row public.meme_week_contests%rowtype;
-  first_row record;
-  second_row record;
-  third_row record;
-  next_week_start timestamptz;
-  next_week_end timestamptz;
-  next_status text;
-  actions jsonb := '[]'::jsonb;
-  v_ids uuid[] := '{}'::uuid[];
-  v_finalists uuid[] := '{}'::uuid[];
-  v_placements uuid[] := '{}'::uuid[];
-  v_eligible_count integer := 0;
-  v_seed uuid;
-  v_commitment text;
-  v_i integer;
-  v_j integer;
-  v_tmp uuid;
-  v_random bigint;
-begin
-  perform pg_advisory_xact_lock(hashtext('sparkd_meme_week_lifecycle'));
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
-  select * into upcoming_row
-  from public.meme_week_contests
-  where status='upcoming' and now()>=week_start and now()<week_end
-  order by week_start desc limit 1 for update;
-  if found then
-    update public.meme_week_contests set status='submission',updated_at=now() where id=upcoming_row.id;
-    actions:=actions||jsonb_build_array(jsonb_build_object('action','opened_submissions','contest_id',upcoming_row.id));
-  end if;
+const ALLOWED_ORIGINS = new Set(["https://sparkdcoin.com", "https://www.sparkdcoin.com"]);
+const buckets = new Map<string, { count: number; resetAt: number }>();
 
-  select * into contest_row
-  from public.meme_week_contests
-  where status in ('submission','voting')
-  order by week_start desc limit 1 for update;
+function clientIp(req: Request) { return req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"; }
+function allowedOrigin(req: Request) { const origin = req.headers.get("origin"); return !origin || ALLOWED_ORIGINS.has(origin); }
+function corsHeaders(req: Request) {
+  const origin = req.headers.get("origin");
+  return {
+    ...(origin && ALLOWED_ORIGINS.has(origin) ? { "Access-Control-Allow-Origin": origin, "Vary": "Origin" } : {}),
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json"
+  };
+}
+function rateLimit(key: string, limit: number, windowMs: number) {
+  const now = Date.now(); const current = buckets.get(key);
+  if (!current || now >= current.resetAt) { buckets.set(key, { count: 1, resetAt: now + windowMs }); return { ok: true, retryAfter: 0 }; }
+  current.count += 1;
+  return current.count > limit ? { ok: false, retryAfter: Math.max(1, Math.ceil((current.resetAt - now) / 1000)) } : { ok: true, retryAfter: 0 };
+}
+function json(req: Request, body: unknown, status = 200, extra: Record<string,string> = {}) { return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders(req), ...extra } }); }
 
-  if not found then
-    select * into latest_row from public.meme_week_contests where status<>'cancelled' order by week_start desc limit 1;
-    if latest_row.id is null then
-      return jsonb_build_object('success',true,'actions',actions,'message','No contest history exists; manual bootstrap required.');
-    end if;
-    next_week_start:=latest_row.week_start+interval '7 days';
-    next_week_end:=latest_row.week_end+interval '7 days';
-    if now()>=next_week_end then next_status:='completed';
-    elsif now()>=next_week_start then next_status:='submission'; else next_status:='upcoming'; end if;
-    insert into public.meme_week_contests(week_start,week_end,status,prize_sol)
-    select next_week_start,next_week_end,next_status,0
-    where not exists(select 1 from public.meme_week_contests c where c.week_start=next_week_start);
-    select * into contest_row from public.meme_week_contests where status='submission' order by week_start desc limit 1 for update;
-    if not found then return jsonb_build_object('success',true,'actions',actions,'message','No active contest; next contest is prepared.'); end if;
-  end if;
+Deno.serve(async (req: Request) => {
+  if (!allowedOrigin(req)) return json(req, { success: false, healthy: false, error: "Origin not allowed" }, 403);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method !== "POST") return json(req, { success: false, error: "Method not allowed" }, 405);
 
-  -- Submission contests now finalize directly through the equal-chance random draw below.
+  const limit = rateLimit(`winner-health:${clientIp(req)}`, 60, 60_000);
+  if (!limit.ok) return json(req, { success: false, healthy: false, error: "Too many requests. Please try again shortly." }, 429, { "Retry-After": String(limit.retryAfter) });
 
-  -- Preserve the already-running contest under its existing 24-hour voting rules.
-  if contest_row.status='voting' and now()>=contest_row.week_end+interval '24 hours' then
-    with submission_scores as (
-      select s.id,s.creator_id,s.wallet_address,s.submitted_at,
-             public.resolve_meme_week_participant_key(s.creator_id,s.wallet_address) participant_key,
-             count(v.id)::integer vote_count
-      from public.meme_week_submissions s
-      left join public.meme_week_votes v on v.submission_id=s.id and v.contest_id=s.contest_id
-      where s.contest_id=contest_row.id and s.burn_verified=true and s.status<>'rejected'
-      group by s.id,s.creator_id,s.wallet_address,s.submitted_at
-    ), best_per_participant as (
-      select *,row_number() over(partition by participant_key order by vote_count desc,submitted_at asc,id asc) participant_submission_rank
-      from submission_scores
-    ), podium as (
-      select *,row_number() over(order by vote_count desc,submitted_at asc,id asc) podium_rank
-      from best_per_participant where participant_submission_rank=1
-    ) select * into first_row from podium where podium_rank=1;
-    with submission_scores as (
-      select s.id,s.creator_id,s.wallet_address,s.submitted_at,public.resolve_meme_week_participant_key(s.creator_id,s.wallet_address) participant_key,count(v.id)::integer vote_count
-      from public.meme_week_submissions s left join public.meme_week_votes v on v.submission_id=s.id and v.contest_id=s.contest_id
-      where s.contest_id=contest_row.id and s.burn_verified=true and s.status<>'rejected'
-      group by s.id,s.creator_id,s.wallet_address,s.submitted_at
-    ), best_per_participant as (
-      select *,row_number() over(partition by participant_key order by vote_count desc,submitted_at asc,id asc) participant_submission_rank from submission_scores
-    ), podium as (
-      select *,row_number() over(order by vote_count desc,submitted_at asc,id asc) podium_rank from best_per_participant where participant_submission_rank=1
-    ) select * into second_row from podium where podium_rank=2;
-    with submission_scores as (
-      select s.id,s.creator_id,s.wallet_address,s.submitted_at,public.resolve_meme_week_participant_key(s.creator_id,s.wallet_address) participant_key,count(v.id)::integer vote_count
-      from public.meme_week_submissions s left join public.meme_week_votes v on v.submission_id=s.id and v.contest_id=s.contest_id
-      where s.contest_id=contest_row.id and s.burn_verified=true and s.status<>'rejected'
-      group by s.id,s.creator_id,s.wallet_address,s.submitted_at
-    ), best_per_participant as (
-      select *,row_number() over(partition by participant_key order by vote_count desc,submitted_at asc,id asc) participant_submission_rank from submission_scores
-    ), podium as (
-      select *,row_number() over(order by vote_count desc,submitted_at asc,id asc) podium_rank from best_per_participant where participant_submission_rank=1
-    ) select * into third_row from podium where podium_rank=3;
+  try {
+    const payload = await req.json().catch(() => ({}));
+    if (payload?.action !== "check_latest_completed") return json(req, { success: false, error: "Unsupported action" }, 400);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL"); const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) return json(req, { success: false, error: "Server configuration unavailable" }, 500);
+    const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    if first_row.id is not null and first_row.vote_count>0 then
-      insert into public.meme_week_winners(contest_id,submission_id,creator_id,wallet_address,vote_count,prize_sol,won_at,second_submission_id,second_wallet_address,second_vote_count,third_submission_id,third_wallet_address,third_vote_count,selection_method)
-      values(contest_row.id,first_row.id,first_row.creator_id,first_row.wallet_address,first_row.vote_count,0,now(),second_row.id,second_row.wallet_address,second_row.vote_count,third_row.id,third_row.wallet_address,third_row.vote_count,'legacy_vote_rank')
-      on conflict(contest_id) do nothing;
-      update public.meme_week_submissions set status=case when id=first_row.id then 'winner' else status end,updated_at=now() where contest_id=contest_row.id;
-      update public.meme_week_contests set winner_submission_id=first_row.id,status='completed',updated_at=now() where id=contest_row.id;
-    else
-      update public.meme_week_contests set status='completed',winner_submission_id=null,updated_at=now() where id=contest_row.id;
-    end if;
-  end if;
+    const { data: contests, error: contestError } = await db.from("meme_week_contests").select("id,week_start,week_end,status,winner_submission_id").eq("status", "completed").order("week_start", { ascending: false }).limit(1);
+    if (contestError) throw contestError;
+    const contest = contests?.[0] ?? null;
+    if (!contest) return json(req, { success: true, healthy: true, state: "no_completed_contest", checks: [] });
 
-  -- New contests: at the submission deadline every content-approved entry receives one equal draw chance.
-  if contest_row.status='submission' and now()>=contest_row.week_end then null; end if;
+    const { data: voteRows, error: voteError } = await db.from("meme_week_votes").select("submission_id").eq("contest_id", contest.id);
+    if (voteError) throw voteError;
+    const counts = new Map<string, number>();
+    for (const row of voteRows ?? []) counts.set(row.submission_id, (counts.get(row.submission_id) ?? 0) + 1);
+    const highestVoteCount = Math.max(0, ...counts.values());
 
-  -- If this is a newly created contest under the random-draw protocol, it is finalized directly at week_end.
-  if contest_row.status='submission' and now()>=contest_row.week_end then
-    null;
-  end if;
+    if (!contest.winner_submission_id) {
+      const healthy = highestVoteCount === 0;
+      return json(req, { success: true, healthy, state: "completed_without_winner", contest: { id: contest.id, week_start: contest.week_start, week_end: contest.week_end }, totals: { total_votes: voteRows?.length ?? 0, highest_vote_count: highestVoteCount }, checks: [{ name: "no_winner_only_when_no_votes", pass: healthy }] });
+    }
 
-  next_week_start:=contest_row.week_start+interval '7 days';
-  next_week_end:=contest_row.week_end+interval '7 days';
-  if not exists(select 1 from public.meme_week_contests c where c.week_start=next_week_start) then
-    insert into public.meme_week_contests(week_start,week_end,status,prize_sol)
-    values(next_week_start,next_week_end,case when now()>=next_week_start and now()<next_week_end then 'submission' else 'upcoming' end,0);
-  end if;
+    const { data: winnerRows, error: winnerError } = await db.from("meme_week_winners").select("id,contest_id,submission_id,wallet_address,vote_count,won_at,second_submission_id,second_wallet_address,second_vote_count,third_submission_id,third_wallet_address,third_vote_count,selection_method,eligible_entry_count,draw_seed,entrant_commitment,draw_algorithm").eq("contest_id", contest.id).eq("submission_id", contest.winner_submission_id).limit(1);
+    if (winnerError) throw winnerError;
+    const winner = winnerRows?.[0] ?? null;
 
-  -- Random draw any due submission contest other than the legacy contest already transitioned to voting.
-  for contest_row in
-    select * from public.meme_week_contests c
-    where c.status='submission' and now()>=c.week_end
-    order by c.week_end asc for update
-  loop
-    if exists(select 1 from public.meme_week_winners w where w.contest_id=contest_row.id) then
-      update public.meme_week_contests set status='completed',updated_at=now() where id=contest_row.id;
-      continue;
-    end if;
+    const isRandomDraw = winner?.selection_method === "random_equal_chance";
+    let drawAudit: any = null;
+    if (isRandomDraw) {
+      const { data, error } = await db.from("meme_week_draw_audits").select("eligible_count,entrant_commitment,random_seed,placement_submission_ids,algorithm").eq("contest_id", contest.id).maybeSingle();
+      if (error) throw error;
+      drawAudit = data;
+    }
 
-    select coalesce(array_agg(s.id order by s.id),'{}'::uuid[]),count(*)::integer
-      into v_ids,v_eligible_count
-    from public.meme_week_submissions s
-    where s.contest_id=contest_row.id and s.burn_verified=true and s.status<>'rejected';
+    const podiumIds = [contest.winner_submission_id, winner?.second_submission_id, winner?.third_submission_id].filter(Boolean);
+    const { data: podiumRows, error: podiumError } = await db.from("meme_week_submissions").select("id,contest_id,meme_title,meme_image_url,wallet_address,burn_verified,status,submitted_at").in("id", podiumIds);
+    if (podiumError) throw podiumError;
+    const byId = new Map((podiumRows ?? []).map((row: any) => [row.id, row]));
+    const submission: any = byId.get(contest.winner_submission_id) ?? null;
+    const secondSubmission: any = winner?.second_submission_id ? byId.get(winner.second_submission_id) ?? null : null;
+    const thirdSubmission: any = winner?.third_submission_id ? byId.get(winner.third_submission_id) ?? null : null;
 
-    v_seed:=gen_random_uuid();
-    select encode(digest(coalesce(string_agg(x::text,',' order by x::text),''),'sha256'),'hex') into v_commitment from unnest(v_ids) x;
+    const actualWinnerVotes = counts.get(contest.winner_submission_id) ?? 0;
+    const checks = [
+      { name: "winner_record_exists", pass: Boolean(winner) },
+      { name: "winner_submission_exists", pass: Boolean(submission) },
+      { name: "winner_points_to_same_contest", pass: Boolean(winner && submission && winner.contest_id === contest.id && submission.contest_id === contest.id) },
+      { name: "winner_burn_verified", pass: Boolean(submission?.burn_verified) },
+      { name: "winner_submission_status", pass: submission?.status === "winner" },
+      { name: "winner_vote_count_matches_database", pass: Boolean(winner && winner.vote_count === actualWinnerVotes) },
+      ...(isRandomDraw ? [
+        { name: "random_draw_audit_exists", pass: Boolean(drawAudit) },
+        { name: "random_draw_placements_match_winner_record", pass: Boolean(drawAudit && JSON.stringify(drawAudit.placement_submission_ids ?? []) === JSON.stringify([winner?.submission_id, winner?.second_submission_id, winner?.third_submission_id].filter(Boolean))) },
+        { name: "random_draw_seed_and_commitment_match", pass: Boolean(drawAudit && winner?.draw_seed === drawAudit.random_seed && winner?.entrant_commitment === drawAudit.entrant_commitment) },
+        { name: "random_draw_eligible_count_matches", pass: Boolean(drawAudit && winner?.eligible_entry_count === drawAudit.eligible_count && drawAudit.eligible_count > 0) },
+        { name: "random_draw_podium_entries_are_eligible", pass: Boolean(drawAudit && podiumIds.length === Math.min(3, drawAudit.eligible_count) && podiumRows?.length === podiumIds.length && podiumRows.every((row: any) => row.contest_id === contest.id && row.burn_verified && row.status !== "rejected") && new Set(podiumIds).size === podiumIds.length) }
+      ] : [
+        { name: "winner_has_highest_vote_total", pass: actualWinnerVotes > 0 && actualWinnerVotes === highestVoteCount }
+      ]),
+      { name: "winner_wallet_matches_submission", pass: Boolean(winner && submission && winner.wallet_address === submission.wallet_address) }
+    ];
 
-    if v_eligible_count>1 then
-      for v_i in reverse v_eligible_count..2 loop
-        v_random := ('x'||encode(gen_random_bytes(8),'hex'))::bit(64)::bigint;
-        if v_random = -9223372036854775808 then v_random:=0; else v_random:=abs(v_random); end if;
-        v_j := 1 + (v_random % v_i)::integer;
-        v_tmp:=v_ids[v_i]; v_ids[v_i]:=v_ids[v_j]; v_ids[v_j]:=v_tmp;
-      end loop;
-    end if;
-    v_finalists:=v_ids[1:least(3,v_eligible_count)];
-    v_placements:=v_finalists;
-    if coalesce(array_length(v_placements,1),0)>1 then
-      for v_i in reverse array_length(v_placements,1)..2 loop
-        v_random := ('x'||encode(gen_random_bytes(8),'hex'))::bit(64)::bigint;
-        if v_random = -9223372036854775808 then v_random:=0; else v_random:=abs(v_random); end if;
-        v_j := 1 + (v_random % v_i)::integer;
-        v_tmp:=v_placements[v_i]; v_placements[v_i]:=v_placements[v_j]; v_placements[v_j]:=v_tmp;
-      end loop;
-    end if;
+    const podium = [
+      secondSubmission ? { place: 2, submission_id: secondSubmission.id, meme_title: secondSubmission.meme_title, meme_image_url: secondSubmission.meme_image_url, vote_count: Number(winner?.second_vote_count ?? counts.get(secondSubmission.id) ?? 0) } : null,
+      thirdSubmission ? { place: 3, submission_id: thirdSubmission.id, meme_title: thirdSubmission.meme_title, meme_image_url: thirdSubmission.meme_image_url, vote_count: Number(winner?.third_vote_count ?? counts.get(thirdSubmission.id) ?? 0) } : null
+    ].filter(Boolean);
 
-    insert into public.meme_week_draw_audits(contest_id,eligible_count,entrant_commitment,random_seed,finalist_submission_ids,placement_submission_ids)
-    values(contest_row.id,v_eligible_count,v_commitment,v_seed,v_finalists,v_placements)
-    on conflict(contest_id) do nothing;
-
-    if v_eligible_count>0 then
-      select * into first_row from public.meme_week_submissions where id=v_placements[1];
-      if v_eligible_count>1 then select * into second_row from public.meme_week_submissions where id=v_placements[2]; else second_row:=null; end if;
-      if v_eligible_count>2 then select * into third_row from public.meme_week_submissions where id=v_placements[3]; else third_row:=null; end if;
-      insert into public.meme_week_winners(contest_id,submission_id,creator_id,wallet_address,vote_count,prize_sol,won_at,second_submission_id,second_wallet_address,second_vote_count,third_submission_id,third_wallet_address,third_vote_count,selection_method,eligible_entry_count,draw_seed,entrant_commitment,draw_algorithm)
-      values(contest_row.id,first_row.id,first_row.creator_id,first_row.wallet_address,0,0,now(),second_row.id,second_row.wallet_address,0,third_row.id,third_row.wallet_address,0,'random_equal_chance',v_eligible_count,v_seed,v_commitment,'pgcrypto-gen_random_bytes-fisher-yates-v1')
-      on conflict(contest_id) do nothing;
-      update public.meme_week_submissions set status=case when id=v_placements[1] then 'winner' else status end,updated_at=now() where contest_id=contest_row.id;
-      update public.meme_week_contests set winner_submission_id=v_placements[1],status='completed',updated_at=now() where id=contest_row.id;
-      perform public.sync_meme_week_payout_jobs();
-      actions:=actions||jsonb_build_array(jsonb_build_object('action','random_draw_completed','contest_id',contest_row.id,'eligible_count',v_eligible_count,'first',v_placements[1],'second',case when v_eligible_count>1 then v_placements[2] else null end,'third',case when v_eligible_count>2 then v_placements[3] else null end));
-    else
-      update public.meme_week_contests set status='completed',winner_submission_id=null,updated_at=now() where id=contest_row.id;
-      actions:=actions||jsonb_build_array(jsonb_build_object('action','completed_without_winner','contest_id',contest_row.id,'reason','No eligible submissions.'));
-    end if;
-  end loop;
-
-  return jsonb_build_object('success',true,'actions',actions,'checked_at',now());
-end;
-$function$
-;
-CREATE OR REPLACE FUNCTION public.can_submit_meme_week(p_contest_id uuid, p_wallet_address text, p_dna_verified boolean, p_burn_verified boolean, p_burn_amount numeric)
- RETURNS boolean
- LANGUAGE plpgsql
- STABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-begin
-
-    /*
-     * Contest must exist and be open
-     * for submissions.
-     */
-
-    if not exists (
-        select 1
-        from public.meme_week_contests
-        where id = p_contest_id
-          and status = 'submission'
-          and now() >= week_start
-          and now() < week_end
-    ) then
-
-        return false;
-
-    end if;
-
-
-    /*
-     * Wallet must be present.
-     */
-
-    if p_wallet_address is null
-       or length(trim(p_wallet_address)) = 0 then
-
-        return false;
-
-    end if;
-
-
-    /*
-     * Only one submission per wallet
-     * for this contest.
-     */
-
-    if exists (
-        select 1
-        from public.meme_week_submissions
-        where contest_id = p_contest_id
-          and wallet_address = p_wallet_address
-    ) then
-
-        return false;
-
-    end if;
-
-
-    /*
-     * The burn must be verified.
-     */
-
-    if p_burn_verified is not true then
-
-        return false;
-
-    end if;
-
-
-    /*
-     * Entry fee must be exactly
-     * 2,000 SPARKD.
-     */
-
-    if p_burn_amount <> 2000 then
-
-        return false;
-
-    end if;
-
-
-    return true;
-
-end;
-$function$
-;
-CREATE OR REPLACE FUNCTION public.get_meme_week_admin_health()
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'cron'
-AS $function$
-declare
-  v_contest record;
-  v_submission_count bigint := 0;
-  v_vote_count bigint := 0;
-  v_eligible_count bigint := 0;
-  v_winner record;
-  v_cron record;
-  v_last_run record;
-  v_next_transition timestamptz;
-begin
-  select * into v_contest
-  from public.meme_week_contests
-  where status in ('submission','voting')
-  order by week_start desc
-  limit 1;
-
-  if v_contest.id is not null then
-    select count(*) into v_submission_count
-    from public.meme_week_submissions
-    where contest_id = v_contest.id;
-
-    select count(*) into v_eligible_count
-    from public.meme_week_submissions
-    where contest_id = v_contest.id
-      and burn_verified = true
-      and status <> 'rejected';
-
-    select count(*) into v_vote_count
-    from public.meme_week_votes
-    where contest_id = v_contest.id;
-
-    if v_contest.status = 'submission' then
-      v_next_transition := v_contest.week_end;
-    elsif v_contest.status = 'voting' then
-      v_next_transition := v_contest.week_end + interval '24 hours';
-    end if;
-  end if;
-
-  select w.id, w.contest_id, w.submission_id, w.wallet_address, w.vote_count, w.won_at,
-         s.meme_title, s.meme_image_url
-  into v_winner
-  from public.meme_week_winners w
-  join public.meme_week_submissions s on s.id = w.submission_id
-  order by w.won_at desc nulls last, w.created_at desc
-  limit 1;
-
-  select jobid, jobname, schedule, active, command
-  into v_cron
-  from cron.job
-  where jobname = 'sparkd-meme-week-lifecycle'
-  limit 1;
-
-  if v_cron.jobid is not null then
-    select status, start_time, end_time, return_message
-    into v_last_run
-    from cron.job_run_details
-    where jobid = v_cron.jobid
-    order by start_time desc
-    limit 1;
-  end if;
-
-  return jsonb_build_object(
-    'checked_at', now(),
-    'current_contest', case when v_contest.id is null then null else jsonb_build_object(
-      'id', v_contest.id,
-      'week_start', v_contest.week_start,
-      'week_end', v_contest.week_end,
-      'status', v_contest.status,
-      'winner_submission_id', v_contest.winner_submission_id,
-      'next_transition_at', v_next_transition
-    ) end,
-    'counts', jsonb_build_object(
-      'submissions', v_submission_count,
-      'eligible_submissions', v_eligible_count,
-      'votes', v_vote_count
-    ),
-    'latest_winner', case when v_winner.id is null then null else jsonb_build_object(
-      'id', v_winner.id,
-      'contest_id', v_winner.contest_id,
-      'submission_id', v_winner.submission_id,
-      'meme_title', v_winner.meme_title,
-      'meme_image_url', v_winner.meme_image_url,
-      'vote_count', v_winner.vote_count,
-      'won_at', v_winner.won_at
-    ) end,
-    'cron', case when v_cron.jobid is null then null else jsonb_build_object(
-      'jobid', v_cron.jobid,
-      'jobname', v_cron.jobname,
-      'schedule', v_cron.schedule,
-      'active', v_cron.active,
-      'last_run', case when v_last_run.status is null then null else jsonb_build_object(
-        'status', v_last_run.status,
-        'start_time', v_last_run.start_time,
-        'end_time', v_last_run.end_time,
-        'return_message', v_last_run.return_message
-      ) end
-    ) end
-  );
-end;
-$function$
-;
+    return json(req, {
+      success: true,
+      healthy: checks.every((c) => c.pass),
+      state: "winner_checked",
+      contest: { id: contest.id, week_start: contest.week_start, week_end: contest.week_end, winner_submission_id: contest.winner_submission_id },
+      winner: winner ? { id: winner.id, submission_id: winner.submission_id, vote_count: winner.vote_count, won_at: winner.won_at, selection_method: winner.selection_method } : null,
+      submission: submission ? { id: submission.id, meme_title: submission.meme_title, meme_image_url: submission.meme_image_url, status: submission.status } : null,
+      podium,
+      totals: { total_votes: voteRows?.length ?? 0, winner_votes: actualWinnerVotes, highest_vote_count: highestVoteCount },
+      checks
+    });
+  } catch (error) {
+    console.error("contest-winner-health error:", error);
+    return json(req, { success: false, healthy: false, error: error instanceof Error ? error.message : "Unknown server error" }, 500);
+  }
+});
