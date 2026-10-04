@@ -1425,6 +1425,9 @@ document.addEventListener(
                 "motmMemeTitle"
             );
 
+        const xHandleInput =
+            document.getElementById("motmXHandle");
+
         const submissionStatus =
             document.getElementById(
                 "motmSubmissionStatus"
@@ -1542,6 +1545,13 @@ document.addEventListener(
                     if (submissionStatus) submissionStatus.textContent = "Preparing and inspecting your image...";
                     const preparedImage = await window.SPARKD_CONTEST_IMAGE.prepare(file);
                     const entryData = preparedImage.entry;
+                    const xHandle = (xHandleInput?.value || "").trim().replace(/^@/, "");
+                    if (xHandle && !/^[A-Za-z0-9_]{1,15}$/.test(xHandle)) {
+                        alert("Enter a valid X username (letters, numbers, or underscore; up to 15 characters).");
+                        xHandleInput?.focus();
+                        return;
+                    }
+                    entryData.xHandle = xHandle;
                     const contestFile = preparedImage.file;
 
                     const readyToBurn =
@@ -1594,18 +1604,40 @@ document.addEventListener(
                     );
 
 
-                    if (submissionStatus) {
-                        submissionStatus.textContent =
-                            "🔥 Submission successful!";
+                    let contactSaved = false;
+                    if (xHandle && window.SPARKD_CONTEST_CONTACT?.saveWinnerContact) {
+                        try {
+                            await window.SPARKD_CONTEST_CONTACT.saveWinnerContact({
+                                submissionId: result.submission.id,
+                                wallet: currentWallet,
+                                xHandle
+                            });
+                            contactSaved = true;
+                        } catch (contactError) {
+                            console.warn("Submission succeeded, but winner contact was not saved:", contactError);
+                        }
                     }
 
+                    if (submissionStatus) {
+                        submissionStatus.textContent = contactSaved
+                            ? "🔥 Submission successful! Your X handle is saved privately for winner contact."
+                            : xHandle
+                                ? "Meme submitted, but the X handle could not be saved. Please contact @deedsparks on X with your wallet address."
+                                : "🔥 Submission successful!";
+                    }
+
+                    const contactNotice = contactSaved
+                        ? "\n\nYour X handle was saved privately for winner contact."
+                        : xHandle
+                            ? "\n\nYour X handle could not be saved. Contact @deedsparks on X with your wallet address so we can reach you if you win."
+                            : "\n\nIf you win, contact @deedsparks on X with your wallet address.";
 
                     alert(
                         "🔥 SUBMISSION SUCCESS!\n\n" +
                         "Submission ID:\n" +
-                        result.submission.id
+                        result.submission.id +
+                        contactNotice
                     );
-
 
                     memeFile.value =
                         "";
@@ -1615,6 +1647,7 @@ document.addEventListener(
                         memeTitle.value =
                             "";
                     }
+                    if (xHandleInput) xHandleInput.value = "";
 
 
                     submissionForm.style.display =
