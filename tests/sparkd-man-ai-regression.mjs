@@ -12,16 +12,16 @@ const css = read("sparkd-man-ai/sparkd-man.css");
 const failures = [];
 const check = (ok, message) => { if (!ok) failures.push(message); };
 
-check(index.includes("/sparkd-man-ai/sparkd-man.css"), "homepage must load SPARKD Man CSS");
-check(index.includes("/sparkd-man-ai/sparkd-man-config.js"), "homepage must load SPARKD Man config");
-check(index.includes("/sparkd-man-ai/sparkd-man.js"), "homepage must load SPARKD Man JS");
+check(index.includes("/sparkd-man-ai/sparkd-man.css?v=1"), "homepage must load SPARKD Man CSS");
+check(index.includes("/sparkd-man-ai/sparkd-man-config.js?v=1"), "homepage must load SPARKD Man config");
+check(index.includes("/sparkd-man-ai/sparkd-man.js?v=1"), "homepage must load SPARKD Man JS");
 check(config.toLowerCase().includes("hey spark"), "wake phrase must remain Hey Spark");
 check(js.includes("webkitSpeechRecognition"), "Chrome/WebKit speech-recognition fallback must remain");
 check(js.includes("SpeechRecognition"), "speech recognition must remain available");
-check(js.includes("speechSynthesis"), "browser speech synthesis must remain available");
-check(js.includes("data:image/webp;base64,"), "SPARKD Man visual asset must remain bundled");
+check(js.includes("playNeuralChunk") && js.includes("new Audio(activeAudioUrl)"), "server-generated neural voice playback must remain available");
+check(index.includes("class=\"sparkd-man-figure\"") && index.includes("/sparkd-man-ai/"), "SPARKD Man figure asset must remain connected to the homepage");
 check(css.includes(".sparkd-man-stage"), "isolated homepage stage styles must remain");
-check(/@media \(max-width: 980px\)/.test(css), "responsive layout guard must remain");
+check(/@media \(max-width:\s*980px\)/.test(css), "responsive layout guard must remain");
 check(!/GEMINI_API_KEY|AIza[A-Za-z0-9_-]+/.test(config + js + css + index), "frontend must never contain a Gemini secret");
 check(/functions\/v1\/sparkd-man-ai/.test(config), "frontend must use the protected Supabase endpoint");
 
