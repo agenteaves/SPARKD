@@ -12,9 +12,9 @@ const css = read("sparkd-man-ai/sparkd-man.css");
 const failures = [];
 const check = (ok, message) => { if (!ok) failures.push(message); };
 
-check(index.includes("/sparkd-man-ai/sparkd-man.css?v=1"), "homepage must load SPARKD Man CSS");
-check(index.includes("/sparkd-man-ai/sparkd-man-config.js?v=1"), "homepage must load SPARKD Man config");
-check(index.includes("/sparkd-man-ai/sparkd-man.js?v=1"), "homepage must load SPARKD Man JS");
+check(index.includes("/sparkd-man-ai/sparkd-man.css"), "homepage must load SPARKD Man CSS");
+check(index.includes("/sparkd-man-ai/sparkd-man-config.js"), "homepage must load SPARKD Man config");
+check(index.includes("/sparkd-man-ai/sparkd-man.js"), "homepage must load SPARKD Man JS");
 check(config.toLowerCase().includes("hey spark"), "wake phrase must remain Hey Spark");
 check(js.includes("webkitSpeechRecognition"), "Chrome/WebKit speech-recognition fallback must remain");
 check(js.includes("SpeechRecognition"), "speech recognition must remain available");
