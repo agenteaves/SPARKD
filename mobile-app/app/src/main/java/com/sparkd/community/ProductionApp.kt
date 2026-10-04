@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 private fun Throwable.fullMessage(): String =
     generateSequence(this as Throwable?) { it.cause }.mapNotNull { it.message }.joinToString(" | ")
@@ -184,6 +185,9 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     var prepared by remember { mutableStateOf<PreparedBurn?>(null) }
     var existingBurnSignature by remember { mutableStateOf<String?>(null) }
     var entryTitle by remember { mutableStateOf(ForgeDraft.submissionTitle) }
+    var xHandle by remember { mutableStateOf("") }
+    var winnerContactSaved by remember { mutableStateOf<Boolean?>(null) }
+    var entrySubmissionId by remember { mutableStateOf(UUID.randomUUID().toString()) }
     val forge = ForgeDraft.exportedRecord
     val bytes = ForgeDraft.exportedPng
 
@@ -194,11 +198,41 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         check(withContext(Dispatchers.Default) { BitmapFactory.decodeByteArray(png, 0, png.size) != null }) { "The selected PNG could not be displayed." }
     }
 
+    fun normalizedXHandle(): String? {
+        val clean = xHandle.trim().removePrefix("@")
+        require(clean.isEmpty() || clean.matches(Regex("^[A-Za-z0-9_]{1,15}$"))) {
+            "Enter a valid X username (letters, numbers, or underscore; up to 15 characters)."
+        }
+        return clean.takeIf { it.isNotEmpty() }
+    }
+
     fun requiredTitle(): String {
         val clean = entryTitle.trim()
         check(clean.isNotEmpty()) { "Give your meme a title before entering the contest." }
+        normalizedXHandle()
         ForgeDraft.submissionTitle = clean
         return clean
+    }
+
+    suspend fun saveOptionalWinnerContact(submissionId: String, address: String): Boolean? {
+        val handle = normalizedXHandle() ?: return null
+        status = "Your meme is submitted. Confirm your optional X contact with a free wallet message signature…"
+        val timestamp = System.currentTimeMillis()
+        val message = listOf(
+            "SPARKD-CONTEST-CONTACT-v1",
+            submissionId,
+            address,
+            handle,
+            timestamp.toString()
+        ).joinToString("\n")
+        return runCatching {
+            val signedMessage = wallet.signMessage(message.toByteArray(Charsets.UTF_8))
+            api.saveWinnerContact(submissionId, address, handle, timestamp, signedMessage)
+            true
+        }.getOrElse {
+            status = "Your meme is submitted, but the X contact was not saved. Contact @deedsparks on X with your wallet address if you win."
+            false
+        }
     }
 
     suspend fun finalizeWithExistingBurn(burn: PreparedBurn, signature: String, record: MemeEntryRecord, png: ByteArray): String {
@@ -210,8 +244,9 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         status = "Uploading your selected meme…"
         val imagePath = api.uploadMeme(address, burn.contestId, png)
         status = "Finalizing your selected meme with the existing burn receipt…"
-        api.finalizeSubmission(address, burn, signature, record, title, imagePath)
+        api.finalizeSubmission(address, burn, signature, entrySubmissionId, record, title, imagePath)
         recovery.clear()
+        winnerContactSaved = saveOptionalWinnerContact(entrySubmissionId, address)
         return signature
     }
 
@@ -265,12 +300,22 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         ForgeDraft.exportedRecord = null
         ForgeDraft.entryImageSelected = false
         ForgeDraft.freshSourceSelected = false
-        status = "Contest entry submitted successfully. Your meme now has one equal chance in the random draw. Burn verified: " + signature.take(8) + "…" + signature.takeLast(8)
+        val contactNote = when (winnerContactSaved) {
+            true -> " Your X handle is saved privately for winner contact."
+            false -> " Your X handle could not be saved; contact @deedsparks on X with your wallet address if you win."
+            null -> ""
+        }
+        if (winnerContactSaved != false) {
+            status = "Contest entry submitted successfully. Your meme now has one equal chance in the random draw. Burn verified: " + signature.take(8) + "…" + signature.takeLast(8) + contactNote
+        }
+        entrySubmissionId = UUID.randomUUID().toString()
+        winnerContactSaved = null
     }
 
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Secure Contest Entry", fontSize = 28.sp, fontWeight = FontWeight.Black) }
         item { OutlinedTextField(entryTitle, { entryTitle = it.take(80) }, label = { Text("Meme title (required)") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
+        item { OutlinedTextField(xHandle, { xHandle = it.take(16) }, label = { Text("X username (optional)") }, supportingText = { Text("Used only to contact you if you win. Kept private; does not affect the draw. A free wallet signature confirms it.") }, modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !completed) }
         item { Text("Entry requires one 2,000 SPARKD burn per wallet and contest. Every finalized eligible meme gets exactly one equal chance in the automated draw.", color = androidx.compose.ui.graphics.Color.LightGray) }
         item { Card { Column(Modifier.padding(16.dp)) { Text("Forge export", fontWeight = FontWeight.Bold); Text(forge?.memeID ?: "No meme is ready for submission."); Text(if (bytes == null) "Export a meme from the Forge first." else "Your meme is retained on this device.") } } }
         item {
