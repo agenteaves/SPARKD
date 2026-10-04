@@ -288,8 +288,9 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         status = "Recording the verified burn receipt…"
         api.recordBurnReceipt(address, burn.contestId, signature)
         status = "Finalizing your contest submission…"
-        api.finalizeSubmission(address, burn, signature, record, title, imagePath)
+        api.finalizeSubmission(address, burn, signature, entrySubmissionId, record, title, imagePath)
         recovery.clear()
+        winnerContactSaved = saveOptionalWinnerContact(entrySubmissionId, address)
         return signature
     }
 
