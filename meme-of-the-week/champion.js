@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
 // SPARKD HOME PAGE — MEME OF THE WEEK CHAMPION
-// champion.js v1.1
+// champion.js v1.2
 //
 // PURPOSE
 // - Fill the EXISTING homepage ".meme-week-box"
