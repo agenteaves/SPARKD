@@ -229,7 +229,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
         <div id="balanceStatus" class="profile-status" role="status"></div>
       </div>
       <a class="action-link profile-action" href="https://jup.ag/swap/SOL-BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump" target="_blank" rel="noopener">Buy More SPARKD</a>
-      <button id="connectWallet" class="outline profile-action" type="button">Connect Solana Wallet</button>
       <button id="disconnectWallet" class="outline profile-action" type="button" hidden>Disconnect Wallet</button>
       <div id="walletStatus" class="profile-status" role="status"></div>
     </div>
@@ -524,7 +523,6 @@ function setWallet(address){
  walletAddress.classList.toggle("green",!!address);walletAddress.classList.toggle("gold",!address);
  document.getElementById("homeWallet").textContent=address?"Wallet connected: "+shortAddress(address):"Connect your Solana wallet to participate.";
  document.getElementById("homeWalletAction").textContent=address?"Disconnect Wallet":"Connect Solana Wallet";
- document.getElementById("connectWallet").hidden=!!address;
  document.getElementById("disconnectWallet").hidden=!address;
  if(address)loadBalance(address);else{balanceRequestID++;tokenBalance.textContent="Connect wallet to view";tokenBalance.classList.remove("green");tokenBalance.classList.add("gold");balanceStatus.textContent="";}
 }
@@ -577,7 +575,6 @@ function connectForHome(openForge){
 }
 document.getElementById("homeForge").addEventListener("click",function(){if(walletProvider()&&walletProvider().publicKey){go("forge");}else connectForHome(true);});
 document.getElementById("homeWalletAction").addEventListener("click",function(){var p=walletProvider();if(p&&p.publicKey){if(p.disconnect)p.disconnect();setWallet("");homeStatus.textContent="Wallet disconnected.";}else connectForHome(false);});
-document.getElementById("connectWallet").addEventListener("click",function(){walletStatus.textContent="Opening your Solana wallet…";connect().then(function(a){setWallet(a);walletStatus.textContent="Wallet connected.";}).catch(function(e){walletStatus.textContent=e&&e.message?e.message:"Wallet connection failed.";});});
 document.getElementById("disconnectWallet").addEventListener("click",function(){var p=walletProvider();if(p&&p.disconnect)p.disconnect();setWallet("");walletStatus.textContent="Wallet disconnected.";});
 var provider=walletProvider();
 if(provider){if(provider.publicKey)setWallet(provider.publicKey.toString());provider.on&&provider.on("connect",function(a){if(a)setWallet(a.toString());});provider.on&&provider.on("disconnect",function(){setWallet("");});}
