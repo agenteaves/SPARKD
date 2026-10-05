@@ -12,6 +12,7 @@ const status = read("meme-of-the-week/contest-status.js");
 const rules = read("meme-of-the-week/contest-rules.js");
 const guide = read("meme-of-the-week/contest-guide.html");
 const submit = read("meme-forge/upgrades/contest-submit.js");
+const iphoneApp = read("iphone-web-app/index.html");
 
 assert(!exists("meme-of-the-week/voting.js"));
 assert(!exists("meme-of-the-week/voter-reward.js"));
@@ -32,5 +33,8 @@ assert(submit.includes("entryData.memeID") && submit.includes("entryMemeID"));
 assert(!/verifyForge\s*\(\s*wallet\s*,\s*entryData/.test(submit));
 assert(/equal.chance random drawing/i.test(rules));
 assert(/status", "in\.\(upcoming,submission\)"/.test(status));
+assert(iphoneApp.includes("select=id,status,week_start,week_end,winner_submission_id"));
+assert(!iphoneApp.includes("select=id,title,status,submission_count,week_start"));
+assert(iphoneApp.includes("meme_week_submissions?select=id&contest_id=eq."));
 
 console.log("SPARKD contest regression checks passed.");
