@@ -286,9 +286,27 @@ function loadBalance(address){
  .then(function(data){if(data.error)throw new Error(data.error.message||"Unable to read SPARKD balance.");var accounts=data.result&&data.result.value||[],total=0;accounts.forEach(function(a){var amount=a.account&&a.account.data&&a.account.data.parsed&&a.account.data.parsed.info&&a.account.data.parsed.info.tokenAmount;total+=Number(amount&&amount.uiAmountString||0);});tokenBalance.textContent=new Intl.NumberFormat(undefined,{maximumFractionDigits:2}).format(total)+" SPARKD";tokenBalance.classList.remove("gold");tokenBalance.classList.add("green");})
  .catch(function(e){tokenBalance.textContent="Unavailable";balanceStatus.textContent=e&&e.message?e.message:"Unable to load SPARKD balance.";});
 }
+function isMobileDevice(){
+ return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+}
+function phantomBrowseUrl(){
+ var target=new URL(window.location.href);
+ target.searchParams.set("sparkd_phantom_handoff","1");
+ return "https://phantom.app/ul/browse/"+encodeURIComponent(target.toString())+"?ref="+encodeURIComponent(window.location.origin);
+}
 function connect(){
  var provider=walletProvider();
- if(!provider){return Promise.reject(new Error("Open SPARKD in Phantom’s in-app browser, then connect your wallet."));}
+ if(!provider){
+  var handoff=new URLSearchParams(window.location.search).has("sparkd_phantom_handoff");
+  if(isMobileDevice()&&!handoff){
+   homeStatus.textContent="Opening SPARKD in Phantom…";
+   walletStatus.textContent="Opening SPARKD in Phantom…";
+   window.location.assign(phantomBrowseUrl());
+   return Promise.reject(new Error("Opening SPARKD in Phantom…"));
+  }
+  var message=isMobileDevice()?"Phantom did not connect. Open SPARKD in Phantom’s in-app browser and try again.":"Phantom wallet not detected. Install Phantom or use a browser with Phantom enabled.";
+  return Promise.reject(new Error(message));
+ }
  return provider.connect().then(function(result){if(!result||!result.publicKey)throw new Error("Wallet did not return an address.");return result.publicKey.toString();});
 }
 function connectForHome(openForge){
