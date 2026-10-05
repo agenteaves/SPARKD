@@ -29,6 +29,17 @@ function jsonResponse(origin, body, status = 200) {
   });
 }
 
+function isAllowedApiKey(value) {
+  if (!value) return false;
+  try {
+    const keys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}");
+    if (Object.values(keys).includes(value)) return true;
+  } catch {
+    // Older projects may not expose the publishable-key map.
+  }
+  return value === Deno.env.get("SUPABASE_ANON_KEY");
+}
+
 function amountToCents(value) {
   const match = /^(\d+)(?:\.(\d+))?$/.exec(String(value ?? "0"));
   if (!match) throw new Error("RPC returned an invalid token amount.");
@@ -51,6 +62,9 @@ Deno.serve(async (req) => {
   }
   if (req.method !== "POST") {
     return jsonResponse(origin, { error: "Method not allowed." }, 405);
+  }
+  if (!isAllowedApiKey(req.headers.get("apikey") ?? "")) {
+    return jsonResponse(origin, { error: "Invalid API key." }, 401);
   }
 
   try {
