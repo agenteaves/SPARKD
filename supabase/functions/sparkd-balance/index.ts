@@ -40,11 +40,11 @@ function isAllowedApiKey(value) {
   return value === Deno.env.get("SUPABASE_ANON_KEY");
 }
 
-function amountToCents(value) {
+function amountToAtoms(value) {
   const match = /^(\d+)(?:\.(\d+))?$/.exec(String(value ?? "0"));
   if (!match) throw new Error("RPC returned an invalid token amount.");
   const fraction = (match[2] ?? "") + "00";
-  return BigInt(match[1]) * 100n + BigInt(fraction.slice(0, 2));
+  return BigInt(match[1]) * 1000000000000000000n + BigInt(fraction.padEnd(18, "0").slice(0, 18));
 }
 
 function formatCents(cents) {
@@ -119,13 +119,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    let totalCents = 0n;
+    let totalAtoms = 0n;
     for (const account of accounts) {
       const tokenAmount = account?.account?.data?.parsed?.info?.tokenAmount;
-      totalCents += amountToCents(tokenAmount?.uiAmountString ?? "0");
+      totalAtoms += amountToAtoms(tokenAmount?.uiAmountString ?? "0");
     }
 
-    return jsonResponse(origin, { balance: formatCents(totalCents) });
+    return jsonResponse(origin, { balance: formatCents(totalAtoms / 10000000000000000n) });
   } catch (error) {
     console.error("SPARKD balance lookup failed.", error);
     return jsonResponse(origin, { error: "Could not read SPARKD balance." }, 500);
