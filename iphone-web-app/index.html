@@ -73,6 +73,38 @@ button.outline{width:100%;min-height:44px;border:1px solid #64716a;border-radius
 .frame-wrap{height:calc(100dvh - 225px);min-height:440px;border-radius:12px;overflow:hidden;background:#0b160e;border:1px solid #294332}
 iframe{width:100%;height:100%;border:0;background:#07110b}
 .profile-balance{font-size:25px;font-weight:900;margin-top:4px}
+[hidden]{display:none!important}
+.forge-field-label{display:block;margin:12px 0 6px;color:var(--muted);font-size:14px}
+.forge-title{width:100%;min-height:54px;padding:14px 15px;border:1px solid #67736b;border-radius:8px;background:#07110b;color:#f5f6f5;font:inherit}
+.forge-title:focus{outline:2px solid var(--green);outline-offset:1px}
+.forge-button-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.forge-outline{width:100%;min-height:46px;padding:10px 12px;border:1px solid #617067;border-radius:10px;background:transparent;color:#f5f6f5;font:inherit;font-weight:700}
+.forge-outline:disabled,.action:disabled{opacity:.48;cursor:not-allowed}
+.forge-safety{min-height:20px;margin:8px 0;color:var(--muted);font-size:13px;line-height:1.4}
+.forge-preview-box{width:100%;margin:8px auto 0;background:#000;border-radius:2px;overflow:hidden;touch-action:none}
+.forge-preview-box canvas{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none}
+.forge-tools{margin-top:12px}
+.forge-tool{padding:11px 8px}
+.forge-selected{margin:12px 0;padding:16px}
+.forge-selected strong{display:block;overflow-wrap:anywhere}
+.forge-selected label{display:block;margin:13px 0 5px;color:var(--muted)}
+.forge-selected input[type=range]{width:100%;accent-color:var(--green)}
+.forge-layer-area{margin-top:10px}
+.forge-layer-area p{font-size:12px}
+.forge-layer-chips{display:flex;gap:6px;overflow-x:auto;padding:8px 1px}
+.forge-chip{flex:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 12px;border:1px solid #31513b;border-radius:18px;background:#173021;color:#f5f6f5}
+.forge-chip.selected{border-color:var(--gold);color:var(--gold)}
+.forge-button-stack{display:grid;gap:10px;margin-top:12px}
+.forge-dialog{position:fixed;inset:0;z-index:25;display:grid;place-items:center;padding:20px;background:#000b}
+.forge-dialog-card{width:min(100%,440px);max-height:min(85dvh,620px);overflow:auto;padding:20px;border:1px solid #31513b;border-radius:20px;background:var(--card);box-shadow:0 12px 36px #000a}
+.forge-dialog-card h3{margin-bottom:14px}
+.forge-colors{display:flex;justify-content:space-between;gap:8px;margin:9px 0 18px}
+.forge-color{width:30px;height:30px;padding:0;border:1px solid #929b94;border-radius:50%}
+.forge-color.selected{outline:3px solid var(--gold);outline-offset:2px}
+.forge-emoji-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:14px 0}
+.forge-emoji{min-height:48px;border:0;border-radius:10px;background:transparent;color:#fff;font-size:27px}
+.forge-emoji:active{background:#194126}
+#submitForgePreview{display:block;width:100%;max-width:430px;aspect-ratio:1;object-fit:contain;background:#000;border-radius:14px;margin:10px auto}
 a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(min-width:720px){main{padding-bottom:30px}.nav{max-width:720px;left:50%;transform:translateX(-50%);border-radius:18px 18px 0 0}.frame-wrap{height:700px}}
 @media(max-width:360px){main{padding-left:14px;padding-right:14px}.nav button{font-size:10px}.nav button .indicator{min-width:54px;padding-left:10px;padding-right:10px}}
@@ -105,9 +137,60 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 
   <section class="screen" id="forge">
     <h2>Meme Forge</h2>
-    <p class="light">Create your meme directly in the SPARKD editor.</p>
-    <div class="embed-actions"><a class="action-link secondary-action" href="/meme-forge/" target="_blank" rel="noopener">Open Meme Forge full screen ↗</a></div>
-    <div class="frame-wrap"><iframe title="SPARKD Meme Forge" data-src="/meme-forge/" loading="lazy" allow="clipboard-read; clipboard-write"></iframe></div>
+    <p class="light">Create the meme directly on the image.</p>
+    <label class="forge-field-label" for="forgeTitle">Meme title</label>
+    <input id="forgeTitle" class="forge-title" type="text" maxlength="80" autocomplete="off" placeholder="Meme title">
+    <input id="forgeImageInput" type="file" accept="image/*" hidden>
+    <div class="forge-button-row">
+      <button id="forgeChooseImage" class="forge-outline" type="button">Choose image</button>
+      <button id="forgeDeleteImage" class="forge-outline" type="button" hidden>🗑 Delete image</button>
+    </div>
+    <div id="forgeSafety" class="forge-safety" role="status" aria-live="polite"></div>
+    <div id="forgePreviewBox" class="forge-preview-box" hidden>
+      <canvas id="forgeCanvas" width="1080" height="1080" aria-label="Meme Forge editing canvas"></canvas>
+    </div>
+    <div class="forge-button-row forge-tools">
+      <button id="forgeTextOpen" class="action forge-tool" type="button">＋ Text</button>
+      <button id="forgeEmojiOpen" class="action forge-tool" type="button">😀 Emoji</button>
+    </div>
+    <div id="forgeSelectedPanel" class="card forge-selected" hidden>
+      <strong id="forgeSelectedName"></strong>
+      <label for="forgeResize">Resize</label>
+      <input id="forgeResize" type="range" min="36" max="180" value="72">
+      <div class="forge-button-row">
+        <button id="forgeCenterLayer" class="forge-outline" type="button">Center</button>
+        <button id="forgeDeleteLayer" class="forge-outline" type="button">Delete</button>
+      </div>
+    </div>
+    <div id="forgeLayerArea" class="forge-layer-area" hidden>
+      <p class="light">Tip: drag the text or emoji directly on the image. Tap a layer below to select it.</p>
+      <div id="forgeLayerChips" class="forge-layer-chips"></div>
+    </div>
+    <div class="forge-button-stack">
+      <button id="forgeSendSubmit" class="action" type="button" disabled>Send meme to Submit tab</button>
+      <button id="forgeSavePng" class="forge-outline" type="button" disabled>Save Meme PNG</button>
+    </div>
+    <div id="forgeExportStatus" class="status" role="status" aria-live="polite"></div>
+    <div id="forgeTextDialog" class="forge-dialog" hidden>
+      <div class="forge-dialog-card" role="dialog" aria-modal="true" aria-labelledby="forgeTextHeading">
+        <h3 id="forgeTextHeading">Add text</h3>
+        <label class="forge-field-label" for="forgeTextInput">Text</label>
+        <input id="forgeTextInput" class="forge-title" type="text" maxlength="80" autocomplete="off">
+        <div class="label">Text color</div>
+        <div id="forgeTextColors" class="forge-colors"></div>
+        <div class="forge-button-row">
+          <button id="forgeTextCancel" class="forge-outline" type="button">Cancel</button>
+          <button id="forgeTextAdd" class="action" type="button">Add</button>
+        </div>
+      </div>
+    </div>
+    <div id="forgeEmojiDialog" class="forge-dialog" hidden>
+      <div class="forge-dialog-card" role="dialog" aria-modal="true" aria-labelledby="forgeEmojiHeading">
+        <h3 id="forgeEmojiHeading">Choose emoji</h3>
+        <div id="forgeEmojiGrid" class="forge-emoji-grid"></div>
+        <button id="forgeEmojiClose" class="forge-outline" type="button">Close</button>
+      </div>
+    </div>
   </section>
 
   <section class="screen" id="contest">
@@ -148,14 +231,22 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 
   <section class="screen" id="submit">
     <h2>Submit a Meme</h2>
-    <p class="light">Create your image in Meme Forge, then continue to the secure contest page to submit it.</p>
+    <p class="light">Choose an image in Meme Forge, create your meme, then send it here for submission.</p>
+    <button class="action secondary-action" type="button" data-go="forge">Open Meme Forge</button>
+    <div id="submitForgeCard" class="card">
+      <strong>Forge export</strong>
+      <p id="submitForgeStatus" class="light">No meme is ready for submission.</p>
+      <img id="submitForgePreview" alt="Meme selected for contest entry" hidden>
+    </div>
+    <label class="forge-field-label" for="submitMemeTitle">Meme title (required)</label>
+    <input id="submitMemeTitle" class="forge-title" type="text" maxlength="80" autocomplete="off">
     <div class="card">
       <div class="phase">CONTEST ENTRY</div>
       <h3 style="margin-top:9px">Enter Meme of the Week</h3>
-      <p class="light">A 2,000 SPARKD burn is required. The entry page will show the transaction details and wallet approval before anything is sent.</p>
+      <p class="light">Entry requires a 2,000 SPARKD burn. Save your Forge PNG, then attach it on the secure contest page. Review the transaction details before approving anything.</p>
+      <button id="submitSavePng" class="forge-outline" type="button" hidden>Save Meme PNG</button>
       <a class="action-link gold-action" style="margin-top:14px" href="/meme-of-the-week/">Continue to secure contest entry</a>
     </div>
-    <button class="action secondary-action" type="button" data-go="forge">Open Meme Forge</button>
   </section>
 </main>
 <nav class="nav" aria-label="Main navigation">
@@ -180,6 +271,8 @@ var walletStatus=document.getElementById("walletStatus");
 var homeStatus=document.getElementById("homeStatus");
 var tokenBalance=document.getElementById("tokenBalance");
 var balanceStatus=document.getElementById("balanceStatus");
+var forgeSource=null,forgeSourceUrl="",forgeLayers=[],forgeSelected=null,forgeNewColor="#ffffff",forgeExport=null,forgeDragging=null;
+var forgeEmojiList=["😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓"];
 function go(name){
  screens.forEach(function(s){s.classList.toggle("active",s.id===name);});
  navButtons.forEach(function(b){var active=b.getAttribute("data-go")===name;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
@@ -188,6 +281,7 @@ function go(name){
  if(screen){var frame=screen.querySelector("iframe[data-src]");if(frame&&!loadedFrames.has(name)){frame.src=frame.getAttribute("data-src");loadedFrames.add(name);}}
  if(name==="contest")loadContenders();
  if(name==="winners")loadWinners();
+ if(name==="submit")renderSubmitForge();
  window.scrollTo({top:0,behavior:"smooth"});
 }
 document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-go"));});});
@@ -268,6 +362,144 @@ function loadWinners(){
   });
  }).catch(function(e){message.textContent=e&&e.message?e.message:"Unable to load winners.";});
 }
+function forgeCanvas(){return document.getElementById("forgeCanvas");}
+function forgeDraw(showSelection){
+ var canvas=forgeCanvas(),ctx=canvas&&canvas.getContext("2d");if(!ctx)return;
+ var size=canvas.width;ctx.clearRect(0,0,size,size);ctx.fillStyle="#000";ctx.fillRect(0,0,size,size);
+ if(forgeSource){
+  var scale=Math.min(size/forgeSource.naturalWidth,size/forgeSource.naturalHeight);
+  var w=forgeSource.naturalWidth*scale,h=forgeSource.naturalHeight*scale;
+  ctx.drawImage(forgeSource,(size-w)/2,(size-h)/2,w,h);
+ }
+ forgeLayers.forEach(function(layer,i){
+  ctx.save();ctx.font="bold "+layer.size+"px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="alphabetic";
+  ctx.fillStyle=layer.color;ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.shadowOffsetY=3;
+  ctx.fillText(layer.text.slice(0,80),layer.x*size,layer.y*size, size*.92);ctx.restore();
+  if(showSelection&&i===forgeSelected){
+   var box=size*.31,x=layer.x*size-box/2,y=layer.y*size-box/2;
+   ctx.save();ctx.shadowColor="transparent";ctx.lineWidth=6;ctx.strokeStyle="#ffc83d";
+   if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,box,box,30);ctx.stroke();}else ctx.strokeRect(x,y,box,box);
+   ctx.restore();
+  }
+ });
+}
+function forgeUpdateControls(){
+ var hasImage=!!forgeSource,canvasBox=document.getElementById("forgePreviewBox");
+ canvasBox.hidden=!hasImage;document.getElementById("forgeDeleteImage").hidden=!hasImage;
+ document.getElementById("forgeSavePng").disabled=!hasImage;
+ document.getElementById("forgeSendSubmit").disabled=!hasImage||!document.getElementById("forgeTitle").value.trim();
+ var panel=document.getElementById("forgeSelectedPanel"),area=document.getElementById("forgeLayerArea");
+ var layer=forgeSelected!=null?forgeLayers[forgeSelected]:null;
+ panel.hidden=!layer;area.hidden=!forgeLayers.length;
+ if(layer){document.getElementById("forgeSelectedName").textContent="Selected: "+layer.text;document.getElementById("forgeResize").value=String(layer.size);}
+ var chips=document.getElementById("forgeLayerChips");chips.replaceChildren();
+ forgeLayers.forEach(function(item,i){var chip=document.createElement("button");chip.type="button";chip.className="forge-chip"+(i===forgeSelected?" selected":"");chip.textContent=item.text;chip.addEventListener("click",function(){forgeSelected=i;forgeDraw(true);forgeUpdateControls();});chips.appendChild(chip);});
+ forgeDraw(true);
+}
+function forgeLoadImage(file){
+ if(!file||!file.type||!file.type.startsWith("image/")){document.getElementById("forgeSafety").textContent="🚫 Choose a valid image file.";return;}
+ var status=document.getElementById("forgeSafety"),input=document.getElementById("forgeImageInput");
+ status.textContent="🛡 Inspecting image before opening Forge…";
+ var url=URL.createObjectURL(file),img=new Image();
+ img.onload=function(){
+  (async function(){
+   try{
+    var max=1280,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    var iw=Math.max(1,Math.round(img.naturalWidth*scale)),ih=Math.max(1,Math.round(img.naturalHeight*scale));
+    var inspect=document.createElement("canvas");inspect.width=iw;inspect.height=ih;
+    var ictx=inspect.getContext("2d");if(!ictx)throw new Error("Image inspection could not start on this device.");
+    ictx.fillStyle="#fff";ictx.fillRect(0,0,iw,ih);ictx.drawImage(img,0,0,iw,ih);
+    var jpg=await new Promise(function(resolve,reject){inspect.toBlob(function(blob){blob?resolve(blob):reject(new Error("Unable to prepare image for content inspection."));},"image/jpeg",.82);});
+    if(jpg.size>2.5*1024*1024)throw new Error("This image is too large to inspect. Please choose a smaller image.");
+    var form=new FormData();form.append("image",new File([jpg],"SPARKD-inspection.jpg",{type:"image/jpeg"}));
+    var response=await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety",{method:"POST",body:form,cache:"no-store",credentials:"omit"});
+    var result=await response.json().catch(function(){return null;});
+    if(!response.ok)throw new Error(result&&result.error?result.error:"Content protection HTTP "+response.status);
+    if(!result||result.success!==true||result.checked!==true)throw new Error("Content protection could not verify this image.");
+    if(result.blocked===true||result.safe!==true)throw new Error(result.reason||"This image cannot be used in SPARKD Meme Forge.");
+    if(forgeSourceUrl)URL.revokeObjectURL(forgeSourceUrl);
+    forgeSource=img;forgeSourceUrl=url;forgeLayers=[];forgeSelected=null;forgeExport=null;
+    status.textContent="✅ Image passed content inspection.";
+    forgeUpdateControls();
+   }catch(error){URL.revokeObjectURL(url);status.textContent="🚫 "+(error&&error.message?error.message:"Image inspection failed. Choose another image.");}
+   finally{input.value="";}
+  })();
+ };
+ img.onerror=function(){URL.revokeObjectURL(url);input.value="";status.textContent="🚫 The selected image could not be opened on this device.";};
+ img.src=url;
+}
+function forgePngBlob(){
+ return new Promise(function(resolve,reject){
+  var canvas=forgeCanvas();if(!canvas||!forgeSource){reject(new Error("Choose an image in Meme Forge first."));return;}
+  forgeDraw(false);canvas.toBlob(function(blob){forgeDraw(true);if(!blob)reject(new Error("Unable to create the meme PNG."));else if(blob.size>10*1024*1024)reject(new Error("The contest PNG must be 10 MB or smaller."));else resolve(blob);},"image/png");
+ });
+}
+function forgeMemeId(){
+ return window.crypto&&crypto.randomUUID?crypto.randomUUID():("sparkd-"+Date.now()+"-"+Math.random().toString(36).slice(2));
+}
+function downloadForgeBlob(blob,title){
+ var name="SPARKD-"+forgeMemeId()+".png",file=new File([blob],name,{type:"image/png"});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))return navigator.share({files:[file],title:title||"SPARKD meme"}).catch(function(e){if(e&&e.name==="AbortError")throw e;return downloadForgeFile(blob,name);});
+ return downloadForgeFile(blob,name);
+}
+function downloadForgeFile(blob,name){
+ var link=document.createElement("a"),url=URL.createObjectURL(blob);link.href=url;link.download=name;link.style.display="none";document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(url);},60000);
+}
+function renderSubmitForge(){
+ var preview=document.getElementById("submitForgePreview"),status=document.getElementById("submitForgeStatus"),save=document.getElementById("submitSavePng"),title=document.getElementById("submitMemeTitle");
+ if(!forgeExport){status.textContent="No meme is ready for submission.";preview.hidden=true;save.hidden=true;return;}
+ if(preview.dataset.url)URL.revokeObjectURL(preview.dataset.url);
+ var url=URL.createObjectURL(forgeExport.blob);preview.src=url;preview.dataset.url=url;preview.hidden=false;
+ status.textContent="Meme ready for entry · "+forgeExport.memeID;
+ title.value=forgeExport.title;save.hidden=false;
+}
+document.getElementById("forgeChooseImage").addEventListener("click",function(){document.getElementById("forgeImageInput").click();});
+document.getElementById("forgeImageInput").addEventListener("change",function(e){forgeLoadImage(e.target.files&&e.target.files[0]);});
+document.getElementById("forgeDeleteImage").addEventListener("click",function(){if(forgeSourceUrl)URL.revokeObjectURL(forgeSourceUrl);forgeSource=null;forgeSourceUrl="";forgeLayers=[];forgeSelected=null;forgeExport=null;document.getElementById("forgeSafety").textContent="";document.getElementById("forgeTitle").value="";forgeUpdateControls();});
+document.getElementById("forgeTitle").addEventListener("input",function(){document.getElementById("forgeSendSubmit").disabled=!forgeSource||!this.value.trim();});
+document.getElementById("forgeTextOpen").addEventListener("click",function(){document.getElementById("forgeTextDialog").hidden=false;document.getElementById("forgeTextInput").focus();});
+document.getElementById("forgeTextCancel").addEventListener("click",function(){document.getElementById("forgeTextDialog").hidden=true;});
+document.getElementById("forgeTextColors").innerHTML=["#ffffff","#000000","#ffff00","#ff0000","#00ff00","#00ffff","#0000ff","#ff00ff"].map(function(color){return '<button class="forge-color" type="button" data-color="'+color+'" aria-label="Text color '+color+'" style="background:'+color+'"></button>';}).join("");
+document.querySelectorAll(".forge-color").forEach(function(btn){btn.addEventListener("click",function(){forgeNewColor=btn.dataset.color;document.querySelectorAll(".forge-color").forEach(function(b){b.classList.toggle("selected",b===btn);});});});
+document.getElementById("forgeTextAdd").addEventListener("click",function(){var text=document.getElementById("forgeTextInput").value.trim();if(text){forgeLayers.push({text:text.slice(0,80),x:.5,y:.5,size:72,color:forgeNewColor});forgeSelected=forgeLayers.length-1;document.getElementById("forgeTextInput").value="";}document.getElementById("forgeTextDialog").hidden=true;forgeUpdateControls();});
+document.getElementById("forgeEmojiOpen").addEventListener("click",function(){
+ var grid=document.getElementById("forgeEmojiGrid");grid.replaceChildren();
+ forgeEmojiList.forEach(function(emoji){var b=document.createElement("button");b.type="button";b.className="forge-emoji";b.textContent=emoji;b.addEventListener("click",function(){forgeLayers.push({text:emoji,x:.5,y:.5,size:72,color:"#ffffff"});forgeSelected=forgeLayers.length-1;document.getElementById("forgeEmojiDialog").hidden=true;forgeUpdateControls();});grid.appendChild(b);});
+ document.getElementById("forgeEmojiDialog").hidden=false;
+});
+document.getElementById("forgeEmojiClose").addEventListener("click",function(){document.getElementById("forgeEmojiDialog").hidden=true;});
+document.getElementById("forgeResize").addEventListener("input",function(){if(forgeSelected==null)return;forgeLayers[forgeSelected].size=Number(this.value);forgeUpdateControls();});
+document.getElementById("forgeCenterLayer").addEventListener("click",function(){if(forgeSelected!=null){forgeLayers[forgeSelected].x=.5;forgeLayers[forgeSelected].y=.5;forgeUpdateControls();}});
+document.getElementById("forgeDeleteLayer").addEventListener("click",function(){if(forgeSelected!=null){forgeLayers.splice(forgeSelected,1);forgeSelected=null;forgeUpdateControls();}});
+document.getElementById("forgeCanvas").addEventListener("pointerdown",function(e){
+ var canvas=forgeCanvas(),rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.height;
+ var ctx=canvas.getContext("2d"),hit=-1;
+ for(var i=forgeLayers.length-1;i>=0;i--){var l=forgeLayers[i];ctx.font="bold "+l.size+"px Arial, sans-serif";var half=Math.max(ctx.measureText(l.text).width/2/1080,.06);if(Math.abs(x-l.x)<=half&&Math.abs(y-l.y)<=Math.max(l.size/1080,.06)){hit=i;break;}}
+ if(hit>=0){forgeSelected=hit;forgeDragging=hit;canvas.setPointerCapture(e.pointerId);forgeUpdateControls();}
+});
+document.getElementById("forgeCanvas").addEventListener("pointermove",function(e){
+ if(forgeDragging==null)return;var rect=this.getBoundingClientRect(),layer=forgeLayers[forgeDragging];
+ if(layer){layer.x=Math.max(.03,Math.min(.97,(e.clientX-rect.left)/rect.width));layer.y=Math.max(.04,Math.min(.96,(e.clientY-rect.top)/rect.height));forgeDraw(true);}
+});
+document.getElementById("forgeCanvas").addEventListener("pointerup",function(){forgeDragging=null;forgeUpdateControls();});
+document.getElementById("forgeCanvas").addEventListener("pointercancel",function(){forgeDragging=null;forgeUpdateControls();});
+document.getElementById("forgeSavePng").addEventListener("click",async function(){
+ var status=document.getElementById("forgeExportStatus");status.textContent="Preparing PNG…";
+ try{var blob=await forgePngBlob();await downloadForgeBlob(blob,document.getElementById("forgeTitle").value.trim());status.textContent="✅ Meme PNG saved. You can submit it to the contest.";}
+ catch(e){status.textContent="🚫 "+(e&&e.message?e.message:"Unable to save PNG.");}
+});
+document.getElementById("forgeSendSubmit").addEventListener("click",async function(){
+ var status=document.getElementById("forgeExportStatus"),title=document.getElementById("forgeTitle").value.trim();
+ if(!title){status.textContent="🚫 Enter a meme title first.";return;}
+ status.textContent="Preparing your meme for Submit…";
+ try{var blob=await forgePngBlob();forgeExport={blob:blob,title:title,memeID:forgeMemeId(),creatorID:forgeMemeId()};document.getElementById("submitMemeTitle").value=title;renderSubmitForge();status.textContent="✅ Meme sent to the Submit tab.";go("submit");}
+ catch(e){status.textContent="🚫 "+(e&&e.message?e.message:"Unable to prepare the meme.");}
+});
+document.getElementById("submitSavePng").addEventListener("click",async function(){
+ if(!forgeExport)return;try{await downloadForgeBlob(forgeExport.blob,forgeExport.title);document.getElementById("submitForgeStatus").textContent="Meme ready for entry · saved to this device.";}
+ catch(e){if(e&&e.name!=="AbortError")document.getElementById("submitForgeStatus").textContent=e.message||"Unable to save the PNG.";}
+});
+forgeUpdateControls();
 function walletProvider(){return window.phantom&&window.phantom.solana?window.phantom.solana:(window.solana&&window.solana.isPhantom?window.solana:null);}
 function shortAddress(a){return a.length>15?a.slice(0,6)+"…"+a.slice(-5):a;}
 function setWallet(address){
