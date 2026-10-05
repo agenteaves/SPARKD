@@ -7,6 +7,7 @@ on:
       - "meme-of-the-week/**"
       - ".github/workflows/contest-regression-checks.yml"
       - "tests/contest-regression.mjs"
+      - "supabase/functions/contest-storage-cleanup/**"
   pull_request:
     paths:
       - "meme-of-the-week/**"
