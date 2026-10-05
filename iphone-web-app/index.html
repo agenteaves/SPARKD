@@ -307,16 +307,18 @@ function rest(path){
 }
 function fetchContest(){
  var now=new Date().toISOString();
- var current="meme_week_contests?select=id,title,status,submission_count,week_start&status=in.(submission,voting)&week_start=lte."+encodeURIComponent(now)+"&order=week_start.desc&limit=1";
- var upcoming="meme_week_contests?select=id,title,status,submission_count,week_start&status=in.(upcoming,submission)&week_start=gt."+encodeURIComponent(now)+"&order=week_start.asc&limit=1";
+ var current="meme_week_contests?select=id,status,week_start,week_end,winner_submission_id&status=in.(submission,voting)&week_start=lte."+encodeURIComponent(now)+"&order=week_start.desc&limit=1";
+ var upcoming="meme_week_contests?select=id,status,week_start,week_end,winner_submission_id&status=in.(upcoming,submission)&week_start=gt."+encodeURIComponent(now)+"&order=week_start.asc&limit=1";
  return rest(current).then(function(rows){return rows.length?rows:rest(upcoming);}).then(function(rows){if(!rows.length)throw new Error("No SPARKD contest is available right now.");contestId=rows[0].id||"";return rows[0];});
 }
 function loadContest(){
  fetchContest().then(function(c){
   var status=String(c.status||"").toUpperCase();
   document.getElementById("contestPhase").textContent=status==="SUBMISSION"?"SUBMISSION":status==="VOTING"?"VOTING":"UPCOMING";
-  document.getElementById("contestTitle").textContent=c.title||"Meme of the Week";
-  document.getElementById("contestEntries").textContent=String(c.submission_count||0)+" contenders";
+  document.getElementById("contestTitle").textContent="SPARKD Meme of the Week";
+  return rest("meme_week_submissions?select=id&contest_id=eq."+encodeURIComponent(contestId)+"&status=neq.rejected");
+ }).then(function(rows){
+  document.getElementById("contestEntries").textContent=String(rows.length)+" contender"+(rows.length===1?"":"s");
  }).catch(function(){
   document.getElementById("contestPhase").textContent="LIVE";
   document.getElementById("contestTitle").textContent="SPARKD Meme of the Week";
