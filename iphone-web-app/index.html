@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07110b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SPARKD">
+<link rel="apple-touch-icon" href="../images/logo.png">
+<title>SPARKD Community App for iPhone</title>
+<meta name="description" content="SPARKD Community App, designed for iPhone. Create memes, enter the weekly contest, view winners, and connect a Solana wallet.">
+<style>
+:root{color-scheme:dark;--ink:#07110b;--panel:#102018;--panel2:#13281b;--green:#41f16b;--gold:#ffc83d;--muted:#a9b8ad;--safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html{background:var(--ink);min-height:100%;-webkit-text-size-adjust:100%;overscroll-behavior-y:contain}
+body{margin:0;background:radial-gradient(ellipse at 50% -15%,#173722 0,transparent 44%),var(--ink);color:#f6fff7;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100dvh;padding:calc(var(--safe-top) + 0px) 0 calc(88px + var(--safe-bottom));}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{cursor:pointer}
+a{color:inherit}
+header{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #24382b;background:rgba(7,17,11,.9);position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:950;letter-spacing:.08em}
+.brand img{width:33px;height:33px;object-fit:contain}
+.brand small{display:block;color:var(--gold);font-size:9px;letter-spacing:.14em}
+.header-action{border:1px solid #34543c;background:#102018;color:var(--green);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:800}
+main{max-width:680px;margin:0 auto;padding:18px 16px 24px}
+.screen{display:none;animation:arrive .18s ease}
+.screen.active{display:block}
+@keyframes arrive{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:none}}
+h1{font-size:30px;line-height:1.08;margin:5px 0 8px;letter-spacing:-.03em}
+h2{font-size:21px;line-height:1.2;margin:0 0 8px}
+h3{font-size:16px;margin:0 0 7px}
+p{margin:7px 0;color:#d0dbd2}
+.muted{color:var(--muted)}
+.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--green);font-weight:900}
+.card{background:linear-gradient(145deg,#13291b,#0d1b12);border:1px solid #294332;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 10px 32px #0003}
+.phase{display:inline-flex;align-items:center;gap:7px;background:#153522;border:1px solid #2d5d3b;color:var(--green);border-radius:999px;padding:6px 10px;font-size:11px;letter-spacing:.08em;font-weight:900}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.prize{color:var(--gold);font-weight:800;margin:11px 0 4px}
+.big-number{font-size:28px;font-weight:950}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.btn{min-height:50px;border-radius:15px;border:1px solid #366045;background:#14291b;color:#f4fff5;font-weight:850;padding:12px 14px;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center}
+.btn.primary{background:linear-gradient(130deg,#41f16b,#a9ff68);color:#07110b;border:0;box-shadow:0 7px 18px #41f16b2b}
+.btn.gold{background:linear-gradient(130deg,#ffc83d,#ffdf7a);color:#171006;border:0}
+.btn.full{width:100%;margin-top:10px}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start;padding:11px 0;border-bottom:1px solid #294332}
+.step:last-child{border:0;padding-bottom:0}
+.step-icon{width:32px;height:32px;display:grid;place-items:center;background:#1a3824;border-radius:11px;color:var(--green);font-weight:900}
+.note{font-size:13px;color:#b9c9bd}
+.status{min-height:20px;font-size:13px;color:var(--gold);margin-top:8px}
+.winners{display:grid;gap:10px;margin-top:14px}
+.winner{display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:center;padding:12px;background:#0d1b12;border:1px solid #263a2c;border-radius:16px}
+.medal{font-size:28px;text-align:center}
+.winner img{width:100%;aspect-ratio:1.7;object-fit:cover;border-radius:12px;margin-top:7px}
+.nav{position:fixed;z-index:10;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 6px calc(8px + var(--safe-bottom));background:rgba(7,17,11,.96);border-top:1px solid #294332;backdrop-filter:blur(18px)}
+.nav button{border:0;background:transparent;color:#87968a;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:750}
+.nav button .icon{font-size:21px;line-height:1.1}
+.nav button.active{color:var(--green)}
+.nav button.active .icon{filter:drop-shadow(0 0 7px #41f16b90)}
+.embed-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 8px}
+.embed-head .btn{min-height:40px;padding:8px 12px;font-size:12px}
+.frame-wrap{height:min(69dvh,760px);min-height:440px;border:1px solid #2b4130;background:#0b160e;border-radius:17px;overflow:hidden}
+iframe{width:100%;height:100%;border:0;background:#07110b}
+.wallet-address{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;overflow-wrap:anywhere;color:var(--green)}
+.wallet-icon{font-size:38px;margin-bottom:5px}
+.footer-note{text-align:center;font-size:11px;color:#819187;margin:22px 8px 8px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(min-width:700px){body{padding-bottom:30px}.nav{position:sticky;max-width:680px;margin:0 auto 14px;border:1px solid #294332;border-radius:18px;bottom:10px}.frame-wrap{height:700px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><img src="../images/logo.png" alt=""><div>SPARKD<small>COMMUNITY APP</small></div></div>
+  <button class="header-action" id="installHelp" type="button">＋ Add to Home Screen</button>
+</header>
+<main>
+  <section class="screen active" id="home" aria-labelledby="homeTitle">
+    <div class="kicker">Made for iPhone</div>
+    <h1 id="homeTitle">Create. Enter. Vote. Win.</h1>
+    <p class="muted">Your SPARKD community, shaped for a quick thumb-friendly visit.</p>
+    <div class="card" id="contestCard">
+      <span class="phase"><span class="pulse"></span><span id="contestPhase">LOADING CONTEST</span></span>
+      <h2 id="contestTitle" style="margin-top:14px">Loading the live contest…</h2>
+      <p id="contestEntries" class="muted">Checking current entries</p>
+      <div class="prize">🏆 1st $15 SOL · 2nd $10 SOL · 3rd $5 SOL</div>
+      <button class="btn primary full" type="button" data-go="contest">Open weekly contest</button>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="button" data-go="forge">🔥 Open Meme Forge</button>
+      <button class="btn gold" type="button" data-go="winners">🏆 Hall of Winners</button>
+    </div>
+    <div class="card">
+      <h2>How to enter</h2>
+      <div class="steps">
+        <div class="step"><span class="step-icon">1</span><div><strong>Create your meme</strong><div class="note">Use Meme Forge to add a picture, text, and stickers.</div></div></div>
+        <div class="step"><span class="step-icon">2</span><div><strong>Connect and submit</strong><div class="note">Follow the contest page’s secure wallet prompts. Entry requires a 2,000 SPARKD burn.</div></div></div>
+        <div class="step"><span class="step-icon">3</span><div><strong>Check back for winners</strong><div class="note">Eligible entries receive an equal chance in the random drawing.</div></div></div>
+      </div>
+    </div>
+    <div class="footer-note">For best results, open this page in iPhone Safari or Phantom’s in-app browser.</div>
+  </section>
+
+  <section class="screen" id="forge" aria-labelledby="forgeTitle">
+    <div class="kicker">Create</div><h1 id="forgeTitle">Meme Forge</h1>
+    <p class="muted">Use the SPARKD editor to upload an image, add text or emojis, export your meme, and continue to contest entry.</p>
+    <div class="embed-head"><strong>SPARKD Meme Forge</strong><a class="btn" href="/meme-forge/" target="_blank" rel="noopener">Open full screen ↗</a></div>
+    <div class="frame-wrap"><iframe title="SPARKD Meme Forge" data-src="/meme-forge/" loading="lazy" allow="clipboard-read; clipboard-write"></iframe></div>
+  </section>
+
+  <section class="screen" id="contest" aria-labelledby="contestTabTitle">
+    <div class="kicker">Community</div><h1 id="contestTabTitle">Weekly Contest</h1>
+    <p class="muted">Browse submissions, vote while voting is open, and follow the official entry steps.</p>
+    <div class="embed-head"><strong>Meme of the Week</strong><a class="btn" href="/meme-of-the-week/" target="_blank" rel="noopener">Open full screen ↗</a></div>
+    <div class="frame-wrap"><iframe title="SPARKD Meme of the Week contest" data-src="/meme-of-the-week/" loading="lazy"></iframe></div>
+  </section>
+
+  <section class="screen" id="winners" aria-labelledby="winnersTitle">
+    <div class="kicker">Hall of Fame</div><h1 id="winnersTitle">Hall of Winners</h1>
+    <p class="muted">Recent completed weeks from the SPARKD contest record.</p>
+    <div id="winnersList" class="winners" aria-live="polite"><div class="card">Loading winners…</div></div>
+    <div id="winnersStatus" class="status" role="status"></div>
+    <a class="btn full" href="/meme-of-the-week/">View contest page</a>
+  </section>
+
+  <section class="screen" id="profile" aria-labelledby="profileTitle">
+    <div class="kicker">Your account</div><h1 id="profileTitle">Profile</h1>
+    <div class="card">
+      <div class="wallet-icon">👛</div><h2>Solana Wallet</h2>
+      <p class="muted">Connect in a wallet-enabled browser to see your address. Contest transactions are requested only on the official contest entry screen.</p>
+      <div id="walletAddress" class="wallet-address">Not connected</div>
+      <button id="connectWallet" class="btn primary full" type="button">Connect Phantom</button>
+      <button id="disconnectWallet" class="btn full" type="button" hidden>Disconnect wallet</button>
+      <div id="walletStatus" class="status" role="status"></div>
+    </div>
+    <div class="card">
+      <h2>SPARKD Community</h2>
+      <a class="btn full" href="/creator-profile/">Open Creator Profile</a>
+      <a class="btn full" href="https://x.com/deedsparks" target="_blank" rel="noopener">Follow SPARKD on X ↗</a>
+    </div>
+  </section>
+</main>
+<nav class="nav" aria-label="Main navigation">
+  <button class="active" type="button" data-go="home" aria-current="page"><span class="icon">⌂</span>Home</button>
+  <button type="button" data-go="forge"><span class="icon">✎</span>Forge</button>
+  <button type="button" data-go="contest"><span class="icon">🏆</span>Contest</button>
+  <button type="button" data-go="winners"><span class="icon">🥇</span>Winners</button>
+  <button type="button" data-go="profile"><span class="icon">☺</span>Profile</button>
+</nav>
+<script>
+(function(){
+"use strict";
+var API="https://uxpbgzksfizkyxubctep.supabase.co";
+var KEY="sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+var screens=Array.from(document.querySelectorAll(".screen"));
+var navButtons=Array.from(document.querySelectorAll(".nav button"));
+var loadedFrames=new Set();
+function go(name){
+ screens.forEach(function(s){s.classList.toggle("active",s.id===name);});
+ navButtons.forEach(function(b){var active=b.getAttribute("data-go")===name;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
+ var frame=screens.find(function(s){return s.id===name;});
+ if(frame){var iframe=frame.querySelector("iframe[data-src]");if(iframe&&!loadedFrames.has(name)){iframe.src=iframe.getAttribute("data-src");loadedFrames.add(name);}}
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-go"));});});
+document.getElementById("installHelp").addEventListener("click",function(){alert("In Safari, tap the Share button, then choose “Add to Home Screen” to keep SPARKD beside your other apps.");});
+function rest(path){
+ return fetch(API+"/rest/v1/"+path,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("Contest service returned HTTP "+r.status);return r.json();});
+}
+function loadContest(){
+ var now=new Date().toISOString();
+ var current="meme_week_contests?select=id,title,status,submission_count,week_start&status=in.(submission,voting)&week_start=lte."+encodeURIComponent(now)+"&order=week_start.desc&limit=1";
+ var future="meme_week_contests?select=id,title,status,submission_count,week_start&status=in.(upcoming,submission)&week_start=gt."+encodeURIComponent(now)+"&order=week_start.asc&limit=1";
+ rest(current).then(function(rows){return rows.length?rows:rest(future);}).then(function(rows){
+  if(!rows.length)throw new Error("No contest is available right now.");
+  var c=rows[0],phase=String(c.status||"").toUpperCase();
+  document.getElementById("contestPhase").textContent=phase==="SUBMISSION"?"SUBMISSION OPEN":phase==="VOTING"?"VOTING OPEN":phase;
+  document.getElementById("contestTitle").textContent=c.title||"Meme of the Week";
+  document.getElementById("contestEntries").textContent=String(c.submission_count||0)+" entries";
+ }).catch(function(){document.getElementById("contestPhase").textContent="SPARKD CONTEST";document.getElementById("contestTitle").textContent="Open the weekly contest";document.getElementById("contestEntries").textContent="Live contest details will appear here when available.";});
+}
+function shortAddress(s){return s.length>15?s.slice(0,6)+"…"+s.slice(-5):s;}
+function walletProvider(){return window.phantom&&window.phantom.solana?window.phantom.solana:(window.solana&&window.solana.isPhantom?window.solana:null);}
+var walletAddress=document.getElementById("walletAddress"),walletStatus=document.getElementById("walletStatus"),connectButton=document.getElementById("connectWallet"),disconnectButton=document.getElementById("disconnectWallet");
+function showWallet(address){walletAddress.textContent=shortAddress(address);walletAddress.title=address;connectButton.hidden=true;disconnectButton.hidden=false;}
+connectButton.addEventListener("click",function(){
+ var provider=walletProvider();
+ if(!provider){walletStatus.textContent="No Phantom connection was detected. Open this page in Phantom’s in-app browser, then tap Connect Phantom.";return;}
+ walletStatus.textContent="Waiting for wallet approval…";
+ provider.connect().then(function(result){var address=result&&result.publicKey?result.publicKey.toString():"";if(!address)throw new Error("Wallet did not return an address.");showWallet(address);walletStatus.textContent="Wallet connected. Contest entry still requires its own review and approval.";}).catch(function(e){walletStatus.textContent=e&&e.message?e.message:"Wallet connection was cancelled.";});
+});
+disconnectButton.addEventListener("click",function(){var provider=walletProvider();if(provider&&provider.disconnect)provider.disconnect();walletAddress.textContent="Not connected";walletAddress.removeAttribute("title");connectButton.hidden=false;disconnectButton.hidden=true;walletStatus.textContent="Wallet disconnected.";});
+var provider=walletProvider();
+if(provider){provider.on&&provider.on("connect",function(pubkey){if(pubkey)showWallet(pubkey.toString());});provider.on&&provider.on("disconnect",function(){walletAddress.textContent="Not connected";connectButton.hidden=false;disconnectButton.hidden=true;});if(provider.publicKey)showWallet(provider.publicKey.toString());}
+function loadWinners(){
+ var host=document.getElementById("winnersList"),status=document.getElementById("winnersStatus");
+ rest("meme_week_contests?select=id,week_start&status=eq.completed&order=week_start.desc&limit=12").then(function(contests){
+  if(!contests.length)return [];
+  var ids=contests.map(function(c){return c.id;}).filter(Boolean);
+  return rest("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,payout_verified&contest_id=in.("+ids.join(",")+")").then(function(rows){return {contests:contests,winners:rows};});
+ }).then(function(data){
+  if(!data||!data.winners.length){host.innerHTML='<div class="card">No completed winners are listed yet.</div>';return;}
+  var ids=[];
+  data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id"].forEach(function(k){if(w[k])ids.push(w[k]);});});
+  if(!ids.length){host.innerHTML='<div class="card">No winner entries are listed yet.</div>';return;}
+  return rest("meme_week_submissions?select=id,meme_title,wallet_address,meme_image_url&id=in.("+Array.from(new Set(ids)).join(",")+")").then(function(subs){
+   var byId={};subs.forEach(function(s){byId[s.id]=s;});
+   var weeks={};data.contests.forEach(function(c){weeks[c.id]=String(c.week_start||"").slice(0,10);});
+   var items=[];
+   data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id"].forEach(function(k,i){var s=byId[w[k]];if(s)items.push({place:i+1,title:s.meme_title||"SPARKD Winner",wallet:s.wallet_address||"SPARKD Creator",week:weeks[w.contest_id]||"",image:s.meme_image_url||""});});});
+   items.sort(function(a,b){return b.week.localeCompare(a.week)||a.place-b.place;});
+   host.innerHTML="";
+   items.slice(0,24).forEach(function(w){
+    var card=document.createElement("article");card.className="winner";
+    var medal=document.createElement("div");medal.className="medal";medal.textContent=["🥇","🥈","🥉"][w.place-1]||"🏆";
+    var body=document.createElement("div");
+    var title=document.createElement("strong");title.textContent=w.title;
+    var detail=document.createElement("div");detail.className="note";detail.textContent=(w.week?"Week of "+w.week+" · ":"")+shortAddress(w.wallet);
+    body.appendChild(title);body.appendChild(detail);
+    if(w.image){var img=document.createElement("img");img.loading="lazy";img.src=/^https?:\/\//i.test(w.image)?w.image:API+"/storage/v1/object/public/sparkd-contest-submissions/"+String(w.image).replace(/^\//,"");img.alt=w.title;img.referrerPolicy="no-referrer";body.appendChild(img);}
+    card.appendChild(medal);card.appendChild(body);host.appendChild(card);
+   });
+  });
+ }).catch(function(e){host.innerHTML='<div class="card">Winners could not load right now. Open the contest page to check the latest list.</div>';status.textContent=e&&e.message?e.message:"The contest service is temporarily unavailable.";});
+}
+document.getElementById("installHelp").setAttribute("aria-label","How to add SPARKD to your iPhone Home Screen");
+loadContest();loadWinners();
+})();
+</script>
+</body>
+</html>
