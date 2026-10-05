@@ -13,6 +13,7 @@ const rules = read("meme-of-the-week/contest-rules.js");
 const guide = read("meme-of-the-week/contest-guide.html");
 const submit = read("meme-forge/upgrades/contest-submit.js");
 const iphoneApp = read("iphone-web-app/index.html");
+const cleanup = read("supabase/functions/contest-storage-cleanup/index.ts");
 
 assert(!exists("meme-of-the-week/voting.js"));
 assert(!exists("meme-of-the-week/voter-reward.js"));
@@ -36,5 +37,12 @@ assert(/status", "in\.\(upcoming,submission\)"/.test(status));
 assert(iphoneApp.includes("select=id,status,week_start,week_end,winner_submission_id"));
 assert(!iphoneApp.includes("select=id,title,status,submission_count,week_start"));
 assert(iphoneApp.includes("meme_week_submissions?select=id&contest_id=eq."));
+assert(cleanup.includes(".storage.from(BUCKET)"));
+assert(cleanup.includes(".list(prefix"));
+assert(cleanup.includes(".remove(batch)"));
+assert(!cleanup.includes('.schema("storage")'));
+assert(cleanup.includes("MIN_AGE_HOURS = 6"));
+assert(cleanup.includes('from("meme_week_submissions")'));
+assert(cleanup.includes("MAX_DELETE_PER_RUN = 100"));
 
 console.log("SPARKD contest regression checks passed.");
