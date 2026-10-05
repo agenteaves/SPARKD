@@ -157,6 +157,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
     <div id="forgePreviewBox" class="forge-preview-box" hidden>
       <canvas id="forgeCanvas" width="1080" height="1080" aria-label="Meme Forge editing canvas"></canvas>
     </div>
+    <div class="forge-button-stack">
+      <button id="forgeSendSubmit" class="action" type="button" disabled>Use this meme in Submit</button>
+      <button id="forgeSavePng" class="forge-outline" type="button" disabled>Save Meme PNG</button>
+    </div>
+    <div id="forgeTransferHint" class="light" role="status" aria-live="polite">Choose an image and add a title to enable this action.</div>
+    <div id="forgeExportStatus" class="status" role="status" aria-live="polite"></div>
     <div class="forge-button-row forge-tools">
       <button id="forgeTextOpen" class="action forge-tool" type="button">＋ Text</button>
       <button id="forgeEmojiOpen" class="action forge-tool" type="button">😀 Emoji</button>
@@ -174,11 +180,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
       <p class="light">Tip: drag the text or emoji directly on the image. Tap a layer below to select it.</p>
       <div id="forgeLayerChips" class="forge-layer-chips"></div>
     </div>
-    <div class="forge-button-stack">
-      <button id="forgeSendSubmit" class="action" type="button" disabled>Send meme to Submit tab</button>
-      <button id="forgeSavePng" class="forge-outline" type="button" disabled>Save Meme PNG</button>
-    </div>
-    <div id="forgeExportStatus" class="status" role="status" aria-live="polite"></div>
     <div id="forgeTextDialog" class="forge-dialog" hidden>
       <div class="forge-dialog-card" role="dialog" aria-modal="true" aria-labelledby="forgeTextHeading">
         <h3 id="forgeTextHeading">Add text</h3>
@@ -236,7 +237,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 
   <section class="screen" id="submit">
     <h2>Submit a Meme</h2>
-    <p class="light">Choose an image in Meme Forge, create your meme, then send it here for submission.</p>
+    <p class="light">In Meme Forge, choose an image and add a title, then tap “Use this meme in Submit.” Your meme and title will appear here.</p>
     <button class="action secondary-action" type="button" data-go="forge">Open Meme Forge</button>
     <div id="submitForgeCard" class="card">
       <strong>Forge export</strong>
@@ -403,7 +404,10 @@ function forgeUpdateControls(){
  document.getElementById("forgeImageRow").classList.toggle("forge-single",!hasImage);
  canvasBox.hidden=!hasImage;document.getElementById("forgeDeleteImage").hidden=!hasImage;
  document.getElementById("forgeSavePng").disabled=!hasImage;
- document.getElementById("forgeSendSubmit").disabled=!hasImage||!document.getElementById("forgeTitle").value.trim();
+ var hasTitle=!!document.getElementById("forgeTitle").value.trim();
+ var sendReady=hasImage&&hasTitle;
+ document.getElementById("forgeSendSubmit").disabled=!sendReady;
+ document.getElementById("forgeTransferHint").textContent=sendReady?"Ready — tap “Use this meme in Submit” to carry the finished meme and title over.":(hasImage?"Add a title to enable sending this meme to Submit.":"Choose an image and add a title to enable sending it to Submit.");
  var panel=document.getElementById("forgeSelectedPanel"),area=document.getElementById("forgeLayerArea");
  var layer=forgeSelected!=null?forgeLayers[forgeSelected]:null;
  panel.hidden=!layer;area.hidden=!forgeLayers.length;
@@ -472,7 +476,7 @@ function renderSubmitForge(){
 document.getElementById("forgeChooseImage").addEventListener("click",function(){document.getElementById("forgeImageInput").click();});
 document.getElementById("forgeImageInput").addEventListener("change",function(e){forgeLoadImage(e.target.files&&e.target.files[0]);});
 document.getElementById("forgeDeleteImage").addEventListener("click",function(){if(forgeSourceUrl)URL.revokeObjectURL(forgeSourceUrl);forgeSource=null;forgeSourceUrl="";forgeLayers=[];forgeSelected=null;forgeExport=null;document.getElementById("forgeSafety").textContent="";document.getElementById("forgeTitle").value="";forgeUpdateControls();});
-document.getElementById("forgeTitle").addEventListener("input",function(){document.getElementById("forgeSendSubmit").disabled=!forgeSource||!this.value.trim();});
+document.getElementById("forgeTitle").addEventListener("input",forgeUpdateControls);
 document.getElementById("forgeTextOpen").addEventListener("click",function(){document.getElementById("forgeTextDialog").hidden=false;document.getElementById("forgeTextInput").focus();});
 document.getElementById("forgeTextCancel").addEventListener("click",function(){document.getElementById("forgeTextDialog").hidden=true;});
 document.getElementById("forgeTextColors").innerHTML=["#ffffff","#000000","#ffff00","#ff0000","#00ff00","#00ffff","#0000ff","#ff00ff"].map(function(color){return '<button class="forge-color" type="button" data-color="'+color+'" aria-label="Text color '+color+'" style="background:'+color+'"></button>';}).join("");
