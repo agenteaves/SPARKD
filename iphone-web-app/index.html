@@ -105,6 +105,14 @@ iframe{width:100%;height:100%;border:0;background:#07110b}
 .forge-emoji{min-height:48px;border:0;border-radius:10px;background:transparent;color:#fff;font-size:27px}
 .forge-emoji:active{background:#194126}
 #submitForgePreview{display:block;width:100%;max-width:430px;aspect-ratio:1;object-fit:contain;background:#000;border-radius:14px;margin:10px auto}
+.profile-screen h2{margin-bottom:0}
+.profile-stack{display:grid;gap:14px}
+.profile-card{margin:0;padding:20px;border-radius:20px;background:var(--card)}
+.profile-label{font-size:14px;color:#808080;margin-bottom:6px}
+.profile-action{min-height:40px!important;padding:8px 16px!important;border-radius:10px!important;font-size:14px}
+.profile-screen .profile-balance{font-size:25px;font-weight:900;margin-top:4px}
+.profile-status{margin:0;color:var(--gold);font-size:13px;line-height:1.4}
+.profile-status:empty{display:none}
 a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(min-width:720px){main{padding-bottom:30px}.nav{max-width:720px;left:50%;transform:translateX(-50%);border-radius:18px 18px 0 0}.frame-wrap{height:700px}}
 @media(max-width:360px){main{padding-left:14px;padding-right:14px}.nav button{font-size:10px}.nav button .indicator{min-width:54px;padding-left:10px;padding-right:10px}}
@@ -208,25 +216,23 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
     <div id="winnersList"></div>
   </section>
 
-  <section class="screen" id="profile">
+  <section class="screen profile-screen" id="profile">
     <h2>My SPARKD</h2>
-    <div class="card tight">
-      <div class="label">Wallet</div>
-      <div id="walletAddress" class="wallet-line gold">Not connected</div>
+    <div class="profile-stack">
+      <div class="profile-card">
+        <div class="profile-label">Wallet</div>
+        <div id="walletAddress" class="wallet-line gold">Not connected</div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-label">SPARKD Balance</div>
+        <div id="tokenBalance" class="profile-balance gold">Connect wallet to view</div>
+        <div id="balanceStatus" class="profile-status" role="status"></div>
+      </div>
+      <a class="action-link profile-action" href="https://jup.ag/swap/SOL-BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump" target="_blank" rel="noopener">Buy More SPARKD</a>
+      <button id="connectWallet" class="outline profile-action" type="button">Connect Solana Wallet</button>
+      <button id="disconnectWallet" class="outline profile-action" type="button" hidden>Disconnect Wallet</button>
+      <div id="walletStatus" class="profile-status" role="status"></div>
     </div>
-    <div class="card tight">
-      <div class="label">SPARKD Balance</div>
-      <div id="tokenBalance" class="profile-balance gold">Connect wallet to view</div>
-      <div id="balanceStatus" class="status" role="status"></div>
-    </div>
-    <div class="actions">
-      <a class="action-link" href="https://jup.ag/swap/SOL-BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump" target="_blank" rel="noopener">Buy More SPARKD</a>
-      <button id="connectWallet" class="outline" type="button">Connect Solana Wallet</button>
-      <button id="disconnectWallet" class="outline" type="button" hidden>Disconnect Wallet</button>
-      <a class="action-link secondary-action" href="/creator-profile/">Open Creator Profile</a>
-    </div>
-    <div id="walletStatus" class="status" role="status"></div>
-    <div class="live-status">For the closest iPhone experience, use Safari’s Share menu and choose Add to Home Screen.</div>
   </section>
 
   <section class="screen" id="submit">
@@ -271,6 +277,7 @@ var walletStatus=document.getElementById("walletStatus");
 var homeStatus=document.getElementById("homeStatus");
 var tokenBalance=document.getElementById("tokenBalance");
 var balanceStatus=document.getElementById("balanceStatus");
+var profileRefreshTimer=null;
 var forgeSource=null,forgeSourceUrl="",forgeLayers=[],forgeSelected=null,forgeNewColor="#ffffff",forgeExport=null,forgeDragging=null;
 var forgeEmojiList=["😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓"];
 function go(name){
@@ -279,6 +286,14 @@ function go(name){
  document.getElementById("backHome").classList.toggle("visible",name!=="home");
  var screen=screens.find(function(s){return s.id===name;});
  if(screen){var frame=screen.querySelector("iframe[data-src]");if(frame&&!loadedFrames.has(name)){frame.src=frame.getAttribute("data-src");loadedFrames.add(name);}}
+ if(profileRefreshTimer){window.clearInterval(profileRefreshTimer);profileRefreshTimer=null;}
+ if(name==="profile"){
+  var address=walletAddress.textContent;
+  if(address&&address!=="Not connected"){
+   loadBalance(address);
+   profileRefreshTimer=window.setInterval(function(){if(document.getElementById("profile").classList.contains("active"))loadBalance(walletAddress.textContent);},15000);
+  }
+ }
  if(name==="contest")loadContenders();
  if(name==="winners")loadWinners();
  if(name==="submit")renderSubmitForge();
