@@ -1,0 +1,12 @@
+{
+  "cluster": "devnet",
+  "rpc": "https://api.devnet.solana.com",
+  "allowedOrigin": "http://localhost:8080",
+  "mint": "REPLACE_WITH_TEST_MINT",
+  "collection": "REPLACE_WITH_TEST_CORE_COLLECTION",
+  "delegateSecret": [],
+  "listings": [
+    {"id":"winner","category":"winner","asset":"REPLACE_WITH_TEST_NFT","seller":"REPLACE_WITH_TEST_OWNER"},
+    {"id":"special","category":"special","asset":"REPLACE_WITH_TEST_NFT","seller":"REPLACE_WITH_TEST_OWNER"}
+  ]
+}

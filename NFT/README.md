@@ -10,3 +10,6 @@ Independent uppercase `/NFT/` folder. No homepage navigation or existing lowerca
 - Future checkout must validate category and price on the server/program, verify current ownership and collection, and atomically burn the exact token amount and transfer the corresponding Core asset. Browser catalog values must never authorize a sale.
 - NFT transfers require owner authorization or approved escrow/delegation. A buyer signature alone cannot transfer an NFT owned by the creator. Checkout remains unimplemented until that flow is designed and tested.
 - Keep the homepage unlinked until the user approves the appearance and explicitly asks to connect it.
+
+## Checkout implementation
+Devnet-only server, wallet client and tests are in checkout/. Mainnet sales remain disabled in checkout-config.js. Seven local tests passed; live devnet testing stopped at faucet funding with RPC error -32603 on October 6, 2026. No test burn or NFT transfer was executed. See checkout/README.md for launch gates.
