@@ -1,7 +1,7 @@
 {
   "name": "SPARKD - Bear Knockout",
   "description": "SPARKD man lands a golden-gloved punch against a boxing bear amid a vivid red-and-yellow comic burst. A playful superhero showdown with bold comic energy.",
-  "image": "https://sparkdcoin.com/nft/assets/bear-knockout.png",
+  "image": "https://raw.githubusercontent.com/agenteaves/SPARKD/531d43972d07e91293aa8d01938a2f9e85d39f39/nft/assets/bear-knockout.png",
   "external_url": "https://sparkdcoin.com",
   "attributes": [
     {
@@ -20,7 +20,7 @@
   "properties": {
     "files": [
       {
-        "uri": "https://sparkdcoin.com/nft/assets/bear-knockout.png",
+        "uri": "https://raw.githubusercontent.com/agenteaves/SPARKD/531d43972d07e91293aa8d01938a2f9e85d39f39/nft/assets/bear-knockout.png",
         "type": "image/png"
       }
     ],

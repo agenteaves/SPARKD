@@ -1,7 +1,7 @@
 {
   "name": "SPARKD - Chasing the Jeets",
   "description": "SPARKD man races through a neon-green metropolis in pursuit of a bear wearing a JEETS hoodie. A cinematic celebration of determination and the SPARKD community.",
-  "image": "https://sparkdcoin.com/nft/assets/chasing-the-jeets.png",
+  "image": "https://raw.githubusercontent.com/agenteaves/SPARKD/531d43972d07e91293aa8d01938a2f9e85d39f39/nft/assets/chasing-the-jeets.png",
   "external_url": "https://sparkdcoin.com",
   "attributes": [
     {
@@ -20,7 +20,7 @@
   "properties": {
     "files": [
       {
-        "uri": "https://sparkdcoin.com/nft/assets/chasing-the-jeets.png",
+        "uri": "https://raw.githubusercontent.com/agenteaves/SPARKD/531d43972d07e91293aa8d01938a2f9e85d39f39/nft/assets/chasing-the-jeets.png",
         "type": "image/png"
       }
     ],

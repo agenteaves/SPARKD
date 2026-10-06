@@ -1,7 +1,7 @@
 {
   "name": "The Rise of SPARKD",
   "description": "SPARKD man sits with two allies at an ornate green-and-gold council table. The Rise of SPARKD celebrates community, ideas, technology, and a shared vision.",
-  "image": "https://sparkdcoin.com/nft/assets/the-rise-of-sparkd.png",
+  "image": "https://raw.githubusercontent.com/agenteaves/SPARKD/531d43972d07e91293aa8d01938a2f9e85d39f39/nft/assets/the-rise-of-sparkd.png",
   "external_url": "https://sparkdcoin.com",
   "attributes": [
     {
@@ -20,7 +20,7 @@
   "properties": {
     "files": [
       {
-        "uri": "https://sparkdcoin.com/nft/assets/the-rise-of-sparkd.png",
+        "uri": "https://raw.githubusercontent.com/agenteaves/SPARKD/531d43972d07e91293aa8d01938a2f9e85d39f39/nft/assets/the-rise-of-sparkd.png",
         "type": "image/png"
       }
     ],
