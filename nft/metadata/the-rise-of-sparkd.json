@@ -1,0 +1,29 @@
+{
+  "name": "The Rise of SPARKD",
+  "description": "SPARKD man sits with two allies at an ornate green-and-gold council table. The Rise of SPARKD celebrates community, ideas, technology, and a shared vision.",
+  "image": "https://sparkdcoin.com/nft/assets/the-rise-of-sparkd.png",
+  "external_url": "https://sparkdcoin.com",
+  "attributes": [
+    {
+      "trait_type": "Brand",
+      "value": "SPARKD"
+    },
+    {
+      "trait_type": "Art Style",
+      "value": "Cinematic digital illustration"
+    },
+    {
+      "trait_type": "Scene",
+      "value": "Council chamber"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://sparkdcoin.com/nft/assets/the-rise-of-sparkd.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}

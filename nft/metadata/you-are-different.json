@@ -1,0 +1,29 @@
+{
+  "name": "SPARKD - You Are Different",
+  "description": "A smiling stick figure embraces a companion with the SPARKD logo for a face beneath the words You’re different I like you. A simple meme celebrating individuality and connection.",
+  "image": "https://sparkdcoin.com/nft/assets/you-are-different.png",
+  "external_url": "https://sparkdcoin.com",
+  "attributes": [
+    {
+      "trait_type": "Brand",
+      "value": "SPARKD"
+    },
+    {
+      "trait_type": "Art Style",
+      "value": "Minimalist meme"
+    },
+    {
+      "trait_type": "Scene",
+      "value": "White background"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://sparkdcoin.com/nft/assets/you-are-different.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}

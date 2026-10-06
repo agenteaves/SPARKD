@@ -1,0 +1,29 @@
+{
+  "name": "SPARKD - Chasing the Jeets",
+  "description": "SPARKD man races through a neon-green metropolis in pursuit of a bear wearing a JEETS hoodie. A cinematic celebration of determination and the SPARKD community.",
+  "image": "https://sparkdcoin.com/nft/assets/chasing-the-jeets.png",
+  "external_url": "https://sparkdcoin.com",
+  "attributes": [
+    {
+      "trait_type": "Brand",
+      "value": "SPARKD"
+    },
+    {
+      "trait_type": "Art Style",
+      "value": "Cinematic digital illustration"
+    },
+    {
+      "trait_type": "Scene",
+      "value": "Neon city"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://sparkdcoin.com/nft/assets/chasing-the-jeets.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}
