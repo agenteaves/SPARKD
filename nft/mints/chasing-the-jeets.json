@@ -1,0 +1,12 @@
+{
+  "name": "SPARKD - Chasing the Jeets",
+  "assetAddress": "QTMZGvehRpBAQjs6uFMyqbJCEdhNhdCihXhRPBEk6D9",
+  "network": "solana-mainnet",
+  "standard": "Metaplex Core",
+  "collectionAddress": "4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4",
+  "ownerAtVerification": "2dFYXBWy1s5kq3gZpZ9m3aQ4VkUDwVbUSnVes5rUXSe6",
+  "verifiedAt": "2026-10-06",
+  "verifiedVia": "Solana mainnet RPC and Metaplex explorer",
+  "metadataUri": "https://raw.githubusercontent.com/agenteaves/SPARKD/e8d303a42e03d47b01d979bb9e8474145900f109/nft/metadata/chasing-the-jeets.json",
+  "metadataCorrectionPending": true
+}

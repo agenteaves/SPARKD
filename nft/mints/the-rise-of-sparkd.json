@@ -1,0 +1,12 @@
+{
+  "name": "The Rise of SPARKD",
+  "assetAddress": "7frr8Pn7hUtzaSDSypc5eUYCKP632Drz58UahWfXWAWy",
+  "network": "solana-mainnet",
+  "standard": "Metaplex Core",
+  "collectionAddress": "4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4",
+  "ownerAtVerification": "2dFYXBWy1s5kq3gZpZ9m3aQ4VkUDwVbUSnVes5rUXSe6",
+  "verifiedAt": "2026-10-06",
+  "verifiedVia": "Solana mainnet RPC and Metaplex explorer",
+  "metadataUri": "https://raw.githubusercontent.com/agenteaves/SPARKD/e8d303a42e03d47b01d979bb9e8474145900f109/nft/metadata/the-rise-of-sparkd.json",
+  "metadataCorrectionPending": true
+}
