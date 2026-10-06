@@ -92,8 +92,8 @@ window.NFT_CATALOG = [
     "explorer": "https://core.metaplex.com/explorer/QTMZGvehRpBAQjs6uFMyqbJCEdhNhdCihXhRPBEk6D9?env=mainnet",
     "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
     "description": "SPARKD man races through a neon-green metropolis in pursuit of a bear wearing a JEETS hoodie. A cinematic celebration of determination and the SPARKD community.",
-    "saleCategory": "special",
-    "burnAmount": 30000
+    "saleCategory": "winner",
+    "burnAmount": 20000
   },
   {
     "id": "the-rise-of-sparkd",
@@ -108,8 +108,8 @@ window.NFT_CATALOG = [
     "explorer": "https://core.metaplex.com/explorer/7frr8Pn7hUtzaSDSypc5eUYCKP632Drz58UahWfXWAWy?env=mainnet",
     "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
     "description": "SPARKD man sits with two allies at an ornate green-and-gold council table. The Rise of SPARKD celebrates community, ideas, technology, and a shared vision.",
-    "saleCategory": "special",
-    "burnAmount": 30000
+    "saleCategory": "winner",
+    "burnAmount": 20000
   },
   {
     "id": "you-are-different",
@@ -124,8 +124,8 @@ window.NFT_CATALOG = [
     "explorer": "https://core.metaplex.com/explorer/27oW4rNe4aDhjAeMCW8HbR32PjDvSAhJh9kmTCfRU8Ve?env=mainnet",
     "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
     "description": "A smiling stick figure embraces a companion with the SPARKD logo for a face beneath the words You’re different I like you. A simple meme celebrating individuality and connection.",
-    "saleCategory": "special",
-    "burnAmount": 30000
+    "saleCategory": "winner",
+    "burnAmount": 20000
   },
   {
     "id": "bear-knockout",
@@ -140,7 +140,7 @@ window.NFT_CATALOG = [
     "explorer": "https://core.metaplex.com/explorer/4Z1eNUv5WbKPVeVatPYuAej7NbYA71ezs8F4jgunGUhm?env=mainnet",
     "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
     "description": "SPARKD man lands a golden-gloved punch against a boxing bear amid a vivid red-and-yellow comic burst. A playful superhero showdown with bold comic energy.",
-    "saleCategory": "special",
-    "burnAmount": 30000
+    "saleCategory": "winner",
+    "burnAmount": 20000
   }
 ];
