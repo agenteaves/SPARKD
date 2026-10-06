@@ -5,8 +5,8 @@ import {createUmi} from '@metaplex-foundation/umi-bundle-defaults';
 import {mplCore,fetchAsset,fetchCollection,transfer} from '@metaplex-foundation/mpl-core';
 import {publicKey,createNoopSigner} from '@metaplex-foundation/umi';
 import {toWeb3JsInstruction} from '@metaplex-foundation/umi-web3js-adapters';
-export const MAINNET_GENESIS='5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-export const DEVNET_GENESIS='EtWTRABZaYq6iMfeYKouRu166VU2xqa1';
+export const MAINNET_GENESIS='5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
+export const DEVNET_GENESIS='EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG';
 export function amountFor(listing,decimals){if(!Number.isInteger(decimals)||decimals<0||decimals>9)throw Error('Unsupported token precision');const prices={winner:20000,special:30000};if(!prices[listing.category])throw Error('Invalid category');return BigInt(prices[listing.category])*10n**BigInt(decimals);}
 export function assertListing(asset,listing,collection,delegate){if(asset.owner!==listing.seller)throw Error('NFT is unavailable');if(asset.updateAuthority.type!=='Collection'||asset.updateAuthority.address!==collection)throw Error('Wrong collection');if(asset.transferDelegate?.authority?.type!=='Address'||asset.transferDelegate.authority.address!==delegate)throw Error('Listing has not been authorized');if(asset.freezeDelegate?.frozen||asset.permanentFreezeDelegate?.frozen)throw Error('NFT is frozen');}
 const hash=tx=>createHash('sha256').update(tx.serializeMessage()).digest('hex');

@@ -1,29 +1,29 @@
-# SPARKD burn-to-buy checkout — DEVNET ONLY
+# SPARKD NFT Vault checkout
 
-The service constructs exactly one SPL BurnChecked plus one Metaplex Core transfer in a single transaction. The buyer pays fees and signs the burn; an authorized one-time delegate co-signs the transfer. Server-side listings enforce 20,000 for `winner`, 30,000 for `special`; client amounts are ignored. Modified messages invalidate the delegate signature and are rejected again at submission. Current ownership, collection, delegate, token mint, balance, decimals and devnet genesis are checked.
+The production checkout is hosted as the separate Supabase `nft-vault` Edge Function. It uses Solana mainnet, SPARKD's **Token-2022** mint `BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump`, six decimals, and the existing Metaplex Core collection. It does not modify the existing contest functions or Cloudflare.
 
-## Status
+## Pricing and transactions
 
-Mainnet disabled by code. No real NFT delegated, transferred or burned. No mainnet SPARKD used. Do not enable real purchases until live devnet tests and deployment are complete.
+The server pins the nine asset addresses and their categories in `production-config.mjs`. Four contest winners cost 20,000 SPARKD; five special artworks cost 30,000. Requests cannot change the price, mint, collection, seller or asset. Every purchase has exactly one Token-2022 BurnChecked instruction and one Core transfer. The buyer pays SOL fees, signs the burn and receives the NFT. The service co-signs only the exact approved transfer plus burn message. Both instructions execute atomically. Before offering any signing request, the service simulates it against mainnet without signature verification; simulation does not submit it or persist changes.
 
-## Run tests
+## Owner approvals
 
-`npm ci` then `npm test`. `npm run fixture` requests devnet SOL, creates a test mint and two test Core assets and exercises both purchase prices. Fixture secrets are written only to gitignored `*.local.json` files. Never upload them. If the faucet fails, fund the printed public test wallet address with DEVNET SOL using the official Solana faucet, then rerun. Never send real SOL.
+Open `/NFT/owner.html` in Phantom's browser or a desktop browser with Phantom. Connect wallet `2dFYXBWy1s5kq3gZpZ9m3aQ4VkUDwVbUSnVes5rUXSe6`. Approve one NFT at a time. Each NFT has a distinct delegate derived from a protected signing seed. The owner signs a single add/approve TransferDelegate instruction; withdrawal signs its revocation. These actions incur real SOL network/storage fees. No listing is available until its current on-chain owner, collection and delegate match the pinned listing.
 
-`npm start` runs the service on localhost:8787. Host behind HTTPS with the exact configured allowedOrigin. Do not expose this devnet service on mainnet. Set `NFT_TEST_CONFIG` to a protected config file. RPC, test mint, test collection, delegate key and owner/listing records come from the fixture.
+**Authority limit:** This is server-enforced pricing, not an on-chain marketplace pricing program. A compromised per-NFT delegate can transfer its approved NFT without a burn. A compromised root signing seed can derive all nine delegates. The approval page explains this before signing. Delegates grant no access to the owner's SOL, SPARKD balance, other NFTs, or wallet private key. TransferDelegate approval resets when the NFT transfers; the buyer receives normal Core ownership.
 
-## Browser test
+The website stays unlinked from the homepage. Approval/listing does not transfer the NFT. The selling wallet cannot buy its own NFT from itself: use a second wallet account with SPARKD and enough SOL for a real purchase test.
 
-Add testAsset addresses to a private local copy of the catalog, matching listing IDs. Set checkout-config enabled:true, cluster:devnet, api to the HTTPS test endpoint, testMint/testCollection/delegate to the fixture public addresses. Set Phantom to devnet. The shipped public page keeps enabled:false. Checkout checks burn and transfer instruction fields before requesting a signature. Reject wallet prompts that don't match the displayed test purchase.
+## Backend deployment and storage
 
-## Mainnet launch gates
+`edge/schema.sql` creates isolated RLS-protected NFT quote/rate tables and an encrypted Vault seed generated inside Postgres. The seed is never returned to the frontend, written in source control or logged. `nft_vault_signer_seed` is executable only by `service_role`; `anon` and `authenticated` have no access. The Edge Function uses Supabase's server-side environment credentials to read it. Public clients use the existing legacy anon JWT because platform JWT verification remains enabled. CORS permits only the canonical site and its www origin. Signing is constrained by server-side listings and on-chain state; CORS/anon keys do not authorize owner transactions. Rate limits persist across workers.
 
-1. Complete live devnet happy-path purchases for both prices, wrong-price attempts, wrong mint/collection, insufficient balance, expired blockhash, wallet rejection, sold NFT and simultaneous buyers. Verify failed transactions never change token supply or NFT ownership, except normal network fees.
-2. Choose production hosting and secret management. Delegate private keys never belong in browser files, git, or public HTML. A compromised delegate can transfer every NFT delegated to it; this is server-enforced pricing, not on-chain price enforcement. For on-chain enforcement, replace the signer with an audited marketplace program PDA.
-3. Implement authenticated admin listing/withdrawal and owner-signed TransferDelegate approval/revocation. Approvals must identify each asset and the exact delegate; owner signs in their wallet. Do not use a permanent delegate or expose the seller's wallet key.
-4. Production version requires explicit mainnet configuration, bounded listing authority, external review and deployed backend. This test build intentionally rejects mainnet.
-5. Enable checkout and link from homepage only after the user approves launch. Sold status must come from confirmed ownership, not a browser click or database flag.
+RLS tables deliberately have no client policies or client grants: only service_role accesses them. Supabase advisors report this as informational deny-by-default, with no NFT-related warning/error notices. Quotes persist across workers/restarts. Submission verifies the stored message hash and every required signature. Submitting the same signed transaction uses the same Solana signature and cannot burn twice. The browser records pending signatures before submission, checks status before another purchase and waits for confirmed token/NFT details. Failed or finalized-expired transactions allow retry; uncertain status never automatically starts another burn. Quote records are retained for one day and expire for new submission after 90 seconds.
 
-## Known limits
+## Build and verification
 
-This initial service stores quotes in memory and is single-process. Restart expires quotes. It supports standard SPL tokens and standard Core listings; external Core plugin behavior may require additional validation. Devnet end-to-end testing is blocked if the public faucet is unavailable. Wallet listing/admin tooling and mainnet deployment are not complete.
+`npm ci`, `npm test`, `npm run build`, `npm run build:edge`. Exact dependencies and npm lockfile are committed. The backend bundle is reproducible and uses built-in `node:` imports so deployment does not depend on remote npm fetches. Deploy `edge/index.ts`, `edge/production-bundle.mjs`, and `edge/deno.json` with `verify_jwt:true` and `import_map_path:deno.json`.
+
+Tests cover exact winner/special Token-2022 burns, buyer/delegate signatures, instruction tampering, owner-only listing/revocation, wrong network, sold/unlisted assets, insufficient funds, failed simulation, and finalized expiry. Production inventory and unsigned owner preparation have been checked against the real mainnet records. Read-only mainnet simulations for both prices passed an ephemeral listing approval, exact Token-2022 burn and Core transfer; wrong-delegate transfer simulations failed. The owner token balance and actual NFT data remained unchanged. `node simulate-mainnet.mjs` reproduces those simulations and never submits a transaction. The two-instruction delegated purchase itself still needs an owner-approved pilot listing. No real purchase, burn, delegation or transfer has been performed by the agent. A wallet-signed pilot purchase remains to be completed by the owner before broad launch.
+
+The earlier `service.mjs`, local server and `devnet-fixture.mjs` remain devnet-only reference tooling; the shipped page uses `production-service.mjs` through the hosted Edge Function. They do not enable a devnet transaction on the mainnet page.
