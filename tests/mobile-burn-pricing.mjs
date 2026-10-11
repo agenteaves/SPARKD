@@ -16,7 +16,7 @@ const iphone = read("iphone-web-app/index.html");
 const burnTest = read("meme-of-the-week/burn-test.html");
 
 assert.doesNotMatch(api + android + web + app + rules + guide + index + iphone + burnTest, /2,000\s+SPARKD|2000000000/);
-assert.doesNotMatch(app, /\\)\\s*\\*\\s*2000/, "contest totals must never use the retired fixed entry amount");
+assert.doesNotMatch(app, /\)\s*\*\s*2000/, "contest totals must never use the retired fixed entry amount");
 assert(!fs.existsSync(path.join(root, "meme-of-the-week/voting.js")));
 assert(!fs.existsSync(path.join(root, "meme-of-the-week/voter-reward.js")));
 assert.match(api, /rawBurnAmount\.matches\(Regex\("\[1-9\]\[0-9\]\*"/);
