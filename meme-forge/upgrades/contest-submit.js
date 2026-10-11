@@ -11,8 +11,8 @@ window.SPARKD_CONTEST = {
     // CONFIGURATION
     ////////////////////////////////////////////////////
 
-    REQUIRED_SPARKD:
-        2000,
+    ENTRY_USD:
+        3,
 
     BUCKET:
         "sparkd-contest-submissions",
@@ -312,19 +312,17 @@ window.SPARKD_CONTEST = {
         }
 
 
-        if (
-            balance <
-            this.REQUIRED_SPARKD
-        ) {
+        const requiredSparkd = Number(result.requiredSparkd);
+        if (!Number.isFinite(requiredSparkd) || requiredSparkd <= 0) {
+            throw new Error("The current $3 SPARKD entry quote is unavailable.");
+        }
 
+        if (balance < requiredSparkd) {
             throw new Error(
-
-                "You need at least " +
-                this.REQUIRED_SPARKD.toLocaleString() +
-                " SPARKD to enter."
-
+                "You need about " +
+                requiredSparkd.toLocaleString("en-US", { maximumFractionDigits: 6 }) +
+                " SPARKD to cover this $3 entry burn."
             );
-
         }
 
 
@@ -340,7 +338,10 @@ window.SPARKD_CONTEST = {
                 balance,
 
             requiredSparkd:
-                this.REQUIRED_SPARKD,
+                requiredSparkd,
+
+            targetEntryUsd:
+                Number(result.targetEntryUsd || this.ENTRY_USD),
 
             canSubmit:
                 result.canSubmit !== false
@@ -571,7 +572,8 @@ async recordBurnReceipt(
     wallet,
     contestId,
     burnTransaction,
-    memeID
+    memeID,
+    quoteToken
 ) {
 
     this.validateWallet(
@@ -625,7 +627,10 @@ async recordBurnReceipt(
                             burnTransaction,
 
                         memeID:
-                            memeID.trim()
+                            memeID.trim(),
+
+                        quoteToken:
+                            quoteToken
                     })
             }
         );
@@ -1014,7 +1019,7 @@ async finalizeSubmission(
                 balance.balance,
 
             requiredSparkd:
-                this.REQUIRED_SPARKD,
+                balance.requiredSparkd,
 
             memeID:
                 entryData.memeID,
@@ -1404,7 +1409,7 @@ async finalizeSubmission(
 //
 // VERIFIED TOKEN-2022 BURN + SERVER FINALIZATION
 //
-// Burns exactly 2,000 SPARKD after validation.
+// Burns $3 worth of SPARKD after validation.
 // Includes burn-receipt recovery protection.
 ////////////////////////////////////////////////////
 
@@ -1642,7 +1647,8 @@ if (
                 wallet,
                 contest.id,
                 recoverySignature,
-        entryMemeID
+                entryMemeID,
+                recoveryData?.quoteToken
             );
 
             existingBurnReceipt =
@@ -1728,11 +1734,12 @@ if (
                     }
 
                     await this.recordBurnReceipt(
-                        wallet,
-                        contest.id,
-                        recoverySignature,
-        entryMemeID
-                    );
+                wallet,
+                contest.id,
+                recoverySignature,
+                entryMemeID,
+                recoveryData?.quoteToken
+            );
 
                     existingBurnReceipt =
                         await this.getBurnReceipt(
@@ -1804,7 +1811,8 @@ if (
                 wallet,
                 contest.id,
                 recoveryData.burnTransaction,
-        entryMemeID
+                entryMemeID,
+                recoveryData?.quoteToken
             );
 
             existingBurnReceipt =
@@ -1996,18 +2004,6 @@ else {
     }
 
 
-    if (
-        tokenAccount.balance <
-        this.REQUIRED_SPARKD
-    ) {
-
-        throw new Error(
-            "SPARKD Token-2022 account balance is below the required amount."
-        );
-
-    }
-
-
     console.log(
         "🔥 SPARKD Token-2022 account verified:",
         tokenAccount.tokenAccount
@@ -2167,7 +2163,7 @@ else {
     ////////////////////////////////////////////////////
 
     console.log(
-        "🔥 Requesting REAL 2,000 SPARKD burn..."
+        "🔥 Requesting the $3 SPARKD entry burn..."
     );
 
 
@@ -2252,26 +2248,12 @@ else {
 
 
     if (
-        burnResult.burnAmount !==
-        this.REQUIRED_SPARKD
+        !Number.isFinite(Number(burnResult.burnAmount)) ||
+        burnResult.burnAmount <= 0 ||
+        String(burnResult.rawBurnAmount) !== String(burnResult.verification?.rawBurnAmount) ||
+        Number(burnResult.burnAmount) !== Number(burnResult.verification?.burnAmount)
     ) {
-
-        throw new Error(
-            "Verified SPARKD burn amount is incorrect."
-        );
-
-    }
-
-
-    if (
-        burnResult.rawBurnAmount !==
-        "2000000000"
-    ) {
-
-        throw new Error(
-            "Verified SPARKD raw burn amount is incorrect."
-        );
-
+        throw new Error("Verified SPARKD burn does not match the signed $3 entry quote.");
     }
 
 
@@ -2340,14 +2322,15 @@ try {
         wallet,
         contest.id,
         burnResult.burnTransaction,
-        entryMemeID
+        entryMemeID,
+        burnResult.quoteToken
     );
 
 }
 catch (error) {
 
     throw new Error(
-        "The 2,000 SPARKD burn succeeded, but the burn receipt could not be recorded. Burn transaction: " +
+        "The $3 SPARKD entry burn succeeded, but its receipt could not be recorded. Burn transaction: " +
         burnResult.burnTransaction +
         ". DO NOT BURN AGAIN. " +
         (
@@ -2747,16 +2730,6 @@ const response =
 
         }
 
-        if (
-            tokenAccountResult.sufficientBalance !== true
-        ) {
-
-            throw new Error(
-                "Wallet does not have enough SPARKD to burn 2,000 tokens."
-            );
-
-        }
-
         ////////////////////////////////////////////////////
         // REQUEST SERVER-BUILT RECENT-BLOCKHASH TRANSACTION
         ////////////////////////////////////////////////////
@@ -2828,7 +2801,16 @@ const response =
             "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 
         const expectedRawAmount =
-            "2000000000";
+            String(prepareResult.rawBurnAmount || "");
+
+        if (
+            !/^\d+$/.test(expectedRawAmount) ||
+            BigInt(expectedRawAmount) <= 0n ||
+            typeof prepareResult.quoteToken !== "string" ||
+            !prepareResult.quoteToken
+        ) {
+            throw new Error("Server returned an invalid or unsigned $3 SPARKD quote.");
+        }
 
         const expectedDecimals =
             6;
@@ -3079,10 +3061,22 @@ const response =
                 expectedProgram,
 
             burnAmount:
-                2000,
+                Number(prepareResult.burnAmount),
 
             rawBurnAmount:
                 expectedRawAmount,
+
+            targetEntryUsd:
+                Number(prepareResult.targetEntryUsd),
+
+            priceUsd:
+                Number(prepareResult.priceUsd),
+
+            estimatedEntryUsd:
+                Number(prepareResult.estimatedEntryUsd),
+
+            quoteToken:
+                prepareResult.quoteToken,
 
             decimals:
                 expectedDecimals,
@@ -3132,7 +3126,7 @@ const response =
     //
     // WARNING:
     // Phantom approval WILL send a REAL transaction.
-    // Successful execution burns 2,000 SPARKD.
+    // Successful execution burns the signed $3 SPARKD entry quote.
     ////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////
@@ -3395,7 +3389,10 @@ async resendSignedBurnTransaction(
                             memeID,
 
                         signedTransaction:
-                            signedTransactionBase64
+                            signedTransactionBase64,
+
+                        quoteToken:
+                            built.quoteToken
                     })
             }
         );
@@ -3439,7 +3436,7 @@ async executeSparkdBurn(
 ) {
 
     console.log(
-        "🔥 Preparing REAL 2,000 SPARKD burn..."
+        "🔥 Preparing a $3 SPARKD entry burn..."
     );
 
     this.validateWallet(
@@ -3576,8 +3573,16 @@ console.log(
 
     }
 
+    const displayedAmount =
+        built.burnAmount.toLocaleString("en-US", { maximumFractionDigits: 6 });
+    if (!window.confirm(
+        `Approve burning about ${Number(built.estimatedEntryUsd).toFixed(2)} worth of SPARKD (approximately ${displayedAmount} SPARKD) for this contest entry?`
+    )) {
+        throw new Error("SPARKD contest entry burn was canceled.");
+    }
+
     console.log(
-        "⚠️ Phantom will now request approval to burn exactly 2,000 SPARKD."
+        "⚠️ Phantom will request approval to burn the quoted $3 SPARKD entry amount."
     );
 
     ////////////////////////////////////////////////////
@@ -3760,6 +3765,9 @@ console.log(
 
             burnTransaction:
                 preBroadcastSignature,
+
+            quoteToken:
+                built.quoteToken,
 
             recentBlockhash:
                 built.recentBlockhash,
@@ -3956,7 +3964,16 @@ console.log(
                                 wallet,
 
                             burnTransaction:
-                                signature
+                                signature,
+
+                            contestId:
+                                contestId,
+
+                            memeID:
+                                memeID,
+
+                            quoteToken:
+                                built.quoteToken
                         })
                 }
             );
@@ -4042,10 +4059,19 @@ console.log(
             built.mint,
 
         burnAmount:
-            2000,
+            Number(verification.burnAmount),
 
         rawBurnAmount:
-            "2000000000",
+            String(verification.rawBurnAmount),
+
+        quoteToken:
+            built.quoteToken,
+
+        targetEntryUsd:
+            Number(verification.targetEntryUsd || built.targetEntryUsd),
+
+        estimatedEntryUsd:
+            Number(verification.estimatedEntryUsd || built.estimatedEntryUsd),
 
         decimals:
             6,

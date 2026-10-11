@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION public.get_current_meme_week() RETURNS public.meme_week_contests LANGUAGE sql STABLE SET search_path TO 'public','pg_temp' AS $$ SELECT * FROM public.meme_week_contests WHERE now()>=week_start AND now()<week_end AND status='submission' ORDER BY week_start DESC LIMIT 1; $$;

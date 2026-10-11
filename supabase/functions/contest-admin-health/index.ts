@@ -41,26 +41,10 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    if (!["health", "vote_totals"].includes(body?.action)) return json(req, { success: false, error: "Unsupported action" }, 400);
+    if (body?.action !== "health") return json(req, { success: false, error: "Unsupported action" }, 400);
     const url = Deno.env.get("SUPABASE_URL"); const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !service) return json(req, { success: false, error: "Server configuration unavailable" }, 500);
     const db = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
-
-    if (body.action === "vote_totals") {
-      const { data: contests, error: contestError } = await db.from("meme_week_contests").select("id,week_start,week_end,status").in("status", ["submission", "voting"]).order("week_start", { ascending: false }).limit(1);
-      if (contestError) throw contestError;
-      const contest = contests?.[0] || null;
-      if (!contest) return json(req, { success: true, contest: null, totalVotes: 0, submissions: [] });
-
-      const { data: submissions, error: submissionError } = await db.from("meme_week_submissions").select("id,meme_title,meme_image_url,status,burn_verified,submitted_at").eq("contest_id", contest.id).neq("status", "rejected").order("submitted_at", { ascending: true });
-      if (submissionError) throw submissionError;
-      const { data: votes, error: voteError } = await db.from("meme_week_votes").select("submission_id").eq("contest_id", contest.id);
-      if (voteError) throw voteError;
-
-      const counts = new Map<string, number>();
-      for (const vote of votes || []) counts.set(vote.submission_id, (counts.get(vote.submission_id) || 0) + 1);
-      return json(req, { success: true, contest, totalVotes: (votes || []).length, submissions: (submissions || []).map((s) => ({ id: s.id, memeTitle: s.meme_title || "Untitled SPARKD Meme", memeImageUrl: s.meme_image_url, status: s.status, voteCount: counts.get(s.id) || 0 })) });
-    }
 
     const { data, error } = await db.rpc("get_meme_week_admin_health");
     if (error) throw error;
