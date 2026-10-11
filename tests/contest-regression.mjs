@@ -55,6 +55,7 @@ assert(!/REQUIRED_SPARKD|2000000000|2,000 SPARKD/.test(superHandler));
 assert(burnQuote.includes("const TARGET_ENTRY_USD = 3;"));
 assert(adaptiveBurnQuote.includes("const TARGET_ENTRY_USD = 3;"));
 assert((burnQuote + adaptiveBurnQuote).includes("lite-api.jup.ag"));
+assert((superHandler + burnQuote + adaptiveBurnQuote).includes("pump-fun-market-cap-fallback"));
 assert(!/LEGACY_BURN\s*=\s*2000|legacy-fallback/.test(burnQuote + adaptiveBurnQuote));
 assert(index.includes("Each entry burns $3 worth of SPARKD"));
 assert(guide.includes("Each entry burns $3 worth of SPARKD"));

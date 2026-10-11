@@ -109,15 +109,48 @@ async function getContestBurnQuote() {
         response = null;
     }
 
-    if (!response || !response.ok) throw new Error(lastError);
-    const data = await response.json();
-    const row = data?.[SPARKD_MINT];
-    const priceUsd = Number(row?.usdPrice);
-    const liquidityUsd = Number(row?.liquidity);
-    if (!Number.isFinite(priceUsd) || priceUsd <= 0) throw new Error("A valid SPARKD/USD price is unavailable.");
-    if (!Number.isFinite(liquidityUsd) || liquidityUsd < MIN_PRICE_LIQUIDITY_USD) {
-        throw new Error("SPARKD price liquidity is below the $2,500 safety threshold.");
+    let priceUsd: number;
+    let liquidityUsd: number | null;
+    if (response?.ok && priceSource) {
+        const data = await response.json();
+        const row = data?.[SPARKD_MINT];
+        priceUsd = Number(row?.usdPrice);
+        const parsedLiquidity = Number(row?.liquidity);
+        if (!Number.isFinite(priceUsd) || priceUsd <= 0) throw new Error("A valid SPARKD/USD price is unavailable.");
+        if (!Number.isFinite(parsedLiquidity) || parsedLiquidity < MIN_PRICE_LIQUIDITY_USD) {
+            throw new Error("SPARKD price liquidity is below the $2,500 safety threshold.");
+        }
+        liquidityUsd = parsedLiquidity;
+    } else {
+        const pumpResponse = await fetch(
+            `https://frontend-api-v3.pump.fun/coins-v2/${SPARKD_MINT}`,
+            { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8000) }
+        );
+        if (!pumpResponse.ok) throw new Error(lastError);
+        const data = await pumpResponse.json();
+        const coin = Array.isArray(data) ? data[0] : (data?.coin || data);
+        const supplyRaw = Number(coin?.total_supply_str ?? coin?.total_supply);
+        const supplyTokens = supplyRaw / (10 ** SPARKD_DECIMALS);
+        const marketCapUsd = Number(coin?.usd_market_cap ?? coin?.usdMarketCap ?? coin?.market_cap_usd);
+        const realSolReserves = Number(coin?.real_sol_reserves ?? 0);
+        if (
+            coin?.mint !== SPARKD_MINT ||
+            (coin?.token_program && coin.token_program !== "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") ||
+            !Number.isFinite(supplyTokens) ||
+            supplyTokens <= 0 ||
+            !Number.isFinite(marketCapUsd) ||
+            marketCapUsd < MIN_PRICE_LIQUIDITY_USD ||
+            !Number.isFinite(realSolReserves) ||
+            realSolReserves < 1000000000
+        ) {
+            throw new Error("Jupiter is rate limited and Pump did not return a safe SPARKD quote.");
+        }
+        priceUsd = marketCapUsd / supplyTokens;
+        if (!Number.isFinite(priceUsd) || priceUsd <= 0) throw new Error("Pump did not return a valid SPARKD/USD price.");
+        liquidityUsd = null;
+        priceSource = "pump-fun-market-cap-fallback";
     }
+
     const rawAmount = BigInt(Math.ceil((CONTEST_ENTRY_USD / priceUsd) * (10 ** SPARKD_DECIMALS)));
     if (rawAmount <= 0n || rawAmount > 1000000000000000n) throw new Error("The $3 SPARKD entry quote is outside the token supply range.");
     const amount = Number(rawAmount) / (10 ** SPARKD_DECIMALS);
