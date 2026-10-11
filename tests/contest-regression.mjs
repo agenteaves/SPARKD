@@ -24,6 +24,8 @@ const burnTest = read("meme-of-the-week/burn-test.html");
 assert(index.includes('id="completedContestBurned"'));
 assert(index.indexOf('id="completedContestBurned"') > index.indexOf('id="totalBurned"'));
 assert(app.includes("data.completedContestBurned"));
+assert(app.includes("Each entry burns $3 worth of SPARKD"));
+assert(!/2,000 SPARKD|2000000000/.test(app));
 assert(app.includes("COMPLETED_BURN_CACHE_KEY"));
 assert(/contest-image\.js/.test(index));
 assert(/server-nudenet-guard\.js/.test(index));

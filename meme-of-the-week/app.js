@@ -1557,7 +1557,7 @@ document.addEventListener(
                     const readyToBurn =
                         window.confirm(
                             "READY TO SUBMIT?\n\n" +
-                            "Entering Meme of the Week requires burning exactly 2,000 SPARKD.\n\n" +
+                            "Each entry burns $3 worth of SPARKD at the current server quote.\n\n" +
                             "After you continue, Phantom will open for the burn transaction. Review it and approve promptly.\n\n" +
                             "Press OK only when you are ready to review Phantom now."
                         );
