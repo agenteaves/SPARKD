@@ -21,14 +21,37 @@ function json(data: unknown, status = 200) {
 
 async function getJupiterPrice() {
   const apiKey = Deno.env.get("JUPITER_API_KEY");
-  const base = apiKey ? "https://api.jup.ag" : "https://lite-api.jup.ag";
-  const headers: Record<string, string> = { "Accept": "application/json" };
-  if (apiKey) headers["x-api-key"] = apiKey;
-  const response = await fetch(
-    `${base}/price/v3?ids=${encodeURIComponent(SPARKD_MINT)}`,
-    { headers, signal: AbortSignal.timeout(8000) }
-  );
-  if (!response.ok) throw new Error(`Jupiter price HTTP ${response.status}`);
+  const endpoints = apiKey
+    ? [
+        { base: "https://api.jup.ag", apiKey, source: "jupiter-price-v3" },
+        { base: "https://lite-api.jup.ag", source: "jupiter-price-v3-lite" }
+      ]
+    : [{ base: "https://lite-api.jup.ag", source: "jupiter-price-v3-lite" }];
+
+  let response: Response | null = null;
+  let source: string | null = null;
+  let lastError = "SPARKD price service is unavailable.";
+  for (const endpoint of endpoints) {
+    const headers: Record<string, string> = { "Accept": "application/json" };
+    if (endpoint.apiKey) headers["x-api-key"] = endpoint.apiKey;
+    try {
+      response = await fetch(
+        `${endpoint.base}/price/v3?ids=${encodeURIComponent(SPARKD_MINT)}`,
+        { headers, signal: AbortSignal.timeout(8000) }
+      );
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      continue;
+    }
+    if (response.ok) {
+      source = endpoint.source;
+      break;
+    }
+    lastError = `Jupiter price HTTP ${response.status}`;
+    response = null;
+  }
+
+  if (!response || !response.ok) throw new Error(lastError);
   const data = await response.json();
   const row = data?.[SPARKD_MINT];
   const priceUsd = Number(row?.usdPrice);
@@ -38,12 +61,7 @@ async function getJupiterPrice() {
   if (!Number.isFinite(liquidityUsd) || liquidityUsd < MIN_PRICE_LIQUIDITY_USD) {
     throw new Error("SPARKD price liquidity is below the $2,500 safety threshold.");
   }
-  return {
-    priceUsd,
-    liquidityUsd,
-    blockId: Number.isFinite(blockId) ? blockId : null,
-    source: apiKey ? "jupiter-price-v3" : "jupiter-price-v3-lite"
-  };
+  return { priceUsd, liquidityUsd, blockId: Number.isFinite(blockId) ? blockId : null, source };
 }
 
 serve(async (req) => {

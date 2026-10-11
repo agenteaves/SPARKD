@@ -79,18 +79,41 @@ function jsonResponse(
 
 async function getContestBurnQuote() {
     const apiKey = Deno.env.get("JUPITER_API_KEY");
-    const base = apiKey ? "https://api.jup.ag" : "https://lite-api.jup.ag";
-    const headers = { "Accept": "application/json" };
-    if (apiKey) headers["x-api-key"] = apiKey;
-    const response = await fetch(`${base}/price/v3?ids=${encodeURIComponent(SPARKD_MINT)}`, {
-        headers,
-        signal: AbortSignal.timeout(8000)
-    });
-    if (!response.ok) throw new Error(`SPARKD price service returned HTTP ${response.status}.`);
+    const endpoints = apiKey
+        ? [
+            { base: "https://api.jup.ag", apiKey, source: "jupiter-price-v3" },
+            { base: "https://lite-api.jup.ag", source: "jupiter-price-v3-lite" }
+        ]
+        : [{ base: "https://lite-api.jup.ag", source: "jupiter-price-v3-lite" }];
+
+    let response: Response | null = null;
+    let priceSource: string | null = null;
+    let lastError = "SPARKD price service is unavailable.";
+    for (const endpoint of endpoints) {
+        const headers: Record<string, string> = { "Accept": "application/json" };
+        if (endpoint.apiKey) headers["x-api-key"] = endpoint.apiKey;
+        try {
+            response = await fetch(
+                `${endpoint.base}/price/v3?ids=${encodeURIComponent(SPARKD_MINT)}`,
+                { headers, signal: AbortSignal.timeout(8000) }
+            );
+        } catch (error) {
+            lastError = error instanceof Error ? error.message : String(error);
+            continue;
+        }
+        if (response.ok) {
+            priceSource = endpoint.source;
+            break;
+        }
+        lastError = `SPARKD price service returned HTTP ${response.status}.`;
+        response = null;
+    }
+
+    if (!response || !response.ok) throw new Error(lastError);
     const data = await response.json();
     const row = data?.[SPARKD_MINT];
     const priceUsd = Number(row?.usdPrice);
-    const liquidityUsd = Number(row?.liquidity ?? 0);
+    const liquidityUsd = Number(row?.liquidity);
     if (!Number.isFinite(priceUsd) || priceUsd <= 0) throw new Error("A valid SPARKD/USD price is unavailable.");
     if (!Number.isFinite(liquidityUsd) || liquidityUsd < MIN_PRICE_LIQUIDITY_USD) {
         throw new Error("SPARKD price liquidity is below the $2,500 safety threshold.");
@@ -100,8 +123,8 @@ async function getContestBurnQuote() {
     const amount = Number(rawAmount) / (10 ** SPARKD_DECIMALS);
     return {
         priceUsd,
-        liquidityUsd: Number.isFinite(liquidityUsd) ? liquidityUsd : null,
-        priceSource: apiKey ? "jupiter-price-v3" : "jupiter-price-v3-lite",
+        liquidityUsd,
+        priceSource,
         rawAmount: rawAmount.toString(),
         amount,
         estimatedUsd: amount * priceUsd,
