@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: rows, error: winnerError } = await db.from("meme_week_winners")
-      .select("id,contest_id,submission_id,wallet_address,won_at,second_submission_id,second_wallet_address,third_submission_id,third_wallet_address,selection_method,eligible_entry_count,draw_seed,entrant_commitment")
+      .select("id,contest_id,submission_id,wallet_address,won_at,second_submission_id,second_wallet_address,third_submission_id,third_wallet_address,eligible_entry_count,draw_seed,entrant_commitment")
       .eq("contest_id", contest.id).eq("submission_id", contest.winner_submission_id).limit(1);
     if (winnerError) throw winnerError;
     const winner = rows?.[0] ?? null;
@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
       healthy: checks.every((check) => check.pass),
       state: "winner_checked",
       contest: { id: contest.id, week_start: contest.week_start, week_end: contest.week_end, winner_submission_id: contest.winner_submission_id },
-      winner: winner ? { id: winner.id, submission_id: winner.submission_id, won_at: winner.won_at, selection_method: winner.selection_method } : null,
+      winner: winner ? { id: winner.id, submission_id: winner.submission_id, won_at: winner.won_at } : null,
       submission: first ? { id: first.id, meme_title: first.meme_title, meme_image_url: first.meme_image_url, status: first.status } : null,
       podium: [
         second ? { place: 2, submission_id: second.id, meme_title: second.meme_title, meme_image_url: second.meme_image_url } : null,
