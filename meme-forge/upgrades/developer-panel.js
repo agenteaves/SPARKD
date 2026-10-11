@@ -12,32 +12,11 @@ function openDeveloperPanel(){
     <div class="devSection"><h3>Player Data</h3><div class="devSection"><h3>Website</h3><button id="openWebsiteStatsBtn">📊 Website Stats</button></div><p>🪙 Points: <strong id="devPoints"></strong></p><p>⭐ Level: <strong id="devLevel"></strong></p></div>
     <div class="devSection"><h3>Points</h3><button id="add100">+100 SPARK</button><button id="add1000">+1000 SPARK</button><button id="resetPoints">Reset Points</button></div>
     <div class="devSection"><h3>Levels</h3><button class="levelBtn" data-level="1">Level 1</button><button class="levelBtn" data-level="2">Level 2</button><button class="levelBtn" data-level="3">Level 3</button><button class="levelBtn" data-level="4">Level 4</button><button class="levelBtn" data-level="5">Level 5</button></div>
-    <div class="devSection"><h3>Weekly Contest Votes</h3><button id="loadContestVotesBtn">🗳 View Current Vote Totals</button><div id="contestVoteTotals" style="margin-top:12px;">Tap to load current vote totals.</div></div>
     <div class="devSection"><h3>Reset Tools</h3><button id="resetMission">Reset Daily Mission</button><button id="resetStarter">Reset Starter Pack</button><button id="fullReset">Full Player Reset</button></div>`;
     document.body.appendChild(panel);
     updateDevPanel();
     document.getElementById("closeDevPanel").onclick=function(){panel.remove();};
     document.getElementById("openWebsiteStatsBtn").onclick=function(){if(window.SPARKD_WEBSITE_STATS_DASHBOARD){window.SPARKD_WEBSITE_STATS_DASHBOARD.open();}else{alert("Website Stats dashboard is not loaded.");}};
-
-    document.getElementById("loadContestVotesBtn").onclick=async function(){
-        const output=document.getElementById("contestVoteTotals");
-        output.textContent="Loading current contest votes...";
-        try{
-            const response=await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-voting",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"get_voting_state"})});
-            const data=await response.json();
-            if(!response.ok||!data.success) throw new Error(data.error||"Unable to load vote totals.");
-            if(!data.contest){output.textContent="No active weekly contest found.";return;}
-            const start=new Date(data.contest.week_start).toLocaleDateString();
-            const end=new Date(data.contest.week_end).toLocaleDateString();
-            const submissions=data.submissions||[];
-            const totalVotes=submissions.reduce(function(sum,item){return sum+Number(item.voteCount||0);},0);
-            const rows=submissions.map(function(item){
-                const title=String(item.memeTitle||"Untitled Meme").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");
-                return "<div style=\"padding:8px 0;border-bottom:1px solid rgba(255,255,255,.15);\"><strong>"+title+"</strong><br>🗳 "+Number(item.voteCount||0).toLocaleString()+" votes</div>";
-            }).join("");
-            output.innerHTML="<p><strong>"+start+" — "+end+"</strong><br>Total votes: <strong>"+totalVotes.toLocaleString()+"</strong></p>"+(rows||"<p>No eligible memes entered yet.</p>");
-        }catch(error){output.textContent="❌ "+(error.message||String(error));}
-    };
 
     document.getElementById("add100").onclick=function(){window.addSparkPoints(100);updateDevPanel();};
     document.getElementById("add1000").onclick=function(){window.addSparkPoints(1000);updateDevPanel();};

@@ -1,4 +1,4 @@
--- SPARKD Contest Anti-Cheat: unique participant podium
+-- SPARKD participant identity resolution
 -- Production migrations: contest_unique_participant_podium + lock_down_participant_resolver
 
 create table if not exists public.meme_week_participant_aliases (
@@ -65,49 +65,3 @@ revoke all on function public.resolve_meme_week_participant_key(text,text)
 grant execute on function public.resolve_meme_week_participant_key(text,text)
   to service_role;
 
--- Core ranking used by public.run_meme_week_lifecycle():
--- 1) score every eligible submission
--- 2) partition by resolved participant
--- 3) retain only each participant's best submission
--- 4) rank the remaining unique participants for the podium
---
--- In the lifecycle function, replace the placeholder contest ID below with
--- contest_row.id and select podium_rank 1, 2, and 3 into the winner rows.
-
-with submission_scores as (
-  select
-    s.id,
-    s.creator_id,
-    s.wallet_address,
-    s.submitted_at,
-    public.resolve_meme_week_participant_key(s.creator_id,s.wallet_address) participant_key,
-    count(v.id)::integer vote_count
-  from public.meme_week_submissions s
-  left join public.meme_week_votes v
-    on v.submission_id=s.id
-   and v.contest_id=s.contest_id
-  where s.contest_id = null::uuid -- documentation placeholder
-    and s.burn_verified=true
-    and s.status<>'rejected'
-  group by s.id,s.creator_id,s.wallet_address,s.submitted_at
-),
-best_per_participant as (
-  select *,
-         row_number() over(
-           partition by participant_key
-           order by vote_count desc, submitted_at asc, id asc
-         ) participant_submission_rank
-  from submission_scores
-),
-podium as (
-  select *,
-         row_number() over(
-           order by vote_count desc, submitted_at asc, id asc
-         ) podium_rank
-  from best_per_participant
-  where participant_submission_rank=1
-)
-select * from podium order by podium_rank;
-
--- NOTE: The live production function public.run_meme_week_lifecycle() is already
--- using this unique-participant ranking for first/second/third place.

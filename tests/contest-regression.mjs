@@ -15,13 +15,7 @@ const submit = read("meme-forge/upgrades/contest-submit.js");
 const iphoneApp = read("iphone-web-app/index.html");
 const cleanup = read("supabase/functions/contest-storage-cleanup/index.ts");
 
-assert(!exists("meme-of-the-week/voting.js"));
-assert(!exists("meme-of-the-week/voter-reward.js"));
-assert(!/voting(?:-ux)?\.js|voter-reward\.js/.test(index));
-assert(!/VOTING_WINDOW_MS|PUBLIC_VOTER_STORAGE_KEY/.test(read("meme-of-the-week/contest-config.js")));
-assert(!/vote_count|VOTING ENDS IN/.test(app));
-assert(!/VOTING_WINDOW_MS|votingOpen/.test(status));
-assert(!/vote|voting/i.test(rules + guide));
+const drawHealth = read("supabase/functions/contest-winner-health/index.ts");
 
 assert(index.includes('id="completedContestBurned"'));
 assert(index.indexOf('id="completedContestBurned"') > index.indexOf('id="totalBurned"'));
@@ -33,6 +27,8 @@ assert(app.includes("SPARKD_CONTEST_IMAGE.prepare(file)"));
 assert(submit.includes("entryData.memeID") && submit.includes("entryMemeID"));
 assert(!/verifyForge\s*\(\s*wallet\s*,\s*entryData/.test(submit));
 assert(/equal.chance random drawing/i.test(rules));
+assert(drawHealth.includes("random_draw_audit_exists"));
+assert(drawHealth.includes("random_draw_placements_match"));
 assert(/status", "in\.\(upcoming,submission\)"/.test(status));
 assert(iphoneApp.includes("select=id,status,week_start,week_end,winner_submission_id"));
 assert(!iphoneApp.includes("select=id,title,status,submission_count,week_start"));

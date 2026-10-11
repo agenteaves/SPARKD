@@ -1,23 +1,15 @@
--- SPARKD Meme of the Week: automatic equal-chance random draw protocol
--- Production schema/function migration is installed in Supabase as meme_week_random_draw_engine.
+-- SPARKD Meme of the Week: equal-chance random draw protocol.
+-- The production schema and lifecycle function are installed through Supabase migrations.
 --
 -- Rules:
--- * Every eligible submission gets exactly one equal chance.
--- * Eligibility: burn_verified=true, status<>'rejected'.
--- * Votes do not influence random-draw winner selection.
--- * Stage 1 cryptographically shuffles the complete eligible ID list and takes up to 3 unique finalists.
--- * Stage 2 independently cryptographically shuffles those finalists into 1st/2nd/3rd placement.
--- * pgcrypto gen_random_bytes supplies CSPRNG material; Math.random() is never used.
--- * meme_week_draw_audits permanently records eligible count, entrant commitment, seed, finalists, placements, timestamp, and algorithm.
--- * meme_week_winners stores selection_method='random_equal_chance' and the audit metadata.
--- * Existing contest winner rows are never rerolled; contest_id uniqueness makes finalization idempotent.
--- * 0 entries: no payout. 1 entry: first only. 2 entries: first/second. 3+: first/second/third.
--- * sync_meme_week_payout_jobs() queues the immutable winners for the existing automatic payout worker.
+-- * Every eligible submission receives one equal chance.
+-- * Eligibility requires burn_verified=true and status<>'rejected'.
+-- * A cryptographic shuffle selects up to three distinct finalists, then assigns podium order.
+-- * pgcrypto gen_random_bytes supplies the random material.
+-- * meme_week_draw_audits records entrant commitment, seed, finalists, placements, timestamp, and algorithm.
+-- * meme_week_winners stores selection_method='random_equal_chance' and the draw metadata.
+-- * Contest ID uniqueness makes finalization idempotent; existing winner records are never rerolled.
+-- * Zero entries: no prize. One entry: first place. Two entries: first and second. Three or more: all podium places.
+-- * The payout queue uses $15, $10, and $5 worth of SOL for the podium.
 --
--- IMPORTANT ROLLOUT NOTE
--- The contest that was already in voting when this protocol was introduced remains on its legacy voting rules.
--- The lifecycle transition must only open legacy voting for that already-running contest; subsequent contests
--- should remain in submission until week_end and then execute the random draw directly.
---
--- This file intentionally documents the production migration rather than duplicating a second independently
--- editable copy of the full lifecycle function. Keep Supabase migration history as the source of truth for DDL.
+-- This file documents the production protocol. Supabase migration history remains the source of truth for DDL.
