@@ -17,8 +17,9 @@ import {
     const SPARKD_DECIMALS =
         6;
 
-    const REQUIRED_SPARKD =
-    2000;
+    const CONTEST_ENTRY_USD = 3;
+    const MIN_PRICE_LIQUIDITY_USD = 2500;
+    const CONTEST_BURN_QUOTE_TTL_MS = 120000;
 
 
 
@@ -75,6 +76,87 @@ function jsonResponse(
 
 }
 
+
+async function getContestBurnQuote() {
+    const apiKey = Deno.env.get("JUPITER_API_KEY");
+    const base = apiKey ? "https://api.jup.ag" : "https://lite-api.jup.ag";
+    const headers = { "Accept": "application/json" };
+    if (apiKey) headers["x-api-key"] = apiKey;
+    const response = await fetch(`${base}/price/v3?ids=${encodeURIComponent(SPARKD_MINT)}`, {
+        headers,
+        signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error(`SPARKD price service returned HTTP ${response.status}.`);
+    const data = await response.json();
+    const row = data?.[SPARKD_MINT];
+    const priceUsd = Number(row?.usdPrice);
+    const liquidityUsd = Number(row?.liquidity ?? 0);
+    if (!Number.isFinite(priceUsd) || priceUsd <= 0) throw new Error("A valid SPARKD/USD price is unavailable.");
+    if (!Number.isFinite(liquidityUsd) || liquidityUsd < MIN_PRICE_LIQUIDITY_USD) {
+        throw new Error("SPARKD price liquidity is below the $2,500 safety threshold.");
+    }
+    const rawAmount = BigInt(Math.ceil((CONTEST_ENTRY_USD / priceUsd) * (10 ** SPARKD_DECIMALS)));
+    if (rawAmount <= 0n || rawAmount > 1000000000000000n) throw new Error("The $3 SPARKD entry quote is outside the token supply range.");
+    const amount = Number(rawAmount) / (10 ** SPARKD_DECIMALS);
+    return {
+        priceUsd,
+        liquidityUsd: Number.isFinite(liquidityUsd) ? liquidityUsd : null,
+        priceSource: apiKey ? "jupiter-price-v3" : "jupiter-price-v3-lite",
+        rawAmount: rawAmount.toString(),
+        amount,
+        estimatedUsd: amount * priceUsd,
+        observedAt: new Date().toISOString()
+    };
+}
+
+function base64UrlEncode(bytes) {
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64UrlDecode(value) {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+    return Uint8Array.from(atob(padded), character => character.charCodeAt(0));
+}
+
+async function signContestBurnQuote(payload) {
+    const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!secret) throw new Error("Contest quote signing key is unavailable.");
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
+    const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, payloadBytes));
+    return `${base64UrlEncode(payloadBytes)}.${base64UrlEncode(signature)}`;
+}
+
+async function verifyContestBurnQuote(quoteToken, wallet, contestId, memeID) {
+    if (typeof quoteToken !== "string") throw new Error("A server-issued $3 entry quote is required.");
+    const parts = quoteToken.split(".");
+    if (parts.length !== 2) throw new Error("Invalid contest burn quote.");
+    const payloadBytes = base64UrlDecode(parts[0]);
+    const signature = base64UrlDecode(parts[1]);
+    const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!secret) throw new Error("Contest quote signing key is unavailable.");
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+    if (!await crypto.subtle.verify("HMAC", key, signature, payloadBytes)) throw new Error("Contest burn quote signature is invalid.");
+    let payload;
+    try { payload = JSON.parse(new TextDecoder().decode(payloadBytes)); }
+    catch { throw new Error("Contest burn quote payload is invalid."); }
+    if (
+        payload?.wallet !== wallet ||
+        payload?.contestId !== contestId ||
+        payload?.memeID !== memeID ||
+        payload?.entryUsd !== CONTEST_ENTRY_USD ||
+        !/^\d+$/.test(String(payload?.rawAmount ?? "")) ||
+        !Number.isFinite(Number(payload?.priceUsd)) ||
+        Number(payload.priceUsd) <= 0 ||
+        !Number.isFinite(Number(payload?.issuedAt)) ||
+        !Number.isFinite(Number(payload?.expiresAt)) ||
+        Number(payload.expiresAt) <= Number(payload.issuedAt)
+    ) throw new Error("Contest burn quote does not match this wallet and entry.");
+    return payload;
+}
 
 ////////////////////////////////////////////////////
 // BASE58 ENCODER
@@ -952,133 +1034,41 @@ if (action === "previous_contest_results") {
                     : [];
 
 
-            const countVerifiedBurns =
-                async (contestIds) => {
-
-                    if (
-                        !Array.isArray(contestIds) ||
-                        contestIds.length === 0
-                    ) {
-
-                        return 0;
-
-                    }
-
-
-                    const contestFilter =
-                        contestIds.length === 1
-                            ? "contest_id=eq." +
-                                encodeURIComponent(contestIds[0])
-                            : "contest_id=in.(" +
-                                contestIds
-                                    .map((id) => encodeURIComponent(id))
-                                    .join(",") +
-                                ")";
-
-
-                    const burnResponse =
-                        await fetch(
-
-                            supabaseUrl +
-                            "/rest/v1/meme_week_burn_receipts" +
-                            "?burn_verified=eq.true" +
-                            "&" + contestFilter +
-                            "&select=id",
-
-                            {
-
-                                method:
-                                    "GET",
-
-                                headers: {
-
-                                    "apikey":
-                                        serviceRoleKey,
-
-                                    "Authorization":
-                                        "Bearer " +
-                                        serviceRoleKey,
-
-                                    "Prefer":
-                                        "count=exact",
-
-                                    "Range":
-                                        "0-0"
-
-                                }
-
+            const sumVerifiedBurns = async (contestIds) => {
+                if (!Array.isArray(contestIds) || contestIds.length === 0) return 0;
+                const contestFilter = contestIds.length === 1
+                    ? "contest_id=eq." + encodeURIComponent(contestIds[0])
+                    : "contest_id=in.(" + contestIds.map((id) => encodeURIComponent(id)).join(",") + ")";
+                let total = 0;
+                const pageSize = 1000;
+                for (let offset = 0; ; offset += pageSize) {
+                    const response = await fetch(
+                        supabaseUrl + "/rest/v1/meme_week_burn_receipts?burn_verified=eq.true&" +
+                            contestFilter + "&select=burn_amount&order=id.asc",
+                        {
+                            method: "GET",
+                            headers: {
+                                "apikey": serviceRoleKey,
+                                "Authorization": "Bearer " + serviceRoleKey,
+                                "Range-Unit": "items",
+                                "Range": `${offset}-${offset + pageSize - 1}`
                             }
+                        }
+                    );
+                    if (!response.ok) throw new Error("Unable to retrieve verified burn totals.");
+                    const rows = await response.json();
+                    total += (Array.isArray(rows) ? rows : []).reduce((sum, row) => {
+                        const amount = Number(row?.burn_amount);
+                        return sum + (Number.isFinite(amount) && amount > 0 ? amount : 0);
+                    }, 0);
+                    if (!Array.isArray(rows) || rows.length < pageSize) break;
+                }
+                return total;
+            };
 
-                        );
+            const completedContestBurned = await sumVerifiedBurns(completedContestIds);
+            const currentContestBurned = contest ? await sumVerifiedBurns([contest.id]) : 0;
 
-
-                    if (
-                        !burnResponse.ok
-                    ) {
-
-                        throw new Error(
-                            "Unable to retrieve verified burn totals."
-                        );
-
-                    }
-
-
-                    const contentRange =
-                        burnResponse.headers.get(
-                            "content-range"
-                        );
-
-
-                    const match =
-                        contentRange?.match(
-                            /\/(\d+)$/
-                        );
-
-
-                    if (
-                        match
-                    ) {
-
-                        return Number(
-                            match[1]
-                        );
-
-                    }
-
-
-                    const rows =
-                        await burnResponse.json();
-
-
-                    return Array.isArray(rows)
-                        ? rows.length
-                        : 0;
-
-                };
-
-
-            const completedVerifiedBurnCount =
-                await countVerifiedBurns(
-                    completedContestIds
-                );
-
-
-            const currentVerifiedBurnCount =
-                contest
-                    ? await countVerifiedBurns([
-                        contest.id
-                    ])
-                    : 0;
-
-
-            const completedContestBurned =
-                completedVerifiedBurnCount *
-                REQUIRED_SPARKD;
-
-
-            const currentContestBurned =
-                currentVerifiedBurnCount *
-                REQUIRED_SPARKD;
 
 
             ////////////////////////////////////////////////////
@@ -2707,6 +2697,8 @@ if (action === "previous_contest_results") {
             // RETURN READ-ONLY RESULT
             ////////////////////////////////////////////////////
 
+            const accountBurnQuote = await getContestBurnQuote();
+
             return jsonResponse({
 
                 success:
@@ -2740,11 +2732,14 @@ if (action === "previous_contest_results") {
                     selectedAccount.program,
 
                 requiredSparkd:
-                    2000,
+                    accountBurnQuote.amount,
+
+                targetEntryUsd:
+                    CONTEST_ENTRY_USD,
 
                 sufficientBalance:
                     selectedAccount.balance >=
-                    2000,
+                    accountBurnQuote.amount,
 
                 burnsPerformed:
                     false,
@@ -2894,6 +2889,21 @@ if (
             },
             400
         );
+    }
+
+    let broadcastQuote;
+    try {
+        broadcastQuote = await verifyContestBurnQuote(
+            body?.quoteToken,
+            wallet,
+            broadcastContestId,
+            broadcastMemeID.trim()
+        );
+    } catch (error) {
+        return jsonResponse({
+            success: false,
+            error: error instanceof Error ? error.message : "Invalid contest burn quote."
+        }, 400);
     }
 
     ////////////////////////////////////////////////////
@@ -3206,7 +3216,7 @@ const expectedBurnInstructionData =
 
 expectedBurnInstructionData[0] = 15;
 
-const rawBurnAmount = 2000000000n;
+const rawBurnAmount = BigInt(broadcastQuote.rawAmount);
 
 for (let i = 0; i < 8; i++) {
     expectedBurnInstructionData[1 + i] =
@@ -3291,7 +3301,7 @@ if (
         sourceTokenInfo?.mint !== SPARKD_MINT ||
         sourceTokenInfo?.owner !== wallet ||
         typeof sourceTokenInfo?.tokenAmount?.amount !== "string" ||
-        BigInt(sourceTokenInfo.tokenAmount.amount) < 2000000000n
+        BigInt(sourceTokenInfo.tokenAmount.amount) < BigInt(broadcastQuote.rawAmount)
     ) {
         return jsonResponse(
             {
@@ -3621,7 +3631,7 @@ if (
         //
         // REQUIRED:
         //
-        // 2,000 SPARKD
+        // $3 worth of SPARKD
         // 6 decimals
         // SPARKD mint
         // connected wallet authority
@@ -3644,14 +3654,21 @@ if (
 
             const token2022Program =
                 "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
-
-
-            const requiredBurnAmount =
-                "2000000000";
-
-
-            const requiredDecimals =
-                6;
+            const requiredDecimals = SPARKD_DECIMALS;
+            const quoteToken = body?.quoteToken;
+            const quoteContestId = body?.contestId;
+            const quoteMemeID = typeof body?.memeID === "string" ? body.memeID.trim() : "";
+            let burnQuote;
+            try {
+                burnQuote = await verifyContestBurnQuote(quoteToken, wallet, quoteContestId, quoteMemeID);
+            } catch (error) {
+                return jsonResponse({
+                    success: false,
+                    verified: false,
+                    error: error instanceof Error ? error.message : "Invalid contest burn quote."
+                }, 400);
+            }
+            const requiredBurnAmount = String(burnQuote.rawAmount);
 
 
             ////////////////////////////////////////////////////
@@ -3845,6 +3862,23 @@ if (
             }
 
 
+            const burnBlockTimeMs = Number(transaction.blockTime) * 1000;
+            if (
+                !Number.isFinite(burnBlockTimeMs) ||
+                burnBlockTimeMs < Number(burnQuote.issuedAt) - 5000 ||
+                burnBlockTimeMs > Number(burnQuote.expiresAt) + 5000
+            ) {
+                return jsonResponse({
+                    success: true,
+                    verified: false,
+                    transactionFound: true,
+                    reason: "The burn transaction falls outside its signed $3 entry quote window.",
+                    burnTransaction,
+                    readOnly: true,
+                    burnsPerformed: false
+                });
+            }
+
             ////////////////////////////////////////////////////
             // TRANSACTION MUST HAVE SUCCEEDED
             ////////////////////////////////////////////////////
@@ -4025,7 +4059,7 @@ if (
                         ),
 
                     amount:
-                        2000,
+                        Number(requiredBurnAmount) / (10 ** requiredDecimals),
 
                     decimals:
                         Number(
@@ -4060,7 +4094,7 @@ if (
                         false,
 
                     reason:
-                        "Transaction does not contain the required 2,000 SPARKD Token-2022 BurnChecked instruction.",
+                        "Transaction does not contain the exact SPARKD Token-2022 burn from its signed $3 quote.",
 
                     burnTransaction:
                         burnTransaction,
@@ -4088,7 +4122,7 @@ if (
 
             console.log(
 
-                "🔥 VERIFIED 2,000 SPARKD BURN:",
+                "🔥 VERIFIED $3 SPARKD ENTRY BURN:",
 
                 {
 
@@ -4142,6 +4176,15 @@ if (
                 rawBurnAmount:
                     verifiedBurn.rawAmount,
 
+                targetEntryUsd:
+                    burnQuote.entryUsd,
+
+                priceUsd:
+                    Number(burnQuote.priceUsd),
+
+                estimatedEntryUsd:
+                    verifiedBurn.amount * Number(burnQuote.priceUsd),
+
                 decimals:
                     verifiedBurn.decimals,
 
@@ -4179,7 +4222,8 @@ if (
     const {
         contestId,
         burnTransaction,
-        memeID
+        memeID,
+        quoteToken
     } = body;
 
 
@@ -4405,7 +4449,16 @@ if (
                             wallet,
 
                         burnTransaction:
-                            burnTransaction
+                            burnTransaction,
+
+                        contestId:
+                            contestId,
+
+                        memeID:
+                            memeID.trim(),
+
+                        quoteToken:
+                            quoteToken
                     })
             }
         );
@@ -4588,7 +4641,7 @@ if (
                                 true,
 
                             burn_amount:
-                                REQUIRED_SPARKD,
+                                verification.burnAmount,
 
                             meme_id:
                                 memeID.trim(),
@@ -4693,7 +4746,7 @@ if (
                             burnTransaction,
 
                         burn_amount:
-                            REQUIRED_SPARKD,
+                            verification.burnAmount,
 
                         burn_verified:
                             true,
@@ -5329,7 +5382,7 @@ if (
             memeImageUrl,
 
         burn_amount:
-            REQUIRED_SPARKD,
+            Number(receipt.burn_amount),
 
         burn_transaction:
             burnTransaction,
@@ -5758,16 +5811,6 @@ if (
             const rawTokenBalance =
                 parsedTokenInfo?.tokenAmount?.amount;
 
-            if (
-                typeof rawTokenBalance !== "string" ||
-                BigInt(rawTokenBalance) < 2000000000n
-            ) {
-                return jsonResponse(
-                    { success: false, error: "Wallet does not have enough SPARKD to burn 2,000 tokens." },
-                    400
-                );
-            }
-
             ////////////////////////////////////////////////////
             // VERIFY CONTEST + SERVER-SIDE TIME WINDOW
             ////////////////////////////////////////////////////
@@ -5991,6 +6034,35 @@ if (
                 );
             }
 
+            const contestQuote = await getContestBurnQuote();
+            const quoteIssuedAt = Date.now();
+            const quoteExpiresAt = quoteIssuedAt + CONTEST_BURN_QUOTE_TTL_MS;
+            if (
+                typeof rawTokenBalance !== "string" ||
+                BigInt(rawTokenBalance) < BigInt(contestQuote.rawAmount)
+            ) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        error: `Wallet needs at least ${contestQuote.amount.toLocaleString("en-US", { maximumFractionDigits: 6 })} SPARKD for this $3 entry burn.`,
+                        requiredSparkd: contestQuote.amount,
+                        targetEntryUsd: CONTEST_ENTRY_USD
+                    },
+                    400
+                );
+            }
+            const quoteToken = await signContestBurnQuote({
+                version: 1,
+                wallet,
+                contestId,
+                memeID: preburnMemeID.trim(),
+                rawAmount: contestQuote.rawAmount,
+                priceUsd: contestQuote.priceUsd,
+                entryUsd: CONTEST_ENTRY_USD,
+                issuedAt: quoteIssuedAt,
+                expiresAt: quoteExpiresAt
+            });
+
             ////////////////////////////////////////////////////
             // BUILD EXACT TOKEN-2022 BURNCHECKED INSTRUCTION
             ////////////////////////////////////////////////////
@@ -6014,7 +6086,7 @@ if (
 
             burnInstructionData[0] = 15;
 
-            const rawBurnAmount = 2000000000n;
+            const rawBurnAmount = BigInt(contestQuote.rawAmount);
 
             for (let i = 0; i < 8; i++) {
                 burnInstructionData[1 + i] =
@@ -6136,8 +6208,15 @@ if (
                 mint: SPARKD_MINT,
                 tokenProgram:
                     "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
-                burnAmount: REQUIRED_SPARKD,
-                rawBurnAmount: "2000000000",
+                burnAmount: contestQuote.amount,
+                rawBurnAmount: contestQuote.rawAmount,
+                targetEntryUsd: CONTEST_ENTRY_USD,
+                priceUsd: contestQuote.priceUsd,
+                estimatedEntryUsd: contestQuote.estimatedUsd,
+                priceSource: contestQuote.priceSource,
+                quoteObservedAt: contestQuote.observedAt,
+                quoteExpiresAt: new Date(quoteExpiresAt).toISOString(),
+                quoteToken,
                 decimals: SPARKD_DECIMALS,
                 recentBlockhash: latestBlockhash,
                 lastValidBlockHeight: lastValidBlockHeight,
@@ -6433,13 +6512,15 @@ if (
         }
 
 
+        const requiredBurnQuote = await getContestBurnQuote();
+        const requiredSparkd = requiredBurnQuote.amount;
+
         ////////////////////////////////////////////////////
         // FINAL SUBMISSION ELIGIBILITY
         ////////////////////////////////////////////////////
 
         const canSubmit =
-            balance >=
-                REQUIRED_SPARKD &&
+            balance >= requiredSparkd &&
             !alreadySubmitted;
 
 
@@ -6468,7 +6549,19 @@ if (
                 rawBalance,
 
             requiredSparkd:
-                REQUIRED_SPARKD,
+                requiredSparkd,
+
+            targetEntryUsd:
+                CONTEST_ENTRY_USD,
+
+            priceUsd:
+                requiredBurnQuote.priceUsd,
+
+            priceSource:
+                requiredBurnQuote.priceSource,
+
+            estimatedEntryUsd:
+                requiredBurnQuote.estimatedUsd,
 
             contestId:
                 balanceContest?.id ||

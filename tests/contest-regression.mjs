@@ -16,6 +16,10 @@ const iphoneApp = read("iphone-web-app/index.html");
 const cleanup = read("supabase/functions/contest-storage-cleanup/index.ts");
 
 const drawHealth = read("supabase/functions/contest-winner-health/index.ts");
+const superHandler = read("supabase/functions/super-handler/index.ts");
+const burnQuote = read("supabase/functions/sparkd-burn-quote/index.ts");
+const adaptiveBurnQuote = read("supabase/functions/adaptive-burn-quote/index.ts");
+const burnTest = read("meme-of-the-week/burn-test.html");
 
 assert(index.includes('id="completedContestBurned"'));
 assert(index.indexOf('id="completedContestBurned"') > index.indexOf('id="totalBurned"'));
@@ -40,5 +44,21 @@ assert(!cleanup.includes('.schema("storage")'));
 assert(cleanup.includes("MIN_AGE_HOURS = 6"));
 assert(cleanup.includes('from("meme_week_submissions")'));
 assert(cleanup.includes("MAX_DELETE_PER_RUN = 100"));
+assert(submit.includes("ENTRY_USD:\n        3"));
+assert(!/REQUIRED_SPARKD|2000000000|2,000 SPARKD/.test(submit));
+assert(superHandler.includes("const CONTEST_ENTRY_USD = 3;"));
+assert(superHandler.includes("verifyContestBurnQuote"));
+assert(superHandler.includes("BigInt(contestQuote.rawAmount)"));
+assert(superHandler.includes("burn_amount:\n            Number(receipt.burn_amount)"));
+assert(superHandler.includes("sumVerifiedBurns"));
+assert(!/REQUIRED_SPARKD|2000000000|2,000 SPARKD/.test(superHandler));
+assert(burnQuote.includes("const TARGET_ENTRY_USD = 3;"));
+assert(adaptiveBurnQuote.includes("const TARGET_ENTRY_USD = 3;"));
+assert(!/LEGACY_BURN\s*=\s*2000|legacy-fallback/.test(burnQuote + adaptiveBurnQuote));
+assert(index.includes("Each entry burns $3 worth of SPARKD"));
+assert(guide.includes("Each entry burns $3 worth of SPARKD"));
+assert(/each entry requires a verified burn of \$3 worth of SPARKD/i.test(rules));
+assert(iphoneApp.includes("Each entry burns $3 worth of SPARKD"));
+assert(!/2,000 SPARKD|2000000000/.test(burnTest));
 
 console.log("SPARKD contest regression checks passed.");
