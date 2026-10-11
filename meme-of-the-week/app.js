@@ -579,12 +579,7 @@ async function loadContestStatistics() {
                 data.totalBurned ??
                 data.totalSparkdBurned ??
                 data.verifiedBurnTotal ??
-                (
-                    Number(
-                        data.submissionCount ||
-                        0
-                    ) * 2000
-                )
+                0
             );
 
 
