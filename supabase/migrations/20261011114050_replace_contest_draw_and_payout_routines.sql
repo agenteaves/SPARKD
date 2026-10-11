@@ -87,7 +87,7 @@ AS $$
 DECLARE j public.meme_week_payout_jobs%rowtype;
 BEGIN
   PERFORM public.sync_meme_week_payout_jobs();
-  SELECT * INTO j FROM public.meme_week_payout_jobs WHERE status='pending'
+  SELECT * INTO j FROM public.meme_week_payout_jobs WHERE status='pending' AND payout_type IN ('first_place','second_place','third_place')
   ORDER BY created_at, CASE payout_type WHEN 'first_place' THEN 0 WHEN 'second_place' THEN 1 WHEN 'third_place' THEN 2 ELSE 9 END
   FOR UPDATE SKIP LOCKED LIMIT 1;
   IF j.id IS NULL THEN RETURN NULL; END IF;
