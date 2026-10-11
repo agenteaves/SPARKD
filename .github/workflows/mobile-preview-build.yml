@@ -39,6 +39,9 @@ jobs:
           grep -E 'versionCode=[0-9]+' app/build.gradle.kts
           grep '@mipmap/ic_launcher' app/src/main/AndroidManifest.xml
           test -s app/src/main/res/drawable/sparkd_exact_loops.png
+      - name: Verify dynamic contest pricing across mobile clients
+        working-directory: .
+        run: node tests/mobile-burn-pricing.mjs
       - run: gradle :app:assembleDebug
       - name: Inspect built APK launcher resources
         run: |

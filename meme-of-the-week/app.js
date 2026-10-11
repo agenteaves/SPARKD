@@ -180,10 +180,7 @@ async function loadCurrentContest() {
                 .select(
                     "*"
                 )
-                .in(
-                    "status",
-                    ["submission", "voting"]
-                )
+                .eq("status", "submission")
                 .lte(
                     "week_start",
                     now
@@ -582,12 +579,7 @@ async function loadContestStatistics() {
                 data.totalBurned ??
                 data.totalSparkdBurned ??
                 data.verifiedBurnTotal ??
-                (
-                    Number(
-                        data.submissionCount ||
-                        0
-                    ) * 2000
-                )
+                0
             );
 
 
@@ -731,15 +723,11 @@ console.log(
                     "meme_week_submissions"
                 )
                 .select(
-                    "id,meme_title,meme_image_url,wallet_address,dna_verified,status,created_at"
+                    "id,meme_title,meme_image_url,wallet_address,status,created_at"
                 )
                 .eq(
                     "contest_id",
                     currentContest.id
-                )
-                .eq(
-                    "dna_verified",
-                    true
                 )
                 .neq(
                     "status",
@@ -833,17 +821,10 @@ console.log(
 
                <div
     class="submission-image"
-    onclick="openSubmissionViewer(
-        '${imageUrl}',
-        '${escapeHtml(
-            submission.meme_title ||
-            "SPARKD Meme"
-        )}'
-    )"
 >
 
     <img
-        src="${imageUrl}"
+        src=""
         alt="${escapeHtml(
             submission.meme_title ||
             "SPARKD Meme"
@@ -865,11 +846,11 @@ console.log(
 
 
                     <p>
-                        👻 ${submission.wallet_address
+                        👻 ${escapeHtml(submission.wallet_address
                             ? submission.wallet_address.slice(0, 6) +
                               "..." +
                               submission.wallet_address.slice(-4)
-                            : "Unknown Wallet"}
+                            : "Unknown Wallet")}
                     </p>
 
 
@@ -886,6 +867,8 @@ const submissionImage =
 
 
 if (submissionImage) {
+
+    submissionImage.src = imageUrl;
 
     submissionImage.style.cursor =
         "pointer";
@@ -945,6 +928,100 @@ if (submissionImage) {
     }
 
 }
+
+
+////////////////////////////////////////////////////
+// PREVIOUS WEEK RESULTS
+////////////////////////////////////////////////////
+
+let showingPreviousWeek = false;
+
+async function loadPreviousWeekResults() {
+    const grid = document.getElementById("submissionsGrid");
+    const button = document.getElementById("previousWeekButton");
+    const label = document.getElementById("previousWeekLabel");
+    if (!grid || !button) return;
+
+    button.disabled = true;
+    button.textContent = "LOADING...";
+
+    try {
+        const response = await fetch(
+            "https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/super-handler",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "previous_contest_results" })
+            }
+        );
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Unable to load previous contest.");
+        }
+
+        const contest = result.contest;
+        const submissions = result.submissions || [];
+        grid.innerHTML = "";
+
+        if (!contest || submissions.length === 0) {
+            grid.innerHTML = '<div class="empty-submissions"><span>🖼️</span><p>No memes found for the previous contest.</p></div>';
+        } else {
+            for (const submission of submissions) {
+                const imageUrl = supabaseClient.storage
+                    .from("sparkd-contest-submissions")
+                    .getPublicUrl(submission.meme_image_url).data.publicUrl;
+                const card = document.createElement("div");
+                card.className = "submission-card";
+                card.innerHTML = `
+                    <div class="submission-image">
+                        <img alt="${escapeHtml(submission.meme_title || "SPARKD Meme")}" loading="lazy">
+                    </div>
+                    <div class="submission-info">
+                        <h3>${escapeHtml(submission.meme_title || "Untitled SPARKD Meme")}</h3>
+                        <p>👻 ${escapeHtml(submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet")}</p>
+                    </div>`;
+                const image = card.querySelector("img");
+                if (image) {
+                    image.src = imageUrl;
+                    image.style.cursor = "pointer";
+                    image.addEventListener("click", () => openSubmissionViewer(imageUrl, submission.meme_title || "SPARKD Meme"));
+                }
+                grid.appendChild(card);
+            }
+        }
+
+        if (label && contest) {
+            const start = new Date(contest.week_start).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+            const end = new Date(contest.week_end).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+            label.textContent = "Previous Contest: " + start + " — " + end;
+            label.hidden = false;
+        }
+        showingPreviousWeek = true;
+        button.textContent = "▶ CURRENT WEEK";
+    } catch (error) {
+        console.error("❌ Could not load previous contest results:", error);
+        grid.innerHTML = '<div class="empty-submissions"><span>⚠️</span><p>Unable to load previous contest results.</p></div>';
+        button.textContent = "◀ PREVIOUS WEEK";
+    } finally {
+        button.disabled = false;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("previousWeekButton");
+    if (!button) return;
+    button.addEventListener("click", async function () {
+        const label = document.getElementById("previousWeekLabel");
+        if (showingPreviousWeek) {
+            showingPreviousWeek = false;
+            if (label) label.hidden = true;
+            button.textContent = "◀ PREVIOUS WEEK";
+            await loadCommunitySubmissions();
+        } else {
+            await loadPreviousWeekResults();
+        }
+    });
+});
 
 
 ////////////////////////////////////////////////////
@@ -1097,14 +1174,6 @@ function startCountdown() {
                 currentContest.week_end
             ).getTime();
 
-        const votingWindowMs =
-            window.SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS ||
-            12 * 60 * 60 * 1000;
-
-        const votingEnd =
-            end +
-            votingWindowMs;
-
         let target =
             end;
 
@@ -1125,23 +1194,7 @@ function startCountdown() {
                 "NEXT CONTEST OPENS IN";
 
         }
-        else if (
-            currentContest.status ===
-            "voting"
-        ) {
-
-            target =
-                votingEnd;
-
-            labelText =
-                "VOTING ENDS IN";
-
-        }
-        else if (
-            currentContest.status ===
-            "completed" ||
-            now >= votingEnd
-        ) {
+        else if (currentContest.status === "completed" || now >= end) {
 
             daysRemaining.textContent =
                 "CLOSED";
@@ -1352,10 +1405,23 @@ document.addEventListener(
                 "motmMemeFile"
             );
 
+        const useForgeExportButton =
+            document.getElementById("motmUseForgeExportButton");
+
+        let handoffFile = null;
+
+        // The integrity gate must verify the same File that submission uses.
+        window.SPARKD_CONTEST_SELECTED_FILE = function () {
+            return handoffFile || memeFile.files[0] || null;
+        };
+
         const memeTitle =
             document.getElementById(
                 "motmMemeTitle"
             );
+
+        const xHandleInput =
+            document.getElementById("motmXHandle");
 
         const submissionStatus =
             document.getElementById(
@@ -1375,6 +1441,24 @@ document.addEventListener(
 
             return;
 
+        }
+
+        memeFile.addEventListener("change", function () {
+            handoffFile = null;
+        });
+
+        if (useForgeExportButton) {
+            useForgeExportButton.addEventListener("click", async function () {
+                try {
+                    handoffFile = await window.SPARKD_FORGE_HANDOFF?.load();
+                    if (!handoffFile) throw new Error("No recent Meme Forge export is saved here. Choose an image from your phone or export one in this browser.");
+                    memeFile.value = "";
+                    if (submissionStatus) submissionStatus.textContent = "Meme Forge image selected: " + handoffFile.name;
+                } catch (error) {
+                    handoffFile = null;
+                    if (submissionStatus) submissionStatus.textContent = error.message || "Could not load the Forge export.";
+                }
+            });
         }
 
 
@@ -1405,17 +1489,23 @@ document.addEventListener(
                 try {
 
                     const file =
-                        memeFile.files[0];
+                        handoffFile || memeFile.files[0];
 
 
                     if (!file) {
 
                         alert(
-                            "Select a SPARKD Forge PNG first."
+                            "Select a meme image first."
                         );
 
                         return;
 
+                    }
+
+                    if (!memeTitle || !memeTitle.value.trim()) {
+                        alert("Enter a meme title before submitting.");
+                        memeTitle?.focus();
+                        return;
                     }
 
 
@@ -1447,117 +1537,22 @@ document.addEventListener(
                     }
 
 
-                    if (submissionStatus) {
-                        submissionStatus.textContent =
-                            "Reading SPARKD Forge DNA...";
+                    if (submissionStatus) submissionStatus.textContent = "Preparing and inspecting your image...";
+                    const preparedImage = await window.SPARKD_CONTEST_IMAGE.prepare(file);
+                    const entryData = preparedImage.entry;
+                    const xHandle = (xHandleInput?.value || "").trim().replace(/^@/, "");
+                    if (xHandle && !/^[A-Za-z0-9_]{1,15}$/.test(xHandle)) {
+                        alert("Enter a valid X username (letters, numbers, or underscore; up to 15 characters).");
+                        xHandleInput?.focus();
+                        return;
                     }
-
-
-                    const forgeData =
-                        await new Promise(
-                            (resolve, reject) => {
-
-                                const reader =
-                                    new FileReader();
-
-
-                                reader.onerror =
-                                    function () {
-                                        reject(
-                                            new Error(
-                                                "Unable to read the selected PNG."
-                                            )
-                                        );
-                                    };
-
-
-                                reader.onload =
-                                    function (event) {
-
-                                        try {
-
-                                            const bytes =
-                                                new Uint8Array(
-                                                    event.target.result
-                                                );
-
-                                            const text =
-                                                new TextDecoder()
-                                                    .decode(bytes);
-
-                                            const marker =
-                                                "SPARKD-FORGE";
-
-                                            const markerPosition =
-                                                text.indexOf(
-                                                    marker
-                                                );
-
-                                            if (
-                                                markerPosition ===
-                                                -1
-                                            ) {
-                                                throw new Error(
-                                                    "No SPARKD Forge DNA found in this PNG."
-                                                );
-                                            }
-
-                                            const jsonStart =
-                                                text.indexOf(
-                                                    "{",
-                                                    markerPosition
-                                                );
-
-                                            const jsonEnd =
-                                                text.indexOf(
-                                                    "}",
-                                                    jsonStart
-                                                );
-
-                                            if (
-                                                jsonStart === -1 ||
-                                                jsonEnd === -1
-                                            ) {
-                                                throw new Error(
-                                                    "SPARKD Forge metadata could not be read."
-                                                );
-                                            }
-
-                                            resolve(
-                                                JSON.parse(
-                                                    text.substring(
-                                                        jsonStart,
-                                                        jsonEnd + 1
-                                                    )
-                                                )
-                                            );
-
-                                        }
-                                        catch (error) {
-                                            reject(error);
-                                        }
-
-                                    };
-
-
-                                reader.readAsArrayBuffer(
-                                    file
-                                );
-
-                            }
-                        );
-
-
-                    console.log(
-                        "🔥 SPARKD Forge data:",
-                        forgeData
-                    );
-
+                    entryData.xHandle = xHandle;
+                    const contestFile = preparedImage.file;
 
                     const readyToBurn =
                         window.confirm(
                             "READY TO SUBMIT?\n\n" +
-                            "Entering Meme of the Week requires burning exactly 2,000 SPARKD.\n\n" +
+                            "Each entry burns $3 worth of SPARKD at the current server quote.\n\n" +
                             "After you continue, Phantom will open for the burn transaction. Review it and approve promptly.\n\n" +
                             "Press OK only when you are ready to review Phantom now."
                         );
@@ -1590,8 +1585,8 @@ document.addEventListener(
 
                     const result =
                         await window.SPARKD_CONTEST.submitMeme(
-                            file,
-                            forgeData,
+                            contestFile,
+                            entryData,
                             memeTitle
                                 ? memeTitle.value
                                 : "SPARKD Meme"
@@ -1604,26 +1599,50 @@ document.addEventListener(
                     );
 
 
-                    if (submissionStatus) {
-                        submissionStatus.textContent =
-                            "🔥 Submission successful!";
+                    let contactSaved = false;
+                    if (xHandle && window.SPARKD_CONTEST_CONTACT?.saveWinnerContact) {
+                        try {
+                            await window.SPARKD_CONTEST_CONTACT.saveWinnerContact({
+                                submissionId: result.submission.id,
+                                wallet: currentWallet,
+                                xHandle
+                            });
+                            contactSaved = true;
+                        } catch (contactError) {
+                            console.warn("Submission succeeded, but winner contact was not saved:", contactError);
+                        }
                     }
 
+                    if (submissionStatus) {
+                        submissionStatus.textContent = contactSaved
+                            ? "🔥 Submission successful! Your X handle is saved privately for winner contact."
+                            : xHandle
+                                ? "Meme submitted, but the X handle could not be saved. Please contact @deedsparks on X with your wallet address."
+                                : "🔥 Submission successful!";
+                    }
+
+                    const contactNotice = contactSaved
+                        ? "\n\nYour X handle was saved privately for winner contact."
+                        : xHandle
+                            ? "\n\nYour X handle could not be saved. Contact @deedsparks on X with your wallet address so we can reach you if you win."
+                            : "\n\nIf you win, contact @deedsparks on X with your wallet address.";
 
                     alert(
                         "🔥 SUBMISSION SUCCESS!\n\n" +
                         "Submission ID:\n" +
-                        result.submission.id
+                        result.submission.id +
+                        contactNotice
                     );
-
 
                     memeFile.value =
                         "";
+                    handoffFile = null;
 
                     if (memeTitle) {
                         memeTitle.value =
                             "";
                     }
+                    if (xHandleInput) xHandleInput.value = "";
 
 
                     submissionForm.style.display =
@@ -2449,7 +2468,7 @@ function openSubmissionViewer(
                 </button>
 
                 <img
-                    src="${imageUrl}"
+                    src=""
                     alt="${escapeHtml(
                         memeTitle
                     )}"
@@ -2466,6 +2485,8 @@ function openSubmissionViewer(
         </div>
 
     `;
+
+    viewer.querySelector("img").src = imageUrl;
 
 
     document.body.appendChild(
@@ -2656,7 +2677,7 @@ async function loadCurrentWinner() {
         winnerDisplay.innerHTML = `
             <div class="winner-placeholder">
                 <img
-                    src="${imageUrl}"
+                    src=""
                     alt="${escapeHtml(
                         submission.meme_title ||
                         "SPARKD Champion"
@@ -2675,6 +2696,8 @@ async function loadCurrentWinner() {
 
 
         if (image) {
+
+            image.src = imageUrl;
 
             image.addEventListener(
                 "click",
@@ -2910,7 +2933,7 @@ async function loadHallOfFame() {
                 <div class="hall-image">
 
                     <img
-                        src="${imageUrl}"
+                        src=""
                         alt="${escapeHtml(
                             submission.meme_title ||
                             "SPARKD Champion"
@@ -2956,13 +2979,13 @@ async function loadHallOfFame() {
 
                     <div class="hall-wallet">
 
-                        👻 ${
+                        👻 ${escapeHtml(
                             submission.wallet_address
                                 ? submission.wallet_address.slice(0, 6) +
                                   "..." +
                                   submission.wallet_address.slice(-4)
                                 : "Unknown Wallet"
-                        }
+                        )}
 
                     </div>
 
@@ -2982,6 +3005,8 @@ async function loadHallOfFame() {
 
 
             if (championImage) {
+
+                championImage.src = imageUrl;
 
                 championImage.style.cursor =
                     "pointer";

@@ -82,7 +82,7 @@
   async function fetchCurrentContest() {
     const url = new URL(`${SUPABASE_URL}/rest/v1/meme_week_contests`);
     url.searchParams.set("select", "id,week_start,week_end,status,winner_submission_id");
-    url.searchParams.set("status", "in.(upcoming,submission,voting)");
+    url.searchParams.set("status", "in.(upcoming,submission)");
     url.searchParams.set("order", "week_start.asc");
     url.searchParams.set("limit", "1");
 
@@ -149,20 +149,7 @@
           endMs > now
             ? `Submissions close in ${formatDuration(endMs - now)}`
             : "Submissions are closing now…",
-        detail: "Voting opens automatically after submissions close."
-      };
-    }
-
-    if (contest.status === "voting") {
-      const votingWindowMs = window.SPARKD_CONTEST_CONFIG?.VOTING_WINDOW_MS || 12 * 60 * 60 * 1000;
-      const votingEndMs = endMs + votingWindowMs;
-      return {
-        phase: "🗳️ VOTING OPEN",
-        countdown:
-          votingEndMs > now
-            ? `Voting ends in ${formatDuration(votingEndMs - now)}`
-            : "Voting is closing now…",
-        detail: "The weekly champion is selected automatically when voting ends."
+        detail: "Eligible entries are drawn automatically after submissions close."
       };
     }
 
@@ -202,18 +189,12 @@
         submissionButton.removeAttribute("aria-disabled");
       } else {
         submissionButton.disabled = true;
-        submissionButton.textContent =
-          currentContest?.status === "voting"
-            ? "🔒 SUBMISSIONS CLOSED — VOTING IS NOW OPEN"
-            : "🔒 SUBMISSIONS CLOSED";
+        submissionButton.textContent = "🔒 SUBMISSIONS CLOSED";
         submissionButton.setAttribute("aria-disabled", "true");
 
         if (submissionForm) submissionForm.style.display = "none";
         if (submissionStatus) {
-          submissionStatus.textContent =
-            currentContest?.status === "voting"
-              ? "🗳️ Voting is now open. New meme submissions are closed."
-              : "🔒 Meme submissions are currently closed.";
+          submissionStatus.textContent = "🔒 Meme submissions are currently closed.";
         }
       }
     }

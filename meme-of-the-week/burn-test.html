@@ -303,7 +303,7 @@ Waiting for Phantom...
         class="value"
         id="entryRequirement"
     >
-        2,000 SPARKD
+        Fetching live $3 entry quote…
     </div>
 
 </div>
@@ -364,10 +364,6 @@ Waiting for Phantom...
 
 const SPARKD_MINT =
     "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump";
-
-
-const REQUIRED_SPARKD =
-    2000;
 
 
 const status =
@@ -527,13 +523,10 @@ balanceElement.textContent =
             
             
 
-const REQUIRED_SPARKD =
-    2000;
-
-
+const requiredSparkd = Number(balanceData.requiredSparkd);
 const eligible =
-    sparkdBalance >=
-    REQUIRED_SPARKD;
+    Number.isFinite(requiredSparkd) &&
+    sparkdBalance >= requiredSparkd;
 
 
 const entryRequirementElement =
@@ -549,13 +542,13 @@ if (
     if (eligible) {
 
         entryRequirementElement.textContent =
-            "ELIGIBLE — 2,000+ SPARKD HELD";
+            `ELIGIBLE — about ${requiredSparkd.toLocaleString("en-US", { maximumFractionDigits: 6 })} SPARKD (~$3)`;
 
     }
     else {
 
         entryRequirementElement.textContent =
-            "NOT ELIGIBLE — 2,000 SPARKD REQUIRED";
+            `NOT ELIGIBLE — ${requiredSparkd.toLocaleString("en-US", { maximumFractionDigits: 6 })} SPARKD REQUIRED (~$3)`;
 
     }
 

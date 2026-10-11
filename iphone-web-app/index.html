@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07110b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SPARKD">
+<link rel="apple-touch-icon" href="../images/logo.png">
+<title>SPARKD Community App</title>
+<meta name="description" content="SPARKD Community App for iPhone: Meme Forge, weekly contest, winners, wallet and submit tools.">
+<style>
+:root{color-scheme:dark;--ink:#07110b;--bar:#09160e;--card:#102018;--green:#41f16b;--gold:#ffc83d;--secondary:#ffc83d;--muted:#c2c8c3;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--ink);color:#f5f6f5;font-family:Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%;overscroll-behavior-y:contain}
+body{min-height:100dvh;padding-top:var(--safe-top);padding-bottom:calc(80px + var(--safe-bottom))}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{cursor:pointer}
+.appbar{position:sticky;top:0;z-index:5;height:56px;padding:0 4px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;background:var(--bar);box-shadow:0 2px 5px #0005}
+.appbar h1{font-size:20px;line-height:1;font-weight:900;text-align:center;margin:0;letter-spacing:.01em}
+.back{width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#f5f6f5;font-size:25px;display:grid;place-items:center;visibility:hidden}
+.back.visible{visibility:visible}
+.bar-spacer{width:44px}
+main{width:100%;max-width:720px;margin:0 auto;padding:18px 18px calc(20px + var(--safe-bottom))}
+.screen{display:none}
+.screen.active{display:block}
+h2{font-size:30px;line-height:1.1;letter-spacing:-.02em;font-weight:900;margin:0 0 7px}
+h3{font-size:23px;line-height:1.16;font-weight:900;margin:0 0 9px}
+p{margin:4px 0 0;line-height:1.45}
+.light{color:var(--muted)}
+.gold{color:var(--gold)}
+.green{color:var(--green)}
+.card{background:var(--card);border-radius:20px;padding:18px;margin:14px 0}
+.card.tight{padding:16px}
+.label{font-size:14px;color:#9aa39c;margin-bottom:6px}
+.wallet-line{overflow-wrap:anywhere;font-size:16px}
+.phase{font-size:14px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.035em}
+.contest-title{font-size:24px;font-weight:900;line-height:1.18;margin:7px 0}
+.prize{font-weight:700;color:var(--gold);line-height:1.5}
+.entries{margin-top:5px;color:var(--muted)}
+.actions{display:grid;gap:10px;margin-top:12px}
+button.action,.action-link{width:100%;min-height:48px;border:0;border-radius:10px;padding:11px 16px;background:var(--green);color:#07110b;font-size:14px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center}
+button.action.secondary-action,.action-link.secondary-action{background:#173021;color:#f5f6f5;border:1px solid #31513b}
+button.action.gold-action{background:var(--gold);color:#171006}
+button.outline{width:100%;min-height:44px;border:1px solid #64716a;border-radius:9px;padding:10px 15px;background:transparent;color:#f5f6f5;font-weight:700}
+.status{min-height:20px;margin-top:8px;color:var(--gold);font-size:13px;line-height:1.4}
+.nav{position:fixed;z-index:10;bottom:0;left:0;right:0;padding:7px 2px calc(7px + var(--safe-bottom));height:calc(72px + var(--safe-bottom));display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:center;background:var(--bar);box-shadow:0 -2px 8px #0005}
+.nav button{height:58px;min-width:0;border:0;background:transparent;color:#c2c8c3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:2px 0;font-size:11px;font-weight:500}
+.nav button svg{width:24px;height:24px;display:block;fill:currentColor}
+.nav button.active{color:var(--green);font-weight:700}
+.nav button .indicator{height:30px;min-width:64px;padding:3px 15px;border-radius:20px;display:grid;place-items:center}
+.nav button.active .indicator{background:#194126}
+.nav button span:last-child{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:clip}
+.live-status{margin:12px 0 14px;padding:12px 14px;background:#102018;border-radius:12px;color:#f5f6f5}
+.entry-list{display:grid;gap:12px;margin-top:12px}
+.entry-card{overflow:hidden;background:var(--card);border-radius:20px;padding:16px}
+.entry-image{width:100%;aspect-ratio:1.4;display:block;object-fit:cover;background:#182a20;border-radius:14px}
+.entry-image.placeholder{display:grid;place-items:center;color:#8c988e;font-size:14px}
+.entry-title{font-size:20px;font-weight:800;margin:10px 0 2px;overflow-wrap:anywhere}
+.winner-card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0}
+.winner-image{width:100%;aspect-ratio:1.4;object-fit:cover;border-radius:13px;display:block;margin-bottom:10px}
+.winner-row{display:flex;align-items:center;gap:12px}
+.medal{font-size:32px}
+.winner-details{min-width:0;flex:1}
+.winner-title{font-weight:800;overflow-wrap:anywhere}
+.winner-place{font-size:13px;font-weight:900;color:var(--green)}
+.address{font-size:12px;color:var(--muted);overflow-wrap:anywhere;margin-top:3px}
+.section-title{margin-bottom:5px}
+.section-subtitle{color:var(--muted);margin-bottom:14px}
+.embed-actions{display:flex;gap:8px;align-items:center;margin:8px 0 12px}
+.embed-actions .action-link{min-height:42px}
+.frame-wrap{height:calc(100dvh - 225px);min-height:440px;border-radius:12px;overflow:hidden;background:#0b160e;border:1px solid #294332}
+iframe{width:100%;height:100%;border:0;background:#07110b}
+.profile-balance{font-size:25px;font-weight:900;margin-top:4px}
+[hidden]{display:none!important}
+.forge-field-label{display:block;margin:12px 0 6px;color:var(--muted);font-size:14px}
+.forge-title{width:100%;min-height:54px;padding:14px 15px;border:1px solid #67736b;border-radius:8px;background:#07110b;color:#f5f6f5;font:inherit}
+.forge-title:focus{outline:2px solid var(--green);outline-offset:1px}
+.forge-button-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.forge-button-row.forge-single{grid-template-columns:1fr}
+.forge-outline{width:100%;min-height:46px;padding:10px 12px;border:1px solid #617067;border-radius:10px;background:transparent;color:#f5f6f5;font:inherit;font-weight:700}
+.forge-outline:disabled,.action:disabled{opacity:.48;cursor:not-allowed}
+.forge-safety{min-height:20px;margin:8px 0;color:var(--muted);font-size:13px;line-height:1.4}
+.forge-preview-box{width:100%;margin:8px auto 0;background:#000;border-radius:2px;overflow:hidden;touch-action:none}
+.forge-preview-box canvas{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none}
+.forge-tools{margin-top:12px}
+.forge-tool{padding:11px 8px}
+.forge-selected{margin:12px 0;padding:16px}
+.forge-selected strong{display:block;overflow-wrap:anywhere}
+.forge-selected label{display:block;margin:13px 0 5px;color:var(--muted)}
+.forge-selected input[type=range]{width:100%;accent-color:var(--green)}
+.forge-layer-area{margin-top:10px}
+.forge-layer-area p{font-size:12px}
+.forge-layer-chips{display:flex;gap:6px;overflow-x:auto;padding:8px 1px}
+.forge-chip{flex:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 12px;border:1px solid #31513b;border-radius:18px;background:#173021;color:#f5f6f5}
+.forge-chip.selected{border-color:var(--gold);color:var(--gold)}
+.forge-button-stack{display:grid;gap:10px;margin-top:12px}
+.forge-dialog{position:fixed;inset:0;z-index:25;display:grid;place-items:center;padding:20px;background:#000b}
+.forge-dialog-card{width:min(100%,440px);max-height:min(85dvh,620px);overflow:auto;padding:20px;border:1px solid #31513b;border-radius:20px;background:var(--card);box-shadow:0 12px 36px #000a}
+.forge-dialog-card h3{margin-bottom:14px}
+.forge-colors{display:flex;justify-content:space-between;gap:8px;margin:9px 0 18px}
+.forge-color{width:30px;height:30px;padding:0;border:1px solid #929b94;border-radius:50%}
+.forge-color.selected{outline:3px solid var(--gold);outline-offset:2px}
+.forge-emoji-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:14px 0}
+.forge-emoji{min-height:48px;border:0;border-radius:10px;background:transparent;color:#fff;font-size:27px}
+.forge-emoji:active{background:#194126}
+#submitForgePreview{display:block;width:100%;max-width:430px;aspect-ratio:1;object-fit:contain;background:#000;border-radius:14px;margin:10px auto}
+.profile-screen h2{margin-bottom:0}
+.profile-stack{display:grid;gap:14px}
+.profile-card{margin:0;padding:20px;border-radius:20px;background:var(--card)}
+.profile-label{font-size:14px;color:#808080;margin-bottom:6px}
+.profile-action{min-height:40px!important;padding:8px 16px!important;border-radius:10px!important;font-size:14px}
+.profile-screen .profile-balance{font-size:25px;font-weight:900;margin-top:4px}
+.profile-status{margin:0;color:var(--gold);font-size:13px;line-height:1.4}
+.profile-status:empty{display:none}
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(min-width:720px){main{padding-bottom:30px}.nav{max-width:720px;left:50%;transform:translateX(-50%);border-radius:18px 18px 0 0}.frame-wrap{height:700px}}
+@media(max-width:360px){main{padding-left:14px;padding-right:14px}.nav button{font-size:10px}.nav button .indicator{min-width:54px;padding-left:10px;padding-right:10px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <button class="back" id="backHome" type="button" aria-label="Back to home">‹</button>
+  <h1>SPARKD</h1><span class="bar-spacer" aria-hidden="true"></span>
+</header>
+<main>
+  <section class="screen active" id="home">
+    <h2>Create. Enter. Equal chance. Win.</h2>
+    <p class="light">Every eligible meme receives exactly one chance in SPARKD's automated random drawing.</p>
+    <div id="homeWallet" class="live-status">Connect your Solana wallet to participate.</div>
+    <div class="card">
+      <div id="contestPhase" class="phase">Loading…</div>
+      <div id="contestTitle" class="contest-title">Loading the live SPARKD contest…</div>
+      <div id="contestPrize" class="prize">🥇 1st: $15 SOL&nbsp; • &nbsp;🥈 2nd: $10 SOL&nbsp; • &nbsp;🥉 3rd: $5 SOL</div>
+      <div id="contestEntries" class="entries">Checking entries…</div>
+    </div>
+    <div class="actions">
+      <button id="homeForge" class="action" type="button">🔥 Connect wallet &amp; open Meme Forge</button>
+      <button class="action secondary-action" type="button" data-go="contest">🎲 View eligible contenders</button>
+      <button id="homeWalletAction" class="outline" type="button">Connect Solana Wallet</button>
+    </div>
+    <div id="homeStatus" class="status" role="status"></div>
+  </section>
+
+  <section class="screen" id="forge">
+    <h2>Meme Forge</h2>
+    <p class="light">Create the meme directly on the image.</p>
+    <label class="forge-field-label" for="forgeTitle">Meme title</label>
+    <input id="forgeTitle" class="forge-title" type="text" maxlength="80" autocomplete="off" placeholder="Meme title">
+    <input id="forgeImageInput" type="file" accept="image/*" hidden>
+    <div id="forgeImageRow" class="forge-button-row">
+      <button id="forgeChooseImage" class="forge-outline" type="button">Choose image</button>
+      <button id="forgeDeleteImage" class="forge-outline" type="button" hidden>🗑 Delete image</button>
+    </div>
+    <div id="forgeSafety" class="forge-safety" role="status" aria-live="polite"></div>
+    <div id="forgePreviewBox" class="forge-preview-box" hidden>
+      <canvas id="forgeCanvas" width="1080" height="1080" aria-label="Meme Forge editing canvas"></canvas>
+    </div>
+    <div class="forge-button-stack">
+      <button id="forgeSendSubmit" class="action" type="button" disabled>Use this meme in Submit</button>
+      <button id="forgeSavePng" class="forge-outline" type="button" disabled>Save Meme PNG</button>
+    </div>
+    <div id="forgeTransferHint" class="light" role="status" aria-live="polite">Choose an image and add a title to enable this action.</div>
+    <div id="forgeExportStatus" class="status" role="status" aria-live="polite"></div>
+    <div class="forge-button-row forge-tools">
+      <button id="forgeTextOpen" class="action forge-tool" type="button">＋ Text</button>
+      <button id="forgeEmojiOpen" class="action forge-tool" type="button">😀 Emoji</button>
+    </div>
+    <div id="forgeSelectedPanel" class="card forge-selected" hidden>
+      <strong id="forgeSelectedName"></strong>
+      <label for="forgeResize">Resize</label>
+      <input id="forgeResize" type="range" min="36" max="180" value="72">
+      <div class="forge-button-row">
+        <button id="forgeCenterLayer" class="forge-outline" type="button">Center</button>
+        <button id="forgeDeleteLayer" class="forge-outline" type="button">Delete</button>
+      </div>
+    </div>
+    <div id="forgeLayerArea" class="forge-layer-area" hidden>
+      <p class="light">Tip: drag the text or emoji directly on the image. Tap a layer below to select it.</p>
+      <div id="forgeLayerChips" class="forge-layer-chips"></div>
+    </div>
+    <div id="forgeTextDialog" class="forge-dialog" hidden>
+      <div class="forge-dialog-card" role="dialog" aria-modal="true" aria-labelledby="forgeTextHeading">
+        <h3 id="forgeTextHeading">Add text</h3>
+        <label class="forge-field-label" for="forgeTextInput">Text</label>
+        <input id="forgeTextInput" class="forge-title" type="text" maxlength="80" autocomplete="off">
+        <div class="label">Text color</div>
+        <div id="forgeTextColors" class="forge-colors"></div>
+        <div class="forge-button-row">
+          <button id="forgeTextCancel" class="forge-outline" type="button">Cancel</button>
+          <button id="forgeTextAdd" class="action" type="button">Add</button>
+        </div>
+      </div>
+    </div>
+    <div id="forgeEmojiDialog" class="forge-dialog" hidden>
+      <div class="forge-dialog-card" role="dialog" aria-modal="true" aria-labelledby="forgeEmojiHeading">
+        <h3 id="forgeEmojiHeading">Choose emoji</h3>
+        <div id="forgeEmojiGrid" class="forge-emoji-grid"></div>
+        <button id="forgeEmojiClose" class="forge-outline" type="button">Close</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="contest">
+    <h2>This Week's Contenders</h2>
+    <p class="gold">Live entries from SPARKD Meme of the Week.</p>
+    <div id="contenderMessage" class="live-status">Loading live contenders…</div>
+    <div id="contenderList" class="entry-list"></div>
+  </section>
+
+  <section class="screen" id="winners">
+    <h2>Hall of Winners</h2>
+    <p class="light">Weekly results from completed contests.</p>
+    <div id="winnersMessage" class="live-status">Loading winners…</div>
+    <div id="winnersList"></div>
+  </section>
+
+  <section class="screen profile-screen" id="profile">
+    <h2>My SPARKD</h2>
+    <div class="profile-stack">
+      <div class="profile-card">
+        <div class="profile-label">Wallet</div>
+        <div id="walletAddress" class="wallet-line gold">Not connected</div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-label">SPARKD Balance</div>
+        <div id="tokenBalance" class="profile-balance gold">Connect wallet to view</div>
+        <div id="balanceStatus" class="profile-status" role="status"></div>
+      </div>
+      <a class="action-link profile-action" href="https://jup.ag/swap/SOL-BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump" target="_blank" rel="noopener">Buy More SPARKD</a>
+      <button id="disconnectWallet" class="outline profile-action" type="button" hidden>Disconnect Wallet</button>
+      <div id="walletStatus" class="profile-status" role="status"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="submit">
+    <h2>Submit a Meme</h2>
+    <p class="light">In Meme Forge, choose an image and add a title, then tap “Use this meme in Submit.” Your meme and title will appear here.</p>
+    <button class="action secondary-action" type="button" data-go="forge">Open Meme Forge</button>
+    <div id="submitForgeCard" class="card">
+      <strong>Forge export</strong>
+      <p id="submitForgeStatus" class="light">No meme is ready for submission.</p>
+      <img id="submitForgePreview" alt="Meme selected for contest entry" hidden>
+    </div>
+    <label class="forge-field-label" for="submitMemeTitle">Meme title (required)</label>
+    <input id="submitMemeTitle" class="forge-title" type="text" maxlength="80" autocomplete="off">
+    <div class="card">
+      <div class="phase">CONTEST ENTRY</div>
+      <h3 style="margin-top:9px">Enter Meme of the Week</h3>
+      <p class="light">Each entry burns $3 worth of SPARKD. Save your Forge PNG, then attach it on the secure contest page. Review the quoted SPARKD amount in Phantom before approving.</p>
+      <button id="submitSavePng" class="forge-outline" type="button" hidden>Save Meme PNG</button>
+      <a class="action-link gold-action" style="margin-top:14px" href="/meme-of-the-week/">Continue to secure contest entry</a>
+    </div>
+  </section>
+</main>
+<nav class="nav" aria-label="Main navigation">
+  <button class="active" type="button" data-go="home" aria-current="page"><span class="indicator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span><span>Home</span></button>
+  <button type="button" data-go="forge"><span class="indicator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span><span>Forge</span></button>
+  <button type="button" data-go="contest"><span class="indicator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 4V2H6v2H2v3c0 2.55 1.92 4.66 4.39 4.95A6.99 6.99 0 0 0 11 15.92V19H7v3h10v-3h-4v-3.08a6.99 6.99 0 0 0 4.61-5.97A5 5 0 0 0 22 7V4h-4zM4 7V6h2v3.82A3 3 0 0 1 4 7zm16 0a3 3 0 0 1-2 2.82V6h2v1z"/></svg></span><span>Contest</span></button>
+  <button type="button" data-go="winners"><span class="indicator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 9.19 4.81 5.2 4.2l-.61 3.99L2 11l2.59 2.81-.61 3.99 3.99.61L12 21l4.03-2.59 3.99-.61-.61-3.99L22 11l-2.59-2.81.61-3.99-3.99.61L12 2zm0 5.1a3.9 3.9 0 1 1 0 7.8 3.9 3.9 0 0 1 0-7.8z"/></svg></span><span>Winners</span></button>
+  <button type="button" data-go="profile"><span class="indicator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span><span>Profile</span></button>
+  <button type="button" data-go="submit"><span class="indicator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM12 18l-4-4h2.5v-4h3v4H16l-4 4z"/></svg></span><span>Submit</span></button>
+</nav>
+<script>
+(function(){
+"use strict";
+var API="https://uxpbgzksfizkyxubctep.supabase.co";
+var KEY="sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J";
+var screens=Array.from(document.querySelectorAll(".screen"));
+var navButtons=Array.from(document.querySelectorAll(".nav button"));
+var loadedFrames=new Set();
+var contestId="";
+var walletAddress=document.getElementById("walletAddress");
+var walletStatus=document.getElementById("walletStatus");
+var homeStatus=document.getElementById("homeStatus");
+var tokenBalance=document.getElementById("tokenBalance");
+var balanceStatus=document.getElementById("balanceStatus");
+var profileRefreshTimer=null;
+var balanceRequestID=0;
+var forgeSource=null,forgeSourceUrl="",forgeLayers=[],forgeSelected=null,forgeNewColor="#ffffff",forgeExport=null,forgeDragging=null;
+var forgeEmojiList=["😀","😃","😄","😁","😂","🤣","😊","😍","🥰","😘","😎","🤓","🧐","🤔","🙄","😏","😬","😭","😡","🤬","😱","🤯","🥳","🤡","👻","💀","👽","🤖","😈","💩","🔥","⚡","✨","💥","💯","❤️","💔","💚","💛","💙","💜","👀","👑","💎","🚀","🤑","💰","🪙","🏆","🥇","🎉","🎊","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","🫡","👉","👈","☝️","🐸","🐶","🐱","🦍","🦁","🐐","🦖","🦅","🍕","🍔","🌮","🍺","☕","🎮","🎯","🎲","⚽","🏀","🏈","🚗","🏎️","🌎","🌙","☀️","⭐","🚨","⚠️","✅","❌","❓","‼️","📈","📉","🔒","🔓"];
+function go(name){
+ screens.forEach(function(s){s.classList.toggle("active",s.id===name);});
+ navButtons.forEach(function(b){var active=b.getAttribute("data-go")===name;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
+ document.getElementById("backHome").classList.toggle("visible",name!=="home");
+ var screen=screens.find(function(s){return s.id===name;});
+ if(screen){var frame=screen.querySelector("iframe[data-src]");if(frame&&!loadedFrames.has(name)){frame.src=frame.getAttribute("data-src");loadedFrames.add(name);}}
+ if(profileRefreshTimer){window.clearInterval(profileRefreshTimer);profileRefreshTimer=null;}
+ if(name==="profile"){
+  var address=walletAddress.textContent;
+  if(address&&address!=="Not connected"){
+   loadBalance(address);
+   profileRefreshTimer=window.setInterval(function(){if(document.getElementById("profile").classList.contains("active"))loadBalance(walletAddress.textContent);},15000);
+  }
+ }
+ if(name==="contest")loadContenders();
+ if(name==="winners")loadWinners();
+ if(name==="submit")renderSubmitForge();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-go]").forEach(function(b){b.addEventListener("click",function(){go(b.getAttribute("data-go"));});});
+document.getElementById("backHome").addEventListener("click",function(){go("home");});
+function rest(path){
+ return fetch(API+"/rest/v1/"+path,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("Contest service returned HTTP "+r.status);return r.json();});
+}
+function fetchContest(){
+ var now=new Date().toISOString();
+ var current="meme_week_contests?select=id,status,week_start,week_end,winner_submission_id&status=eq.submission&week_start=lte."+encodeURIComponent(now)+"&order=week_start.desc&limit=1";
+ var upcoming="meme_week_contests?select=id,status,week_start,week_end,winner_submission_id&status=in.(upcoming,submission)&week_start=gt."+encodeURIComponent(now)+"&order=week_start.asc&limit=1";
+ return rest(current).then(function(rows){return rows.length?rows:rest(upcoming);}).then(function(rows){if(!rows.length)throw new Error("No SPARKD contest is available right now.");contestId=rows[0].id||"";return rows[0];});
+}
+function loadContest(){
+ fetchContest().then(function(c){
+  var status=String(c.status||"").toUpperCase();
+  document.getElementById("contestPhase").textContent=status==="SUBMISSION"?"SUBMISSION":"UPCOMING";
+  document.getElementById("contestTitle").textContent="SPARKD Meme of the Week";
+  return rest("meme_week_submissions?select=id&contest_id=eq."+encodeURIComponent(contestId)+"&status=neq.rejected");
+ }).then(function(rows){
+  document.getElementById("contestEntries").textContent=String(rows.length)+" contender"+(rows.length===1?"":"s");
+ }).catch(function(){
+  document.getElementById("contestPhase").textContent="LIVE";
+  document.getElementById("contestTitle").textContent="SPARKD Meme of the Week";
+  document.getElementById("contestEntries").textContent="Open eligible contenders and contest details.";
+ });
+}
+function loadContenders(){
+ var message=document.getElementById("contenderMessage"),host=document.getElementById("contenderList");
+ message.textContent="Loading live contenders…";host.replaceChildren();
+ fetchContest().then(function(c){
+  contestId=c.id;
+  return rest("meme_week_submissions?select=id,meme_title,meme_image_url,wallet_address,status,created_at&contest_id=eq."+encodeURIComponent(contestId)+"&status=neq.rejected&order=created_at.desc");
+ }).then(function(rows){
+  if(!rows.length){message.textContent="No approved entries yet.";return;}
+  message.textContent="";
+  rows.forEach(function(m){
+   var card=document.createElement("article");card.className="entry-card";
+   var img=document.createElement("img");img.className="entry-image";img.alt=m.meme_title||"SPARKD meme";
+   var raw=m.meme_image_url||"";
+   img.src=raw?(raw.indexOf("http://")===0||raw.indexOf("https://")===0?raw:API+"/storage/v1/object/public/sparkd-contest-submissions/"+raw.replace(/^\//,"")):"";
+   img.onerror=function(){img.removeAttribute("src");img.classList.add("placeholder");img.alt="";img.setAttribute("aria-label","Image unavailable");};
+   if(!raw){img.classList.add("placeholder");img.alt="Image unavailable";}
+   var title=document.createElement("div");title.className="entry-title";title.textContent=m.meme_title||"Untitled SPARKD Meme";
+   var creator=document.createElement("div");creator.className="light";creator.textContent=m.wallet_address||"SPARKD Creator";
+   card.appendChild(img);card.appendChild(title);card.appendChild(creator);host.appendChild(card);
+  });
+ }).catch(function(e){message.textContent=e&&e.message?e.message:"Unable to load live contenders.";});
+}
+function loadWinners(){
+ var message=document.getElementById("winnersMessage"),host=document.getElementById("winnersList");
+ message.textContent="Loading winners…";host.replaceChildren();
+ rest("meme_week_contests?select=id,week_start&status=eq.completed&order=week_start.desc&limit=25").then(function(contests){
+  if(!contests.length)return {contests:[],winners:[]};
+  var ids=contests.map(function(c){return c.id;}).filter(Boolean);
+  return rest("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,payout_verified&contest_id=in.("+ids.join(",")+")").then(function(winners){return {contests:contests,winners:winners};});
+ }).then(function(data){
+  if(!data.winners.length){message.textContent="No completed contests with winners yet.";return;}
+  var submissionIds=[];
+  data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id"].forEach(function(k){if(w[k])submissionIds.push(w[k]);});});
+  if(!submissionIds.length){message.textContent="No completed contests with winners yet.";return;}
+  return rest("meme_week_submissions?select=id,meme_title,wallet_address,meme_image_url&id=in.("+Array.from(new Set(submissionIds)).join(",")+")").then(function(submissions){
+   var byId={},weeks={};submissions.forEach(function(s){byId[s.id]=s;});data.contests.forEach(function(c){weeks[c.id]=String(c.week_start||"").slice(0,10);});
+   var items=[];
+   data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id"].forEach(function(field,i){var s=byId[w[field]];if(s)items.push({place:i+1,title:s.meme_title||"SPARKD Winner",creator:s.wallet_address||"SPARKD Creator",week:weeks[w.contest_id]||"",image:s.meme_image_url||""});});});
+   items.sort(function(a,b){return b.week.localeCompare(a.week)||a.place-b.place;});
+   message.textContent="";items.slice(0,24).forEach(function(w){
+    var card=document.createElement("article");card.className="winner-card";
+    if(w.image){var img=document.createElement("img");img.className="winner-image";img.loading="lazy";img.alt=w.title;img.src=w.image.indexOf("http://")===0||w.image.indexOf("https://")===0?w.image:API+"/storage/v1/object/public/sparkd-contest-submissions/"+w.image.replace(/^\//,"");card.appendChild(img);}
+    var row=document.createElement("div");row.className="winner-row";
+    var medal=document.createElement("span");medal.className="medal";medal.textContent=["🥇","🥈","🥉"][w.place-1]||"🏆";
+    var details=document.createElement("div");details.className="winner-details";
+    var title=document.createElement("div");title.className="winner-title";title.textContent=w.title;
+    var creator=document.createElement("div");creator.className="address";creator.textContent=w.creator;
+    var week=document.createElement("div");week.className="address";week.textContent=w.week?"Week of "+w.week:"";
+    details.appendChild(title);details.appendChild(creator);if(w.week)details.appendChild(week);
+    var place=document.createElement("div");place.className="winner-place";place.textContent=["1ST","2ND","3RD"][w.place-1]||"WINNER";
+    row.appendChild(medal);row.appendChild(details);row.appendChild(place);card.appendChild(row);host.appendChild(card);
+   });
+  });
+ }).catch(function(e){message.textContent=e&&e.message?e.message:"Unable to load winners.";});
+}
+function forgeCanvas(){return document.getElementById("forgeCanvas");}
+function forgeDraw(showSelection){
+ var canvas=forgeCanvas(),ctx=canvas&&canvas.getContext("2d");if(!ctx)return;
+ var size=canvas.width;ctx.clearRect(0,0,size,size);ctx.fillStyle="#000";ctx.fillRect(0,0,size,size);
+ if(forgeSource){
+  var scale=Math.min(size/forgeSource.naturalWidth,size/forgeSource.naturalHeight);
+  var w=forgeSource.naturalWidth*scale,h=forgeSource.naturalHeight*scale;
+  ctx.drawImage(forgeSource,(size-w)/2,(size-h)/2,w,h);
+ }
+ forgeLayers.forEach(function(layer,i){
+  ctx.save();ctx.font="bold "+layer.size+"px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="alphabetic";
+  ctx.fillStyle=layer.color;ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.shadowOffsetY=3;
+  ctx.fillText(layer.text.slice(0,80),layer.x*size,layer.y*size, size*.92);ctx.restore();
+  if(showSelection&&i===forgeSelected){
+   var box=size*.31,x=layer.x*size-box/2,y=layer.y*size-box/2;
+   ctx.save();ctx.shadowColor="transparent";ctx.lineWidth=6;ctx.strokeStyle="#ffc83d";
+   if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,box,box,30);ctx.stroke();}else ctx.strokeRect(x,y,box,box);
+   ctx.restore();
+  }
+ });
+}
+function forgeUpdateControls(){
+ var hasImage=!!forgeSource,canvasBox=document.getElementById("forgePreviewBox");
+ document.getElementById("forgeImageRow").classList.toggle("forge-single",!hasImage);
+ canvasBox.hidden=!hasImage;document.getElementById("forgeDeleteImage").hidden=!hasImage;
+ document.getElementById("forgeSavePng").disabled=!hasImage;
+ var hasTitle=!!document.getElementById("forgeTitle").value.trim();
+ var sendReady=hasImage&&hasTitle;
+ document.getElementById("forgeSendSubmit").disabled=!sendReady;
+ document.getElementById("forgeTransferHint").textContent=sendReady?"Ready — tap “Use this meme in Submit” to carry the finished meme and title over.":(hasImage?"Add a title to enable sending this meme to Submit.":"Choose an image and add a title to enable sending it to Submit.");
+ var panel=document.getElementById("forgeSelectedPanel"),area=document.getElementById("forgeLayerArea");
+ var layer=forgeSelected!=null?forgeLayers[forgeSelected]:null;
+ panel.hidden=!layer;area.hidden=!forgeLayers.length;
+ if(layer){document.getElementById("forgeSelectedName").textContent="Selected: "+layer.text;document.getElementById("forgeResize").value=String(layer.size);}
+ var chips=document.getElementById("forgeLayerChips");chips.replaceChildren();
+ forgeLayers.forEach(function(item,i){var chip=document.createElement("button");chip.type="button";chip.className="forge-chip"+(i===forgeSelected?" selected":"");chip.textContent=item.text;chip.addEventListener("click",function(){forgeSelected=i;forgeDraw(true);forgeUpdateControls();});chips.appendChild(chip);});
+ forgeDraw(true);
+}
+function forgeLoadImage(file){
+ if(!file||!file.type||!file.type.startsWith("image/")){document.getElementById("forgeSafety").textContent="🚫 Choose a valid image file.";return;}
+ var status=document.getElementById("forgeSafety"),input=document.getElementById("forgeImageInput");
+ status.textContent="🛡 Inspecting image before opening Forge…";
+ var url=URL.createObjectURL(file),img=new Image();
+ img.onload=function(){
+  (async function(){
+   try{
+    var max=1280,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    var iw=Math.max(1,Math.round(img.naturalWidth*scale)),ih=Math.max(1,Math.round(img.naturalHeight*scale));
+    var inspect=document.createElement("canvas");inspect.width=iw;inspect.height=ih;
+    var ictx=inspect.getContext("2d");if(!ictx)throw new Error("Image inspection could not start on this device.");
+    ictx.fillStyle="#fff";ictx.fillRect(0,0,iw,ih);ictx.drawImage(img,0,0,iw,ih);
+    var jpg=await new Promise(function(resolve,reject){inspect.toBlob(function(blob){blob?resolve(blob):reject(new Error("Unable to prepare image for content inspection."));},"image/jpeg",.82);});
+    if(jpg.size>2.5*1024*1024)throw new Error("This image is too large to inspect. Please choose a smaller image.");
+    var form=new FormData();form.append("image",new File([jpg],"SPARKD-inspection.jpg",{type:"image/jpeg"}));
+    var response=await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/forge-content-safety",{method:"POST",body:form,cache:"no-store",credentials:"omit"});
+    var result=await response.json().catch(function(){return null;});
+    if(!response.ok)throw new Error(result&&result.error?result.error:"Content protection HTTP "+response.status);
+    if(!result||result.success!==true||result.checked!==true)throw new Error("Content protection could not verify this image.");
+    if(result.blocked===true||result.safe!==true)throw new Error(result.reason||"This image cannot be used in SPARKD Meme Forge.");
+    if(forgeSourceUrl)URL.revokeObjectURL(forgeSourceUrl);
+    forgeSource=img;forgeSourceUrl=url;forgeLayers=[];forgeSelected=null;forgeExport=null;
+    status.textContent="✅ Image passed content inspection.";
+    forgeUpdateControls();
+   }catch(error){URL.revokeObjectURL(url);status.textContent="🚫 "+(error&&error.message?error.message:"Image inspection failed. Choose another image.");}
+   finally{input.value="";}
+  })();
+ };
+ img.onerror=function(){URL.revokeObjectURL(url);input.value="";status.textContent="🚫 The selected image could not be opened on this device.";};
+ img.src=url;
+}
+function forgePngBlob(){
+ return new Promise(function(resolve,reject){
+  var canvas=forgeCanvas();if(!canvas||!forgeSource){reject(new Error("Choose an image in Meme Forge first."));return;}
+  forgeDraw(false);canvas.toBlob(function(blob){forgeDraw(true);if(!blob)reject(new Error("Unable to create the meme PNG."));else if(blob.size>10*1024*1024)reject(new Error("The contest PNG must be 10 MB or smaller."));else resolve(blob);},"image/png");
+ });
+}
+function forgeMemeId(){
+ return window.crypto&&crypto.randomUUID?crypto.randomUUID():("sparkd-"+Date.now()+"-"+Math.random().toString(36).slice(2));
+}
+function downloadForgeBlob(blob,title){
+ var name="SPARKD-"+forgeMemeId()+".png",file=new File([blob],name,{type:"image/png"});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))return navigator.share({files:[file],title:title||"SPARKD meme"}).catch(function(e){if(e&&e.name==="AbortError")throw e;return downloadForgeFile(blob,name);});
+ return downloadForgeFile(blob,name);
+}
+function downloadForgeFile(blob,name){
+ var link=document.createElement("a"),url=URL.createObjectURL(blob);link.href=url;link.download=name;link.style.display="none";document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(url);},60000);
+}
+function renderSubmitForge(){
+ var preview=document.getElementById("submitForgePreview"),status=document.getElementById("submitForgeStatus"),save=document.getElementById("submitSavePng"),title=document.getElementById("submitMemeTitle");
+ if(!forgeExport){status.textContent="No meme is ready for submission.";preview.hidden=true;save.hidden=true;return;}
+ if(preview.dataset.url)URL.revokeObjectURL(preview.dataset.url);
+ var url=URL.createObjectURL(forgeExport.blob);preview.src=url;preview.dataset.url=url;preview.hidden=false;
+ status.textContent="Meme ready for entry · "+forgeExport.memeID;
+ title.value=forgeExport.title;save.hidden=false;
+}
+document.getElementById("forgeChooseImage").addEventListener("click",function(){document.getElementById("forgeImageInput").click();});
+document.getElementById("forgeImageInput").addEventListener("change",function(e){forgeLoadImage(e.target.files&&e.target.files[0]);});
+document.getElementById("forgeDeleteImage").addEventListener("click",function(){if(forgeSourceUrl)URL.revokeObjectURL(forgeSourceUrl);forgeSource=null;forgeSourceUrl="";forgeLayers=[];forgeSelected=null;forgeExport=null;document.getElementById("forgeSafety").textContent="";document.getElementById("forgeTitle").value="";forgeUpdateControls();});
+document.getElementById("forgeTitle").addEventListener("input",forgeUpdateControls);
+document.getElementById("forgeTextOpen").addEventListener("click",function(){document.getElementById("forgeTextDialog").hidden=false;document.getElementById("forgeTextInput").focus();});
+document.getElementById("forgeTextCancel").addEventListener("click",function(){document.getElementById("forgeTextDialog").hidden=true;});
+document.getElementById("forgeTextColors").innerHTML=["#ffffff","#000000","#ffff00","#ff0000","#00ff00","#00ffff","#0000ff","#ff00ff"].map(function(color){return '<button class="forge-color" type="button" data-color="'+color+'" aria-label="Text color '+color+'" style="background:'+color+'"></button>';}).join("");
+document.querySelectorAll(".forge-color").forEach(function(btn){btn.addEventListener("click",function(){forgeNewColor=btn.dataset.color;document.querySelectorAll(".forge-color").forEach(function(b){b.classList.toggle("selected",b===btn);});});});
+document.getElementById("forgeTextAdd").addEventListener("click",function(){var text=document.getElementById("forgeTextInput").value.trim();if(text){forgeLayers.push({text:text.slice(0,80),x:.5,y:.5,size:72,color:forgeNewColor});forgeSelected=forgeLayers.length-1;document.getElementById("forgeTextInput").value="";}document.getElementById("forgeTextDialog").hidden=true;forgeUpdateControls();});
+document.getElementById("forgeEmojiOpen").addEventListener("click",function(){
+ var grid=document.getElementById("forgeEmojiGrid");grid.replaceChildren();
+ forgeEmojiList.forEach(function(emoji){var b=document.createElement("button");b.type="button";b.className="forge-emoji";b.textContent=emoji;b.addEventListener("click",function(){forgeLayers.push({text:emoji,x:.5,y:.5,size:72,color:"#ffffff"});forgeSelected=forgeLayers.length-1;document.getElementById("forgeEmojiDialog").hidden=true;forgeUpdateControls();});grid.appendChild(b);});
+ document.getElementById("forgeEmojiDialog").hidden=false;
+});
+document.getElementById("forgeEmojiClose").addEventListener("click",function(){document.getElementById("forgeEmojiDialog").hidden=true;});
+document.getElementById("forgeResize").addEventListener("input",function(){if(forgeSelected==null)return;forgeLayers[forgeSelected].size=Number(this.value);forgeUpdateControls();});
+document.getElementById("forgeCenterLayer").addEventListener("click",function(){if(forgeSelected!=null){forgeLayers[forgeSelected].x=.5;forgeLayers[forgeSelected].y=.5;forgeUpdateControls();}});
+document.getElementById("forgeDeleteLayer").addEventListener("click",function(){if(forgeSelected!=null){forgeLayers.splice(forgeSelected,1);forgeSelected=null;forgeUpdateControls();}});
+document.getElementById("forgeCanvas").addEventListener("pointerdown",function(e){
+ var canvas=forgeCanvas(),rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.height;
+ var ctx=canvas.getContext("2d"),hit=-1;
+ for(var i=forgeLayers.length-1;i>=0;i--){var l=forgeLayers[i];ctx.font="bold "+l.size+"px Arial, sans-serif";var half=Math.max(ctx.measureText(l.text).width/2/1080,.06);if(Math.abs(x-l.x)<=half&&Math.abs(y-l.y)<=Math.max(l.size/1080,.06)){hit=i;break;}}
+ if(hit>=0){forgeSelected=hit;forgeDragging=hit;canvas.setPointerCapture(e.pointerId);forgeUpdateControls();}
+});
+document.getElementById("forgeCanvas").addEventListener("pointermove",function(e){
+ if(forgeDragging==null)return;var rect=this.getBoundingClientRect(),layer=forgeLayers[forgeDragging];
+ if(layer){layer.x=Math.max(.03,Math.min(.97,(e.clientX-rect.left)/rect.width));layer.y=Math.max(.04,Math.min(.96,(e.clientY-rect.top)/rect.height));forgeDraw(true);}
+});
+document.getElementById("forgeCanvas").addEventListener("pointerup",function(){forgeDragging=null;forgeUpdateControls();});
+document.getElementById("forgeCanvas").addEventListener("pointercancel",function(){forgeDragging=null;forgeUpdateControls();});
+document.getElementById("forgeSavePng").addEventListener("click",async function(){
+ var status=document.getElementById("forgeExportStatus");status.textContent="Preparing PNG…";
+ try{var blob=await forgePngBlob();await downloadForgeBlob(blob,document.getElementById("forgeTitle").value.trim());status.textContent="✅ Meme PNG saved. You can submit it to the contest.";}
+ catch(e){status.textContent="🚫 "+(e&&e.message?e.message:"Unable to save PNG.");}
+});
+document.getElementById("forgeSendSubmit").addEventListener("click",async function(){
+ var status=document.getElementById("forgeExportStatus"),title=document.getElementById("forgeTitle").value.trim();
+ if(!title){status.textContent="🚫 Enter a meme title first.";return;}
+ status.textContent="Preparing your meme for Submit…";
+ try{var blob=await forgePngBlob();forgeExport={blob:blob,title:title,memeID:forgeMemeId(),creatorID:forgeMemeId()};document.getElementById("submitMemeTitle").value=title;renderSubmitForge();status.textContent="✅ Meme sent to the Submit tab.";go("submit");}
+ catch(e){status.textContent="🚫 "+(e&&e.message?e.message:"Unable to prepare the meme.");}
+});
+document.getElementById("submitSavePng").addEventListener("click",async function(){
+ if(!forgeExport)return;try{await downloadForgeBlob(forgeExport.blob,forgeExport.title);document.getElementById("submitForgeStatus").textContent="Meme ready for entry · saved to this device.";}
+ catch(e){if(e&&e.name!=="AbortError")document.getElementById("submitForgeStatus").textContent=e.message||"Unable to save the PNG.";}
+});
+forgeUpdateControls();
+function walletProvider(){return window.phantom&&window.phantom.solana?window.phantom.solana:(window.solana&&window.solana.isPhantom?window.solana:null);}
+function shortAddress(a){return a.length>15?a.slice(0,6)+"…"+a.slice(-5):a;}
+function setWallet(address){
+ walletAddress.textContent=address?address:"Not connected";
+ walletAddress.classList.toggle("green",!!address);walletAddress.classList.toggle("gold",!address);
+ document.getElementById("homeWallet").textContent=address?"Wallet connected: "+shortAddress(address):"Connect your Solana wallet to participate.";
+ document.getElementById("homeWalletAction").textContent=address?"Disconnect Wallet":"Connect Solana Wallet";
+ document.getElementById("disconnectWallet").hidden=!address;
+ if(address)loadBalance(address);else{balanceRequestID++;tokenBalance.textContent="Connect wallet to view";tokenBalance.classList.remove("green");tokenBalance.classList.add("gold");balanceStatus.textContent="";}
+}
+function loadBalance(address){
+ tokenBalance.textContent="Loading…";balanceStatus.textContent="";
+ var requestId=++balanceRequestID,controller=new AbortController();
+ var timeout=window.setTimeout(function(){controller.abort();},20000);
+ fetch(API+"/functions/v1/sparkd-balance",{method:"POST",headers:{"Content-Type":"application/json","apikey":KEY},body:JSON.stringify({owner:address}),signal:controller.signal})
+ .then(function(response){return response.json().catch(function(){return null;}).then(function(data){if(!response.ok)throw new Error(data&&data.error?data.error:"Balance service temporarily unavailable. Please try again shortly.");return data;});})
+ .then(function(data){
+  if(requestId!==balanceRequestID||walletAddress.textContent!==address)return;
+  if(!data||typeof data.balance!=="string"||!/^\d+\.\d{2}$/.test(data.balance))throw new Error("Balance service returned an invalid response.");
+  tokenBalance.textContent=data.balance+" SPARKD";tokenBalance.classList.remove("gold");tokenBalance.classList.add("green");
+ })
+ .catch(function(error){
+  if(requestId!==balanceRequestID||walletAddress.textContent!==address)return;
+  console.warn("SPARKD balance lookup failed.",error);
+  tokenBalance.textContent="Unavailable";
+  balanceStatus.textContent="Balance service temporarily unavailable. Please try again shortly.";
+ })
+ .finally(function(){window.clearTimeout(timeout);});
+}
+function isMobileDevice(){
+ return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+}
+function phantomBrowseUrl(){
+ var target=new URL(window.location.href);
+ target.searchParams.set("sparkd_phantom_handoff","1");
+ return "https://phantom.app/ul/browse/"+encodeURIComponent(target.toString())+"?ref="+encodeURIComponent(window.location.origin);
+}
+function connect(){
+ var provider=walletProvider();
+ if(!provider){
+  var handoff=new URLSearchParams(window.location.search).has("sparkd_phantom_handoff");
+  if(isMobileDevice()&&!handoff){
+   homeStatus.textContent="Opening SPARKD in Phantom…";
+   walletStatus.textContent="Opening SPARKD in Phantom…";
+   window.location.assign(phantomBrowseUrl());
+   return Promise.reject(new Error("Opening SPARKD in Phantom…"));
+  }
+  var message=isMobileDevice()?"Phantom did not connect. Open SPARKD in Phantom’s in-app browser and try again.":"Phantom wallet not detected. Install Phantom or use a browser with Phantom enabled.";
+  return Promise.reject(new Error(message));
+ }
+ return provider.connect().then(function(result){if(!result||!result.publicKey)throw new Error("Wallet did not return an address.");return result.publicKey.toString();});
+}
+function connectForHome(openForge){
+ homeStatus.textContent="Opening your Solana wallet…";
+ connect().then(function(a){setWallet(a);homeStatus.textContent="Wallet connected.";if(openForge)go("forge");})
+ .catch(function(e){homeStatus.textContent=e&&e.message?e.message:"Wallet connection failed.";if(openForge&&walletProvider()==null)go("forge");});
+}
+document.getElementById("homeForge").addEventListener("click",function(){if(walletProvider()&&walletProvider().publicKey){go("forge");}else connectForHome(true);});
+document.getElementById("homeWalletAction").addEventListener("click",function(){var p=walletProvider();if(p&&p.publicKey){if(p.disconnect)p.disconnect();setWallet("");homeStatus.textContent="Wallet disconnected.";}else connectForHome(false);});
+document.getElementById("disconnectWallet").addEventListener("click",function(){var p=walletProvider();if(p&&p.disconnect)p.disconnect();setWallet("");walletStatus.textContent="Wallet disconnected.";});
+var provider=walletProvider();
+if(provider){if(provider.publicKey)setWallet(provider.publicKey.toString());provider.on&&provider.on("connect",function(a){if(a)setWallet(a.toString());});provider.on&&provider.on("disconnect",function(){setWallet("");});}
+document.getElementById("installHelp")?.addEventListener("click",function(){alert("In Safari, tap Share, then choose Add to Home Screen.");});
+loadContest();window.setInterval(loadContest,15000);
+})();
+</script>
+</body>
+</html>

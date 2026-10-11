@@ -9,13 +9,14 @@ data class PendingBurn(
     val wallet: String,
     val signedTransaction: ByteArray,
     val transactionSignature: String?,
-    val lastValidBlockHeight: Long?
+    val lastValidBlockHeight: Long?,
+    val quoteToken: String?
 )
 
 class BurnRecoveryStore(context: Context) {
     private val prefs = context.getSharedPreferences("sparkd-burn-recovery", Context.MODE_PRIVATE)
 
-    fun save(contestId: String, wallet: String, signedTransaction: ByteArray, transactionSignature: String? = null, lastValidBlockHeight: Long? = null) {
+    fun save(contestId: String, wallet: String, signedTransaction: ByteArray, transactionSignature: String? = null, lastValidBlockHeight: Long? = null, quoteToken: String? = null) {
         require(contestId.isNotBlank() && wallet.isNotBlank() && signedTransaction.isNotEmpty())
         val json = JSONObject()
             .put("contestId", contestId)
@@ -23,6 +24,7 @@ class BurnRecoveryStore(context: Context) {
             .put("signedTransaction", Base64.encodeToString(signedTransaction, Base64.NO_WRAP))
         transactionSignature?.let { json.put("transactionSignature", it) }
         lastValidBlockHeight?.let { json.put("lastValidBlockHeight", it) }
+        quoteToken?.let { json.put("quoteToken", it) }
         prefs.edit().putString("pending", json.toString()).apply()
     }
 
@@ -35,7 +37,8 @@ class BurnRecoveryStore(context: Context) {
                 json.getString("wallet"),
                 Base64.decode(json.getString("signedTransaction"), Base64.DEFAULT),
                 json.optString("transactionSignature").takeIf { it.isNotBlank() },
-                if (json.has("lastValidBlockHeight")) json.getLong("lastValidBlockHeight") else null
+                if (json.has("lastValidBlockHeight")) json.getLong("lastValidBlockHeight") else null,
+                json.optString("quoteToken").takeIf { it.isNotBlank() }
             )
         }.getOrNull()
     }

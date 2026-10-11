@@ -11,8 +11,8 @@ window.SPARKD_CONTEST = {
     // CONFIGURATION
     ////////////////////////////////////////////////////
 
-    REQUIRED_SPARKD:
-        2000,
+    ENTRY_USD:
+        3,
 
     BUCKET:
         "sparkd-contest-submissions",
@@ -312,19 +312,17 @@ window.SPARKD_CONTEST = {
         }
 
 
-        if (
-            balance <
-            this.REQUIRED_SPARKD
-        ) {
+        const requiredSparkd = Number(result.requiredSparkd);
+        if (!Number.isFinite(requiredSparkd) || requiredSparkd <= 0) {
+            throw new Error("The current $3 SPARKD entry quote is unavailable.");
+        }
 
+        if (balance < requiredSparkd) {
             throw new Error(
-
-                "You need at least " +
-                this.REQUIRED_SPARKD.toLocaleString() +
-                " SPARKD to enter."
-
+                "You need about " +
+                requiredSparkd.toLocaleString("en-US", { maximumFractionDigits: 6 }) +
+                " SPARKD to cover this $3 entry burn."
             );
-
         }
 
 
@@ -340,136 +338,15 @@ window.SPARKD_CONTEST = {
                 balance,
 
             requiredSparkd:
-                this.REQUIRED_SPARKD,
+                requiredSparkd,
+
+            targetEntryUsd:
+                Number(result.targetEntryUsd || this.ENTRY_USD),
 
             canSubmit:
                 result.canSubmit !== false
 
         };
-
-    },
-
-
-    ////////////////////////////////////////////////////
-    // VERIFY FORGE DNA
-    //
-    // SERVER-SIDE VERIFICATION
-    //
-    // NO DATABASE INSERT
-    // NO TOKEN TRANSFER
-    // NO TOKEN BURN
-    ////////////////////////////////////////////////////
-
-    async verifyForge(
-        wallet,
-        forgeData
-    ) {
-
-
-        this.validateWallet(
-            wallet
-        );
-
-
-        if (
-            !forgeData ||
-            typeof forgeData !==
-                "object"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge verification data is missing."
-            );
-
-        }
-
-
-        console.log(
-            "🧬 SPARKD verifying Forge DNA..."
-        );
-
-
-        const response =
-            await fetch(
-
-               this.SUPER_HANDLER_URL,
-                
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            wallet:
-                                wallet,
-
-                            action:
-                                "verify_dna",
-
-                            forgeData:
-                                forgeData,
-
-                            mint:
-                                "BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump"
-
-                        })
-
-                }
-
-            );
-
-
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-
-                "Forge verification service returned HTTP " +
-                response.status
-
-            );
-
-        }
-
-
-        const result =
-            await response.json();
-
-
-        if (
-            !result.success ||
-            !result.verified
-        ) {
-
-            throw new Error(
-
-                result.reason ||
-                result.error ||
-                "SPARKD Forge verification failed."
-
-            );
-
-        }
-
-
-        console.log(
-            "🔥 SPARKD Forge DNA verified:",
-            result
-        );
-
-
-        return result;
 
     },
 
@@ -578,7 +455,8 @@ window.SPARKD_CONTEST = {
 
 async getBurnReceipt(
     wallet,
-    contestId
+    contestId,
+    memeID
 ) {
 
 
@@ -588,11 +466,13 @@ async getBurnReceipt(
 
 
     if (
-        !contestId
+        !contestId ||
+        typeof memeID !== "string" ||
+        !memeID.trim()
     ) {
 
         throw new Error(
-            "Contest ID is required."
+            "Contest ID and Meme ID are required."
         );
 
     }
@@ -630,7 +510,10 @@ async getBurnReceipt(
                             wallet,
 
                         contestId:
-                            contestId
+                            contestId,
+
+                        memeID:
+                            memeID.trim()
 
                     })
 
@@ -688,7 +571,9 @@ async getBurnReceipt(
 async recordBurnReceipt(
     wallet,
     contestId,
-    burnTransaction
+    burnTransaction,
+    memeID,
+    quoteToken
 ) {
 
     this.validateWallet(
@@ -698,11 +583,13 @@ async recordBurnReceipt(
 
     if (
         !contestId ||
-        !burnTransaction
+        !burnTransaction ||
+        typeof memeID !== "string" ||
+        !memeID.trim()
     ) {
 
         throw new Error(
-            "Contest ID and burn transaction are required."
+            "Contest ID, burn transaction, and Meme ID are required."
         );
 
     }
@@ -737,7 +624,13 @@ async recordBurnReceipt(
                             contestId,
 
                         burnTransaction:
-                            burnTransaction
+                            burnTransaction,
+
+                        memeID:
+                            memeID.trim(),
+
+                        quoteToken:
+                            quoteToken
                     })
             }
         );
@@ -784,7 +677,7 @@ async finalizeSubmission(
     creatorId,
     memeTitle,
     memeImageUrl,
-    dnaVerificationData
+    entryData
 ) {
 
     this.validateWallet(
@@ -830,8 +723,8 @@ async finalizeSubmission(
                         memeImageUrl:
                             memeImageUrl,
 
-                        dnaVerificationData:
-                            dnaVerificationData
+                        memeID:
+                            entryData.memeID
                     })
             }
         );
@@ -1027,7 +920,7 @@ async finalizeSubmission(
 
         wallet,
 
-        forgeData
+        entryData
 
     }) {
 
@@ -1080,19 +973,12 @@ async finalizeSubmission(
 
 
         ////////////////////////////////////////////////////
-        // STEP 5 — FORGE DNA
+        // STEP 5 — MEME IDENTITY (BURN RECOVERY ONLY)
         ////////////////////////////////////////////////////
 
-        const forgeVerification =
-            await this.verifyForge(
-                wallet,
-                forgeData
-            );
-
-
-        console.log(
-            "🔥 SPARKD Forge verified."
-        );
+        if (!entryData?.memeID || !entryData?.creatorID) {
+            throw new Error("Meme identity is missing. Choose the image again.");
+        }
 
 
         ////////////////////////////////////////////////////
@@ -1133,10 +1019,10 @@ async finalizeSubmission(
                 balance.balance,
 
             requiredSparkd:
-                this.REQUIRED_SPARKD,
+                balance.requiredSparkd,
 
-            forgeVerification:
-                forgeVerification,
+            memeID:
+                entryData.memeID,
 
             storagePath:
                 upload.path
@@ -1166,7 +1052,7 @@ async finalizeSubmission(
 
     async submitMemeTest(
         file,
-        forgeData,
+        entryData,
         memeTitle
     ) {
 
@@ -1327,40 +1213,11 @@ async finalizeSubmission(
 
 
         ////////////////////////////////////////////////////
-        // STEP 6 — FORGE DATA CHECK
+        // STEP 6 — MEME IDENTITY
         ////////////////////////////////////////////////////
-
-        if (
-            !forgeData ||
-            typeof forgeData !==
-                "object"
-        ) {
-
-            throw new Error(
-                "SPARKD Forge verification data is missing."
-            );
-
+        if (!entryData?.memeID || !entryData?.creatorID) {
+            throw new Error("Meme identity is missing.");
         }
-
-
-        ////////////////////////////////////////////////////
-        // STEP 7 — SERVER-SIDE FORGE VERIFICATION
-        ////////////////////////////////////////////////////
-
-        const forgeVerification =
-            await this.verifyForge(
-
-                wallet,
-
-                forgeData
-
-            );
-
-
-        console.log(
-            "🔥 TEST Forge DNA verified."
-        );
-
 
         ////////////////////////////////////////////////////
         // STEP 8 — UPLOAD IMAGE
@@ -1405,8 +1262,7 @@ async finalizeSubmission(
                 contest.id,
 
             creator_id:
-                forgeVerification.creatorID ||
-                forgeData.creatorID,
+                entryData.creatorID,
 
             wallet_address:
                 wallet,
@@ -1417,12 +1273,6 @@ async finalizeSubmission(
 
             meme_image_url:
                 upload.path,
-
-            dna_verified:
-                true,
-
-            dna_verification_data:
-                forgeData,
 
             burn_amount:
                 0,
@@ -1559,13 +1409,13 @@ async finalizeSubmission(
 //
 // VERIFIED TOKEN-2022 BURN + SERVER FINALIZATION
 //
-// Burns exactly 2,000 SPARKD after validation.
+// Burns $3 worth of SPARKD after validation.
 // Includes burn-receipt recovery protection.
 ////////////////////////////////////////////////////
 
     async submitMeme(
         file,
-        forgeData,
+        entryData,
         memeTitle
     ) {
 
@@ -1662,6 +1512,25 @@ async finalizeSubmission(
 );
 
 
+////////////////////////////////////////////////////
+// IMAGE ID — REQUIRED BEFORE BURN RECOVERY
+////////////////////////////////////////////////////
+
+if (
+    !entryData ||
+    typeof entryData !== "object" ||
+    typeof entryData.memeID !== "string" ||
+    !entryData.memeID.trim()
+) {
+    throw new Error(
+        "Meme ID is missing."
+    );
+}
+
+const entryMemeID =
+    entryData.memeID.trim();
+
+
    ////////////////////////////////////////////////////
 // STEP 4 — RECOVERY STATE CHECK
 //
@@ -1675,7 +1544,8 @@ console.log(
 let existingBurnReceipt =
     await this.getBurnReceipt(
         wallet,
-        contest.id
+        contest.id,
+        entryMemeID
     );
 
 ////////////////////////////////////////////////////
@@ -1692,7 +1562,7 @@ let existingBurnReceipt =
 ////////////////////////////////////////////////////
 
 const burnRecoveryKey =
-    `sparkd_burn_recovery_${contest.id}_${wallet}`;
+    `sparkd_burn_recovery_${contest.id}_${wallet}_${entryMemeID}`;
 
 const savedBurnRecovery =
     localStorage.getItem(
@@ -1728,7 +1598,8 @@ if (
 
     const matchingRecovery =
         recoveryData?.contestId === contest.id &&
-        recoveryData?.wallet === wallet;
+        recoveryData?.wallet === wallet &&
+        recoveryData?.memeID === entryMemeID;
 
     if (
         !matchingRecovery
@@ -1775,13 +1646,16 @@ if (
             await this.recordBurnReceipt(
                 wallet,
                 contest.id,
-                recoverySignature
+                recoverySignature,
+                entryMemeID,
+                recoveryData?.quoteToken
             );
 
             existingBurnReceipt =
                 await this.getBurnReceipt(
                     wallet,
-                    contest.id
+                    contest.id,
+        entryMemeID
                 );
 
         }
@@ -1844,6 +1718,7 @@ if (
                         await this.resendSignedBurnTransaction(
                             wallet,
                             contest.id,
+                            entryMemeID,
                             recoveryData.signedTransaction
                         );
 
@@ -1859,15 +1734,18 @@ if (
                     }
 
                     await this.recordBurnReceipt(
-                        wallet,
-                        contest.id,
-                        recoverySignature
-                    );
+                wallet,
+                contest.id,
+                recoverySignature,
+                entryMemeID,
+                recoveryData?.quoteToken
+            );
 
                     existingBurnReceipt =
                         await this.getBurnReceipt(
                             wallet,
-                            contest.id
+                            contest.id,
+        entryMemeID
                         );
 
                 }
@@ -1932,13 +1810,16 @@ if (
             await this.recordBurnReceipt(
                 wallet,
                 contest.id,
-                recoveryData.burnTransaction
+                recoveryData.burnTransaction,
+                entryMemeID,
+                recoveryData?.quoteToken
             );
 
             existingBurnReceipt =
                 await this.getBurnReceipt(
                     wallet,
-                    contest.id
+                    contest.id,
+        entryMemeID
                 );
 
         }
@@ -1980,24 +1861,25 @@ const existing =
 ////////////////////////////////////////////////////
 
 if (
-    existingBurnReceipt?.found === true &&
-    existingBurnReceipt?.verified === true &&
-    existingBurnReceipt?.receipt?.burn_transaction
-) {
-
-    console.log(
-        "♻️ Verified SPARKD burn receipt found. Recovery mode enabled:",
-        existingBurnReceipt.receipt.burn_transaction
-    );
-
-}
-else if (
     existing.submissionCount >
     0
 ) {
 
     throw new Error(
         "This wallet already has a submission for the current contest."
+    );
+
+}
+
+if (
+    existingBurnReceipt?.found === true &&
+    existingBurnReceipt?.verified === true &&
+    existingBurnReceipt?.receipt?.burn_transaction
+) {
+
+    console.log(
+        "♻️ Verified SPARKD burn receipt found for this Meme ID. Recovery mode enabled:",
+        existingBurnReceipt.receipt.burn_transaction
     );
 
 }
@@ -2122,18 +2004,6 @@ else {
     }
 
 
-    if (
-        tokenAccount.balance <
-        this.REQUIRED_SPARKD
-    ) {
-
-        throw new Error(
-            "SPARKD Token-2022 account balance is below the required amount."
-        );
-
-    }
-
-
     console.log(
         "🔥 SPARKD Token-2022 account verified:",
         tokenAccount.tokenAccount
@@ -2149,41 +2019,26 @@ else {
 
 
         ////////////////////////////////////////////////////
-        // STEP 8 — FORGE DATA
+        // STEP 8 — CONTEST IMAGE IDENTITY
         ////////////////////////////////////////////////////
 
         if (
-            !forgeData ||
-            typeof forgeData !==
+            !entryData ||
+            typeof entryData !==
                 "object"
         ) {
 
             throw new Error(
-                "SPARKD Forge verification data is missing."
+                "Meme identity is missing."
             );
 
         }
 
 
         ////////////////////////////////////////////////////
-        // STEP 9 — SERVER-SIDE FORGE VERIFICATION
+        // STEP 9 — MEME IDENTITY FOR BURN RECOVERY
         ////////////////////////////////////////////////////
-
-        const forgeVerification =
-            await this.verifyForge(
-
-                wallet,
-
-                forgeData
-
-            );
-
-
-        console.log(
-            "🧬 SPARKD Forge DNA verified:",
-            forgeVerification
-        );
-
+        if (!entryData?.creatorID) throw new Error("Creator identity is missing.");
 
       ////////////////////////////////////////////////////
 // STEP 10 — PREPARE SUBMISSION ID
@@ -2194,8 +2049,7 @@ const submissionId =
 
 
 const creatorId =
-    forgeVerification.creatorID ||
-    forgeData.creatorID;
+    entryData.creatorID;
 
 
 ////////////////////////////////////////////////////
@@ -2309,7 +2163,7 @@ else {
     ////////////////////////////////////////////////////
 
     console.log(
-        "🔥 Requesting REAL 2,000 SPARKD burn..."
+        "🔥 Requesting the $3 SPARKD entry burn..."
     );
 
 
@@ -2321,7 +2175,9 @@ else {
        burnResult =
     await this.executeSparkdBurn(
         wallet,
-        contest.id
+        contest.id,
+        entryMemeID,
+        creatorId
     );
 
     }
@@ -2392,26 +2248,12 @@ else {
 
 
     if (
-        burnResult.burnAmount !==
-        this.REQUIRED_SPARKD
+        !Number.isFinite(Number(burnResult.burnAmount)) ||
+        burnResult.burnAmount <= 0 ||
+        String(burnResult.rawBurnAmount) !== String(burnResult.verification?.rawBurnAmount) ||
+        Number(burnResult.burnAmount) !== Number(burnResult.verification?.burnAmount)
     ) {
-
-        throw new Error(
-            "Verified SPARKD burn amount is incorrect."
-        );
-
-    }
-
-
-    if (
-        burnResult.rawBurnAmount !==
-        "2000000000"
-    ) {
-
-        throw new Error(
-            "Verified SPARKD raw burn amount is incorrect."
-        );
-
+        throw new Error("Verified SPARKD burn does not match the signed $3 entry quote.");
     }
 
 
@@ -2479,14 +2321,16 @@ try {
     await this.recordBurnReceipt(
         wallet,
         contest.id,
-        burnResult.burnTransaction
+        burnResult.burnTransaction,
+        entryMemeID,
+        burnResult.quoteToken
     );
 
 }
 catch (error) {
 
     throw new Error(
-        "The 2,000 SPARKD burn succeeded, but the burn receipt could not be recorded. Burn transaction: " +
+        "The $3 SPARKD entry burn succeeded, but its receipt could not be recorded. Burn transaction: " +
         burnResult.burnTransaction +
         ". DO NOT BURN AGAIN. " +
         (
@@ -2523,7 +2367,7 @@ try {
             memeTitle ||
                 "Untitled SPARKD Meme",
             upload.path,
-            forgeData
+            entryData
         );
 
 }
@@ -2564,7 +2408,7 @@ console.log(
 ////////////////////////////////////////////////////
 
 localStorage.removeItem(
-    `sparkd_burn_recovery_${contest.id}_${wallet}`
+    `sparkd_burn_recovery_${contest.id}_${wallet}_${entryMemeID}`
 );
 
 console.log(
@@ -2847,7 +2691,9 @@ const response =
 
    async buildSparkdBurnTransaction(
     wallet,
-    contestId
+    contestId,
+    memeID,
+    creatorId
 ) {
 
         console.log(
@@ -2884,16 +2730,6 @@ const response =
 
         }
 
-        if (
-            tokenAccountResult.sufficientBalance !== true
-        ) {
-
-            throw new Error(
-                "Wallet does not have enough SPARKD to burn 2,000 tokens."
-            );
-
-        }
-
         ////////////////////////////////////////////////////
         // REQUEST SERVER-BUILT RECENT-BLOCKHASH TRANSACTION
         ////////////////////////////////////////////////////
@@ -2920,6 +2756,12 @@ const response =
 
                             contestId:
                                 contestId,
+
+                            memeID:
+                                memeID,
+
+                            creatorId:
+                                creatorId,
 
                             tokenAccount:
                                 tokenAccountResult.tokenAccount
@@ -2959,7 +2801,16 @@ const response =
             "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 
         const expectedRawAmount =
-            "2000000000";
+            String(prepareResult.rawBurnAmount || "");
+
+        if (
+            !/^\d+$/.test(expectedRawAmount) ||
+            BigInt(expectedRawAmount) <= 0n ||
+            typeof prepareResult.quoteToken !== "string" ||
+            !prepareResult.quoteToken
+        ) {
+            throw new Error("Server returned an invalid or unsigned $3 SPARKD quote.");
+        }
 
         const expectedDecimals =
             6;
@@ -3210,10 +3061,22 @@ const response =
                 expectedProgram,
 
             burnAmount:
-                2000,
+                Number(prepareResult.burnAmount),
 
             rawBurnAmount:
                 expectedRawAmount,
+
+            targetEntryUsd:
+                Number(prepareResult.targetEntryUsd),
+
+            priceUsd:
+                Number(prepareResult.priceUsd),
+
+            estimatedEntryUsd:
+                Number(prepareResult.estimatedEntryUsd),
+
+            quoteToken:
+                prepareResult.quoteToken,
 
             decimals:
                 expectedDecimals,
@@ -3263,7 +3126,7 @@ const response =
     //
     // WARNING:
     // Phantom approval WILL send a REAL transaction.
-    // Successful execution burns 2,000 SPARKD.
+    // Successful execution burns the signed $3 SPARKD entry quote.
     ////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////
@@ -3482,12 +3345,14 @@ async getCurrentBlockHeight(
 async resendSignedBurnTransaction(
     wallet,
     contestId,
+    memeID,
     signedTransactionBase64
 ) {
 
     if (
         !wallet ||
         !contestId ||
+        !memeID ||
         !signedTransactionBase64
     ) {
 
@@ -3520,8 +3385,14 @@ async resendSignedBurnTransaction(
                         contestId:
                             contestId,
 
+                        memeID:
+                            memeID,
+
                         signedTransaction:
-                            signedTransactionBase64
+                            signedTransactionBase64,
+
+                        quoteToken:
+                            built.quoteToken
                     })
             }
         );
@@ -3559,16 +3430,28 @@ async resendSignedBurnTransaction(
 
 async executeSparkdBurn(
     wallet,
-    contestId
+    contestId,
+    memeID,
+    creatorId
 ) {
 
     console.log(
-        "🔥 Preparing REAL 2,000 SPARKD burn..."
+        "🔥 Preparing a $3 SPARKD entry burn..."
     );
 
     this.validateWallet(
         wallet
     );
+
+    if (
+        typeof memeID !== "string" ||
+        !memeID.trim()
+    ) {
+        throw new Error(
+            "Meme ID is required for a SPARKD burn."
+        );
+    }
+
 
     if (
         !window.solana ||
@@ -3671,7 +3554,9 @@ console.log(
     const built =
         await this.buildSparkdBurnTransaction(
             wallet,
-            contestId
+            contestId,
+            memeID,
+            creatorId
         );
 
     if (
@@ -3688,8 +3573,16 @@ console.log(
 
     }
 
+    const displayedAmount =
+        built.burnAmount.toLocaleString("en-US", { maximumFractionDigits: 6 });
+    if (!window.confirm(
+        `Approve burning about ${Number(built.estimatedEntryUsd).toFixed(2)} worth of SPARKD (approximately ${displayedAmount} SPARKD) for this contest entry?`
+    )) {
+        throw new Error("SPARKD contest entry burn was canceled.");
+    }
+
     console.log(
-        "⚠️ Phantom will now request approval to burn exactly 2,000 SPARKD."
+        "⚠️ Phantom will request approval to burn the quoted $3 SPARKD entry amount."
     );
 
     ////////////////////////////////////////////////////
@@ -3853,7 +3746,7 @@ console.log(
     ////////////////////////////////////////////////////
 
     const pendingBurnRecoveryKey =
-        `sparkd_burn_recovery_${contestId}_${wallet}`;
+        `sparkd_burn_recovery_${contestId}_${wallet}_${memeID.trim()}`;
 
     localStorage.setItem(
         pendingBurnRecoveryKey,
@@ -3862,13 +3755,19 @@ console.log(
                 contestId,
 
             wallet:
-                wallet,
+                wallet, 
+
+            memeID:
+                memeID.trim(),
 
             signedTransaction:
                 signedTransactionBase64,
 
             burnTransaction:
                 preBroadcastSignature,
+
+            quoteToken:
+                built.quoteToken,
 
             recentBlockhash:
                 built.recentBlockhash,
@@ -3914,6 +3813,9 @@ console.log(
 
                         contestId:
                             contestId,
+
+                        memeID:
+                            memeID,
 
                         signedTransaction:
                             signedTransactionBase64
@@ -4062,7 +3964,16 @@ console.log(
                                 wallet,
 
                             burnTransaction:
-                                signature
+                                signature,
+
+                            contestId:
+                                contestId,
+
+                            memeID:
+                                memeID,
+
+                            quoteToken:
+                                built.quoteToken
                         })
                 }
             );
@@ -4148,10 +4059,19 @@ console.log(
             built.mint,
 
         burnAmount:
-            2000,
+            Number(verification.burnAmount),
 
         rawBurnAmount:
-            "2000000000",
+            String(verification.rawBurnAmount),
+
+        quoteToken:
+            built.quoteToken,
+
+        targetEntryUsd:
+            Number(verification.targetEntryUsd || built.targetEntryUsd),
+
+        estimatedEntryUsd:
+            Number(verification.estimatedEntryUsd || built.estimatedEntryUsd),
 
         decimals:
             6,
@@ -4190,7 +4110,7 @@ console.log(
 window.SPARKD_CONTEST_TEST =
     async function (
         file,
-        forgeData,
+        entryData,
         memeTitle
     ) {
 
@@ -4198,7 +4118,7 @@ window.SPARKD_CONTEST_TEST =
 
             file,
 
-            forgeData,
+            entryData,
 
             memeTitle
 
