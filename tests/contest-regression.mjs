@@ -26,6 +26,7 @@ assert(index.indexOf('id="completedContestBurned"') > index.indexOf('id="totalBu
 assert(app.includes("data.completedContestBurned"));
 assert(app.includes("Each entry burns $3 worth of SPARKD"));
 assert(!/2,000 SPARKD|2000000000/.test(app));
+assert(!/\)\s*\*\s*2000/.test(app), "the UI must not estimate burn totals with the retired fixed amount");
 assert(app.includes("COMPLETED_BURN_CACHE_KEY"));
 assert(/contest-image\.js/.test(index));
 assert(/server-nudenet-guard\.js/.test(index));
