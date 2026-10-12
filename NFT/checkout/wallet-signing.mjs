@@ -2,14 +2,16 @@ import {Buffer} from 'buffer';
 import {Transaction,VersionedTransaction} from '@solana/web3.js';
 import {ed25519} from '@noble/curves/ed25519';
 import bs58 from 'bs58';
+import {purchaseBase} from './purchase-guards.mjs';
 import {ownerBase} from './owner-guards.mjs';
 function signatureBytes(value){if(typeof value==='string'){try{return bs58.decode(value);}catch{return null;}}if(value?.type==='Buffer')value=value.data;return value?Uint8Array.from(value):null;}
 const valid=(signature,message,key)=>signature?.length===64&&ed25519.verify(signature,message,key.toBytes(),{zip215:false});
-export async function signExactTransaction(provider,serialized,expectedWallet){
+export async function signExactTransaction(provider,serialized,expectedWallet,coSigner=null){
  const original=VersionedTransaction.deserialize(serialized);
  const message=Buffer.from(original.message.serialize());
  const keys=original.message.staticAccountKeys;
  if(!keys[0].equals(expectedWallet))throw Error('Connected wallet does not match this request');
+ if(coSigner&&(original.message.header.numRequiredSignatures!==2||keys[1].toBase58()!==coSigner||original.signatures[1].some(byte=>byte!==0)))throw Error('Invalid wallet-first purchase signing request');
  // Use the matching public transaction type. The legacy quote is not a v0 transaction.
  const input=original.version==='legacy'?Transaction.from(serialized):original;
  const result=await provider.signTransaction(input);
@@ -21,16 +23,16 @@ export async function signExactTransaction(provider,serialized,expectedWallet){
  if(original.version==='legacy'&&signatures.some(s=>s?.publicKey))signature=signatures.find(s=>s.publicKey?.equals(expectedWallet))?.signature;
  else signature=signatures[0];
  signature=signatureBytes(signature);
- if(!valid(signature,message,expectedWallet)&&original.message.header.numRequiredSignatures===1){
-  // Only unsigned owner approvals may gain bounded account assertions. Purchases
-  // retain exact-message verification because their delegate has already signed.
+ if(!valid(signature,message,expectedWallet)&&(coSigner||original.message.header.numRequiredSignatures===1)){
+  // Retain bounded stateless wallet safety checks while reproducing the quoted
+  // operation exactly. The delegate will sign only after the buyer approves.
   try{
    const returned=VersionedTransaction.deserialize(result.serialize({requireAllSignatures:false,verifySignatures:false}));
    const originalTx=Transaction.from(serialized),returnedTx=Transaction.from(returned.serialize());
    const core=originalTx.instructions.find(ix=>ix.programId.toBase58()==='CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d');
-   if(core&&[2,8,10].includes(core.data[0])){
-    const base=ownerBase(returnedTx,core.keys[0].pubkey.toBase58(),core.keys[1].pubkey.toBase58());
-    if(Buffer.from(base.serializeMessage()).equals(message)&&returned.message.header.numRequiredSignatures===1&&returned.message.staticAccountKeys[0].equals(expectedWallet)&&valid(returned.signatures[0],returned.message.serialize(),expectedWallet))return {bytes:Buffer.from(returned.serialize()),signature:Uint8Array.from(returned.signatures[0])};
+   if(core&&(coSigner||[2,8,10].includes(core.data[0]))){
+    const base=coSigner?purchaseBase(returnedTx):ownerBase(returnedTx,core.keys[0].pubkey.toBase58(),core.keys[1].pubkey.toBase58());
+    if(Buffer.from(base.serializeMessage()).equals(message)&&returned.message.header.numRequiredSignatures===original.message.header.numRequiredSignatures&&returned.message.staticAccountKeys[0].equals(expectedWallet)&&valid(returned.signatures[0],returned.message.serialize(),expectedWallet))return {bytes:Buffer.from(returned.serialize()),signature:Uint8Array.from(returned.signatures[0])};
    }
   }catch{}
  }
@@ -52,6 +54,6 @@ export async function signExactTransaction(provider,serialized,expectedWallet){
   throw Error('Approval was not submitted. Wallet response: '+detail+'. Please send this full message so we can identify the incompatibility.');
  }
  original.signatures[0]=Uint8Array.from(signature);
- for(let i=0;i<original.message.header.numRequiredSignatures;i++)if(!valid(original.signatures[i],message,keys[i]))throw Error('The checkout co-signature is missing or invalid. Nothing was submitted.');
+ for(let i=0;i<original.message.header.numRequiredSignatures;i++)if(!(coSigner&&i===1)&&!valid(original.signatures[i],message,keys[i]))throw Error('The checkout co-signature is missing or invalid. Nothing was submitted.');
  return {bytes:Buffer.from(original.serialize()),signature:Uint8Array.from(original.signatures[0])};
 }
