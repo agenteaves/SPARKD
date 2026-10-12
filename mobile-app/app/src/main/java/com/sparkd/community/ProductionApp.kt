@@ -61,6 +61,12 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     val repo = remember { LiveRepository() }
     val context = LocalContext.current
     var availableUpdate by remember { mutableStateOf<AppUpdate?>(null) }
+    val updateScope = rememberCoroutineScope()
+    var updateJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var updateDownloading by remember { mutableStateOf(false) }
+    var updateProgress by remember { mutableStateOf<Float?>(null) }
+    var updateMessage by remember { mutableStateOf("") }
+    var downloadedUpdate by remember { mutableStateOf<java.io.File?>(null) }
     LaunchedEffect(Unit) {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         val installedVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) packageInfo.longVersionCode else {
@@ -76,11 +82,36 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
 
     availableUpdate?.let { update ->
         AlertDialog(
-            onDismissRequest = { availableUpdate = null },
+            onDismissRequest = { if (!updateDownloading) availableUpdate = null },
             title = { Text("SPARKD update available") },
-            text = { Text("Version ${update.versionName} is ready. Update to get the latest fixes and contest features.") },
-            confirmButton = { Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl))) }) { Text("Update now") } },
-            dismissButton = { TextButton(onClick = { availableUpdate = null }) { Text("Later") } }
+            text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Version ${update.versionName} is ready. Download it here, then approve installation in Android.")
+                if (updateDownloading) {
+                    val value = updateProgress
+                    if (value == null) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    else LinearProgressIndicator(progress = { value }, modifier = Modifier.fillMaxWidth())
+                }
+                if (updateMessage.isNotBlank()) Text(updateMessage)
+            } },
+            confirmButton = { Button(enabled = !updateDownloading, onClick = {
+                val file = downloadedUpdate
+                if (file != null) {
+                    runCatching { installAppUpdate(context, file, update) }.onSuccess { opened ->
+                        updateMessage = if (opened) "Complete the update in Android's installation screen." else "Allow SPARKD to install its update, return here, then tap Install update."
+                    }.onFailure { updateMessage = it.message ?: "Unable to open Android's installer." }
+                } else {
+                    updateDownloading = true; updateProgress = null; updateMessage = "Connecting to the update download…"
+                    updateJob = updateScope.launch {
+                        try {
+                            downloadedUpdate = downloadAppUpdate(context, update) { value, message -> updateProgress = value; updateMessage = message }
+                            updateMessage = "Download verified. Tap Install update."
+                        } catch (error: kotlinx.coroutines.CancellationException) { throw error }
+                        catch (error: Exception) { updateMessage = "Download failed: " + (error.message ?: "Check your connection.") + " Tap Retry download." }
+                        finally { updateDownloading = false }
+                    }
+                }
+            }) { Text(if (downloadedUpdate != null) "Install update" else if (updateMessage.startsWith("Download failed")) "Retry download" else "Download update") } },
+            dismissButton = { TextButton(onClick = { updateJob?.cancel(); availableUpdate = null }) { Text(if (updateDownloading) "Cancel download" else "Later") } }
         )
     }
 

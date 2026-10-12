@@ -53,7 +53,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.SPARKD_RELEASE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.SPARKD_RELEASE_KEY_PASSWORD }}
         run: |
-          gradle :app:assembleRelease \
+          gradle :app:testDebugUnitTest :app:assembleRelease \
             -PSPARKD_RELEASE_STORE_FILE="$RUNNER_TEMP/SPARKD-release.jks" \
             -PSPARKD_RELEASE_STORE_PASSWORD="$STORE_PASSWORD" \
             -PSPARKD_RELEASE_KEY_ALIAS="$KEY_ALIAS" \
@@ -65,8 +65,8 @@ jobs:
         run: |
           AAPT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/aapt"
           "$AAPT" dump badging app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/sparkd-badging.txt"
-          grep -q "versionCode='54'" "$RUNNER_TEMP/sparkd-badging.txt"
-          grep -q "versionName='1.0.51'" "$RUNNER_TEMP/sparkd-badging.txt"
+          grep -q "versionCode='55'" "$RUNNER_TEMP/sparkd-badging.txt"
+          grep -q "versionName='1.0.52'" "$RUNNER_TEMP/sparkd-badging.txt"
           "$AAPT" dump xmltree app/build/outputs/apk/release/app-release.apk AndroidManifest.xml > "$RUNNER_TEMP/sparkd-manifest.txt"
           if grep -E 'android:host.*sparkdcoin\\.com' "$RUNNER_TEMP/sparkd-manifest.txt"; then
             echo "SPARKD website links must remain in the browser"

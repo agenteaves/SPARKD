@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="com.sparkd.community"; compileSdk=35
- defaultConfig { applicationId="com.sparkd.community"; minSdk=26; targetSdk=35; versionCode=54; versionName="1.0.51" }
+ defaultConfig { applicationId="com.sparkd.community"; minSdk=26; targetSdk=35; versionCode=55; versionName="1.0.52" }
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17" }
  buildFeatures { compose=true }
@@ -18,6 +18,7 @@ android {
  buildTypes { getByName("release") { signingConfigs.findByName("release")?.let { signingConfig = it }; isMinifyEnabled = false } }
 }
 dependencies {
+ testImplementation("junit:junit:4.13.2")
  implementation(platform("androidx.compose:compose-bom:2025.05.01"))
  implementation("androidx.activity:activity-compose:1.10.1")
  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.1")
