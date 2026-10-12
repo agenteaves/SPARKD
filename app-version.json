@@ -1,7 +1,5 @@
 {
-  "versionCode": 0,
+  "versionCode": 52,
   "versionName": "1.0.49",
-  "updatesEnabled": false,
-  "releaseVersionCode": 52,
   "downloadUrl": "https://github.com/agenteaves/SPARKD/releases/download/android-production/SPARKD-Mobile.apk"
 }
