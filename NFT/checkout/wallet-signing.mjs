@@ -27,7 +27,10 @@ export async function signExactTransaction(provider,serialized,expectedWallet){
    const changed=[];
    if(returned.message.recentBlockhash!==original.message.recentBlockhash)changed.push('blockhash');
    if(returned.message.compiledInstructions.length!==original.message.compiledInstructions.length)changed.push('instruction count '+original.message.compiledInstructions.length+' to '+returned.message.compiledInstructions.length);
-   if(returned.message.staticAccountKeys.some(k=>k.toBase58()==='ComputeBudget111111111111111111111111111111'))changed.push('wallet added fee instructions');
+   const describe=(m,ix)=>({program:m.staticAccountKeys[ix.programIdIndex].toBase58(),data:Buffer.from(ix.data).toString('hex'),accounts:Array.from(ix.accountKeyIndexes,i=>m.staticAccountKeys[i].toBase58())});
+   const quoted=original.message.compiledInstructions.map(ix=>JSON.stringify(describe(original.message,ix)));
+   const extras=returned.message.compiledInstructions.map(ix=>describe(returned.message,ix)).filter(ix=>!quoted.includes(JSON.stringify(ix)));
+   if(extras.length)changed.push('added or changed instructions: '+JSON.stringify(extras));
    if(!Buffer.from(returned.message.serialize()).equals(message)&&!changed.length)changed.push('accounts or instruction data');
    if(changed.length)detail=changed.join('; ');
    else if(valid(signature,returned.message.serialize(),expectedWallet))detail='wallet signed the same message but signature decoding failed';
