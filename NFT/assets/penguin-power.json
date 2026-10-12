@@ -1,0 +1,30 @@
+{
+  "name": "SPARKD - Penguin Power",
+  "symbol": "SPARKD",
+  "description": "First-place winning meme from the SPARKD Meme of the Week contest. A penguin works at a glowing green computer while the letters of SPARKD float overhead.",
+  "image": "https://sparkdcoin.com/NFT/assets/penguin-power.png",
+  "external_url": "https://sparkdcoin.com/NFT/",
+  "attributes": [
+    {
+      "trait_type": "Series",
+      "value": "Meme of the Week"
+    },
+    {
+      "trait_type": "Award",
+      "value": "1st Place"
+    },
+    {
+      "trait_type": "Theme",
+      "value": "Penguin Power"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://sparkdcoin.com/NFT/assets/penguin-power.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}
