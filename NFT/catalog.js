@@ -158,5 +158,18 @@ window.NFT_CATALOG = [
     "description": "First-place winning meme from the SPARKD Meme of the Week contest. A penguin works at a glowing green computer while the letters of SPARKD float overhead.",
     "saleCategory": "winner",
     "burnAmount": 20000
+  },
+  {
+    "id": "sparkd-is-cooking",
+    "title": "SPARKD Is Cooking!",
+    "category": "community",
+    "label": "Community",
+    "image": "assets/sparkd-is-cooking.png",
+    "alt": "SPARKD Man cooking in a fiery kitchen, tossing glowing SPARKD symbols above a pan",
+    "style": "community",
+    "status": "pending",
+    "description": "SPARKD Man brings the heat in a sizzling kitchen, tossing glowing SPARKD symbols and fresh ingredients above a flaming pan. A special SPARKD meme celebrating creativity, community, and real-world good.",
+    "saleCategory": "special",
+    "burnAmount": 30000
   }
 ];
