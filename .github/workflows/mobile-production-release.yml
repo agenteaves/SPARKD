@@ -61,6 +61,17 @@ jobs:
       - name: Verify production signature
         run: |
           "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
+      - name: Verify version and website link handling
+        run: |
+          AAPT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/aapt"
+          "$AAPT" dump badging app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/sparkd-badging.txt"
+          grep -q "versionCode='53'" "$RUNNER_TEMP/sparkd-badging.txt"
+          grep -q "versionName='1.0.50'" "$RUNNER_TEMP/sparkd-badging.txt"
+          "$AAPT" dump xmltree app/build/outputs/apk/release/app-release.apk AndroidManifest.xml > "$RUNNER_TEMP/sparkd-manifest.txt"
+          if grep -E 'android:host.*sparkdcoin\\.com' "$RUNNER_TEMP/sparkd-manifest.txt"; then
+            echo "SPARKD website links must remain in the browser"
+            exit 1
+          fi
       - name: Prepare signed APK
         run: cp app/build/outputs/apk/release/app-release.apk SPARKD-Mobile.apk
       - uses: actions/upload-artifact@v4
