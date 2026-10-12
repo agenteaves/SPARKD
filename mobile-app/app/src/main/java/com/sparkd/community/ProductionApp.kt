@@ -126,6 +126,15 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
     }
     LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { Text("Submit a Meme", fontSize = 28.sp, fontWeight = FontWeight.Black) }
+        item {
+            Card {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Entry burn: $3 worth of SPARKD", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Gold)
+                    Text("$3 worth of SPARKD will be burned per meme entry. The exact token amount is calculated from the live price quote and shown before you approve.")
+                    Text("SOL network fees are separate.", color = androidx.compose.ui.graphics.Color.LightGray)
+                }
+            }
+        }
         item { Text("Choose an image in Meme Forge, create your meme, then send it here for submission.") }
         item { Button(onClick = onOpenForge, modifier = Modifier.fillMaxWidth()) { Text("Open Meme Forge") } }
         item { Text(if (ready) "Meme ready for entry" else "No new meme ready for entry.", color = if (ready) Green else Gold) }
