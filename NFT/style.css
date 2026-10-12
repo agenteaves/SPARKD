@@ -3,3 +3,5 @@
 .nft-buy{display:block;margin:18px auto 0;border:0;font-size:15px;padding:12px 24px;font-family:inherit}.nft-buy:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}.checkout-status{font-size:14px!important;overflow-wrap:anywhere}
 
 .owner-address{overflow-wrap:anywhere;font-size:13px!important}.nft-buy:focus-visible,#connect-owner:focus-visible{outline:2px solid #ff9b35;outline-offset:5px}
+
+#wallet-help-toggle,#copy-vault-link{background:#15110b;color:#ff9b35;border:1px solid #ff9b35;font-family:inherit;cursor:pointer}#wallet-help[hidden],#wallet-help-toggle[hidden]{display:none!important}
