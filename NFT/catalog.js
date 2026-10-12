@@ -167,7 +167,10 @@ window.NFT_CATALOG = [
     "image": "assets/sparkd-is-cooking.png",
     "alt": "SPARKD Man cooking in a fiery kitchen, tossing glowing SPARKD symbols above a pan",
     "style": "community",
-    "status": "pending",
+    "status": "minted",
+    "assetAddress": "BcUNJYCyRyh7RkmRNYa67cGTo3zfmCEBNQ3sf3NXnQrM",
+    "explorer": "https://core.metaplex.com/explorer/BcUNJYCyRyh7RkmRNYa67cGTo3zfmCEBNQ3sf3NXnQrM?env=mainnet",
+    "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
     "description": "SPARKD Man brings the heat in a sizzling kitchen, tossing glowing SPARKD symbols and fresh ingredients above a flaming pan. A special SPARKD meme celebrating creativity, community, and real-world good.",
     "saleCategory": "special",
     "burnAmount": 30000
