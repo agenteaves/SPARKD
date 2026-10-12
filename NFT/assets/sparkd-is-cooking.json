@@ -1,0 +1,30 @@
+{
+  "name": "SPARKD Is Cooking!",
+  "symbol": "SPARKD",
+  "description": "SPARKD Man brings the heat in a sizzling kitchen, tossing glowing SPARKD symbols and fresh ingredients above a flaming pan. A special SPARKD meme celebrating creativity, community, and real-world good.",
+  "image": "https://sparkdcoin.com/NFT/assets/sparkd-is-cooking.png",
+  "external_url": "https://sparkdcoin.com/NFT/",
+  "attributes": [
+    {
+      "trait_type": "Series",
+      "value": "SPARKD Special Memes"
+    },
+    {
+      "trait_type": "Theme",
+      "value": "SPARKD Is Cooking"
+    },
+    {
+      "trait_type": "Character",
+      "value": "SPARKD Man"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://sparkdcoin.com/NFT/assets/sparkd-is-cooking.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}
