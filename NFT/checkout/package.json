@@ -18,7 +18,7 @@
     "test": "node --test test/*.test.mjs",
     "start": "node server.mjs",
     "fixture": "node devnet-fixture.mjs",
-    "build": "esbuild client-entry.js --bundle --minify --platform=browser --outfile=../checkout.js",
+    "build": "esbuild client-entry.js --bundle --minify --platform=browser --inject:./browser-buffer.mjs --outfile=../checkout.js",
     "build:edge": "node build-edge.mjs"
   },
   "name": "sparkd-nft-checkout"
