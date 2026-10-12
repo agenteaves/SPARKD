@@ -100,19 +100,24 @@ jobs:
           VERSION_NAME=$(grep -o 'versionName="[^"]*"' app/build.gradle.kts | head -1 | cut -d\" -f2)
           test -n "$VERSION_CODE"
           test -n "$VERSION_NAME"
-          TMPDIR=$(mktemp -d)
-          git clone --depth 1 --branch main "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$TMPDIR/repo"
-          cat > "$TMPDIR/repo/app-version.json" <<EOF
+          UPDATE_WORK_DIR=$(mktemp -d)
+          git clone --depth 1 --branch main "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$UPDATE_WORK_DIR/repo"
+          mkdir -p "$UPDATE_WORK_DIR/repo/downloads"
+          cp SPARKD-Mobile.apk "$UPDATE_WORK_DIR/repo/downloads/SPARKD-Mobile-${VERSION_NAME}.apk"
+          APK_SHA256=$(sha256sum SPARKD-Mobile.apk | cut -d' ' -f1)
+          cat > "$UPDATE_WORK_DIR/repo/app-version.json" <<EOF
           {
             "versionCode": $VERSION_CODE,
             "versionName": "$VERSION_NAME",
-            "downloadUrl": "https://github.com/${GITHUB_REPOSITORY}/releases/download/android-production/SPARKD-Mobile.apk"
+            "downloadUrl": "https://www.sparkdcoin.com/downloads/SPARKD-Mobile-${VERSION_NAME}.apk",
+            "updatesEnabled": true,
+            "apkSha256": "$APK_SHA256"
           }
           EOF
-          cd "$TMPDIR/repo"
+          cd "$UPDATE_WORK_DIR/repo"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app-version.json
+          git add app-version.json downloads/
           if ! git diff --cached --quiet; then
             git commit -m "Publish Android update manifest ${VERSION_NAME}"
             git push origin main
