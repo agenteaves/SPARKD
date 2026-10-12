@@ -142,5 +142,21 @@ window.NFT_CATALOG = [
     "description": "SPARKD man lands a golden-gloved punch against a boxing bear amid a vivid red-and-yellow comic burst. A playful superhero showdown with bold comic energy.",
     "saleCategory": "winner",
     "burnAmount": 20000
+  },
+  {
+    "id": "penguin-power",
+    "title": "SPARKD - Penguin Power",
+    "category": "community",
+    "label": "Meme of the Week — 1st Place",
+    "image": "assets/penguin-power.png",
+    "alt": "A penguin at a glowing green computer with SPARKD letters floating above",
+    "style": "community",
+    "status": "minted",
+    "assetAddress": "EKQXSvDU6SFZxCQwanMftqCt2hNdLXcSnW3qsaY7PudR",
+    "explorer": "https://core.metaplex.com/explorer/EKQXSvDU6SFZxCQwanMftqCt2hNdLXcSnW3qsaY7PudR?env=mainnet",
+    "collectionExplorer": "https://core.metaplex.com/explorer/collection/4ARoTdtbC6LzCQ4c8Fk4ZvmheQYE5vAnU5T6Mx3rs5A4?env=mainnet",
+    "description": "First-place winning meme from the SPARKD Meme of the Week contest. A penguin works at a glowing green computer while the letters of SPARKD float overhead.",
+    "saleCategory": "winner",
+    "burnAmount": 20000
   }
 ];

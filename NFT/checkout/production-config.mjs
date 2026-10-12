@@ -15,4 +15,5 @@ export const LISTINGS=Object.freeze([
  ['the-rise-of-sparkd','winner','7frr8Pn7hUtzaSDSypc5eUYCKP632Drz58UahWfXWAWy'],
  ['you-are-different','winner','27oW4rNe4aDhjAeMCW8HbR32PjDvSAhJh9kmTCfRU8Ve'],
  ['bear-knockout','winner','4Z1eNUv5WbKPVeVatPYuAej7NbYA71ezs8F4jgunGUhm'],
+ ['penguin-power','winner','EKQXSvDU6SFZxCQwanMftqCt2hNdLXcSnW3qsaY7PudR'],
 ].map(([id,category,asset])=>Object.freeze({id,category,asset,seller:MAINNET.seller})));
