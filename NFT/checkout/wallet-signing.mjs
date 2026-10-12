@@ -2,6 +2,7 @@ import {Buffer} from 'buffer';
 import {Transaction,VersionedTransaction} from '@solana/web3.js';
 import {ed25519} from '@noble/curves/ed25519';
 import bs58 from 'bs58';
+import {ownerBase} from './owner-guards.mjs';
 function signatureBytes(value){if(typeof value==='string'){try{return bs58.decode(value);}catch{return null;}}if(value?.type==='Buffer')value=value.data;return value?Uint8Array.from(value):null;}
 const valid=(signature,message,key)=>signature?.length===64&&ed25519.verify(signature,message,key.toBytes(),{zip215:false});
 export async function signExactTransaction(provider,serialized,expectedWallet){
@@ -20,6 +21,19 @@ export async function signExactTransaction(provider,serialized,expectedWallet){
  if(original.version==='legacy'&&signatures.some(s=>s?.publicKey))signature=signatures.find(s=>s.publicKey?.equals(expectedWallet))?.signature;
  else signature=signatures[0];
  signature=signatureBytes(signature);
+ if(!valid(signature,message,expectedWallet)&&original.message.header.numRequiredSignatures===1){
+  // Only unsigned owner approvals may gain bounded account assertions. Purchases
+  // retain exact-message verification because their delegate has already signed.
+  try{
+   const returned=VersionedTransaction.deserialize(result.serialize({requireAllSignatures:false,verifySignatures:false}));
+   const originalTx=Transaction.from(serialized),returnedTx=Transaction.from(returned.serialize());
+   const core=originalTx.instructions.find(ix=>ix.programId.toBase58()==='CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d');
+   if(core&&[2,8,10].includes(core.data[0])){
+    const base=ownerBase(returnedTx,core.keys[0].pubkey.toBase58(),core.keys[1].pubkey.toBase58());
+    if(Buffer.from(base.serializeMessage()).equals(message)&&returned.message.header.numRequiredSignatures===1&&returned.message.staticAccountKeys[0].equals(expectedWallet)&&valid(returned.signatures[0],returned.message.serialize(),expectedWallet))return {bytes:Buffer.from(returned.serialize()),signature:Uint8Array.from(returned.signatures[0])};
+   }
+  }catch{}
+ }
  if(!valid(signature,message,expectedWallet)){
   let detail=!signature?'wallet signature missing':signature.length!==64?'unexpected signature format':'signature does not match quote';
   try{
