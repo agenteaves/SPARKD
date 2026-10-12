@@ -3,5 +3,6 @@
   "versionName": "1.0.52",
   "downloadUrl": "https://www.sparkdcoin.com/downloads/SPARKD-Mobile-1.0.52.apk",
   "updatesEnabled": true,
-  "apkSha256": "94f3f705708575d44e3990b8e1ea0cacf846865738db0a0ce8b9248e36f88698"
+  "apkSha256": "94f3f705708575d44e3990b8e1ea0cacf846865738db0a0ce8b9248e36f88698",
+  "releaseVersionCode": 55
 }
