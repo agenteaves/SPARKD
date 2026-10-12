@@ -15,7 +15,8 @@ window.NFT_CHECKOUT_CONFIG = Object.freeze({
     "chasing-the-jeets": "8mxP1GxN2UZUvGqNYycTbzZewCMPRaEwJzy3weTRaWQn",
     "the-rise-of-sparkd": "E3u1jqcKGkHqLJ4MnZdS7zRw8cKekpuVQMMegy8ruwFm",
     "you-are-different": "AuQnGzrWnaF4s6PPJe333efR3vJjyDKoNjEYvtkjQbYu",
-    "bear-knockout": "JAxf3zxozep6PpcTFnt8FY88RnPAz31WZJEqNvnnnA2x"
+    "bear-knockout": "JAxf3zxozep6PpcTFnt8FY88RnPAz31WZJEqNvnnnA2x",
+    "sparkd-is-cooking": "7Wh7aj6nqvpaJQnSV7sFaeqQAhKatGtTKAy1YoA1m6Po"
   },
   "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4cGJnemtzZml6a3l4dWJjdGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NzQ0MzgsImV4cCI6MjEwMjI1MDQzOH0.-zQ6oDKhoPXLePfvuT0Xyt-BzqLsKp8prU5Q3b807nc"
 });
