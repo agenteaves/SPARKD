@@ -10,6 +10,6 @@
 -- * meme_week_winners stores selection_method='random_equal_chance' and the draw metadata.
 -- * Contest ID uniqueness makes finalization idempotent; existing winner records are never rerolled.
 -- * Zero entries: no prize. One entry: first place. Two entries: first and second. Three or more: all podium places.
--- * The payout queue uses $15, $10, and $5 worth of SOL for the podium.
+-- * The payout queue uses $25, $10, and $5 worth of SOL for the podium.
 --
 -- This file documents the production protocol. Supabase migration history remains the source of truth for DDL.
