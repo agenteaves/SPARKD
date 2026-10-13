@@ -163,7 +163,7 @@ async function price() {
   return p;
 }
 function expectedUsd(type: string) {
-  return type === "first_place" ? 15 : type === "second_place" ? 10 : type === "third_place" ? 5 : 0;
+  return type === "first_place" ? 25 : type === "second_place" ? 10 : type === "third_place" ? 5 : 0;
 }
 function hasPlaceholderBlockhash(prepared: string | null) {
   if (!prepared) return false;
