@@ -58,7 +58,7 @@ AS $$
 DECLARE inserted_count integer:=0; n integer:=0;
 BEGIN
   INSERT INTO public.meme_week_payout_jobs(contest_id,payout_type,recipient_wallet,reward_usd,status)
-  SELECT c.id,'first_place',w.wallet_address,15,'pending'
+  SELECT c.id,'first_place',w.wallet_address,25,'pending'
   FROM public.meme_week_contests c JOIN public.meme_week_winners w ON w.contest_id=c.id
   WHERE c.status='completed' AND c.winner_submission_id IS NOT NULL AND coalesce(w.wallet_address,'')<>''
   ON CONFLICT(contest_id,payout_type) DO NOTHING;
@@ -106,7 +106,7 @@ BEGIN
   IF j.id IS NULL THEN RAISE EXCEPTION 'payout_job_not_found'; END IF;
   IF j.status<>'processing' THEN RAISE EXCEPTION 'payout_job_not_processing'; END IF;
   IF p_amount_lamports<=0 THEN RAISE EXCEPTION 'invalid_payout_amount'; END IF;
-  expected:=CASE j.payout_type WHEN 'first_place' THEN 15 WHEN 'second_place' THEN 10 WHEN 'third_place' THEN 5 ELSE NULL END;
+  expected:=CASE j.payout_type WHEN 'first_place' THEN 25 WHEN 'second_place' THEN 10 WHEN 'third_place' THEN 5 ELSE NULL END;
   IF expected IS NULL OR coalesce(j.reward_usd,expected)<>expected THEN RAISE EXCEPTION 'invalid_payout_type_or_reward'; END IF;
   IF p_sol_price_usd IS NULL OR p_sol_price_usd<=0 THEN RAISE EXCEPTION 'invalid_sol_price'; END IF;
   UPDATE public.meme_week_payout_jobs SET idempotency_key=coalesce(idempotency_key,p_idempotency_key),
@@ -126,7 +126,7 @@ BEGIN
   IF j.id IS NULL THEN RAISE EXCEPTION 'payout_job_not_found'; END IF;
   IF j.status<>'processing' THEN RAISE EXCEPTION 'payout_job_not_processing'; END IF;
   IF p_amount_lamports<=0 THEN RAISE EXCEPTION 'invalid_payout_amount'; END IF;
-  expected:=CASE j.payout_type WHEN 'first_place' THEN 15 WHEN 'second_place' THEN 10 WHEN 'third_place' THEN 5 ELSE NULL END;
+  expected:=CASE j.payout_type WHEN 'first_place' THEN 25 WHEN 'second_place' THEN 10 WHEN 'third_place' THEN 5 ELSE NULL END;
   IF expected IS NULL OR coalesce(j.reward_usd,expected)<>expected THEN RAISE EXCEPTION 'invalid_payout_type_or_reward'; END IF;
   IF p_sol_price_usd IS NULL OR p_sol_price_usd<=0 THEN RAISE EXCEPTION 'invalid_sol_price'; END IF;
   UPDATE public.meme_week_payout_jobs SET status='broadcasting',transaction_signature=p_signature,
