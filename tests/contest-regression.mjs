@@ -58,7 +58,7 @@ assert(/action:\s*"send_signed_transaction"[\s\S]{0,450}quoteToken:\s*built\.quo
 assert(/async resendSignedBurnTransaction\([\s\S]{0,150}signedTransactionBase64,\s*quoteToken/.test(submit), "burn recovery resend must receive the saved entry quote");
 assert(/recoveryData\.signedTransaction,\s*recoveryData\.quoteToken/.test(submit), "burn recovery must pass the saved entry quote");
 assert(/action:\s*"send_signed_transaction"[\s\S]{0,450}quoteToken:\s*quoteToken/.test(submit), "recovery broadcast must include the saved entry quote");
-assert(/status:\s*"broadcast"[\s\S]{0,350}quoteToken:\s*built\.quoteToken/.test(submit), "broadcast recovery marker must retain the entry quote");
+assert(/quoteToken:\s*built\.quoteToken[\s\S]{0,350}status:\s*"broadcast"/.test(submit), "broadcast recovery marker must retain the entry quote");
 assert(superHandler.includes("BigInt(contestQuote.rawAmount)"));
 assert(superHandler.includes("burn_amount:\n            Number(receipt.burn_amount)"));
 assert(superHandler.includes("sumVerifiedBurns"));
