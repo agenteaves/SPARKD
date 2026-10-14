@@ -303,7 +303,7 @@
                 </strong>
 
                 <span>
-                    1st $15 • 2nd $10 • 3rd $5 — paid in SOL
+                    1st $12 • 2nd $10 • 3rd $8 • 4th $6 • 5th $4 — paid in SOL
                 </span>
             </div>
         `;
