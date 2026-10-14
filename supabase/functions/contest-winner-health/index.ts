@@ -68,7 +68,9 @@ Deno.serve(async (req: Request) => {
     const byId = new Map((submissions ?? []).map((item: any) => [item.id, item]));
     const first: any = byId.get(contest.winner_submission_id) ?? null;
     const second: any = winner?.second_submission_id ? byId.get(winner.second_submission_id) ?? null : null;
-    const third: any = winner?.third_submission_id ? byId.get(winner.third_submission_id) ?? null : null;\n    const fourth: any = winner?.fourth_submission_id ? byId.get(winner.fourth_submission_id) ?? null : null;\n    const fifth: any = winner?.fifth_submission_id ? byId.get(winner.fifth_submission_id) ?? null : null;
+    const third: any = winner?.third_submission_id ? byId.get(winner.third_submission_id) ?? null : null;
+    const fourth: any = winner?.fourth_submission_id ? byId.get(winner.fourth_submission_id) ?? null : null;
+    const fifth: any = winner?.fifth_submission_id ? byId.get(winner.fifth_submission_id) ?? null : null;
     const checks = [
       { name: "winner_record_exists", pass: Boolean(winner) },
       { name: "winner_submission_exists", pass: Boolean(first) },
