@@ -25,7 +25,7 @@ class LiveRepository : SparkdRepository {
 
     override suspend fun contest(): Contest {
         val now = java.time.Instant.now().toString()
-        var rows = get("meme_week_contests?select=*&status=in.(submission,voting)&week_start=lte.$now&order=week_start.desc&limit=1")
+        var rows = get("meme_week_contests?select=*&status=eq.submission&week_start=lte.$now&order=week_start.desc&limit=1")
         if (rows.length() == 0) rows = get("meme_week_contests?select=*&status=in.(upcoming,submission)&week_start=gt.$now&order=week_start.asc&limit=1")
         if (rows.length() == 0) throw IllegalStateException("No SPARKD contest is available right now.")
         val c = rows.getJSONObject(0)
@@ -38,7 +38,7 @@ class LiveRepository : SparkdRepository {
         return Contest(
             c.optString("title", "Meme of the Week"),
             phase,
-            "🥇 1st: $15 SOL  •  🥈 2nd: $10 SOL  •  🥉 3rd: $5 SOL",
+            "🥇 1st: $12 SOL  •  🥈 2nd: $10 SOL  •  🥉 3rd: $8 SOL  •  🏅 4th: $6 SOL  •  🏅 5th: $4 SOL",
             c.optInt("submission_count", 0),
             c.optString("id")
         )
@@ -50,7 +50,7 @@ class LiveRepository : SparkdRepository {
         return List(rows.length()) { i -> rows.getJSONObject(i).let {
             val storedImage = it.optString("meme_image_url").takeIf { url -> url.isNotBlank() && url != "null" }
             val imageUrl = storedImage?.let { path -> if (path.startsWith("http://") || path.startsWith("https://")) path else "$api/storage/v1/object/public/sparkd-contest-submissions/" + path.trimStart('/') }
-            Meme(it.optString("meme_title", "Untitled SPARKD Meme"), it.optString("wallet_address", "SPARKD Creator"), 0, it.optString("id"), imageUrl)
+            Meme(it.optString("meme_title", "Untitled SPARKD Meme"), it.optString("wallet_address", "SPARKD Creator"), it.optString("id"), imageUrl)
         } }
     }
 
@@ -59,8 +59,8 @@ class LiveRepository : SparkdRepository {
         if (contests.length() == 0) return emptyList()
         val contestIds = List(contests.length()) { i -> contests.getJSONObject(i).optString("id") }.filter { it.isNotBlank() }
         if (contestIds.isEmpty()) return emptyList()
-        val winnerRows = get("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,payout_verified&contest_id=in.(" + contestIds.joinToString(",") + ")")
-        val places = listOf("submission_id", "second_submission_id", "third_submission_id")
+        val winnerRows = get("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,fourth_submission_id,fifth_submission_id,payout_verified&contest_id=in.(" + contestIds.joinToString(",") + ")")
+        val places = listOf("submission_id", "second_submission_id", "third_submission_id", "fourth_submission_id", "fifth_submission_id")
         val submissionIds = List(winnerRows.length()) { i -> winnerRows.getJSONObject(i) }
             .flatMap { row -> places.map { row.optString(it) } }
             .filter { it.isNotBlank() && it != "null" }.distinct()
