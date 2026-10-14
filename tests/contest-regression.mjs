@@ -33,7 +33,7 @@ assert(/server-nudenet-guard\.js/.test(index));
 assert(app.includes("SPARKD_CONTEST_IMAGE.prepare(file)"));
 assert(submit.includes("entryData.memeID") && submit.includes("entryMemeID"));
 assert(!/verifyForge\s*\(\s*wallet\s*,\s*entryData/.test(submit));
-assert(/equal.chance random drawing/i.test(rules));
+assert(/equal.chance random drawing/i.test(rules));\nassert(rules.includes("$12 USD worth of SOL") && rules.includes("$10 USD worth of SOL") && rules.includes("$8 USD worth of SOL") && rules.includes("$6 USD worth of SOL") && rules.includes("$4 USD worth of SOL"));\nassert(rules.includes("up to five unique finalists"));\nassert(!/\$25 USD worth of SOL|\$15 USD worth of SOL/.test(index + guide + rules));
 assert(drawHealth.includes("random_draw_audit_exists"));
 assert(drawHealth.includes("random_draw_placements_match"));
 assert(/status", "in\.\(upcoming,submission\)"/.test(status));
