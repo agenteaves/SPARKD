@@ -163,7 +163,7 @@ async function price() {
   return p;
 }
 function expectedUsd(type: string) {
-  return type === "first_place" ? 25 : type === "second_place" ? 10 : type === "third_place" ? 5 : 0;
+  return type === "first_place" ? 12 : type === "second_place" ? 10 : type === "third_place" ? 8 : type === "fourth_place" ? 6 : type === "fifth_place" ? 4 : 0;
 }
 function hasPlaceholderBlockhash(prepared: string | null) {
   if (!prepared) return false;
@@ -225,7 +225,7 @@ Deno.serve(async req => {
     job = j;
 
     b58(j.recipient_wallet);
-    const allowedTypes = ["first_place", "second_place", "third_place"];
+    const allowedTypes = ["first_place", "second_place", "third_place", "fourth_place", "fifth_place"];
     if (!allowedTypes.includes(j.payout_type)) throw new Error("invalid_payout_type");
     const expected = expectedUsd(j.payout_type);
     if (!expected || Number(j.reward_usd) !== expected) throw new Error("usd_reward_guard_failed");
