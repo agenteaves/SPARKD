@@ -91,7 +91,9 @@ Deno.serve(async (req: Request) => {
       submission: first ? { id: first.id, meme_title: first.meme_title, meme_image_url: first.meme_image_url, status: first.status } : null,
       podium: [
         second ? { place: 2, submission_id: second.id, meme_title: second.meme_title, meme_image_url: second.meme_image_url } : null,
-        third ? { place: 3, submission_id: third.id, meme_title: third.meme_title, meme_image_url: third.meme_image_url } : null
+        third ? { place: 3, submission_id: third.id, meme_title: third.meme_title, meme_image_url: third.meme_image_url } : null,
+        fourth ? { place: 4, submission_id: fourth.id, meme_title: fourth.meme_title, meme_image_url: fourth.meme_image_url } : null,
+        fifth ? { place: 5, submission_id: fifth.id, meme_title: fifth.meme_title, meme_image_url: fifth.meme_image_url } : null
       ].filter(Boolean),
       checks
     });
