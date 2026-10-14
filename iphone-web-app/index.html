@@ -132,7 +132,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
     <div class="card">
       <div id="contestPhase" class="phase">Loading…</div>
       <div id="contestTitle" class="contest-title">Loading the live SPARKD contest…</div>
-      <div id="contestPrize" class="prize">🥇 1st: $15 SOL&nbsp; • &nbsp;🥈 2nd: $10 SOL&nbsp; • &nbsp;🥉 3rd: $5 SOL</div>
+      <div id="contestPrize" class="prize">🥇 1st: $12 SOL&nbsp; • &nbsp;🥈 2nd: $10 SOL&nbsp; • &nbsp;🥉 3rd: $8 SOL&nbsp; • &nbsp;🏅 4th: $6 SOL&nbsp; • &nbsp;🏅 5th: $4 SOL</div>
       <div id="contestEntries" class="entries">Checking entries…</div>
     </div>
     <div class="actions">
@@ -356,7 +356,7 @@ function loadWinners(){
  }).then(function(data){
   if(!data.winners.length){message.textContent="No completed contests with winners yet.";return;}
   var submissionIds=[];
-  data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id"].forEach(function(k){if(w[k])submissionIds.push(w[k]);});});
+  data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id","fourth_submission_id","fifth_submission_id"].forEach(function(k){if(w[k])submissionIds.push(w[k]);});});
   if(!submissionIds.length){message.textContent="No completed contests with winners yet.";return;}
   return rest("meme_week_submissions?select=id,meme_title,wallet_address,meme_image_url&id=in.("+Array.from(new Set(submissionIds)).join(",")+")").then(function(submissions){
    var byId={},weeks={};submissions.forEach(function(s){byId[s.id]=s;});data.contests.forEach(function(c){weeks[c.id]=String(c.week_start||"").slice(0,10);});
@@ -367,13 +367,13 @@ function loadWinners(){
     var card=document.createElement("article");card.className="winner-card";
     if(w.image){var img=document.createElement("img");img.className="winner-image";img.loading="lazy";img.alt=w.title;img.src=w.image.indexOf("http://")===0||w.image.indexOf("https://")===0?w.image:API+"/storage/v1/object/public/sparkd-contest-submissions/"+w.image.replace(/^\//,"");card.appendChild(img);}
     var row=document.createElement("div");row.className="winner-row";
-    var medal=document.createElement("span");medal.className="medal";medal.textContent=["🥇","🥈","🥉"][w.place-1]||"🏆";
+    var medal=document.createElement("span");medal.className="medal";medal.textContent=["🥇","🥈","🥉","🏅","🏅"][w.place-1]||"🏆";
     var details=document.createElement("div");details.className="winner-details";
     var title=document.createElement("div");title.className="winner-title";title.textContent=w.title;
     var creator=document.createElement("div");creator.className="address";creator.textContent=w.creator;
     var week=document.createElement("div");week.className="address";week.textContent=w.week?"Week of "+w.week:"";
     details.appendChild(title);details.appendChild(creator);if(w.week)details.appendChild(week);
-    var place=document.createElement("div");place.className="winner-place";place.textContent=["1ST","2ND","3RD"][w.place-1]||"WINNER";
+    var place=document.createElement("div");place.className="winner-place";place.textContent=["1ST","2ND","3RD","4TH","5TH"][w.place-1]||"WINNER";
     row.appendChild(medal);row.appendChild(details);row.appendChild(place);card.appendChild(row);host.appendChild(card);
    });
   });
