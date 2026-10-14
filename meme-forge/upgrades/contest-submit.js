@@ -1719,7 +1719,8 @@ if (
                             wallet,
                             contest.id,
                             entryMemeID,
-                            recoveryData.signedTransaction
+                            recoveryData.signedTransaction,
+                            recoveryData.quoteToken
                         );
 
                     if (
@@ -3346,14 +3347,17 @@ async resendSignedBurnTransaction(
     wallet,
     contestId,
     memeID,
-    signedTransactionBase64
+    signedTransactionBase64,
+    quoteToken
 ) {
 
     if (
         !wallet ||
         !contestId ||
         !memeID ||
-        !signedTransactionBase64
+        !signedTransactionBase64 ||
+        typeof quoteToken !== "string" ||
+        !quoteToken
     ) {
 
         throw new Error(
@@ -3392,7 +3396,7 @@ async resendSignedBurnTransaction(
                             signedTransactionBase64,
 
                         quoteToken:
-                            built.quoteToken
+                            quoteToken
                     })
             }
         );
@@ -3818,7 +3822,10 @@ console.log(
                             memeID,
 
                         signedTransaction:
-                            signedTransactionBase64
+                            signedTransactionBase64,
+
+                        quoteToken:
+                            built.quoteToken
                     })
             }
         );
@@ -3900,6 +3907,9 @@ console.log(
 
             signedTransaction:
                 signedTransactionBase64,
+
+            quoteToken:
+                built.quoteToken,
 
             recentBlockhash:
                 built.recentBlockhash,
