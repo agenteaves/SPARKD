@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: rows, error: winnerError } = await db.from("meme_week_winners")
-      .select("id,contest_id,submission_id,wallet_address,won_at,second_submission_id,second_wallet_address,third_submission_id,third_wallet_address,eligible_entry_count,draw_seed,entrant_commitment")
+      .select("id,contest_id,submission_id,wallet_address,won_at,second_submission_id,second_wallet_address,third_submission_id,third_wallet_address,fourth_submission_id,fourth_wallet_address,fifth_submission_id,fifth_wallet_address,eligible_entry_count,draw_seed,entrant_commitment")
       .eq("contest_id", contest.id).eq("submission_id", contest.winner_submission_id).limit(1);
     if (winnerError) throw winnerError;
     const winner = rows?.[0] ?? null;
@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
       .eq("contest_id", contest.id).maybeSingle();
     if (auditError) throw auditError;
 
-    const podiumIds = [winner?.submission_id, winner?.second_submission_id, winner?.third_submission_id].filter(Boolean);
+    const podiumIds = [winner?.submission_id, winner?.second_submission_id, winner?.third_submission_id, winner?.fourth_submission_id, winner?.fifth_submission_id].filter(Boolean);
     const { data: submissions, error: submissionError } = await db.from("meme_week_submissions")
       .select("id,contest_id,meme_title,meme_image_url,wallet_address,burn_verified,status")
       .in("id", podiumIds);
@@ -68,7 +68,7 @@ Deno.serve(async (req: Request) => {
     const byId = new Map((submissions ?? []).map((item: any) => [item.id, item]));
     const first: any = byId.get(contest.winner_submission_id) ?? null;
     const second: any = winner?.second_submission_id ? byId.get(winner.second_submission_id) ?? null : null;
-    const third: any = winner?.third_submission_id ? byId.get(winner.third_submission_id) ?? null : null;
+    const third: any = winner?.third_submission_id ? byId.get(winner.third_submission_id) ?? null : null;\n    const fourth: any = winner?.fourth_submission_id ? byId.get(winner.fourth_submission_id) ?? null : null;\n    const fifth: any = winner?.fifth_submission_id ? byId.get(winner.fifth_submission_id) ?? null : null;
     const checks = [
       { name: "winner_record_exists", pass: Boolean(winner) },
       { name: "winner_submission_exists", pass: Boolean(first) },
@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
       { name: "random_draw_placements_match", pass: Boolean(audit && JSON.stringify(audit.placement_submission_ids ?? []) === JSON.stringify(podiumIds)) },
       { name: "random_draw_seed_matches", pass: Boolean(audit && winner?.draw_seed === audit.random_seed && winner?.entrant_commitment === audit.entrant_commitment) },
       { name: "eligible_count_matches", pass: Boolean(audit && winner?.eligible_entry_count === audit.eligible_count && audit.eligible_count > 0) },
-      { name: "podium_entries_are_eligible", pass: Boolean(audit && podiumIds.length === Math.min(3, audit.eligible_count) && submissions?.length === podiumIds.length && submissions.every((item: any) => item.contest_id === contest.id && item.burn_verified && item.status !== "rejected") && new Set(podiumIds).size === podiumIds.length) },
+      { name: "podium_entries_are_eligible", pass: Boolean(audit && podiumIds.length === Math.min(5, audit.eligible_count) && submissions?.length === podiumIds.length && submissions.every((item: any) => item.contest_id === contest.id && item.burn_verified && item.status !== "rejected") && new Set(podiumIds).size === podiumIds.length) },
       { name: "winner_wallet_matches_submission", pass: Boolean(winner && first && winner.wallet_address === first.wallet_address) }
     ];
     return reply(req, {
