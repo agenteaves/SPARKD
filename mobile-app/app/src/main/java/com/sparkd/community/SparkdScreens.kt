@@ -127,14 +127,14 @@ import androidx.compose.ui.unit.sp
    Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
     w.imageUrl?.let{RemoteMemeImage(it)}
     Row(verticalAlignment=Alignment.CenterVertically){
-     Text(when(w.place){1->"🥇";2->"🥈";else->"🥉"},fontSize=32.sp)
+     Text(when(w.place){1->"🥇";2->"🥈";3->"🥉";else->"🏅"},fontSize=32.sp)
      Spacer(Modifier.width(12.dp))
      Column(Modifier.weight(1f)){
       Text(w.title,fontWeight=FontWeight.Bold)
       Text(w.creator,color=Color.LightGray,fontSize=12.sp)
       if(w.weekStart.isNotBlank())Text("Week of ${w.weekStart}",color=Color.LightGray,fontSize=12.sp)
      }
-     Text(when(w.place){1->"1ST";2->"2ND";else->"3RD"},color=Green,fontWeight=FontWeight.Bold)
+     Text(when(w.place){1->"1ST";2->"2ND";3->"3RD";4->"4TH";else->"5TH"},color=Green,fontWeight=FontWeight.Bold)
     }
    }
   }}
