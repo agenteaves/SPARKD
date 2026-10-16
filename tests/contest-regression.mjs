@@ -43,6 +43,8 @@ assert(/status", "in\.\(upcoming,submission\)"/.test(status));
 assert(iphoneApp.includes("select=id,status,week_start,week_end,winner_submission_id"));
 assert(superHandler.includes("contests.map(async contest =>"));
 assert(superHandler.includes("submissions: submissionsByContest.flat()"));
+assert(superHandler.includes("wallet_display:"));
+assert(app.includes("submission.wallet_display || \"Unknown Wallet\""));
 assert(app.includes("Past Contests: "));
 assert(app.includes("submission.contest_id === contest.id"));
 assert(!iphoneApp.includes("select=id,title,status,submission_count,week_start"));
