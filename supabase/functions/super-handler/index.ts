@@ -943,7 +943,12 @@ if (action === "previous_contest_results") {
             { headers: { "apikey": serviceRoleKey, "Authorization": "Bearer " + serviceRoleKey } }
         );
         if (!submissionResponse.ok) throw new Error("Unable to retrieve past contest submissions.");
-        return await submissionResponse.json();
+        return (await submissionResponse.json()).map(({ wallet_address, ...submission }) => ({
+            ...submission,
+            wallet_display: typeof wallet_address === "string" && wallet_address.length > 10
+                ? wallet_address.slice(0, 6) + "..." + wallet_address.slice(-4)
+                : "Unknown Wallet"
+        }));
     }));
 
     return jsonResponse({
