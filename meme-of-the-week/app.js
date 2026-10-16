@@ -994,7 +994,7 @@ async function loadPreviousWeekResults() {
                     card.className = "submission-card";
                     card.innerHTML = '<div class="submission-image"><img alt="' + escapeHtml(submission.meme_title || "SPARKD Meme") + '" loading="lazy"></div>' +
                         '<div class="submission-info"><h3>' + escapeHtml(submission.meme_title || "Untitled SPARKD Meme") + '</h3>' +
-                        '<p>👻 ' + escapeHtml(submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet") + '</p></div>';
+                        '<p>👻 ' + escapeHtml(submission.wallet_display || "Unknown Wallet") + '</p></div>';
                     const image = card.querySelector("img");
                     if (image) {
                         image.src = imageUrl;
