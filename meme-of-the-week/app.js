@@ -959,41 +959,55 @@ async function loadPreviousWeekResults() {
             throw new Error(result.error || "Unable to load previous contest.");
         }
 
-        const contest = result.contest;
+        const contests = Array.isArray(result.contests) && result.contests.length
+            ? result.contests
+            : (result.contest ? [result.contest] : []);
         const submissions = result.submissions || [];
         grid.innerHTML = "";
 
-        if (!contest || submissions.length === 0) {
-            grid.innerHTML = '<div class="empty-submissions"><span>🖼️</span><p>No memes found for the previous contest.</p></div>';
+        const populatedContests = contests.filter(contest =>
+            submissions.some(submission => submission.contest_id === contest.id) ||
+            (contests.length === 1 && submissions.some(submission => !submission.contest_id))
+        );
+
+        if (populatedContests.length === 0) {
+            grid.innerHTML = '<div class="empty-submissions"><span>🖼️</span><p>No past contest memes found.</p></div>';
         } else {
-            for (const submission of submissions) {
-                const imageUrl = supabaseClient.storage
-                    .from("sparkd-contest-submissions")
-                    .getPublicUrl(submission.meme_image_url).data.publicUrl;
-                const card = document.createElement("div");
-                card.className = "submission-card";
-                card.innerHTML = `
-                    <div class="submission-image">
-                        <img alt="${escapeHtml(submission.meme_title || "SPARKD Meme")}" loading="lazy">
-                    </div>
-                    <div class="submission-info">
-                        <h3>${escapeHtml(submission.meme_title || "Untitled SPARKD Meme")}</h3>
-                        <p>👻 ${escapeHtml(submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet")}</p>
-                    </div>`;
-                const image = card.querySelector("img");
-                if (image) {
-                    image.src = imageUrl;
-                    image.style.cursor = "pointer";
-                    image.addEventListener("click", () => openSubmissionViewer(imageUrl, submission.meme_title || "SPARKD Meme"));
+            for (const contest of populatedContests) {
+                const start = new Date(contest.week_start).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                const end = new Date(contest.week_end).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                const heading = document.createElement("h3");
+                heading.className = "past-contest-heading";
+                heading.textContent = "Contest: " + start + " — " + end;
+                heading.style.cssText = "grid-column:1 / -1;margin:18px 0 2px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.18);font-weight:900;";
+                grid.appendChild(heading);
+
+                const entries = submissions.filter(submission =>
+                    submission.contest_id === contest.id ||
+                    (contests.length === 1 && !submission.contest_id)
+                );
+                for (const submission of entries) {
+                    const imageUrl = supabaseClient.storage
+                        .from("sparkd-contest-submissions")
+                        .getPublicUrl(submission.meme_image_url).data.publicUrl;
+                    const card = document.createElement("div");
+                    card.className = "submission-card";
+                    card.innerHTML = '<div class="submission-image"><img alt="' + escapeHtml(submission.meme_title || "SPARKD Meme") + '" loading="lazy"></div>' +
+                        '<div class="submission-info"><h3>' + escapeHtml(submission.meme_title || "Untitled SPARKD Meme") + '</h3>' +
+                        '<p>👻 ' + escapeHtml(submission.wallet_address ? submission.wallet_address.slice(0,6) + "..." + submission.wallet_address.slice(-4) : "Unknown Wallet") + '</p></div>';
+                    const image = card.querySelector("img");
+                    if (image) {
+                        image.src = imageUrl;
+                        image.style.cursor = "pointer";
+                        image.addEventListener("click", () => openSubmissionViewer(imageUrl, submission.meme_title || "SPARKD Meme"));
+                    }
+                    grid.appendChild(card);
                 }
-                grid.appendChild(card);
             }
         }
 
-        if (label && contest) {
-            const start = new Date(contest.week_start).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
-            const end = new Date(contest.week_end).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
-            label.textContent = "Previous Contest: " + start + " — " + end;
+        if (label) {
+            label.textContent = "Past Contests: " + populatedContests.length + " completed weeks";
             label.hidden = false;
         }
         showingPreviousWeek = true;
@@ -1001,7 +1015,7 @@ async function loadPreviousWeekResults() {
     } catch (error) {
         console.error("❌ Could not load previous contest results:", error);
         grid.innerHTML = '<div class="empty-submissions"><span>⚠️</span><p>Unable to load previous contest results.</p></div>';
-        button.textContent = "◀ PREVIOUS WEEK";
+        button.textContent = "◀ PAST CONTESTS";
     } finally {
         button.disabled = false;
     }
