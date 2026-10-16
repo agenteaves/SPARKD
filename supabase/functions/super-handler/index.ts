@@ -928,28 +928,32 @@ if (
 
 if (action === "previous_contest_results") {
     const contestResponse = await fetch(
-        supabaseUrl + "/rest/v1/meme_week_contests?status=eq.completed&order=week_start.desc&select=id,week_start,week_end,status,winner_submission_id&limit=1",
+        supabaseUrl + "/rest/v1/meme_week_contests?status=eq.completed&order=week_start.desc&select=id,week_start,week_end,status,winner_submission_id&limit=20",
         { headers: { "apikey": serviceRoleKey, "Authorization": "Bearer " + serviceRoleKey } }
     );
-    if (!contestResponse.ok) throw new Error("Unable to retrieve previous contest.");
+    if (!contestResponse.ok) throw new Error("Unable to retrieve past contests.");
     const contests = await contestResponse.json();
-    const previousContest = contests[0] || null;
-    if (!previousContest) return jsonResponse({ success: true, contest: null, submissions: [] });
+    const latestContest = contests[0] || null;
+    if (!latestContest) return jsonResponse({ success: true, contest: null, contests: [], submissions: [] });
 
-    const submissionResponse = await fetch(
-        supabaseUrl + "/rest/v1/meme_week_submissions?contest_id=eq." + encodeURIComponent(previousContest.id) +
-        "&burn_verified=eq.true&status=neq.rejected&select=id,meme_title,meme_image_url,wallet_address,status,created_at&order=created_at.asc",
-        { headers: { "apikey": serviceRoleKey, "Authorization": "Bearer " + serviceRoleKey } }
-    );
-    if (!submissionResponse.ok) throw new Error("Unable to retrieve previous submissions.");
-    const submissions = await submissionResponse.json();
+    const submissionsByContest = await Promise.all(contests.map(async contest => {
+        const submissionResponse = await fetch(
+            supabaseUrl + "/rest/v1/meme_week_submissions?contest_id=eq." + encodeURIComponent(contest.id) +
+            "&burn_verified=eq.true&status=neq.rejected&select=id,contest_id,meme_title,meme_image_url,wallet_address,status,created_at&order=created_at.asc",
+            { headers: { "apikey": serviceRoleKey, "Authorization": "Bearer " + serviceRoleKey } }
+        );
+        if (!submissionResponse.ok) throw new Error("Unable to retrieve past contest submissions.");
+        return await submissionResponse.json();
+    }));
 
     return jsonResponse({
         success: true,
-        contest: previousContest,
-        submissions
+        contest: latestContest,
+        contests,
+        submissions: submissionsByContest.flat()
     });
 }
+
 
         ////////////////////////////////////////////////////
         // ACTION: CHECK CONTEST STATISTICS
