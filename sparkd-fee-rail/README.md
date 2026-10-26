@@ -1,25 +1,44 @@
 # SPARKD Fee Rail
 
-An isolated project for testing a SPARKD-denominated fee experience on Solana using Kora fee abstraction.
+An isolated local prototype for testing a SPARKD-denominated application fee on Solana. It uses Kora as a fee-payer integration point; it does not change Solana's protocol fee currency, which remains SOL.
 
-## Goal
+## Run the local console
 
-Let participating SPARKD applications charge a disclosed fee in SPARKD while a Kora paymaster covers the underlying Solana transaction fee in SOL. This is an application-level fee system; it does not replace SOL as Solana's protocol fee currency.
+Requirements: Node.js 20 or newer. No dependency install is needed.
 
-## Scope
+```bash
+cp .env.example .env
+npm run dev
+```
 
-- Keep development separate from the public SPARKD website until the fee flow is working and reviewed.
-- First validate the SPARKD mint and Kora fee-token configuration in a test environment.
-- Build and test the paymaster flow, fee policy, sponsor limits, and token accounting.
-- Add partner-app support only after the SPARKD app flow is stable.
-- Consider a production burn or treasury split only after sponsor costs and operations are modeled.
+Open <http://127.0.0.1:4173>. The console starts in demo mode and serves a sample fee quote. The quote uses raw token base units and is only a placeholder until the SPARKD mint decimals and pricing are verified. The prototype does not request wallet access, transfer tokens, sign, or submit transactions.
 
-## Safety
+Run the tests with:
 
-- Never commit private keys, seed phrases, RPC secrets, or production credentials.
-- Use test wallets and test tokens during development.
-- Do not enable production transactions until the fee payer's allowed programs, token allowlist, spend limits, and failure handling are reviewed.
+```bash
+npm test
+```
 
-## Status
+## Optional Kora readiness check
 
-Project foundation only. No SPARKD website or production app integration has been added.
+Set `KORA_RPC_URL` in `.env` to a development/test Kora JSON-RPC endpoint. Optionally set `KORA_API_KEY` or `KORA_HMAC_SECRET` if that operator requires authentication. Set `SPARKD_TREASURY` to a test receiving address. Restart the server and use **Refresh checks**. The console calls Kora `getConfig` and `getSupportedTokens`; it does not call signing methods.
+
+Secrets stay in the local server environment and are never sent to browser code. Do not use a production fee payer or wallet for this stage.
+
+## Current boundary
+
+This is a runnable local project foundation, not a production payment rail. The next implementation step is a test-wallet flow that builds a real transaction, appends the configured SPARKD payment instruction, requests Kora signing, and verifies the transaction result on devnet. Before that, confirm:
+
+- The official SPARKD mint and token program (legacy SPL Token or Token-2022).
+- Mint decimals and an understandable fee amount; choose whether the app fee is fixed in SPARKD or priced against a fiat/SOL value.
+- The fee recipient and how receipts/accounting are handled.
+- Kora's accepted token configuration, allowed programs, fee payer SOL budget, and rate limits.
+
+The prototype intentionally has no website integration, no production credentials, and no live transaction submission.
+
+## Project layout
+
+- `server.mjs` — dependency-free local server, quote endpoint, and optional Kora status checks.
+- `index.html` — responsive local console.
+- `server.test.mjs` — smoke tests for demo behavior and HTTP endpoints.
+- `.env.example` — safe local configuration template.
