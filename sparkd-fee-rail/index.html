@@ -13,11 +13,11 @@
 <main class="wrap">
   <div class="eyebrow">SPARKD · Isolated project</div>
   <h1>Swap Fee <span>Console</span></h1>
-  <p class="intro">A local prototype for an app-level SPARKD fee attached to a cryptocurrency swap routed through a SPARKD-integrated app. The app fee can be paid in SPARKD while the normal Solana network fee stays in SOL.</p>
-  <div class="notice"><b>Demo mode:</b> no Kora paymaster is needed for this fee model. This console does not connect a wallet, create a swap, transfer SPARKD, or submit a transaction.</div>
+  <p class="intro">A local prototype for paying the SPARKD app fee in SPARKD while the app sponsor covers the Solana network fee in SOL.</p>
+  <div class="notice"><b>Target experience:</b> users pay SPARKD only for app use. A Kora paymaster or equivalent sponsor pays the underlying SOL network fee. This console is a demo and does not connect a wallet or submit transactions.</div>
   <section class="grid">
     <article class="card">
-      <h2>Swap fee setup</h2>
+      <h2>Sponsor readiness</h2>
       <div class="status"><span id="dot" class="dot"></span><span id="headline">Checking configuration…</span></div>
       <ul id="checks" class="checks"></ul>
       <button id="refresh" type="button">Refresh checks</button>
@@ -25,16 +25,16 @@
     <article class="card">
       <h2>Example SPARKD app fee</h2>
       <div id="fee" class="amount">Loading…</div>
-      <p class="muted">Placeholder base-unit amount. Confirm the mint decimals and fee size before charging users.</p>
+      <p class="muted">Placeholder base-unit amount. Confirm mint decimals and the fee policy before charging users. The sponsor handles the SOL network fee.</p>
       <div class="mono">Mint: <span id="mint"></span></div>
       <div class="mono">Fee receiver configured: <span id="receiver"></span></div>
     </article>
     <article class="card full">
       <h2>Path to a live test</h2>
       <div class="steps">
-        <div class="step"><b>1 · Quote</b>Route the user's crypto swap through an integrated SPARKD app.</div>
-        <div class="step"><b>2 · Add fee</b>Include a clearly disclosed SPARKD transfer instruction in the same swap transaction.</div>
-        <div class="step"><b>3 · Sign</b>The user approves the swap and SPARKD fee in their wallet; the wallet still needs SOL for Solana's network fee.</div>
+        <div class="step"><b>1 · Quote</b>Route the user's crypto swap through the SPARKD-integrated app.</div>
+        <div class="step"><b>2 · Add fee</b>Include the disclosed SPARKD app fee and configure the sponsor to cover network fees.</div>
+        <div class="step"><b>3 · Sign</b>The user signs the swap and SPARKD fee. The sponsor pays the SOL network fee.</div>
       </div>
     </article>
   </section>
@@ -48,7 +48,7 @@ async function refresh(){
     const [status,quote]=await Promise.all([fetch('/api/status').then(r=>r.json()),fetch('/api/quote').then(r=>r.json())]);
     el('fee').textContent=`${quote.feeBaseUnits} base units SPARKD`;
     el('mint').textContent=quote.mint; el('receiver').textContent=quote.feeReceiverConfigured?'yes':'no';
-    el('headline').textContent='Demo mode · swap flow not connected';
+    el('headline').textContent='Demo mode · sponsor flow not connected';
     el('dot').className=`dot ${quote.feeReceiverConfigured?'':'bad'}`;
     const checks=status.checks;
     el('checks').innerHTML=checks.map(c=>`<li><strong>${c.ok?'✓':'○'} ${escapeHtml(c.name)}</strong><br>${escapeHtml(c.detail)}</li>`).join('');

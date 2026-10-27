@@ -14,6 +14,7 @@ export function getSettings(env = process.env) {
     mint: env.SPARKD_MINT ?? 'BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump',
     feeBaseUnits: fee,
     feeReceiver: env.SPARKD_FEE_RECEIVER ?? '',
+    sponsorConfigured: Boolean(env.KORA_RPC_URL),
   };
 }
 
@@ -27,9 +28,10 @@ export function createQuote(settings) {
     feeReceiver: settings.feeReceiver,
     feeReceiverConfigured: Boolean(settings.feeReceiver),
     networkFeeCurrency: 'SOL',
-    userNeedsSolForNetworkFee: true,
+    userNeedsSolForNetworkFee: false,
+    sponsorPaysSolNetworkFee: true,
     canSubmitTransaction: false,
-    note: 'Prototype only. No swap, SPARKD fee transfer, or Solana transaction is submitted.',
+    note: 'Target experience: user pays in SPARKD; the app sponsor pays the SOL network fee. Demo only; no transaction is submitted.',
   };
 }
 
@@ -39,10 +41,11 @@ export function getStatus(settings) {
     ready: false,
     checks: [
       { name: 'SPARKD fee receiver', ok: Boolean(settings.feeReceiver), detail: settings.feeReceiver ? 'Address configured' : 'Set SPARKD_FEE_RECEIVER before transaction integration' },
+      { name: 'SOL fee sponsor', ok: settings.sponsorConfigured, detail: settings.sponsorConfigured ? 'Kora endpoint configured' : 'Configure a Kora paymaster or equivalent sponsor to pay SOL network fees' },
       { name: 'Swap transaction builder', ok: false, detail: 'Jupiter custom-instruction flow is not connected yet' },
       { name: 'Wallet signing', ok: false, detail: 'No wallet is connected in this local prototype' },
     ],
-    note: 'This design charges an app fee in SPARKD. The Solana network fee remains in SOL.',
+    note: 'Target experience: users pay SPARKD in the app; the app sponsor pays Solana network fees in SOL.',
   };
 }
 

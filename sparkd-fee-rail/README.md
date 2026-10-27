@@ -1,12 +1,20 @@
-# SPARKD Swap Fee
+# SPARKD Fee Rail
 
-An isolated local prototype for charging a disclosed SPARKD application fee when a user makes a cryptocurrency swap through a SPARKD-integrated app.
+An isolated prototype for making SPARKD the only fee users pay to use a SPARKD-integrated swap app.
 
-## The fee model
+## Target user experience
 
-The swap transaction can include both the swap instructions and a SPARKD token transfer to a configured fee receiver. The user reviews and signs that transaction in their wallet. The application receives the SPARKD fee. Solana's protocol/network fee remains paid in SOL by the wallet.
+1. A user acquires SPARKD with SOL. That purchase uses SOL and incurs the normal Solana network fee.
+2. For later app actions, the user pays the disclosed app fee in SPARKD. The app's fee sponsor pays Solana's required network fee in SOL.
+3. If a user swaps SOL for another token in the app, SOL used as the swap input is the purchase amount. The sponsor still covers the network fee.
 
-This does not change Solana's protocol or make SPARKD a universal fee token. It applies only to swaps routed through an app that integrates the fee. Kora/paymaster hosting is optional and would only be needed if the project later chooses to sponsor or abstract the SOL network fee.
+The SPARKD fee can be sent to a project fee wallet, burned, or split according to the fee policy. The current prototype only displays a configured fee and destination; it does not submit transactions.
+
+## How the sponsor works
+
+Solana validators require network fees to be settled in SOL. A sponsor/paymaster is set as the transaction fee payer and covers that SOL charge, while the user's wallet authorizes the SPARKD payment. Kora is one option for operating this sponsor; an equivalent project-run fee payer is also possible. The user-facing app should show and charge the SPARKD fee without asking the user for SOL to cover the network fee.
+
+For a swap, use Jupiter Swap API V2 `/build` to compose the swap with the SPARKD fee instruction and sponsor fee-payer flow. The user signs the swap and SPARKD authorization; the sponsor signs and pays the SOL network fee. Restrict the sponsor to the intended programs, token mint, spend limits, and app transactions.
 
 ## Run the local console
 
@@ -17,7 +25,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open <http://127.0.0.1:4173>. The console shows the fee configuration and setup status. It is a demo: it does not connect a wallet, fetch or execute swaps, transfer SPARKD, or submit transactions.
+Open <http://127.0.0.1:4173>. This local demo has no wallet connection, swap execution, SPARKD transfer, or live paymaster signing.
 
 Run automated checks:
 
@@ -28,20 +36,24 @@ npm test
 ## Configuration
 
 - `SPARKD_MINT` — SPARKD mint address.
-- `SPARKD_FEE_BASE_UNITS` — fee amount in the mint's smallest units. Confirm the mint decimals and choose a reasonable amount before charging users.
-- `SPARKD_FEE_RECEIVER` — public wallet address that receives the SPARKD fee.
+- `SPARKD_FEE_BASE_UNITS` — app fee in the mint's smallest units. Confirm mint decimals and choose a clear fee before charging users.
+- `SPARKD_FEE_RECEIVER` — public wallet address for the SPARKD app fee, if it is directed to a wallet.
+- `KORA_RPC_URL` — optional local setting for an eventual server-side Kora sponsor endpoint. Do not put signer secrets in the repo or browser code.
 
-Only public wallet addresses belong in this file. Never place a private key or seed phrase in the project.
+## Operating costs
 
-## Next implementation step
+Users are intended to pay SPARKD for app use. The sponsor still needs a SOL reserve because Solana's network fee is paid in SOL at the protocol layer. SPARKD revenue can help fund sponsor operations, but it is not automatically converted into SOL. A project-run sponsor also needs hosting and RPC access; a managed provider may have its own pricing and must explicitly support the SPARKD mint.
 
-Use Jupiter Swap API V2's `/build` path to obtain swap instructions, append the SPARKD SPL-token transfer instruction, simulate the combined transaction, then request the user's wallet signature and submit it. Jupiter documents `/build` for custom transactions and instructions. Confirm the exact fee policy, recipient, mint decimals, and token program before enabling a live charge.
+## Scope
 
-The project stays separate from the SPARKD website until the isolated transaction flow is implemented and verified. No production wallet, paymaster, or website integration is configured.
+- Keep implementation separate from the public SPARKD website until the isolated flow is built and verified.
+- Test the sponsor and fee flow with test wallets and a test token first.
+- Confirm the production mint, token program, decimals, fee destination, fee policy, and sponsor limits before enabling live transactions.
+- Never commit private keys, seed phrases, or provider secrets.
 
 ## Files
 
 - `server.mjs` — dependency-free local server, fee quote, and setup status.
 - `index.html` — responsive local console.
-- `server.test.mjs` — smoke tests for demo behavior and HTTP endpoints.
-- `.env.example` — safe local configuration template.
+- `server.test.mjs` — automated checks for demo behavior and HTTP endpoints.
+- `.env.example` — local configuration template.

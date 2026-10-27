@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getSettings, createQuote, getStatus, createAppServer } from './server.mjs';
 
-test('defaults to a non-submitting SPARKD app-fee quote paid alongside a SOL network fee', () => {
+test('defaults to a non-submitting SPARKD-only user fee with sponsor-paid SOL network fee', () => {
   const settings = getSettings({});
   const quote = createQuote(settings);
   assert.equal(quote.mode, 'demo');
   assert.equal(quote.canSubmitTransaction, false);
   assert.equal(quote.mint, 'BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump');
   assert.equal(quote.networkFeeCurrency, 'SOL');
-  assert.equal(quote.userNeedsSolForNetworkFee, true);
+  assert.equal(quote.userNeedsSolForNetworkFee, false);
+  assert.equal(quote.sponsorPaysSolNetworkFee, true);
 });
 
 test('rejects invalid fee base units', () => {
@@ -36,4 +37,5 @@ test('serves the local console and quote endpoint', async (t) => {
   assert.equal(quote.token, 'SPARKD');
   assert.equal(quote.canSubmitTransaction, false);
   assert.equal(quote.networkFeeCurrency, 'SOL');
+  assert.equal(quote.userNeedsSolForNetworkFee, false);
 });
