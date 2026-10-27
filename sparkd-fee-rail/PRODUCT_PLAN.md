@@ -43,9 +43,10 @@ The local page demonstrates the intended flow and lets the team change sample fe
 
 - Completed: Devnet RPC health check, Raydium Devnet pool metadata validation, and live read-only CPMM quotes.
 - Completed: Phantom wallet connection in the local Devnet panel and read-only SOL/test-SPARKD balance display. This does not sign transactions.
+- Completed: Read-only Devnet preview that combines a fresh pool quote with the configured test-SPARKD fee and checks the wallet's SOL trade principal and test-token balance.
 - Completed: Pimlico Devnet sponsor check, a disposable six-decimal SPARKD test mint, sponsor-funded token accounts, and an atomic Raydium CPMM swap plus 1 test SPARKD app-fee transfer. The confirmed [Devnet transaction](https://explorer.solana.com/tx/5WZgooFYPLiB41oDqUbo7nCCT2mB4Je5LYBLjvSCAJ7PfuykfYmvoyzsNX1bZnfhSjCV9CU5X93z3BxpyHNCm3h4?cluster=devnet) swapped 0.001 SOL as trade input. The user wallet's SOL balance fell by exactly the 1,000,000 lamports traded; the sponsor paid the 10,000-lamport network fee and 1,488,440 lamports of rent. The SPARKD fee and swap succeeded in that one transaction.
-- Not completed: product integration for wallet transaction signing and review, quote freshness, failure handling, anti-replay controls, monitoring, and the mainnet pilot.
-- Scope: this confirms one Devnet success path using disposable keys and test tokens. The app page remains a quote/prototype interface with read-only wallet connection; the transaction builder is a smoke proof, not a production feature. A swap that uses SOL requires SOL as trade principal; other pairs do not require SOL input.
+- Not completed: transaction construction, user signature, Kora submission from the product flow, failure handling, anti-replay controls, monitoring, and the mainnet pilot.
+- Scope: this confirms one Devnet success path using disposable keys and test tokens. The app page remains a quote/prototype interface with read-only wallet connection and preview; the transaction builder is a smoke proof, not a production feature. A swap that uses SOL requires SOL as trade principal; other pairs do not require SOL input.
 
 ### Stage 2 — narrow mainnet pilot
 
