@@ -17,6 +17,12 @@ export function getSettings(env = process.env) {
   if (!/^\d+$/.test(fee) || BigInt(fee) <= 0n) throw new Error('SPARKD_FEE_BASE_UNITS must be a positive integer in base units.');
   const devnetFee = env.SPARKD_DEVNET_FEE_BASE_UNITS ?? '1000000';
   if (!/^\d+$/.test(devnetFee) || BigInt(devnetFee) <= 0n) throw new Error('SPARKD_DEVNET_FEE_BASE_UNITS must be a positive integer in base units.');
+  const sponsorMaxTxLamports = env.DEVNET_SPONSOR_MAX_TX_LAMPORTS ?? '5000000';
+  const sponsorDailyCapLamports = env.DEVNET_SPONSOR_DAILY_CAP_LAMPORTS ?? '50000000';
+  for (const [name, value] of [['DEVNET_SPONSOR_MAX_TX_LAMPORTS', sponsorMaxTxLamports], ['DEVNET_SPONSOR_DAILY_CAP_LAMPORTS', sponsorDailyCapLamports]]) {
+    if (!/^\d+$/.test(value) || BigInt(value) <= 0n) throw new Error(`${name} must be a positive integer in lamports.`);
+  }
+  if (BigInt(sponsorDailyCapLamports) < BigInt(sponsorMaxTxLamports)) throw new Error('DEVNET_SPONSOR_DAILY_CAP_LAMPORTS must be at least the per-transaction cap.');
   return {
     port: Number(env.PORT ?? 4173),
     mint: env.SPARKD_MINT ?? 'BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump',
@@ -25,6 +31,9 @@ export function getSettings(env = process.env) {
     sponsorConfigured: Boolean(env.KORA_RPC_URL),
     koraRpcUrl: env.KORA_RPC_URL ?? '',
     koraApiKey: env.KORA_API_KEY ?? '',
+    koraEstimationFeeToken: env.KORA_ESTIMATION_FEE_TOKEN ?? '',
+    devnetSponsorMaxTxLamports: sponsorMaxTxLamports,
+    devnetSponsorDailyCapLamports: sponsorDailyCapLamports,
     devnetRpcUrl: env.DEVNET_RPC_URL ?? 'https://api.devnet.solana.com',
     sparkdDevnetMint: env.SPARKD_DEVNET_MINT ?? '',
     sparkdDevnetFeeBaseUnits: devnetFee,
