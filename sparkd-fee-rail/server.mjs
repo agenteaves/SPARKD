@@ -34,6 +34,7 @@ export function getSettings(env = process.env) {
     koraEstimationFeeToken: env.KORA_ESTIMATION_FEE_TOKEN ?? '',
     devnetSponsorMaxTxLamports: sponsorMaxTxLamports,
     devnetSponsorDailyCapLamports: sponsorDailyCapLamports,
+    devnetSponsorBudgetFile: env.DEVNET_SPONSOR_BUDGET_FILE ?? '',
     devnetRpcUrl: env.DEVNET_RPC_URL ?? 'https://api.devnet.solana.com',
     sparkdDevnetMint: env.SPARKD_DEVNET_MINT ?? '',
     sparkdDevnetFeeBaseUnits: devnetFee,

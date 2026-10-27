@@ -1,42 +1,33 @@
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createAssociatedTokenAccountIdempotentInstruction, createTransferInstruction, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { KoraClient } from '@solana/kora';
 import { Raydium, TxVersion } from '@raydium-io/raydium-sdk-v2';
 import BN from 'bn.js';
 import { getDevnetWalletBalances } from './devnet-wallet.mjs';
+import { createDevnetSponsorBudgetStore } from './devnet-sponsor-budget.mjs';
 
 const SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112');
 const pending = new Map();
 const PROPOSAL_TTL_MS = 60_000;
 const MAX_INPUT_LAMPORTS = 10_000_000n;
 const MAX_OPEN_PROPOSALS_PER_WALLET = 3;
-const sponsorBudget = { day: utcDay(), spentLamports: 0, reservedLamports: 0 };
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const budgetStores = new Map();
 
-function utcDay() { return new Date().toISOString().slice(0, 10); }
-
-function resetBudgetForNewDay() {
-  const day = utcDay();
-  if (day === sponsorBudget.day) return;
-  pending.clear();
-  sponsorBudget.day = day;
-  sponsorBudget.spentLamports = 0;
-  sponsorBudget.reservedLamports = 0;
+function budgetFor(settings) {
+  const filePath = settings.devnetSponsorBudgetFile || path.join(moduleDir, '.devnet', 'sponsor-budget.json');
+  if (!budgetStores.has(filePath)) budgetStores.set(filePath, createDevnetSponsorBudgetStore({ filePath }));
+  return budgetStores.get(filePath);
 }
 
-function releaseReservation(proposal) {
-  if (proposal?.reservedLamports) {
-    sponsorBudget.reservedLamports = Math.max(0, sponsorBudget.reservedLamports - proposal.reservedLamports);
-    proposal.reservedLamports = 0;
-  }
-}
-
-function cleanupExpiredProposals() {
-  resetBudgetForNewDay();
+async function cleanupExpiredProposals(settings) {
   const now = Date.now();
   for (const [id, proposal] of pending) {
     if (proposal.expiresAt < now || proposal.used) {
-      releaseReservation(proposal);
+      await budgetFor(settings).release(id);
       pending.delete(id);
     }
   }
@@ -55,21 +46,6 @@ function getBudgetLimits(settings) {
   };
 }
 
-function reserveSponsorBudget(estimate, settings) {
-  resetBudgetForNewDay();
-  const limits = getBudgetLimits(settings);
-  if (BigInt(estimate) > limits.perTransaction) throw new Error('Estimated sponsor cost exceeds the per-swap Devnet limit.');
-  if (BigInt(sponsorBudget.spentLamports + sponsorBudget.reservedLamports + estimate) > limits.daily) {
-    throw new Error('The Devnet sponsor daily budget is reserved or exhausted. Try again after the UTC daily reset.');
-  }
-  sponsorBudget.reservedLamports += estimate;
-}
-
-function settleSponsorBudget(proposal, actualLamports) {
-  releaseReservation(proposal);
-  sponsorBudget.spentLamports += actualLamports;
-}
-
 function requireAmount(amountIn) {
   if (!/^\d+$/.test(String(amountIn)) || BigInt(amountIn) <= 0n || BigInt(amountIn) > MAX_INPUT_LAMPORTS) {
     throw new Error('Devnet swap input must be a positive amount no greater than 0.01 SOL.');
@@ -78,7 +54,7 @@ function requireAmount(amountIn) {
 }
 
 export async function buildDevnetSwap({ address, amountIn, settings, dependencies = {} }) {
-  cleanupExpiredProposals();
+  await cleanupExpiredProposals(settings);
   const amount = requireAmount(String(amountIn));
   if (!settings.koraRpcUrl) throw new Error('The Devnet Kora sponsor is not configured.');
   if (!settings.sparkdDevnetMint || !settings.feeReceiver) throw new Error('The Devnet test mint and fee receiver must be configured.');
@@ -144,10 +120,11 @@ export async function buildDevnetSwap({ address, amountIn, settings, dependencie
   const estimationToken = settings.koraEstimationFeeToken || tokens[0];
   if (!estimationToken) throw new Error('Kora did not return a supported fee token for sponsor cost estimation.');
   const estimate = estimateLamports(await kora.estimateTransactionFee({ transaction: unsigned.toString('base64'), fee_token: estimationToken }));
-  reserveSponsorBudget(estimate, settings);
   const proposalId = randomUUID();
+  const budget = budgetFor(settings);
+  await budget.reserve(proposalId, estimate, getBudgetLimits(settings));
   const expiresAt = Date.now() + PROPOSAL_TTL_MS;
-  pending.set(proposalId, { owner: owner.toBase58(), sponsor: sponsor.toBase58(), message: transaction.serializeMessage(), expiresAt, used: false, estimationToken, reservedLamports: estimate });
+  pending.set(proposalId, { owner: owner.toBase58(), sponsor: sponsor.toBase58(), message: transaction.serializeMessage(), expiresAt, used: false, estimationToken });
 
   return {
     proposalId,
@@ -176,10 +153,11 @@ export async function buildDevnetSwap({ address, amountIn, settings, dependencie
 }
 
 export async function submitDevnetSwap({ proposalId, signedTransaction, settings, dependencies = {} }) {
-  resetBudgetForNewDay();
+  await cleanupExpiredProposals(settings);
+  const budget = budgetFor(settings);
   const proposal = pending.get(String(proposalId));
   if (!proposal || proposal.used || proposal.expiresAt < Date.now()) {
-    releaseReservation(proposal);
+    await budget.release(String(proposalId));
     pending.delete(String(proposalId));
     throw new Error('This transaction preview expired. Prepare a fresh swap.');
   }
@@ -197,22 +175,16 @@ export async function submitDevnetSwap({ proposalId, signedTransaction, settings
   const estimate = estimateLamports(await kora.estimateTransactionFee({ transaction: signedTransaction, fee_token: proposal.estimationToken }));
   const limits = getBudgetLimits(settings);
   if (BigInt(estimate) > limits.perTransaction) {
-    releaseReservation(proposal); pending.delete(String(proposalId));
+    await budget.release(String(proposalId)); pending.delete(String(proposalId));
     throw new Error('Updated sponsor cost exceeds the per-swap Devnet limit. Prepare a fresh preview later.');
   }
-  releaseReservation(proposal);
-  if (BigInt(sponsorBudget.spentLamports + sponsorBudget.reservedLamports + estimate) > limits.daily) {
-    pending.delete(String(proposalId));
-    throw new Error('The Devnet sponsor daily budget is reserved or exhausted. The signed transaction was not submitted.');
-  }
-  proposal.reservedLamports = estimate;
-  sponsorBudget.reservedLamports += estimate;
+  await budget.update(String(proposalId), estimate, limits);
   proposal.used = true;
   let result;
   try {
     result = await kora.signAndSendTransaction({ transaction: signedTransaction });
   } catch (error) {
-    settleSponsorBudget(proposal, estimate);
+    await budget.settle(String(proposalId), estimate);
     pending.delete(String(proposalId));
     throw error;
   }
@@ -223,7 +195,8 @@ export async function submitDevnetSwap({ proposalId, signedTransaction, settings
     connection: dependencies.connection,
   });
   const sponsorCostLamports = inspected?.sponsorCostLamports ?? estimate;
-  settleSponsorBudget(proposal, sponsorCostLamports);
+  await budget.settle(String(proposalId), sponsorCostLamports);
+  const budgetSnapshot = await budget.snapshot();
   pending.delete(String(proposalId));
   return {
     signature: result.signature,
@@ -233,7 +206,7 @@ export async function submitDevnetSwap({ proposalId, signedTransaction, settings
     appFeeCollected: inspected ? inspected.success : true,
     sponsorCostLamports,
     sponsorCostVerified: Boolean(inspected),
-    sponsorDailyBudgetRemainingLamports: Math.max(0, Number(limits.daily) - sponsorBudget.spentLamports - sponsorBudget.reservedLamports),
+    sponsorDailyBudgetRemainingLamports: Math.max(0, Number(limits.daily) - budgetSnapshot.spentLamports - budgetSnapshot.reservedLamports),
   };
 }
 
