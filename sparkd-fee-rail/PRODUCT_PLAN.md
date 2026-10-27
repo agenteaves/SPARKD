@@ -28,7 +28,7 @@ The interface should never describe a swap as “free” or imply all trading co
 
 ### Stage 0 — prototype
 
-The local page demonstrates the intended flow and lets the team change sample fee economics. Its Devnet tab also reads an on-chain quote from a verified Raydium CPMM pool. It is not connected to a wallet or sponsor and cannot submit a swap.
+The local page demonstrates the intended flow and lets the team change sample fee economics. Its Devnet tab reads an on-chain quote from a verified Raydium CPMM pool and can connect Phantom for read-only balance checks. It does not request signatures or submit transactions.
 
 ### Stage 1 — Devnet proof
 
@@ -42,9 +42,10 @@ The local page demonstrates the intended flow and lets the team change sample fe
 #### Current implementation state
 
 - Completed: Devnet RPC health check, Raydium Devnet pool metadata validation, and live read-only CPMM quotes.
+- Completed: Phantom wallet connection in the local Devnet panel and read-only SOL/test-SPARKD balance display. This does not sign transactions.
 - Completed: Pimlico Devnet sponsor check, a disposable six-decimal SPARKD test mint, sponsor-funded token accounts, and an atomic Raydium CPMM swap plus 1 test SPARKD app-fee transfer. The confirmed [Devnet transaction](https://explorer.solana.com/tx/5WZgooFYPLiB41oDqUbo7nCCT2mB4Je5LYBLjvSCAJ7PfuykfYmvoyzsNX1bZnfhSjCV9CU5X93z3BxpyHNCm3h4?cluster=devnet) swapped 0.001 SOL as trade input. The user wallet's SOL balance fell by exactly the 1,000,000 lamports traded; the sponsor paid the 10,000-lamport network fee and 1,488,440 lamports of rent. The SPARKD fee and swap succeeded in that one transaction.
-- Not completed: product integration for wallet connection, user review and signing, quote freshness, failure handling, anti-replay controls, monitoring, and the mainnet pilot.
-- Scope: this confirms one Devnet success path using disposable keys and test tokens. The app page remains a quote/prototype interface; the transaction builder is a smoke proof, not a production feature. A swap that uses SOL requires SOL as trade principal; other pairs do not require SOL input.
+- Not completed: product integration for wallet transaction signing and review, quote freshness, failure handling, anti-replay controls, monitoring, and the mainnet pilot.
+- Scope: this confirms one Devnet success path using disposable keys and test tokens. The app page remains a quote/prototype interface with read-only wallet connection; the transaction builder is a smoke proof, not a production feature. A swap that uses SOL requires SOL as trade principal; other pairs do not require SOL input.
 
 ### Stage 2 — narrow mainnet pilot
 
