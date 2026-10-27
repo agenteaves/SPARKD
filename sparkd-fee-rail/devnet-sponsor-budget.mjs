@@ -66,7 +66,7 @@ export function createDevnetSponsorBudgetStore({ filePath, clock = () => new Dat
         const maxTx = BigInt(limits.perTransaction);
         const daily = BigInt(limits.daily);
         if (BigInt(amount) > maxTx) throw new Error('Estimated sponsor cost exceeds the per-swap Devnet limit.');
-        if (BigInt(state.spentLamports + state.reservedLamports + amount) > daily) {
+        if (BigInt(state.spentLamports) + BigInt(state.reservedLamports) + BigInt(amount) > daily) {
           throw new Error('The Devnet sponsor daily budget is reserved or exhausted. Wait for previews to expire or try after the UTC daily reset.');
         }
         if (state.reservations[id]) throw new Error('This sponsor budget reservation already exists.');
@@ -83,7 +83,7 @@ export function createDevnetSponsorBudgetStore({ filePath, clock = () => new Dat
         if (previous === undefined) throw new Error('The sponsor budget reservation expired. Prepare a fresh transaction.');
         if (BigInt(amount) > BigInt(limits.perTransaction)) throw new Error('Updated sponsor cost exceeds the per-swap Devnet limit.');
         const nextReserved = state.reservedLamports - previous + amount;
-        if (BigInt(state.spentLamports + nextReserved) > BigInt(limits.daily)) {
+        if (BigInt(state.spentLamports) + BigInt(nextReserved) > BigInt(limits.daily)) {
           throw new Error('The Devnet sponsor daily budget is reserved or exhausted. The signed transaction was not submitted.');
         }
         state.reservedLamports = nextReserved;

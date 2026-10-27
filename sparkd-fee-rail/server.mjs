@@ -20,7 +20,7 @@ export function getSettings(env = process.env) {
   const sponsorMaxTxLamports = env.DEVNET_SPONSOR_MAX_TX_LAMPORTS ?? '5000000';
   const sponsorDailyCapLamports = env.DEVNET_SPONSOR_DAILY_CAP_LAMPORTS ?? '50000000';
   for (const [name, value] of [['DEVNET_SPONSOR_MAX_TX_LAMPORTS', sponsorMaxTxLamports], ['DEVNET_SPONSOR_DAILY_CAP_LAMPORTS', sponsorDailyCapLamports]]) {
-    if (!/^\d+$/.test(value) || BigInt(value) <= 0n) throw new Error(`${name} must be a positive integer in lamports.`);
+    if (!/^\d+$/.test(value) || BigInt(value) <= 0n || BigInt(value) > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error(`${name} must be a positive integer within the safe numeric range in lamports.`);
   }
   if (BigInt(sponsorDailyCapLamports) < BigInt(sponsorMaxTxLamports)) throw new Error('DEVNET_SPONSOR_DAILY_CAP_LAMPORTS must be at least the per-transaction cap.');
   return {
