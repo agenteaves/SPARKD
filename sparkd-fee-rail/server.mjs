@@ -6,9 +6,11 @@ import { getDevnetStatus } from './devnet-status.mjs';
 import { getRaydiumDevnetQuote } from './raydium-devnet.mjs';
 import { getDevnetWalletBalances } from './devnet-wallet.mjs';
 import { getDevnetSwapPreview } from './devnet-preview.mjs';
+import { buildDevnetSwap, submitDevnetSwap } from './devnet-swap.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const htmlPath = path.join(here, 'index.html');
+const walletBundlePath = path.join(here, 'wallet-client.bundle.js');
 
 export function getSettings(env = process.env) {
   const fee = env.SPARKD_FEE_BASE_UNITS ?? '1000000';
@@ -49,15 +51,16 @@ export function createQuote(settings) {
 }
 
 export function getStatus(settings) {
+  const devnetTransactionConfigured = Boolean(settings.sponsorConfigured && settings.sparkdDevnetMint && settings.feeReceiver);
   return {
     mode: 'demo',
     ready: false,
     checks: [
       { name: 'SPARKD fee receiver', ok: Boolean(settings.feeReceiver), detail: settings.feeReceiver ? 'Address configured' : 'Set SPARKD_FEE_RECEIVER before transaction integration' },
       { name: 'SOL fee sponsor', ok: settings.sponsorConfigured, detail: settings.sponsorConfigured ? 'Kora endpoint configured' : 'Configure a Kora paymaster or equivalent sponsor to pay SOL network fees' },
-      { name: 'Devnet quote reader', ok: true, detail: 'Read-only Raydium CPMM quotes are available in the Devnet tab; transaction construction is not connected yet.' },
-      { name: 'Atomic SPARKD fee + swap', ok: false, detail: 'A wallet-signed transaction combining the Raydium swap and app-directed SPARKD transfer is still required.' },
-      { name: 'Wallet signing', ok: false, detail: 'No wallet is connected in this local prototype' },
+      { name: 'Devnet quote and preview', ok: true, detail: 'The Devnet tab reads Raydium quotes and previews the required swap input and test-SPARKD balance.' },
+      { name: 'Devnet atomic swap + app fee', ok: devnetTransactionConfigured, detail: devnetTransactionConfigured ? 'A Devnet swap transaction combines Raydium instructions with the test-SPARKD fee transfer and uses Pimlico as fee payer.' : 'Configure the Devnet sponsor, test SPARKD mint, and fee receiver.' },
+      { name: 'Mainnet release', ok: false, detail: 'Mainnet wallet and transaction flow, production fee configuration, monitoring, and security review are not complete.' },
     ],
     note: 'Target experience: users pay SPARKD in the app; the app sponsor pays Solana network fees in SOL.',
   };
@@ -69,6 +72,18 @@ export function createAppServer(settings = getSettings(), dependencies = {}) {
     res.setHeader('x-content-type-options', 'nosniff');
     res.setHeader('referrer-policy', 'no-referrer');
     res.setHeader('cache-control', 'no-store');
+    if (req.method === 'POST' && ['/api/devnet/build', '/api/devnet/submit'].includes(url.pathname)) {
+      try {
+        const body = await readJsonBody(req);
+        const result = url.pathname.endsWith('/build')
+          ? await (dependencies.buildProvider ?? buildDevnetSwap)({ address: body.address, amountIn: body.amountIn, settings, dependencies: dependencies.swapDependencies })
+          : await (dependencies.submitProvider ?? submitDevnetSwap)({ proposalId: body.proposalId, signedTransaction: body.signedTransaction, settings, dependencies: dependencies.swapDependencies });
+        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(result));
+      } catch (error) {
+        res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: safeError(error, settings) }));
+      }
+      return;
+    }
     if (req.method !== 'GET') {
       res.writeHead(405, { 'content-type': 'application/json' }).end(JSON.stringify({ error: 'Method not allowed' }));
       return;
@@ -132,8 +147,39 @@ export function createAppServer(settings = getSettings(), dependencies = {}) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(await readFile(htmlPath));
       return;
     }
+    if (url.pathname === '/wallet-client.bundle.js') {
+      try {
+        res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' }).end(await readFile(walletBundlePath));
+      } catch {
+        res.writeHead(503, { 'content-type': 'text/plain; charset=utf-8' }).end('Run npm run build before opening the wallet flow.');
+      }
+      return;
+    }
     res.writeHead(404, { 'content-type': 'application/json' }).end(JSON.stringify({ error: 'Not found' }));
   });
+}
+
+function safeError(error, settings) {
+  let message = String(error?.message ?? 'Unable to prepare the Devnet swap.');
+  for (const secret of [settings.koraRpcUrl, settings.koraApiKey]) {
+    if (secret) message = message.split(secret).join('[sponsor credential redacted]');
+  }
+  return message.replace(/([?&]apikey=)[^&\s]+/gi, '$1[redacted]').replace(/[\r\n]/g, ' ').slice(0, 240);
+}
+
+async function readJsonBody(req, maxBytes = 16_000) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > maxBytes) throw new Error('Request body is too large.');
+    chunks.push(chunk);
+  }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    throw new Error('Request body must be valid JSON.');
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -147,6 +193,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (error.code !== 'ENOENT') throw error;
   }
   const settings = getSettings();
+  const { build } = await import('esbuild');
+  await build({ entryPoints: [path.join(here, 'wallet-client.mjs')], bundle: true, format: 'esm', platform: 'browser', target: 'es2020', outfile: walletBundlePath });
   const server = createAppServer(settings);
   server.listen(settings.port, '127.0.0.1', () => console.log(`SPARKD Fee Rail local console: http://127.0.0.1:${settings.port}`));
 }
