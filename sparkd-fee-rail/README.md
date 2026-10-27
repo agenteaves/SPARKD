@@ -4,13 +4,14 @@ An isolated product prototype and build plan for a crypto swap app where the app
 
 ## Run the local product lab
 
-Requires Node.js 20 or newer. No install is needed.
+Requires Node.js 20 or newer.
 
 ```bash
+npm ci
 npm run dev
 ```
 
-Open <http://127.0.0.1:4173>. The local page includes an illustrative swap quote and a fee sustainability model. It has **no wallet connection, live market quote, live swap, SPARKD charge, or production sponsor**. The demo values are editable assumptions, not current prices or forecasts.
+Open <http://127.0.0.1:4173>. The Swap tab is an illustrative product mock. The Devnet tab reads a current quote from a preselected Raydium CPMM pool; it does not connect a wallet, build a swap, collect SPARKD, or submit a transaction. The economics values are editable assumptions, not current prices or forecasts.
 
 Run the automated checks:
 
@@ -45,11 +46,13 @@ The order is:
 
 - `index.html` — interactive, clearly labeled local swap and economics prototype.
 - `economics.mjs` — pure fee and breakeven calculations for the prototype.
-- `server.mjs` — local static console and demo status/quote endpoints.
+- `server.mjs` — local static console, demo endpoint, and Devnet read-only endpoints.
+- `raydium-devnet.mjs` — on-chain Raydium CPMM quote reader for the configured Devnet pool.
+- `devnet-status.mjs` — read-only checks for Devnet RPC, pool metadata, test mint, and Kora sponsor configuration.
 - `PRODUCT_PLAN.md` — MVP requirements, staged plan, metrics, and network decision gates.
-- `server.test.mjs` and `economics.test.mjs` — automated checks for the demo behavior and calculations.
+- `server.test.mjs`, `devnet-status.test.mjs`, and `economics.test.mjs` — automated checks for endpoint behavior, readiness reporting, and calculations.
 
-The actual transaction path is intentionally not presented as ready. A live launch needs confirmed token mint/decimals, published fee policy and receiving address, a sponsor provider/policy that accepts SPARKD, sponsor SOL reserves, a live swap quote/transaction builder, wallet integration, security review, and mainnet pilot controls. Provider-specific SPARKD acceptance must be verified before selecting a provider.
+The actual transaction path is not ready. A Devnet swap proof still needs a funded disposable wallet, a disposable SPARKD test mint, and an operated Kora sponsor configured to accept that mint and the Raydium CPMM program. Public Devnet RPC airdrops are currently disabled; request test SOL from the official faucet. The smoke test must confirm that the Raydium swap and SPARKD fee transfer settle atomically while Kora pays the network fee. Mainnet additionally needs confirmed token mint/decimals, a published fee policy and receiving address, sponsor SOL reserves, wallet integration, security review, and mainnet pilot controls. Provider-specific SPARKD acceptance must be verified before selecting a provider.
 
 ## Fee design principles
 
