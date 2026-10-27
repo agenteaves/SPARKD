@@ -10,5 +10,12 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@raydium-io/raydium-sdk-v2": "^0.2.75-alpha",
+    "@solana/kora": "^0.2.1",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
+    "bn.js": "^5.2.5"
   }
 }
