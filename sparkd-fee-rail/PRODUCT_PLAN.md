@@ -42,8 +42,9 @@ The local page demonstrates the intended flow and lets the team change sample fe
 #### Current implementation state
 
 - Completed: Devnet RPC health check, Raydium Devnet pool metadata validation, and live read-only CPMM quotes.
-- Not completed: temporary wallets/test mint, Pimlico API key, sponsor policy verification, atomic swap plus fee transaction, and an on-chain Devnet confirmation.
-- Current external blockers: the public Devnet RPC returns HTTP 410 for airdrops, and no sponsor API key or funded disposable wallet is available. Do not call the Devnet proof complete until the final transaction is confirmed and its instructions are inspected.
+- Completed: Pimlico Devnet endpoint check; a disposable six-decimal SPARKD test mint; sponsor-funded token accounts; and a confirmed SPARKD transfer to the app receiver. The disposable wallet used zero SOL for these operations. The mint transaction is [visible on Devnet](https://explorer.solana.com/tx/5qULjKCH8M13KxzADhoVsXydbEkpTGJpkiWb5WTTp3aKGniJcqWMUgScYtvthBWv8fVrjKw5JebU7p7sQ1vZAWDq?cluster=devnet), and the fee transfer is [visible on Devnet](https://explorer.solana.com/tx/4eFd66ruVFZWRfSndC6kKahhzte3Uso7Q2wwX5VoWAtxHQhHASY9RkRJ52Ww8P4dgiVYgEsZ1tCbDPhdrZSsmSVD?cluster=devnet).
+- Not completed: an atomic Raydium swap plus SPARKD app-fee transfer, and verification that the sponsor accepts the Raydium CPMM instruction.
+- Current external blocker: the test wallet needs an input asset for the selected pool. The configured pair takes SOL as trade principal, so some Devnet SOL is needed for that specific test; it is not a network fee. The public RPC returned HTTP 410 for airdrop requests, so use the [official faucet](https://faucet.solana.com/) or select a funded non-SOL input pool. Do not call the full Devnet proof complete until the swap and SPARKD fee settle together and the transaction is inspected.
 
 ### Stage 2 — narrow mainnet pilot
 
