@@ -51,7 +51,7 @@ export function getStatus(settings) {
       { name: 'SPARKD fee receiver', ok: Boolean(settings.feeReceiver), detail: settings.feeReceiver ? 'Address configured' : 'Set SPARKD_FEE_RECEIVER before transaction integration' },
       { name: 'SOL fee sponsor', ok: settings.sponsorConfigured, detail: settings.sponsorConfigured ? 'Kora endpoint configured' : 'Configure a Kora paymaster or equivalent sponsor to pay SOL network fees' },
       { name: 'Devnet quote reader', ok: true, detail: 'Read-only Raydium CPMM quotes are available in the Devnet tab; transaction construction is not connected yet.' },
-      { name: 'Atomic SPARKD fee + swap', ok: false, detail: 'Kora paid-token integration and a wallet-signed transaction are still required.' },
+      { name: 'Atomic SPARKD fee + swap', ok: false, detail: 'A wallet-signed transaction combining the Raydium swap and app-directed SPARKD transfer is still required.' },
       { name: 'Wallet signing', ok: false, detail: 'No wallet is connected in this local prototype' },
     ],
     note: 'Target experience: users pay SPARKD in the app; the app sponsor pays Solana network fees in SOL.',
