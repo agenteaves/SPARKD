@@ -1,6 +1,7 @@
 const DEFAULT_DEVNET_RPC = 'https://api.devnet.solana.com';
 const DEFAULT_RAYDIUM_DEVNET_API = 'https://api-v3-devnet.raydium.io';
 const RAYDIUM_DEVNET_CPMM_PROGRAM = 'DRaycpLY18LhpbydsBWbVJtxpNv9oXPgjRSfpF2bWpYb';
+const SPL_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 
 export async function getDevnetStatus(settings, { fetchImpl = fetch, timeoutMs = 5000 } = {}) {
   const checks = [];
@@ -9,7 +10,10 @@ export async function getDevnetStatus(settings, { fetchImpl = fetch, timeoutMs =
   const poolId = settings.raydiumDevnetPoolId || '';
   const raydiumApi = settings.raydiumDevnetApi || DEFAULT_RAYDIUM_DEVNET_API;
 
-  const rpc = await probeJsonRpc(fetchImpl, rpcUrl, 'getHealth', {}, timeoutMs);
+  const [rpc, mintStatus] = await Promise.all([
+    probeJsonRpc(fetchImpl, rpcUrl, 'getHealth', [], timeoutMs),
+    mint ? probeJsonRpc(fetchImpl, rpcUrl, 'getAccountInfo', [mint, { encoding: 'jsonParsed' }], timeoutMs) : Promise.resolve(null),
+  ]);
   checks.push({
     id: 'devnet_rpc',
     name: 'Solana Devnet RPC',
@@ -27,33 +31,34 @@ export async function getDevnetStatus(settings, { fetchImpl = fetch, timeoutMs =
       : pool?.detail ?? 'Set RAYDIUM_DEVNET_POOL_ID to a verified Devnet CPMM pool.',
   });
 
+  const parsedMint = mintStatus?.result?.value;
+  const isSplMint = Boolean(parsedMint?.data?.parsed?.type === 'mint' && parsedMint?.owner === SPL_TOKEN_PROGRAM);
   checks.push({
     id: 'sparkd_devnet_mint',
     name: 'Test SPARKD mint',
-    ok: Boolean(mint),
-    detail: mint ? 'Devnet test mint configured; this is not the production SPARKD mint.' : 'Create or select a disposable Devnet test token and set SPARKD_DEVNET_MINT.',
+    ok: isSplMint,
+    detail: !mint ? 'Create or select a disposable Devnet test token and set SPARKD_DEVNET_MINT.' : isSplMint ? `Devnet SPL mint exists with ${parsedMint.data.parsed.info.decimals} decimals; this is not the production SPARKD mint.` : mintStatus?.ok ? 'The configured Devnet address is not an SPL Token mint.' : mintStatus?.detail ?? 'Could not verify the configured Devnet mint.',
   });
 
   if (!settings.koraRpcUrl) {
-    checks.push({ id: 'kora_rpc', name: 'Kora sponsor RPC', ok: false, detail: 'Set KORA_RPC_URL to a Devnet Kora endpoint.' });
-    checks.push({ id: 'kora_token', name: 'SPARKD accepted by sponsor', ok: false, detail: 'Cannot check the sponsor token allowlist until Kora is configured.' });
+    checks.push({ id: 'kora_rpc', name: 'Devnet fee sponsor', ok: false, detail: 'Set KORA_RPC_URL to the Pimlico Devnet Kora-compatible endpoint after creating an API key.' });
+    checks.push({ id: 'kora_policy', name: 'Sponsor transaction policy', ok: false, detail: 'The sponsor must permit the Raydium CPMM swap and SPL Token fee transfer. SPARKD is paid to the app; it does not need to be a sponsor-accepted payment token.' });
   } else {
-    const [config, tokens] = await Promise.all([
-      probeJsonRpc(fetchImpl, settings.koraRpcUrl, 'getConfig', {}, timeoutMs, settings.koraApiKey),
-      probeJsonRpc(fetchImpl, settings.koraRpcUrl, 'getSupportedTokens', {}, timeoutMs, settings.koraApiKey),
+    const [payer, blockhash] = await Promise.all([
+      probeJsonRpc(fetchImpl, settings.koraRpcUrl, 'getPayerSigner', {}, timeoutMs, settings.koraApiKey),
+      probeJsonRpc(fetchImpl, settings.koraRpcUrl, 'getBlockhash', {}, timeoutMs, settings.koraApiKey),
     ]);
     checks.push({
       id: 'kora_rpc',
-      name: 'Kora sponsor RPC',
-      ok: config.ok && tokens.ok,
-      detail: config.ok && tokens.ok ? 'Kora responded to config and supported-token checks; no transaction was signed.' : [config, tokens].filter(x => !x.ok).map(x => x.detail).join(' '),
+      name: 'Devnet fee sponsor',
+      ok: payer.ok && blockhash.ok,
+      detail: payer.ok && blockhash.ok ? `Sponsor endpoint supplied a fee payer and Devnet blockhash (${payer.result?.signer_address ?? 'address returned'}); no transaction was signed.` : [payer, blockhash].filter(x => !x.ok).map(x => x.detail).join(' '),
     });
-    const allowed = mint && (includesMint(config.result, mint) || includesMint(tokens.result, mint));
     checks.push({
-      id: 'kora_token',
-      name: 'SPARKD accepted by sponsor',
-      ok: Boolean(allowed),
-      detail: !mint ? 'Set SPARKD_DEVNET_MINT before checking token support.' : allowed ? 'The configured Devnet test mint appears in Kora’s returned configuration.' : 'The test mint was not found in Kora’s returned paid-token configuration.',
+      id: 'kora_policy',
+      name: 'Sponsor transaction policy',
+      ok: false,
+      detail: 'Still needs a real policy/simulation check for the Raydium CPMM swap and SPL Token fee transfer. SPARKD is paid to the app; it does not need to be a sponsor-accepted payment token.',
     });
   }
 
@@ -114,14 +119,6 @@ async function probeJsonRpc(fetchImpl, endpoint, method, params, timeoutMs, apiK
   } finally {
     clearTimeout(timer);
   }
-}
-
-function includesMint(value, mint) {
-  if (!value || !mint) return false;
-  if (typeof value === 'string') return value === mint;
-  if (Array.isArray(value)) return value.some(item => includesMint(item, mint));
-  if (typeof value === 'object') return Object.entries(value).some(([key, child]) => key === mint || includesMint(child, mint));
-  return false;
 }
 
 function safeMessage(message) {
