@@ -84,3 +84,26 @@ test('rejects invalid Devnet wallet addresses before making an RPC request', asy
   const { getDevnetWalletBalances } = await import('./devnet-wallet.mjs');
   await assert.rejects(getDevnetWalletBalances({ address: 'not-a-solana-address', rpcUrl: 'https://unused.invalid' }), /valid Solana wallet address/);
 });
+
+test('builds a read-only Devnet swap and SPARKD fee preview with balance checks', async () => {
+  const { getDevnetSwapPreview } = await import('./devnet-preview.mjs');
+  const settings = getSettings({
+    DEVNET_RPC_URL: 'https://devnet.example/rpc',
+    SPARKD_DEVNET_MINT: 'test-mint',
+    SPARKD_DEVNET_FEE_BASE_UNITS: '1000000',
+    SPARKD_FEE_RECEIVER: 'fee-receiver',
+  });
+  const preview = await getDevnetSwapPreview({
+    address: 'wallet',
+    amountIn: '1000000',
+    settings,
+    walletProvider: async () => ({ address: 'wallet', solLamports: 2000000, sparkd: { mint: 'test-mint', amount: '2000000', decimals: 6 } }),
+    quoteProvider: async () => ({ poolId: 'pool', output: { mint: 'out-mint', symbol: 'TEST', decimals: 6 }, amountOutBaseUnits: '750000', minimumOutBaseUnits: '742500', slippageBps: 100, quotedAt: 'now' }),
+  });
+  assert.equal(preview.mode, 'devnet-preview-only');
+  assert.equal(preview.checks.enoughSwapInput, true);
+  assert.equal(preview.checks.enoughSparkd, true);
+  assert.equal(preview.appFee.amountBaseUnits, '1000000');
+  assert.equal(preview.canRequestSignature, false);
+  assert.equal(preview.transactionSubmitted, false);
+});
