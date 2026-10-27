@@ -19,6 +19,8 @@ function createHarness() {
     sparkdDevnetFeeBaseUnits: '1000000',
     feeReceiver: receiver.toBase58(),
     raydiumDevnetPoolId: Keypair.generate().publicKey.toBase58(),
+    devnetSponsorMaxTxLamports: '50000',
+    devnetSponsorDailyCapLamports: '500000',
   };
   let submitted = 0;
   const dependencies = {
@@ -29,8 +31,11 @@ function createHarness() {
     },
     koraClient: {
       getPayerSigner: async () => ({ signer_address: sponsor.toBase58() }),
+      getSupportedTokens: async () => ({ tokens: [mint.toBase58()] }),
+      estimateTransactionFee: async () => ({ fee_in_lamports: 1000 }),
       signAndSendTransaction: async ({ transaction }) => { submitted++; return { signature: 'confirmed-signature', signed_transaction: transaction, signer_pubkey: sponsor.toBase58() }; },
     },
+    transactionInspector: async () => ({ success: true, sponsorCostLamports: 1000 }),
     raydiumFactory: async () => ({
       cpmm: {
         getPoolInfoFromRpc: async () => ({
@@ -72,7 +77,7 @@ test('builds an expiring Devnet proposal and submits only its exact wallet-signe
   original.partialSign(h.owner);
   const signedTransaction = original.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64');
   const result = await submitDevnetSwap({ proposalId: built.proposalId, signedTransaction, settings: h.settings, dependencies: h.dependencies });
-  assert.deepEqual(result, { signature: 'confirmed-signature', cluster: 'devnet', confirmed: true });
+  assert.deepEqual(result, { signature: 'confirmed-signature', cluster: 'devnet', confirmed: true, success: true, appFeeCollected: true, sponsorCostLamports: 1000, sponsorCostVerified: true, sponsorDailyBudgetRemainingLamports: 499000 });
   assert.equal(h.submitted(), 1);
   await assert.rejects(submitDevnetSwap({ proposalId: built.proposalId, signedTransaction, settings: h.settings, dependencies: h.dependencies }), /expired/);
 });
@@ -80,4 +85,32 @@ test('builds an expiring Devnet proposal and submits only its exact wallet-signe
 test('rejects a Devnet amount above the configured prototype cap before network calls', async () => {
   const h = createHarness();
   await assert.rejects(buildDevnetSwap({ address: h.owner.publicKey.toBase58(), amountIn: '10000001', settings: h.settings, dependencies: h.dependencies }), /no greater than 0.01 SOL/);
+});
+
+test('refuses underfunded wallets and estimates above the sponsor per-swap cap', async () => {
+  const lowSol = createHarness();
+  lowSol.dependencies.walletProvider = async () => ({ address: lowSol.owner.publicKey.toBase58(), solLamports: 999999, sparkd: { amount: '2000000', decimals: 6 } });
+  await assert.rejects(buildDevnetSwap({ address: lowSol.owner.publicKey.toBase58(), amountIn: '1000000', settings: lowSol.settings, dependencies: lowSol.dependencies }), /needs more SOL/);
+
+  const lowSparkd = createHarness();
+  lowSparkd.dependencies.walletProvider = async () => ({ address: lowSparkd.owner.publicKey.toBase58(), solLamports: 2000000, sparkd: { amount: '999999', decimals: 6 } });
+  await assert.rejects(buildDevnetSwap({ address: lowSparkd.owner.publicKey.toBase58(), amountIn: '1000000', settings: lowSparkd.settings, dependencies: lowSparkd.dependencies }), /not have enough test SPARKD/);
+
+  const highEstimate = createHarness();
+  highEstimate.dependencies.koraClient.estimateTransactionFee = async () => ({ fee_in_lamports: 50001 });
+  await assert.rejects(buildDevnetSwap({ address: highEstimate.owner.publicKey.toBase58(), amountIn: '1000000', settings: highEstimate.settings, dependencies: highEstimate.dependencies }), /exceeds the per-swap Devnet limit/);
+});
+
+test('reports a confirmed on-chain failure and records sponsor cost without claiming SPARKD was collected', async () => {
+  const h = createHarness();
+  h.dependencies.transactionInspector = async () => ({ success: false, sponsorCostLamports: 2500 });
+  const built = await buildDevnetSwap({ address: h.owner.publicKey.toBase58(), amountIn: '1000000', settings: h.settings, dependencies: h.dependencies });
+  const tx = Transaction.from(Buffer.from(built.unsignedTransaction, 'base64'));
+  tx.partialSign(h.owner);
+  const signedTransaction = tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64');
+  const result = await submitDevnetSwap({ proposalId: built.proposalId, signedTransaction, settings: h.settings, dependencies: h.dependencies });
+  assert.equal(result.confirmed, true);
+  assert.equal(result.success, false);
+  assert.equal(result.appFeeCollected, false);
+  assert.equal(result.sponsorCostLamports, 2500);
 });
