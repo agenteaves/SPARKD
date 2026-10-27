@@ -28,7 +28,7 @@ The interface should never describe a swap as “free” or imply all trading co
 
 ### Stage 0 — prototype
 
-The local page in this folder demonstrates the intended flow and lets the team change sample fee economics. It is not connected to a wallet, router, or sponsor.
+The local page demonstrates the intended flow and lets the team change sample fee economics. Its Devnet tab also reads an on-chain quote from a verified Raydium CPMM pool. It is not connected to a wallet or sponsor and cannot submit a swap.
 
 ### Stage 1 — Devnet proof
 
@@ -38,6 +38,12 @@ The local page in this folder demonstrates the intended flow and lets the team c
 - Exercise success, rejected quote, expired quote, insufficient SPARKD, failed swap, duplicate request, sponsor depleted, and wallet rejection.
 - Confirm no SPARKD app fee settles when the swap fails. Confirm no user SOL is used as network gas; if SOL is a swap input, display it as the amount traded.
 - Use disposable Devnet keys and a test token. Do not load production keys or real funds into this stage.
+
+#### Current implementation state
+
+- Completed: Devnet RPC health check, Raydium Devnet pool metadata validation, and live read-only CPMM quotes.
+- Not completed: temporary wallets/test mint, Kora sponsor deployment and SPARKD allowlist, atomic swap plus fee transaction, and an on-chain Devnet confirmation.
+- Current external blockers: the public Devnet RPC returns HTTP 410 for airdrops, and no Kora endpoint or sponsor credentials are configured. Do not call the Devnet proof complete until the final transaction is confirmed and its instructions are inspected.
 
 ### Stage 2 — narrow mainnet pilot
 
