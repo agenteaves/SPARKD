@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open <http://127.0.0.1:4173>. The Swap tab is an illustrative product mock. The Devnet tab reads a current quote from a preselected Raydium CPMM pool; it does not connect a wallet, build a swap, collect SPARKD, or submit a transaction. The economics values are editable assumptions, not current prices or forecasts.
+Open <http://127.0.0.1:4173>. The Swap tab is an illustrative product mock. The Devnet tab reads a current quote from a preselected Raydium CPMM pool; the page does not connect a wallet or submit swaps. The economics values are editable assumptions, not current prices or forecasts.
 
 Run the automated checks:
 
@@ -52,7 +52,7 @@ The order is:
 - `PRODUCT_PLAN.md` — MVP requirements, staged plan, metrics, and network decision gates.
 - `server.test.mjs`, `devnet-status.test.mjs`, and `economics.test.mjs` — automated checks for endpoint behavior, readiness reporting, and calculations.
 
-The actual swap path is not ready. The Pimlico Devnet endpoint has been verified, and a disposable six-decimal SPARKD mint plus a separate SPARKD fee transfer to the app receiver have both been confirmed on Devnet with the user wallet at zero SOL. The remaining Devnet proof is an atomic Raydium CPMM swap plus the SPARKD app-fee transfer; Pimlico must permit those instructions. SPARKD is the app's fee and does not have to be a paymaster payment token. The selected test pool takes SOL as swap input, so the temporary wallet needs Devnet SOL as trade principal, not gas. Public RPC airdrops returned HTTP 410 in this environment; request test SOL from the [official Solana faucet](https://faucet.solana.com/) or use a funded non-SOL input pool. Mainnet additionally needs confirmed token mint/decimals, a published fee policy and receiving address, sponsor SOL reserves, wallet integration, security review, and mainnet pilot controls.
+An atomic Raydium CPMM swap plus a SPARKD app-fee transfer has been confirmed on Devnet using disposable keys and a test mint. The [confirmed transaction](https://explorer.solana.com/tx/5WZgooFYPLiB41oDqUbo7nCCT2mB4Je5LYBLjvSCAJ7PfuykfYmvoyzsNX1bZnfhSjCV9CU5X93z3BxpyHNCm3h4?cluster=devnet) used Pimlico as the SOL fee sponsor; the wallet's SOL balance decreased by its 0.001 SOL swap input, and the sponsor paid the network fee and rent. This proves one Devnet success path. The local page still has no wallet connection or swap submission. Production needs wallet signing, current quote validation, failure and replay controls, monitoring, confirmed mainnet mint/decimals, published fee policy and receiver, sponsor reserves, security review, and a limited pilot.
 
 ## Fee design principles
 
