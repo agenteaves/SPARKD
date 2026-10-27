@@ -30,16 +30,18 @@ test('checks Devnet mint and verifies the Kora-compatible sponsor RPC without a 
   const status = await getDevnetStatus({
     devnetRpcUrl: 'https://devnet.example',
     sparkdDevnetMint: mint,
+    feeReceiver: 'fee-receiver',
     raydiumDevnetPoolId: 'pool-id',
     koraRpcUrl: 'http://127.0.0.1:8080',
     koraApiKey: 'test-only',
   }, { fetchImpl });
 
-  assert.equal(status.readyToSubmit, false);
+  assert.equal(status.readyToSubmit, true);
   assert.ok(status.checks.find(check => check.id === 'devnet_rpc').ok);
   assert.ok(status.checks.find(check => check.id === 'sparkd_devnet_mint').ok);
   assert.ok(status.checks.find(check => check.id === 'kora_rpc').ok);
-  assert.equal(status.checks.find(check => check.id === 'kora_policy').ok, false);
+  assert.equal(status.checks.find(check => check.id === 'kora_policy').ok, true);
+  assert.equal(status.checks.find(check => check.id === 'fee_receiver').ok, true);
   assert.ok(status.checks.find(check => check.id === 'raydium_pool').ok);
   assert.equal(calls.filter(call => call.method === 'getHealth').length, 1);
   assert.ok(calls.filter(call => call.method.startsWith('get')).every(call => call.key === 'test-only' || call.key === undefined));
@@ -57,7 +59,7 @@ test('reports missing sponsor and mint setup without attempting transactions', a
   assert.equal(status.checks.find(check => check.id === 'kora_rpc').ok, false);
   assert.equal(status.checks.find(check => check.id === 'kora_policy').ok, false);
   assert.equal(status.checks.find(check => check.id === 'sparkd_devnet_mint').ok, false);
-  assert.match(status.note, /never signs, sends, or funds/);
+  assert.match(status.note, /fix the listed setup items/i);
 });
 
 test('reports sponsor endpoint errors without leaking credentials', async () => {
