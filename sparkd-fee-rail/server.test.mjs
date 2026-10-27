@@ -54,3 +54,33 @@ test('serves a Raydium Devnet quote through the injected read-only quote provide
   assert.equal(quote.poolId, 'pool-id');
   assert.equal(quote.transactionSubmitted, false);
 });
+
+test('reads Devnet wallet balances without exposing sponsor settings', async (t) => {
+  let received;
+  const server = createAppServer(getSettings({
+    DEVNET_RPC_URL: 'https://devnet.example/rpc',
+    SPARKD_DEVNET_MINT: 'test-mint',
+    KORA_RPC_URL: 'https://sponsor.example/rpc?apikey=secret',
+  }), {
+    walletProvider: async (args) => {
+      received = args;
+      return { cluster: 'devnet', address: args.address, solLamports: 5, sparkd: { mint: args.mint, amount: '12', decimals: 6 }, readOnly: true };
+    },
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const response = await fetch(`${base}/api/devnet/wallet?address=wallet-address`);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.cluster, 'devnet');
+  assert.equal(result.sparkd.amount, '12');
+  assert.equal(result.readOnly, true);
+  assert.deepEqual(received, { address: 'wallet-address', rpcUrl: 'https://devnet.example/rpc', mint: 'test-mint' });
+  assert.equal(JSON.stringify(result).includes('secret'), false);
+});
+
+test('rejects invalid Devnet wallet addresses before making an RPC request', async () => {
+  const { getDevnetWalletBalances } = await import('./devnet-wallet.mjs');
+  await assert.rejects(getDevnetWalletBalances({ address: 'not-a-solana-address', rpcUrl: 'https://unused.invalid' }), /valid Solana wallet address/);
+});
