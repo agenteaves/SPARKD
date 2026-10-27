@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { getAssociatedTokenAddressSync, getMint } from '@solana/spl-token';
 
 export async function getDevnetWalletBalances({ address, rpcUrl, mint }) {
   let owner;
@@ -20,8 +20,10 @@ export async function getDevnetWalletBalances({ address, rpcUrl, mint }) {
     } catch {
       throw new Error('The configured Devnet test mint address is invalid.');
     }
+    const mintInfo = await getMint(connection, mintAddress, 'confirmed');
     const tokenAccount = getAssociatedTokenAddressSync(mintAddress, owner);
     const accountInfo = await connection.getAccountInfo(tokenAccount, 'confirmed');
+    sparkd = { mint, amount: '0', decimals: mintInfo.decimals };
     if (accountInfo) {
       const balance = await connection.getTokenAccountBalance(tokenAccount, 'confirmed');
       sparkd = { mint, amount: balance.value.amount, decimals: balance.value.decimals };
