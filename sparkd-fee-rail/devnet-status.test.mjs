@@ -15,15 +15,16 @@ const poolResponse = id => ({
   }] }),
 });
 
-test('performs read-only Devnet and Kora checks and recognizes the allowed test mint', async () => {
+test('checks Devnet mint and verifies the Kora-compatible sponsor RPC without a transaction', async () => {
   const calls = [];
   const fetchImpl = async (url, init) => {
     if (!init.method) return poolResponse('pool-id');
     const request = JSON.parse(init.body);
     calls.push({ url, method: request.method, key: init.headers['x-api-key'] });
     if (request.method === 'getHealth') return response('ok');
-    if (request.method === 'getConfig') return response({ validation_config: { allowed_spl_paid_tokens: [mint] } });
-    if (request.method === 'getSupportedTokens') return response([mint]);
+    if (request.method === 'getAccountInfo') return response({ value: { owner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', data: { parsed: { type: 'mint', info: { decimals: 6 } } } } });
+    if (request.method === 'getPayerSigner') return response({ signer_address: 'sponsor' });
+    if (request.method === 'getBlockhash') return response({ blockhash: 'blockhash' });
     throw new Error('Unexpected method');
   };
   const status = await getDevnetStatus({
@@ -36,7 +37,9 @@ test('performs read-only Devnet and Kora checks and recognizes the allowed test 
 
   assert.equal(status.readyToSubmit, false);
   assert.ok(status.checks.find(check => check.id === 'devnet_rpc').ok);
-  assert.ok(status.checks.find(check => check.id === 'kora_token').ok);
+  assert.ok(status.checks.find(check => check.id === 'sparkd_devnet_mint').ok);
+  assert.ok(status.checks.find(check => check.id === 'kora_rpc').ok);
+  assert.equal(status.checks.find(check => check.id === 'kora_policy').ok, false);
   assert.ok(status.checks.find(check => check.id === 'raydium_pool').ok);
   assert.equal(calls.filter(call => call.method === 'getHealth').length, 1);
   assert.ok(calls.filter(call => call.method.startsWith('get')).every(call => call.key === 'test-only' || call.key === undefined));
@@ -52,6 +55,7 @@ test('reports missing sponsor and mint setup without attempting transactions', a
 
   assert.equal(status.readyToSubmit, false);
   assert.equal(status.checks.find(check => check.id === 'kora_rpc').ok, false);
+  assert.equal(status.checks.find(check => check.id === 'kora_policy').ok, false);
   assert.equal(status.checks.find(check => check.id === 'sparkd_devnet_mint').ok, false);
   assert.match(status.note, /never signs, sends, or funds/);
 });
