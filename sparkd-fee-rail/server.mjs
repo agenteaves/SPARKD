@@ -5,6 +5,7 @@ import path from 'node:path';
 import { getDevnetStatus } from './devnet-status.mjs';
 import { getRaydiumDevnetQuote } from './raydium-devnet.mjs';
 import { getDevnetWalletBalances } from './devnet-wallet.mjs';
+import { getDevnetSwapPreview } from './devnet-preview.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const htmlPath = path.join(here, 'index.html');
@@ -12,6 +13,8 @@ const htmlPath = path.join(here, 'index.html');
 export function getSettings(env = process.env) {
   const fee = env.SPARKD_FEE_BASE_UNITS ?? '1000000';
   if (!/^\d+$/.test(fee) || BigInt(fee) <= 0n) throw new Error('SPARKD_FEE_BASE_UNITS must be a positive integer in base units.');
+  const devnetFee = env.SPARKD_DEVNET_FEE_BASE_UNITS ?? '1000000';
+  if (!/^\d+$/.test(devnetFee) || BigInt(devnetFee) <= 0n) throw new Error('SPARKD_DEVNET_FEE_BASE_UNITS must be a positive integer in base units.');
   return {
     port: Number(env.PORT ?? 4173),
     mint: env.SPARKD_MINT ?? 'BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump',
@@ -22,6 +25,7 @@ export function getSettings(env = process.env) {
     koraApiKey: env.KORA_API_KEY ?? '',
     devnetRpcUrl: env.DEVNET_RPC_URL ?? 'https://api.devnet.solana.com',
     sparkdDevnetMint: env.SPARKD_DEVNET_MINT ?? '',
+    sparkdDevnetFeeBaseUnits: devnetFee,
     raydiumDevnetPoolId: env.RAYDIUM_DEVNET_POOL_ID ?? '8qafQAbCZnzUuBkv5zBjxADpK8UHjSBpAJTK2nSmB5Z4',
     raydiumDevnetApi: env.RAYDIUM_DEVNET_API ?? 'https://api-v3-devnet.raydium.io',
   };
@@ -106,6 +110,21 @@ export function createAppServer(settings = getSettings(), dependencies = {}) {
         res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(wallet));
       } catch (error) {
         res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: String(error?.message ?? 'Unable to read the Devnet wallet.') }));
+      }
+      return;
+    }
+    if (url.pathname === '/api/devnet/preview') {
+      try {
+        const preview = await (dependencies.previewProvider ?? getDevnetSwapPreview)({
+          address: url.searchParams.get('address') ?? '',
+          amountIn: url.searchParams.get('amountIn') ?? '',
+          settings,
+          walletProvider: dependencies.walletProvider,
+          quoteProvider: dependencies.quoteProvider,
+        });
+        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(preview));
+      } catch (error) {
+        res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: String(error?.message ?? 'Unable to preview the Devnet swap.') }));
       }
       return;
     }
