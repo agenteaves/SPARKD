@@ -28,7 +28,7 @@ The interface should never describe a swap as “free” or imply all trading co
 
 ### Stage 0 — prototype
 
-The local page demonstrates the intended flow and lets the team change sample fee economics. Its Devnet tab reads an on-chain quote from a verified Raydium CPMM pool and can connect Phantom for read-only balance checks. It does not request signatures or submit transactions.
+The local page demonstrates the intended flow and lets the team change sample fee economics. Its Devnet tab reads a Raydium CPMM quote, connects Phantom, builds a swap plus test-SPARKD fee transaction, requests a wallet signature, and submits through the configured Kora sponsor. The main Swap tab remains a product mock; the live transaction path is Devnet-only.
 
 ### Stage 1 — Devnet proof
 
@@ -44,9 +44,10 @@ The local page demonstrates the intended flow and lets the team change sample fe
 - Completed: Devnet RPC health check, Raydium Devnet pool metadata validation, and live read-only CPMM quotes.
 - Completed: Phantom wallet connection in the local Devnet panel and read-only SOL/test-SPARKD balance display. This does not sign transactions.
 - Completed: Read-only Devnet preview that combines a fresh pool quote with the configured test-SPARKD fee and checks the wallet's SOL trade principal and test-token balance.
-- Completed: Pimlico Devnet sponsor check, a disposable six-decimal SPARKD test mint, sponsor-funded token accounts, and an atomic Raydium CPMM swap plus 1 test SPARKD app-fee transfer. The confirmed [Devnet transaction](https://explorer.solana.com/tx/5WZgooFYPLiB41oDqUbo7nCCT2mB4Je5LYBLjvSCAJ7PfuykfYmvoyzsNX1bZnfhSjCV9CU5X93z3BxpyHNCm3h4?cluster=devnet) swapped 0.001 SOL as trade input. The user wallet's SOL balance fell by exactly the 1,000,000 lamports traded; the sponsor paid the 10,000-lamport network fee and 1,488,440 lamports of rent. The SPARKD fee and swap succeeded in that one transaction.
-- Not completed: transaction construction, user signature, Kora submission from the product flow, failure handling, anti-replay controls, monitoring, and the mainnet pilot.
-- Scope: this confirms one Devnet success path using disposable keys and test tokens. The app page remains a quote/prototype interface with read-only wallet connection and preview; the transaction builder is a smoke proof, not a production feature. A swap that uses SOL requires SOL as trade principal; other pairs do not require SOL input.
+- Completed: Devnet CPMM transaction construction with an atomic test-SPARKD fee transfer, one-time proposal/message verification, Phantom signing handoff, and Kora sponsor submission.
+- Completed: Pimlico Devnet sponsor check, a disposable six-decimal SPARKD test mint, sponsor-funded token accounts, and confirmed fee-transfer and swap transactions. The [latest atomic Devnet swap](https://explorer.solana.com/tx/48mCtPRuRfyawBfSSDVYn5Uvi4oQuGZzueYuD3t6gj5tbgyUUMuLr9v8s9deZvH41iJ78qLqa8cLewhqq6hDbfZX?cluster=devnet) traded 0.001 SOL, transferred 1 test SPARKD as the app fee in the same transaction, and reduced the user's SOL by exactly the 1,000,000 lamports traded; Pimlico paid the 10,000-lamport network fee. The smoke used a disposable signer, not Phantom's in-browser approval.
+- Not completed: browser-level Phantom approval verification, failure-path and sponsor-spend stress checks, production monitoring, mainnet integration, and the limited pilot.
+- Scope: the Devnet UI and sponsored transaction path are implemented; one success path is confirmed with disposable keys and test tokens. A swap that uses SOL requires SOL as trade principal; other pairs do not require SOL input.
 
 ### Stage 2 — narrow mainnet pilot
 
