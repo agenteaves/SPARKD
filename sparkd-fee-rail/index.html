@@ -14,7 +14,7 @@
   <header class="top"><div class="brand"><span class="bolt">ϟ</span><span>SPARKD SWAP</span></div><span class="pill">PRODUCT LAB · DEMO DATA</span></header>
   <section class="hero"><div class="kicker">A useful first step toward a SPARKD network</div><h1>Swap simply.<br><em>Pay the app fee in SPARKD.</em></h1><p>Make the SPARKD fee clear, keep the swap flow simple, and prove people return before taking on the cost of a separate blockchain.</p></section>
   <div class="notice"><strong>Fee promise being tested:</strong> the app charges its service fee in SPARKD. The app sponsor covers the Solana network fee. A swap route may also include a liquidity or pool fee in its exchange rate; show that in the quote before a user approves.</div>
-  <nav class="tabs" aria-label="Product lab sections"><button class="tab" id="swapTab" aria-selected="true" type="button">Swap preview</button><button class="tab" id="modelTab" aria-selected="false" type="button">Sustainability model</button></nav>
+  <nav class="tabs" aria-label="Product lab sections"><button class="tab" id="swapTab" aria-selected="true" type="button">Swap preview</button><button class="tab" id="modelTab" aria-selected="false" type="button">Sustainability model</button><button class="tab" id="devnetTab" aria-selected="false" type="button">Devnet setup</button></nav>
   <section id="swapView" class="layout" aria-labelledby="swapTab">
     <article class="panel"><h2>Swap preview</h2><p class="sub">An interactive mockup of the intended customer flow. No wallet or live market data is connected.</p>
       <div class="row"><div class="field"><label for="fromToken">You swap</label><select id="fromToken" class="control"><option>SOL</option><option>USDC</option><option>BONK</option></select></div><div class="field"><label for="toToken">You receive</label><select id="toToken" class="control"><option>USDC</option><option>BONK</option><option>SOL</option></select></div></div>
@@ -34,8 +34,12 @@
     </article>
     <aside class="panel"><h2>Build demand before building a chain</h2><p class="sub">Use explicit gates so the larger network step follows evidence of use.</p><div class="step"><span class="num">GATE 1 · USEFUL PRODUCT</span><h3>Make the first swap easy</h3><p>Start with a few liquid, commonly requested pairs; show the best available route, final output, slippage, route cost, and SPARKD fee before approval.</p></div><div class="step" style="margin-top:11px"><span class="num">GATE 2 · REPEAT USE</span><h3>Measure cohort return</h3><p>Track completed swaps, unique wallets, 7/30-day repeat use, quote-to-completion rate, failures, support issues, SPARKD fees collected, and sponsor SOL consumed.</p></div><div class="step" style="margin-top:11px"><span class="num">GATE 3 · SUSTAINABLE COSTS</span><h3>Show positive unit economics</h3><p>After operating costs and a reserve for fee-sponsor SOL, show positive contribution for several consecutive months and a plan to replenish the sponsor wallet.</p></div><div class="step" style="margin-top:11px"><span class="num">GATE 4 · NETWORK READINESS</span><h3>Only then evaluate a SPARKD chain</h3><p>Require demonstrated demand, independent security review, validator commitments, reliable wallets/RPC/explorer, liquidity, and a safe migration plan.</p></div></aside>
   </section>
+  <section id="devnetView" class="layout hidden" aria-labelledby="devnetTab">
+    <article class="panel"><h2>Devnet connection checks</h2><p class="sub">Read-only probes for Solana Devnet, a verified Raydium CPMM pool, and a configured Kora sponsor. This does not sign or submit transactions.</p><div id="devnetHeadline" class="metric"><span>Current status</span><b class="warn">Not checked</b></div><ul id="devnetChecks" class="checks"><li>Click “Check Devnet setup” to inspect configured endpoints.</li></ul><button id="devnetRefresh" class="btn" type="button">Check Devnet setup</button><p id="devnetNote" class="microcopy">A verified public Devnet pool is preselected. Sponsor and test SPARKD mint still need configuration.</p><div class="step" style="margin-top:16px"><span class="num">LIVE DEVNET DATA · NO SIGNING</span><h3>Check a real pool quote</h3><label class="microcopy" for="devnetAmount">Input amount in Devnet SOL</label><input id="devnetAmount" class="control" type="number" min="0.000001" step="0.000001" value="0.001"><button id="devnetQuoteButton" class="btn" type="button" style="margin-top:9px">Get Devnet quote</button><p id="devnetQuoteResult" class="microcopy" aria-live="polite">Quote uses the configured Devnet CPMM pool and its current on-chain state. No transaction is created.</p></div></article>
+    <aside class="panel"><h2>Why this uses Raydium on Devnet</h2><p class="sub">The first sponsored swap test needs an actual test-cluster pool.</p><div class="step"><span class="num">TEST ROUTE</span><h3>Raydium CPMM pool</h3><p>Raydium documents partial Devnet deployments and fetching CPMM pool state through RPC. Devnet liquidity is sparse, so the selected pool ID must be verified before a test.</p></div><div class="step" style="margin-top:11px"><span class="num">TEST FEE TOKEN</span><h3>A disposable SPARKD-like mint</h3><p>The production SPARKD mint lives on Solana mainnet. Devnet needs a separate test mint, which Kora must allow as its SPL fee token.</p></div><div class="callout">A mainnet swap quote cannot be paired with a Devnet sponsor. Both the route and sponsor must use the same cluster.</div></aside>
+  </section>
   <section class="section"><div class="section-title"><h2>Suggested rollout</h2><span>Keep the first milestone narrow and measurable</span></div><div class="grid3"><article class="step"><span class="num">01 · DEVNET</span><h3>Prove the fee flow</h3><p>Compose a swap and SPARKD payment; have a sponsor pay network SOL. Verify the user is never asked for SOL as gas.</p></article><article class="step"><span class="num">02 · LIMITED MAINNET PILOT</span><h3>Invite a small group</h3><p>Set a low, disclosed fee. Cap each sponsor transaction, daily spend, and total SOL reserve. Monitor every quote, signature, and settlement.</p></article><article class="step"><span class="num">03 · EXPAND ON EVIDENCE</span><h3>Grow use, then assess chain</h3><p>Keep funding the sponsor from collected fees and project treasury. Expand pairs and access as reliability and repeat usage are proven.</p></article></div></section>
-  <p class="fine">Isolated project prototype · no wallet connection · no live quotes or swaps · not connected to sparkdcoin.com</p>
+  <p class="fine">Isolated project prototype · live Devnet quote only · no wallet connection or swaps · not connected to sparkdcoin.com</p>
 </main>
 <script type="module">
 import { feeQuote, economics } from './economics.mjs';
@@ -63,7 +67,33 @@ for(const id of ['modelFee','sponsorCost','dailySwaps','monthlyOps']) $(id).addE
 $('previewButton').addEventListener('click',()=>{$('previewMessage').textContent='Preview only: a live swap, wallet approval, and SPARKD transfer are not connected.'});
 $('swapTab').addEventListener('click',()=>toggle('swap'));
 $('modelTab').addEventListener('click',()=>toggle('model'));
-function toggle(view){const swap=view==='swap';$('swapView').classList.toggle('hidden',!swap);$('modelView').classList.toggle('hidden',swap);$('swapTab').setAttribute('aria-selected',String(swap));$('modelTab').setAttribute('aria-selected',String(!swap))}
+$('devnetTab').addEventListener('click',()=>toggle('devnet'));
+$('devnetRefresh').addEventListener('click',refreshDevnet);
+$('devnetQuoteButton').addEventListener('click',refreshDevnetQuote);
+async function refreshDevnet(){
+  $('devnetHeadline').innerHTML='<span>Current status</span><b class="warn">Checking endpoints…</b>';
+  $('devnetChecks').innerHTML='';
+  try {
+    const status=await fetch('/api/devnet/status').then(r=>r.json());
+    $('devnetHeadline').innerHTML=`<span>Transaction submission</span><b class="warn">Disabled · read-only checks</b>`;
+    $('devnetChecks').innerHTML=status.checks.map(c=>`<li><strong>${c.ok?'✓':'○'} ${escapeHtml(c.name)}</strong><br>${escapeHtml(c.detail)}</li>`).join('');
+    $('devnetNote').textContent=status.note;
+  } catch { $('devnetHeadline').innerHTML='<span>Current status</span><b class="bad">Local server unavailable</b>'; }
+}
+async function refreshDevnetQuote(){
+  const amount=$('devnetAmount').value;
+  $('devnetQuoteResult').textContent='Loading current Devnet pool state…';
+  try{
+    const amountIn=toBaseUnits(amount,9);
+    const url=`/api/devnet/quote?inputMint=${encodeURIComponent('So11111111111111111111111111111111111111112')}&amountIn=${encodeURIComponent(amountIn)}`;
+    const response=await fetch(url);const quote=await response.json();
+    if(!response.ok)throw new Error(quote.error||'Quote request failed.');
+    $('devnetQuoteResult').textContent=`${amount} SOL → ${fromBaseUnits(quote.amountOutBaseUnits,quote.output.decimals)} ${quote.output.symbol||'test token'} (minimum ${fromBaseUnits(quote.minimumOutBaseUnits,quote.output.decimals)}). Pool: ${quote.poolId}. This is a Devnet quote, not a guaranteed execution price.`;
+  }catch(error){$('devnetQuoteResult').textContent=error.message||'Could not load a quote.'}
+}
+function toBaseUnits(value,decimals){const text=String(value);if(!/^\d+(\.\d+)?$/.test(text))throw new Error('Enter a positive SOL amount.');const [whole,fraction='']=text.split('.');if(fraction.length>decimals)throw new Error(`Use at most ${decimals} decimal places.`);const units=BigInt(whole)*10n**BigInt(decimals)+BigInt((fraction+'0'.repeat(decimals)).slice(0,decimals)||'0');if(units<=0n)throw new Error('Enter a positive SOL amount.');return units.toString()}
+function fromBaseUnits(value,decimals){const base=10n**BigInt(decimals);const raw=BigInt(value);const whole=raw/base;const fraction=(raw%base).toString().padStart(decimals,'0').replace(/0+$/,'');return fraction?`${whole}.${fraction}`:String(whole)}
+function toggle(view){const swap=view==='swap';const model=view==='model';$('swapView').classList.toggle('hidden',!swap);$('modelView').classList.toggle('hidden',!model);$('devnetView').classList.toggle('hidden',view!=='devnet');$('swapTab').setAttribute('aria-selected',String(swap));$('modelTab').setAttribute('aria-selected',String(model));$('devnetTab').setAttribute('aria-selected',String(view==='devnet'));if(view==='devnet')refreshDevnet()}
 showFee();showEconomics();
 </script>
 </body>
