@@ -17,6 +17,8 @@ test('rejects invalid fee base units', () => {
   assert.throws(() => getSettings({ SPARKD_FEE_BASE_UNITS: '1.5' }), /positive integer/);
   assert.throws(() => getSettings({ SPARKD_FEE_BASE_UNITS: '0' }), /positive integer/);
   assert.throws(() => getSettings({ SPARKD_DEVNET_FEE_BASE_UNITS: '0' }), /positive integer/);
+  assert.throws(() => getSettings({ DEVNET_SPONSOR_MAX_TX_LAMPORTS: '0' }), /positive integer/);
+  assert.throws(() => getSettings({ DEVNET_SPONSOR_MAX_TX_LAMPORTS: '5000000', DEVNET_SPONSOR_DAILY_CAP_LAMPORTS: '1000000' }), /at least the per-transaction cap/);
 });
 
 test('reports swap integration as not ready in the isolated demo', () => {
