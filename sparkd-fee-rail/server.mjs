@@ -13,66 +13,37 @@ export function getSettings(env = process.env) {
     port: Number(env.PORT ?? 4173),
     mint: env.SPARKD_MINT ?? 'BMU2rhUtANRS1hYKC1pQgxjcJ2Pn9PQURcf8CcRVpump',
     feeBaseUnits: fee,
-    treasury: env.SPARKD_TREASURY ?? '',
-    koraRpcUrl: env.KORA_RPC_URL ?? '',
-    koraApiKey: env.KORA_API_KEY ?? '',
-    koraHmacSecret: env.KORA_HMAC_SECRET ?? '',
+    feeReceiver: env.SPARKD_FEE_RECEIVER ?? '',
   };
 }
 
 export function createQuote(settings) {
   return {
-    mode: settings.koraRpcUrl ? 'kora-configured' : 'demo',
+    mode: 'demo',
+    feeType: 'application-level swap fee',
     token: 'SPARKD',
     mint: settings.mint,
     feeBaseUnits: settings.feeBaseUnits,
-    treasuryConfigured: Boolean(settings.treasury),
+    feeReceiver: settings.feeReceiver,
+    feeReceiverConfigured: Boolean(settings.feeReceiver),
+    networkFeeCurrency: 'SOL',
+    userNeedsSolForNetworkFee: true,
     canSubmitTransaction: false,
-    note: 'Prototype quote only. No token transfer or Solana transaction is submitted.',
+    note: 'Prototype only. No swap, SPARKD fee transfer, or Solana transaction is submitted.',
   };
 }
 
-async function koraCall(settings, method, params = {}) {
-  const headers = { 'content-type': 'application/json' };
-  if (settings.koraApiKey) headers['x-api-key'] = settings.koraApiKey;
-  const payload = JSON.stringify({ jsonrpc: '2.0', id: 1, method, params });
-  if (settings.koraHmacSecret) {
-    const { createHmac } = await import('node:crypto');
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    headers['x-timestamp'] = timestamp;
-    headers['x-hmac-signature'] = createHmac('sha256', settings.koraHmacSecret).update(timestamp + payload).digest('hex');
-  }
-  const response = await fetch(settings.koraRpcUrl, { method: 'POST', headers, body: payload, signal: AbortSignal.timeout(5000) });
-  const data = await response.json();
-  if (!response.ok) throw new Error(`Kora returned HTTP ${response.status}`);
-  if (data.error) throw new Error(data.error.message || 'Kora RPC error');
-  return data.result;
-}
-
-export async function getStatus(settings) {
-  if (!settings.koraRpcUrl) return { mode: 'demo', kora: 'not-configured', checks: [], ready: false };
-  try {
-    const [config, tokens] = await Promise.all([
-      koraCall(settings, 'getConfig'),
-      koraCall(settings, 'getSupportedTokens'),
-    ]);
-    const supported = Array.isArray(tokens?.tokens) ? tokens.tokens : [];
-    const mintSupported = supported.some((token) => token === settings.mint || token?.mint === settings.mint || token?.address === settings.mint);
-    return {
-      mode: 'kora-connected',
-      kora: 'connected',
-      ready: false,
-      configurationReady: Boolean(mintSupported && settings.treasury),
-      checks: [
-        { name: 'Kora RPC', ok: true, detail: 'Connected' },
-        { name: 'SPARKD accepted by Kora', ok: mintSupported, detail: mintSupported ? 'Mint appears in Kora supported tokens' : 'SPARKD mint not found in returned supported-token list' },
-        { name: 'Fee destination', ok: Boolean(settings.treasury), detail: settings.treasury ? 'Configured' : 'Set SPARKD_TREASURY before testing transfers' },
-      ],
-      koraConfig: config ? { feePayer: config.fee_payer ?? null } : null,
-    };
-  } catch (error) {
-    return { mode: 'kora-error', kora: 'unreachable', ready: false, checks: [{ name: 'Kora RPC', ok: false, detail: error.message }] };
-  }
+export function getStatus(settings) {
+  return {
+    mode: 'demo',
+    ready: false,
+    checks: [
+      { name: 'SPARKD fee receiver', ok: Boolean(settings.feeReceiver), detail: settings.feeReceiver ? 'Address configured' : 'Set SPARKD_FEE_RECEIVER before transaction integration' },
+      { name: 'Swap transaction builder', ok: false, detail: 'Jupiter custom-instruction flow is not connected yet' },
+      { name: 'Wallet signing', ok: false, detail: 'No wallet is connected in this local prototype' },
+    ],
+    note: 'This design charges an app fee in SPARKD. The Solana network fee remains in SOL.',
+  };
 }
 
 export function createAppServer(settings = getSettings()) {
@@ -90,7 +61,7 @@ export function createAppServer(settings = getSettings()) {
       return;
     }
     if (url.pathname === '/api/status') {
-      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(await getStatus(settings)));
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(getStatus(settings)));
       return;
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {
