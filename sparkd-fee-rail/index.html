@@ -141,7 +141,8 @@ async function prepareDevnetSwap(){
     const expected=fromBaseUnits(built.swap.expectedOutputBaseUnits,built.swap.outputDecimals);
     const minimum=fromBaseUnits(built.swap.minimumOutputBaseUnits,built.swap.outputDecimals);
     const fee=fromBaseUnits(built.appFee.amountBaseUnits,built.appFee.decimals);
-    output.textContent=`Ready for your review: ${$('devnetAmount').value} SOL trade input → about ${expected} test tokens (minimum ${minimum}); fee ${fee} test SPARKD to the app receiver. Sponsor pays network fees. Expires ${new Date(built.expiresAt).toLocaleTimeString()}.`;
+    const sponsorCost=fromBaseUnits(String(built.estimatedSponsorCostLamports),9);
+    output.textContent=`Ready for your review: ${$('devnetAmount').value} SOL trade input → about ${expected} test tokens (minimum ${minimum}); fee ${fee} test SPARKD to the app receiver. Sponsor estimate: ${sponsorCost} SOL (Devnet cap ${fromBaseUnits(built.perSwapSponsorCapLamports,9)} SOL). Expires ${new Date(built.expiresAt).toLocaleTimeString()}.`;
     $('signSubmitDevnetSwap').classList.remove('hidden');
   }catch(error){output.textContent=error.message||'Could not prepare the Devnet transaction.'}
 }
@@ -156,7 +157,8 @@ async function signAndSubmitPreparedSwap(){
   try{
     const result=await signAndSubmitDevnetSwap({provider,proposalId:built.proposalId,unsignedTransaction:built.unsignedTransaction});
     preparedDevnetTransaction=null;
-    output.textContent=`Swap confirmed on Devnet: ${result.signature} `;
+    if(result.success===false){output.textContent=`The Devnet transaction confirmed with an execution error. The atomic SPARKD fee was not collected. Sponsor cost: ${fromBaseUnits(String(result.sponsorCostLamports),9)} SOL. `}
+    else{output.textContent=`Swap confirmed on Devnet. Sponsor cost: ${fromBaseUnits(String(result.sponsorCostLamports),9)} SOL${result.sponsorCostVerified?' (verified)':' (estimate)'}: ${result.signature} `}
     const link=document.createElement('a');
     link.href=`https://explorer.solana.com/tx/${encodeURIComponent(result.signature)}?cluster=devnet`;
     link.target='_blank';link.rel='noopener noreferrer';link.textContent='View transaction';
