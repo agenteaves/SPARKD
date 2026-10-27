@@ -2,6 +2,8 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { getDevnetStatus } from './devnet-status.mjs';
+import { getRaydiumDevnetQuote } from './raydium-devnet.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const htmlPath = path.join(here, 'index.html');
@@ -15,6 +17,12 @@ export function getSettings(env = process.env) {
     feeBaseUnits: fee,
     feeReceiver: env.SPARKD_FEE_RECEIVER ?? '',
     sponsorConfigured: Boolean(env.KORA_RPC_URL),
+    koraRpcUrl: env.KORA_RPC_URL ?? '',
+    koraApiKey: env.KORA_API_KEY ?? '',
+    devnetRpcUrl: env.DEVNET_RPC_URL ?? 'https://api.devnet.solana.com',
+    sparkdDevnetMint: env.SPARKD_DEVNET_MINT ?? '',
+    raydiumDevnetPoolId: env.RAYDIUM_DEVNET_POOL_ID ?? '8qafQAbCZnzUuBkv5zBjxADpK8UHjSBpAJTK2nSmB5Z4',
+    raydiumDevnetApi: env.RAYDIUM_DEVNET_API ?? 'https://api-v3-devnet.raydium.io',
   };
 }
 
@@ -42,14 +50,15 @@ export function getStatus(settings) {
     checks: [
       { name: 'SPARKD fee receiver', ok: Boolean(settings.feeReceiver), detail: settings.feeReceiver ? 'Address configured' : 'Set SPARKD_FEE_RECEIVER before transaction integration' },
       { name: 'SOL fee sponsor', ok: settings.sponsorConfigured, detail: settings.sponsorConfigured ? 'Kora endpoint configured' : 'Configure a Kora paymaster or equivalent sponsor to pay SOL network fees' },
-      { name: 'Swap transaction builder', ok: false, detail: 'Jupiter custom-instruction flow is not connected yet' },
+      { name: 'Devnet quote reader', ok: true, detail: 'Read-only Raydium CPMM quotes are available in the Devnet tab; transaction construction is not connected yet.' },
+      { name: 'Atomic SPARKD fee + swap', ok: false, detail: 'Kora paid-token integration and a wallet-signed transaction are still required.' },
       { name: 'Wallet signing', ok: false, detail: 'No wallet is connected in this local prototype' },
     ],
     note: 'Target experience: users pay SPARKD in the app; the app sponsor pays Solana network fees in SOL.',
   };
 }
 
-export function createAppServer(settings = getSettings()) {
+export function createAppServer(settings = getSettings(), dependencies = {}) {
   return createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
     res.setHeader('x-content-type-options', 'nosniff');
@@ -65,6 +74,25 @@ export function createAppServer(settings = getSettings()) {
     }
     if (url.pathname === '/api/status') {
       res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(getStatus(settings)));
+      return;
+    }
+    if (url.pathname === '/api/devnet/status') {
+      const status = await getDevnetStatus(settings, { fetchImpl: dependencies.fetchImpl ?? fetch });
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(status));
+      return;
+    }
+    if (url.pathname === '/api/devnet/quote') {
+      try {
+        const quote = await (dependencies.quoteProvider ?? getRaydiumDevnetQuote)({
+          poolId: settings.raydiumDevnetPoolId,
+          rpcUrl: settings.devnetRpcUrl,
+          inputMint: url.searchParams.get('inputMint') ?? '',
+          amountIn: url.searchParams.get('amountIn') ?? '',
+        });
+        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(quote));
+      } catch (error) {
+        res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: String(error?.message ?? 'Unable to retrieve Devnet quote.') }));
+      }
       return;
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {
