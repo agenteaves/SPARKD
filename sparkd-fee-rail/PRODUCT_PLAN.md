@@ -33,7 +33,7 @@ The local page demonstrates the intended flow and lets the team change sample fe
 ### Stage 1 — Devnet proof
 
 - Select a router integration and a Solana fee-sponsorship provider or self-hosted sponsor.
-- Verify the sponsor explicitly allows the SPARKD payment mint, the exact swap/router program IDs, and only the required instructions. Kora configuration supports token and program allowlists; its own docs describe the operator paying network SOL while receiving an allowed SPL token.
+- Verify the sponsor allows the exact swap/router and SPL Token program instructions. In this design, SPARKD is the app's service fee, transferred to the app in the same transaction; the sponsor pays the network fee from its balance and does not need to accept SPARKD as its own payment token.
 - Build a transaction with the user's swap and SPARKD fee authorization plus sponsor as fee payer.
 - Exercise success, rejected quote, expired quote, insufficient SPARKD, failed swap, duplicate request, sponsor depleted, and wallet rejection.
 - Confirm no SPARKD app fee settles when the swap fails. Confirm no user SOL is used as network gas; if SOL is a swap input, display it as the amount traded.
@@ -42,8 +42,8 @@ The local page demonstrates the intended flow and lets the team change sample fe
 #### Current implementation state
 
 - Completed: Devnet RPC health check, Raydium Devnet pool metadata validation, and live read-only CPMM quotes.
-- Not completed: temporary wallets/test mint, Kora sponsor deployment and SPARKD allowlist, atomic swap plus fee transaction, and an on-chain Devnet confirmation.
-- Current external blockers: the public Devnet RPC returns HTTP 410 for airdrops, and no Kora endpoint or sponsor credentials are configured. Do not call the Devnet proof complete until the final transaction is confirmed and its instructions are inspected.
+- Not completed: temporary wallets/test mint, Pimlico API key, sponsor policy verification, atomic swap plus fee transaction, and an on-chain Devnet confirmation.
+- Current external blockers: the public Devnet RPC returns HTTP 410 for airdrops, and no sponsor API key or funded disposable wallet is available. Do not call the Devnet proof complete until the final transaction is confirmed and its instructions are inspected.
 
 ### Stage 2 — narrow mainnet pilot
 
