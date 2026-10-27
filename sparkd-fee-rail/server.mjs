@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { getDevnetStatus } from './devnet-status.mjs';
 import { getRaydiumDevnetQuote } from './raydium-devnet.mjs';
+import { getDevnetWalletBalances } from './devnet-wallet.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const htmlPath = path.join(here, 'index.html');
@@ -92,6 +93,19 @@ export function createAppServer(settings = getSettings(), dependencies = {}) {
         res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(quote));
       } catch (error) {
         res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: String(error?.message ?? 'Unable to retrieve Devnet quote.') }));
+      }
+      return;
+    }
+    if (url.pathname === '/api/devnet/wallet') {
+      try {
+        const wallet = await (dependencies.walletProvider ?? getDevnetWalletBalances)({
+          address: url.searchParams.get('address') ?? '',
+          rpcUrl: settings.devnetRpcUrl,
+          mint: settings.sparkdDevnetMint,
+        });
+        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(wallet));
+      } catch (error) {
+        res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: String(error?.message ?? 'Unable to read the Devnet wallet.') }));
       }
       return;
     }
