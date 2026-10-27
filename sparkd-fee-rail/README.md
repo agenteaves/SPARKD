@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open <http://127.0.0.1:4173>. The Swap tab is an illustrative product mock. The Devnet tab reads a current quote from a preselected Raydium CPMM pool and can connect Phantom to read Devnet balances. It does not request a signature or submit swaps. The economics values are editable assumptions, not current prices or forecasts.
+Open <http://127.0.0.1:4173>. The Swap tab is an illustrative product mock. The Devnet tab reads a current quote, can connect Phantom for read-only Devnet balances, and previews whether the wallet has the SOL swap input and test SPARKD app fee. It does not request a signature or submit swaps. The economics values are editable assumptions, not current prices or forecasts.
 
 Run the automated checks:
 
@@ -50,10 +50,11 @@ The order is:
 - `raydium-devnet.mjs` — on-chain Raydium CPMM quote reader for the configured Devnet pool.
 - `devnet-status.mjs` — read-only checks for Devnet RPC, pool metadata, test mint, and Kora sponsor configuration.
 - `devnet-wallet.mjs` — read-only SOL and test-SPARKD balance lookup for a connected Devnet wallet.
+- `devnet-preview.mjs` — read-only current quote and wallet-balance checks for a Devnet SOL-to-test-token swap plus test-SPARKD fee.
 - `PRODUCT_PLAN.md` — MVP requirements, staged plan, metrics, and network decision gates.
 - `server.test.mjs`, `devnet-status.test.mjs`, and `economics.test.mjs` — automated checks for endpoint behavior, readiness reporting, and calculations.
 
-An atomic Raydium CPMM swap plus a SPARKD app-fee transfer has been confirmed on Devnet using disposable keys and a test mint. The [confirmed transaction](https://explorer.solana.com/tx/5WZgooFYPLiB41oDqUbo7nCCT2mB4Je5LYBLjvSCAJ7PfuykfYmvoyzsNX1bZnfhSjCV9CU5X93z3BxpyHNCm3h4?cluster=devnet) used Pimlico as the SOL fee sponsor; the wallet's SOL balance decreased by its 0.001 SOL swap input, and the sponsor paid the network fee and rent. This proves one Devnet success path. The local page can connect Phantom for read-only Devnet balance checks, but it still cannot request a wallet signature or submit a swap. Next is wiring the live quote into a wallet-signed transaction with the SPARKD fee and sponsor submission. Production also needs failure and replay controls, monitoring, confirmed mainnet mint/decimals, published fee policy and receiver, sponsor reserves, security review, and a limited pilot.
+An atomic Raydium CPMM swap plus a SPARKD app-fee transfer has been confirmed on Devnet using disposable keys and a test mint. The [confirmed transaction](https://explorer.solana.com/tx/5WZgooFYPLiB41oDqUbo7nCCT2mB4Je5LYBLjvSCAJ7PfuykfYmvoyzsNX1bZnfhSjCV9CU5X93z3BxpyHNCm3h4?cluster=devnet) used Pimlico as the SOL fee sponsor; the wallet's SOL balance decreased by its 0.001 SOL swap input, and the sponsor paid the network fee and rent. This proves one Devnet success path. The local page now connects Phantom read-only and previews a live quote, test-token fee, and required balances; it still cannot request a wallet signature or submit a swap. The next implementation step is transaction construction and wallet signing with sponsor submission. Production also needs failure and replay controls, monitoring, confirmed mainnet mint/decimals, published fee policy and receiver, sponsor reserves, security review, and a limited pilot.
 
 ## Fee design principles
 
