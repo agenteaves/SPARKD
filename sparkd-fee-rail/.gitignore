@@ -3,4 +3,5 @@
 !.env.example
 node_modules/
 .devnet/
+wallet-client.bundle.js
 .DS_Store
