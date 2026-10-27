@@ -3,59 +3,68 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0c1020">
-  <title>SPARKD Swap Fee · Local Console</title>
+  <meta name="theme-color" content="#0b1018">
+  <title>SPARKD Swap · Product Lab</title>
   <style>
-    :root{color-scheme:dark;--bg:#0c1020;--panel:#151b2d;--line:#2a3450;--ink:#f6f7fb;--muted:#aab3c8;--gold:#ffc857;--green:#7de0ad;--red:#ff8d91}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#263456 0,transparent 42%),var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:980px;margin:auto;padding:40px 22px 70px}.eyebrow{color:var(--gold);font-size:.8rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(2.2rem,7vw,4rem);letter-spacing:-.045em;line-height:1.03;margin:14px 0}h1 span{color:var(--gold)}.intro{max-width:650px;color:var(--muted);font-size:1.05rem}.notice{margin:26px 0 20px;padding:14px 16px;border:1px solid #826f3e;background:#2c291e;border-radius:12px;color:#fff0bd}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:color-mix(in srgb,var(--panel),transparent 3%);border:1px solid var(--line);border-radius:16px;padding:22px}.card h2{font-size:1.05rem;margin:0 0 14px}.status{display:flex;align-items:center;gap:9px;color:var(--muted);margin:8px 0 16px}.dot{height:10px;width:10px;border-radius:99px;background:var(--gold);box-shadow:0 0 15px #ffc85770}.dot.ok{background:var(--green)}.dot.bad{background:var(--red)}button{appearance:none;border:0;border-radius:10px;background:var(--gold);color:#15130e;padding:12px 16px;font-size:.95rem;font-weight:800;cursor:pointer}button:hover{filter:brightness(1.08)}button:focus-visible{outline:3px solid white;outline-offset:2px}.checks{padding:0;list-style:none;margin:14px 0}.checks li{border-top:1px solid var(--line);padding:10px 0;color:var(--muted)}.checks strong{color:var(--ink)}.amount{font-size:2rem;font-weight:850;letter-spacing:-.04em;color:var(--gold);overflow-wrap:anywhere}.mono{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);overflow-wrap:anywhere}.muted{color:var(--muted)}.full{grid-column:1/-1}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.step{border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--muted)}.step b{display:block;color:var(--gold);margin-bottom:5px}.footer{margin-top:24px;color:#8993aa;font-size:.85rem}@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.steps{grid-template-columns:1fr}}
+    :root{color-scheme:dark;--bg:#0b1018;--panel:#121a26;--panel2:#172232;--line:#29394b;--ink:#f3f7fb;--muted:#9babbc;--green:#7af0ae;--lime:#c4ff68;--gold:#ffc85a;--red:#ff8d8d;--blue:#83bbff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 14% -8%,#244c3855,transparent 34%),radial-gradient(ellipse at 92% 0,#26385466,transparent 32%),var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}.shell{max-width:1120px;margin:auto;padding:26px 22px 72px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid var(--line);padding-bottom:17px}.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.03em}.bolt{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,var(--lime),var(--green));color:#102017;font-size:20px}.pill{border:1px solid #866c34;background:#302919;color:#ffe09a;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:750}.hero{padding:43px 0 30px;max-width:760px}.kicker{color:var(--green);text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:850}.hero h1{font-size:clamp(2.4rem,6vw,4.5rem);letter-spacing:-.06em;line-height:1;margin:13px 0 15px}.hero h1 em{font-style:normal;color:var(--lime)}.hero p{color:var(--muted);font-size:1.08rem;max-width:690px;margin:0}.notice{margin:21px 0 25px;border:1px solid #4b673e;background:linear-gradient(110deg,#1c3025,#17261f);padding:14px 16px;border-radius:13px;color:#d5f6dc}.notice strong{color:var(--lime)}.tabs{display:flex;gap:8px;margin:0 0 14px}.tab{background:transparent;border:1px solid var(--line);color:var(--muted);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:800}.tab[aria-selected="true"]{background:var(--lime);border-color:var(--lime);color:#101811}.panel{background:linear-gradient(160deg,#142030,#101721);border:1px solid var(--line);border-radius:20px;padding:23px;box-shadow:0 20px 65px #0003}.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:17px}.panel h2{font-size:1.12rem;margin:0 0 4px}.sub{color:var(--muted);font-size:.9rem;margin:0 0 19px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin:13px 0}.field label{display:block;color:var(--muted);font-size:.83rem;font-weight:700;margin:0 0 6px}.control{width:100%;padding:12px 13px;color:var(--ink);background:#0c131d;border:1px solid var(--line);border-radius:10px;outline:none}.control:focus{border-color:var(--green);box-shadow:0 0 0 3px #7af0ae1c}.amount-wrap{position:relative}.amount-wrap .control{padding-right:55px;font-size:1.2rem;font-weight:750}.suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:750}.quote{padding:15px;background:#0c131d;border:1px solid var(--line);border-radius:13px;margin-top:15px}.quote-line{display:flex;justify-content:space-between;gap:14px;padding:5px 0;color:var(--muted);font-size:.9rem}.quote-line strong{color:var(--ink);text-align:right}.quote-line.total{border-top:1px solid var(--line);padding-top:11px;margin-top:7px;color:var(--ink);font-weight:850}.quote-line.total strong{color:var(--lime)}.btn{width:100%;border:0;border-radius:11px;background:linear-gradient(100deg,var(--lime),var(--green));color:#112016;padding:13px 16px;font-weight:900;cursor:pointer;margin-top:14px}.btn:hover{filter:brightness(1.06)}.btn:focus-visible,.tab:focus-visible{outline:3px solid white;outline-offset:2px}.msg{min-height:24px;color:var(--green);font-size:.9rem;margin:10px 0 0}.mini{font-size:.79rem;color:var(--muted);margin:13px 0 0}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.metric{padding:14px;background:#0c131d;border:1px solid var(--line);border-radius:13px}.metric span{display:block;color:var(--muted);font-size:.79rem}.metric b{display:block;font-size:1.25rem;margin-top:5px}.metric b.good{color:var(--green)}.metric b.warn{color:var(--gold)}.metric b.bad{color:var(--red)}.section{margin-top:21px}.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 12px}.section-title h2{font-size:1.2rem;margin:0}.section-title span{font-size:.8rem;color:var(--muted)}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.step{border:1px solid var(--line);background:#111a25;border-radius:14px;padding:16px}.step .num{color:var(--green);font-size:.78rem;font-weight:900;letter-spacing:.08em}.step h3{font-size:.98rem;margin:7px 0}.step p{font-size:.86rem;color:var(--muted);margin:0}.callout{border-left:3px solid var(--gold);background:#262316;padding:12px 14px;color:#e8debd;border-radius:0 9px 9px 0;margin-top:14px;font-size:.88rem}.hidden{display:none!important}.fine{color:#8393a7;font-size:.78rem;margin-top:22px}.microcopy{margin-top:8px;color:var(--muted);font-size:.81rem}.help{display:inline-block;color:var(--blue);text-decoration:none;border-bottom:1px dotted #83bbff}.help:hover{color:white}@media(max-width:800px){.layout{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.hero{padding-top:34px}}@media(max-width:480px){.shell{padding:18px 14px 55px}.panel{padding:17px}.row{grid-template-columns:1fr}.top{align-items:flex-start}}
   </style>
 </head>
 <body>
-<main class="wrap">
-  <div class="eyebrow">SPARKD · Isolated project</div>
-  <h1>Swap Fee <span>Console</span></h1>
-  <p class="intro">A local prototype for paying the SPARKD app fee in SPARKD while the app sponsor covers the Solana network fee in SOL.</p>
-  <div class="notice"><b>Target experience:</b> users pay SPARKD only for app use. A Kora paymaster or equivalent sponsor pays the underlying SOL network fee. This console is a demo and does not connect a wallet or submit transactions.</div>
-  <section class="grid">
-    <article class="card">
-      <h2>Sponsor readiness</h2>
-      <div class="status"><span id="dot" class="dot"></span><span id="headline">Checking configuration…</span></div>
-      <ul id="checks" class="checks"></ul>
-      <button id="refresh" type="button">Refresh checks</button>
+<main class="shell">
+  <header class="top"><div class="brand"><span class="bolt">ϟ</span><span>SPARKD SWAP</span></div><span class="pill">PRODUCT LAB · DEMO DATA</span></header>
+  <section class="hero"><div class="kicker">A useful first step toward a SPARKD network</div><h1>Swap simply.<br><em>Pay the app fee in SPARKD.</em></h1><p>Make the SPARKD fee clear, keep the swap flow simple, and prove people return before taking on the cost of a separate blockchain.</p></section>
+  <div class="notice"><strong>Fee promise being tested:</strong> the app charges its service fee in SPARKD. The app sponsor covers the Solana network fee. A swap route may also include a liquidity or pool fee in its exchange rate; show that in the quote before a user approves.</div>
+  <nav class="tabs" aria-label="Product lab sections"><button class="tab" id="swapTab" aria-selected="true" type="button">Swap preview</button><button class="tab" id="modelTab" aria-selected="false" type="button">Sustainability model</button></nav>
+  <section id="swapView" class="layout" aria-labelledby="swapTab">
+    <article class="panel"><h2>Swap preview</h2><p class="sub">An interactive mockup of the intended customer flow. No wallet or live market data is connected.</p>
+      <div class="row"><div class="field"><label for="fromToken">You swap</label><select id="fromToken" class="control"><option>SOL</option><option>USDC</option><option>BONK</option></select></div><div class="field"><label for="toToken">You receive</label><select id="toToken" class="control"><option>USDC</option><option>BONK</option><option>SOL</option></select></div></div>
+      <div class="field"><label for="tradeUsd">Illustrative swap value (USD)</label><div class="amount-wrap"><input id="tradeUsd" class="control" type="number" min="1" step="1" value="100"><span class="suffix">USD</span></div></div>
+      <div class="row"><div class="field"><label for="appFeeUsd">SPARKD app fee (USD equivalent)</label><input id="appFeeUsd" class="control" type="number" min="0" step="0.01" value="0.05"></div><div class="field"><label for="sparkdPrice">SPARKD price assumption (USD)</label><input id="sparkdPrice" class="control" type="number" min="0.00000001" step="0.00000001" value="0.00001"></div></div>
+      <div class="quote" aria-live="polite"><div class="quote-line"><span>Swap input</span><strong id="quoteInput">$100.00 equivalent</strong></div><div class="quote-line"><span>Route / liquidity cost assumption</span><strong id="routeCost">$0.30</strong></div><div class="quote-line"><span>SPARKD app fee</span><strong id="feeTokens">5,000 SPARKD · $0.05</strong></div><div class="quote-line"><span>Solana network fee</span><strong>Covered by app sponsor</strong></div><div class="quote-line total"><span>App fee user pays</span><strong id="totalUserFee">5,000 SPARKD</strong></div></div>
+      <button id="previewButton" class="btn" type="button">Preview this swap</button><p id="previewMessage" class="msg" role="status"></p><p class="microcopy">Demo estimate only. A live app must fetch a current route quote and disclose its actual route costs and SPARKD fee before wallet approval.</p>
     </article>
-    <article class="card">
-      <h2>Example SPARKD app fee</h2>
-      <div id="fee" class="amount">Loading…</div>
-      <p class="muted">Placeholder base-unit amount. Confirm mint decimals and the fee policy before charging users. The sponsor handles the SOL network fee.</p>
-      <div class="mono">Mint: <span id="mint"></span></div>
-      <div class="mono">Fee receiver configured: <span id="receiver"></span></div>
-    </article>
-    <article class="card full">
-      <h2>Path to a live test</h2>
-      <div class="steps">
-        <div class="step"><b>1 · Quote</b>Route the user's crypto swap through the SPARKD-integrated app.</div>
-        <div class="step"><b>2 · Add fee</b>Include the disclosed SPARKD app fee and configure the sponsor to cover network fees.</div>
-        <div class="step"><b>3 · Sign</b>The user signs the swap and SPARKD fee. The sponsor pays the SOL network fee.</div>
-      </div>
-    </article>
+    <aside class="panel"><h2>What this demonstrates</h2><p class="sub">A user buys SPARKD once, then can use SPARKD for app fees on later swaps in this app.</p><div class="stats"><div class="metric"><span>Paid by user to app</span><b class="good">SPARKD</b></div><div class="metric"><span>Network fee payer</span><b>Sponsor wallet</b></div><div class="metric"><span>Network fee currency</span><b>SOL</b></div><div class="metric"><span>Actual live swap?</span><b class="warn">No · prototype</b></div></div><div class="callout">The earlier SOL fee paid when buying SPARKD does not prepay later Solana transactions. The sponsor needs its own SOL reserve for each sponsored swap. This preview makes that project cost visible in the economics tab.</div><p class="mini">Kora is one documented way to sponsor Solana transactions and accept supported SPL-token payments. SPARKD must be configured and tested as an accepted payment mint before launch.</p></aside>
   </section>
-  <p class="footer">Local-only prototype · No website integration · No transaction submission</p>
+  <section id="modelView" class="layout hidden" aria-labelledby="modelTab">
+    <article class="panel"><h2>Can the fee fund the service?</h2><p class="sub">Adjust assumptions to see how a low SPARKD fee could cover the sponsor and operating costs.</p>
+      <div class="row"><div class="field"><label for="modelFee">SPARKD fee revenue per swap (USD equivalent)</label><input id="modelFee" class="control" type="number" min="0" step="0.01" value="0.05"></div><div class="field"><label for="sponsorCost">Sponsor cost per swap (USD)</label><input id="sponsorCost" class="control" type="number" min="0" step="0.0001" value="0.002"></div></div>
+      <div class="row"><div class="field"><label for="dailySwaps">Completed swaps per day</label><input id="dailySwaps" class="control" type="number" min="0" step="1" value="100"></div><div class="field"><label for="monthlyOps">Other monthly operating costs (USD)</label><input id="monthlyOps" class="control" type="number" min="0" step="1" value="100"></div></div>
+      <div class="stats"><div class="metric"><span>Contribution per swap, before overhead</span><b id="contribution">$0.048</b></div><div class="metric"><span>Estimated monthly net, before taxes/reserves</span><b id="monthlyNet">$44</b></div><div class="metric"><span>Break-even volume at these assumptions</span><b id="breakEven">70 swaps/day</b></div><div class="metric"><span>Pricing result</span><b id="pricingStatus" class="good">Positive contribution</b></div></div>
+      <p class="microcopy">These are editable planning assumptions, not live costs or a forecast. Replace sponsor cost with measured production invoices and include RPC, hosting, monitoring, audits, support, and treasury conversion costs.</p>
+    </article>
+    <aside class="panel"><h2>Build demand before building a chain</h2><p class="sub">Use explicit gates so the larger network step follows evidence of use.</p><div class="step"><span class="num">GATE 1 · USEFUL PRODUCT</span><h3>Make the first swap easy</h3><p>Start with a few liquid, commonly requested pairs; show the best available route, final output, slippage, route cost, and SPARKD fee before approval.</p></div><div class="step" style="margin-top:11px"><span class="num">GATE 2 · REPEAT USE</span><h3>Measure cohort return</h3><p>Track completed swaps, unique wallets, 7/30-day repeat use, quote-to-completion rate, failures, support issues, SPARKD fees collected, and sponsor SOL consumed.</p></div><div class="step" style="margin-top:11px"><span class="num">GATE 3 · SUSTAINABLE COSTS</span><h3>Show positive unit economics</h3><p>After operating costs and a reserve for fee-sponsor SOL, show positive contribution for several consecutive months and a plan to replenish the sponsor wallet.</p></div><div class="step" style="margin-top:11px"><span class="num">GATE 4 · NETWORK READINESS</span><h3>Only then evaluate a SPARKD chain</h3><p>Require demonstrated demand, independent security review, validator commitments, reliable wallets/RPC/explorer, liquidity, and a safe migration plan.</p></div></aside>
+  </section>
+  <section class="section"><div class="section-title"><h2>Suggested rollout</h2><span>Keep the first milestone narrow and measurable</span></div><div class="grid3"><article class="step"><span class="num">01 · DEVNET</span><h3>Prove the fee flow</h3><p>Compose a swap and SPARKD payment; have a sponsor pay network SOL. Verify the user is never asked for SOL as gas.</p></article><article class="step"><span class="num">02 · LIMITED MAINNET PILOT</span><h3>Invite a small group</h3><p>Set a low, disclosed fee. Cap each sponsor transaction, daily spend, and total SOL reserve. Monitor every quote, signature, and settlement.</p></article><article class="step"><span class="num">03 · EXPAND ON EVIDENCE</span><h3>Grow use, then assess chain</h3><p>Keep funding the sponsor from collected fees and project treasury. Expand pairs and access as reliability and repeat usage are proven.</p></article></div></section>
+  <p class="fine">Isolated project prototype · no wallet connection · no live quotes or swaps · not connected to sparkdcoin.com</p>
 </main>
-<script>
-const el=(id)=>document.getElementById(id);
-async function refresh(){
-  el('headline').textContent='Checking configuration…'; el('dot').className='dot';
-  try {
-    const [status,quote]=await Promise.all([fetch('/api/status').then(r=>r.json()),fetch('/api/quote').then(r=>r.json())]);
-    el('fee').textContent=`${quote.feeBaseUnits} base units SPARKD`;
-    el('mint').textContent=quote.mint; el('receiver').textContent=quote.feeReceiverConfigured?'yes':'no';
-    el('headline').textContent='Demo mode · sponsor flow not connected';
-    el('dot').className=`dot ${quote.feeReceiverConfigured?'':'bad'}`;
-    const checks=status.checks;
-    el('checks').innerHTML=checks.map(c=>`<li><strong>${c.ok?'✓':'○'} ${escapeHtml(c.name)}</strong><br>${escapeHtml(c.detail)}</li>`).join('');
-  } catch { el('headline').textContent='Local server unavailable'; el('dot').className='dot bad'; }
-}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-el('refresh').addEventListener('click',refresh); refresh();
+<script type="module">
+import { feeQuote, economics } from './economics.mjs';
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
+const showFee = () => {
+  const value = feeQuote({feeUsd:Number($('appFeeUsd').value),sparkdPriceUsd:Number($('sparkdPrice').value),tradeUsd:Number($('tradeUsd').value)});
+  $('quoteInput').textContent=`${money(value.tradeUsd)} equivalent`;
+  $('routeCost').textContent=`${money(value.routeCostUsd)} (demo assumption)`;
+  $('feeTokens').textContent=`${value.feeTokenAmount.toLocaleString('en-US')} SPARKD · ${money(value.feeUsd)}`;
+  $('totalUserFee').textContent=`${value.feeTokenAmount.toLocaleString('en-US')} SPARKD`;
+  $('modelFee').value=Number($('appFeeUsd').value)||0;
+};
+const showEconomics = () => {
+  const e=economics({feeUsd:Number($('modelFee').value),sponsorCostUsd:Number($('sponsorCost').value),swapsPerDay:Number($('dailySwaps').value),monthlyOperatingUsd:Number($('monthlyOps').value)});
+  $('contribution').textContent=money(e.contributionPerSwapUsd);
+  $('monthlyNet').textContent=money(e.monthlyNetUsd);
+  $('breakEven').textContent=e.breakEvenSwapsPerDay===null?'Not achievable at this fee':`${e.breakEvenSwapsPerDay.toLocaleString()} swaps/day`;
+  $('pricingStatus').textContent=e.contributionPerSwapUsd>0?'Positive contribution':'Fee does not cover sponsor cost';
+  $('pricingStatus').className=e.contributionPerSwapUsd>0?'good':'bad';
+  $('monthlyNet').className=e.monthlyNetUsd>=0?'good':'bad';
+};
+for(const id of ['tradeUsd','appFeeUsd','sparkdPrice']) $(id).addEventListener('input',()=>{showFee();showEconomics()});
+for(const id of ['modelFee','sponsorCost','dailySwaps','monthlyOps']) $(id).addEventListener('input',showEconomics);
+$('previewButton').addEventListener('click',()=>{$('previewMessage').textContent='Preview only: a live swap, wallet approval, and SPARKD transfer are not connected.'});
+$('swapTab').addEventListener('click',()=>toggle('swap'));
+$('modelTab').addEventListener('click',()=>toggle('model'));
+function toggle(view){const swap=view==='swap';$('swapView').classList.toggle('hidden',!swap);$('modelView').classList.toggle('hidden',swap);$('swapTab').setAttribute('aria-selected',String(swap));$('modelTab').setAttribute('aria-selected',String(!swap))}
+showFee();showEconomics();
 </script>
 </body>
 </html>
