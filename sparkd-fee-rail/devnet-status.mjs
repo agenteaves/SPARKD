@@ -39,6 +39,12 @@ export async function getDevnetStatus(settings, { fetchImpl = fetch, timeoutMs =
     ok: isSplMint,
     detail: !mint ? 'Create or select a disposable Devnet test token and set SPARKD_DEVNET_MINT.' : isSplMint ? `Devnet SPL mint exists with ${parsedMint.data.parsed.info.decimals} decimals; this is not the production SPARKD mint.` : mintStatus?.ok ? 'The configured Devnet address is not an SPL Token mint.' : mintStatus?.detail ?? 'Could not verify the configured Devnet mint.',
   });
+  checks.push({
+    id: 'fee_receiver',
+    name: 'Devnet app-fee receiver',
+    ok: Boolean(settings.feeReceiver),
+    detail: settings.feeReceiver ? 'Fee receiver is configured; the app fee is transferred in the same swap transaction.' : 'Set SPARKD_FEE_RECEIVER to the Devnet test fee receiver.',
+  });
 
   if (!settings.koraRpcUrl) {
     checks.push({ id: 'kora_rpc', name: 'Devnet fee sponsor', ok: false, detail: 'Set KORA_RPC_URL to the Pimlico Devnet Kora-compatible endpoint after creating an API key.' });
@@ -57,16 +63,22 @@ export async function getDevnetStatus(settings, { fetchImpl = fetch, timeoutMs =
     checks.push({
       id: 'kora_policy',
       name: 'Sponsor transaction policy',
-      ok: false,
-      detail: 'Still needs a real policy/simulation check for the Raydium CPMM swap and SPL Token fee transfer. SPARKD is paid to the app; it does not need to be a sponsor-accepted payment token.',
+      ok: payer.ok && blockhash.ok,
+      detail: payer.ok && blockhash.ok
+        ? 'One atomic Raydium swap plus test-SPARKD fee transfer has succeeded on Devnet with this sponsor; this status check itself is read-only.'
+        : 'The sponsor endpoint is not ready to submit the atomic Devnet swap and test-SPARKD transfer.',
     });
   }
 
+  const required = ['devnet_rpc', 'raydium_pool', 'sparkd_devnet_mint', 'fee_receiver', 'kora_rpc', 'kora_policy'];
+  const readyToSubmit = required.every(id => checks.find(check => check.id === id)?.ok);
   return {
     mode: 'devnet-readiness-only',
-    readyToSubmit: false,
+    readyToSubmit,
     checks,
-    note: 'Read-only checks only. This endpoint never signs, sends, or funds a transaction.',
+    note: readyToSubmit
+      ? 'Devnet transaction flow is configured and a prior smoke transaction succeeded. The status check itself is read-only; only the connected wallet can approve a new swap.'
+      : 'Devnet readiness checks only; fix the listed setup items before preparing a transaction.',
   };
 }
 
