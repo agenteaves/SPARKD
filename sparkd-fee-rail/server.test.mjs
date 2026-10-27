@@ -16,6 +16,7 @@ test('defaults to a non-submitting SPARKD-only user fee with sponsor-paid SOL ne
 test('rejects invalid fee base units', () => {
   assert.throws(() => getSettings({ SPARKD_FEE_BASE_UNITS: '1.5' }), /positive integer/);
   assert.throws(() => getSettings({ SPARKD_FEE_BASE_UNITS: '0' }), /positive integer/);
+  assert.throws(() => getSettings({ SPARKD_DEVNET_FEE_BASE_UNITS: '0' }), /positive integer/);
 });
 
 test('reports swap integration as not ready in the isolated demo', () => {
@@ -106,4 +107,24 @@ test('builds a read-only Devnet swap and SPARKD fee preview with balance checks'
   assert.equal(preview.appFee.amountBaseUnits, '1000000');
   assert.equal(preview.canRequestSignature, false);
   assert.equal(preview.transactionSubmitted, false);
+});
+
+test('routes prepared Devnet transactions and redacts sponsor credentials from errors', async (t) => {
+  const secretUrl = 'https://sponsor.example/rpc?apikey=secret-value';
+  const server = createAppServer(getSettings({ KORA_RPC_URL: secretUrl, KORA_API_KEY: 'secret-value' }), {
+    buildProvider: async ({ address, amountIn }) => ({ address, amountIn, transactionSubmitted: false }),
+    submitProvider: async ({ proposalId }) => ({ signature: `signature-for-${proposalId}`, confirmed: true, cluster: 'devnet' }),
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const builtResponse = await fetch(`${base}/api/devnet/build`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address: 'wallet', amountIn: '1000000' }) });
+  assert.deepEqual(await builtResponse.json(), { address: 'wallet', amountIn: '1000000', transactionSubmitted: false });
+  const submittedResponse = await fetch(`${base}/api/devnet/submit`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ proposalId: 'proposal', signedTransaction: 'signed' }) });
+  assert.equal((await submittedResponse.json()).confirmed, true);
+  const failingServer = createAppServer(getSettings({ KORA_RPC_URL: secretUrl }), { buildProvider: async () => { throw new Error(`Failed at ${secretUrl}`); } });
+  await new Promise((resolve) => failingServer.listen(0, '127.0.0.1', resolve));
+  t.after(() => failingServer.close());
+  const failed = await fetch(`http://127.0.0.1:${failingServer.address().port}/api/devnet/build`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }).then((r) => r.json());
+  assert.doesNotMatch(JSON.stringify(failed), /secret-value/);
 });
