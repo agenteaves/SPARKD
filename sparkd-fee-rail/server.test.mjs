@@ -32,7 +32,7 @@ test('serves the local console and quote endpoint', async (t) => {
   const base = `http://127.0.0.1:${server.address().port}`;
   const page = await fetch(base);
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /SPARKD Swap Fee/);
+  assert.match(await page.text(), /SPARKD Swap · Product Lab/);
   const quote = await fetch(`${base}/api/quote`).then((r) => r.json());
   assert.equal(quote.token, 'SPARKD');
   assert.equal(quote.canSubmitTransaction, false);
