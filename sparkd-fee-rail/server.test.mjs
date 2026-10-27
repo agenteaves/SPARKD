@@ -39,3 +39,18 @@ test('serves the local console and quote endpoint', async (t) => {
   assert.equal(quote.networkFeeCurrency, 'SOL');
   assert.equal(quote.userNeedsSolForNetworkFee, false);
 });
+
+test('serves a Raydium Devnet quote through the injected read-only quote provider', async (t) => {
+  const server = createAppServer(getSettings({ RAYDIUM_DEVNET_POOL_ID: 'pool-id' }), {
+    quoteProvider: async ({ poolId, inputMint, amountIn }) => ({ mode: 'devnet-live-quote', poolId, inputMint, amountIn, transactionSubmitted: false }),
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const response = await fetch(`${base}/api/devnet/quote?inputMint=So11111111111111111111111111111111111111112&amountIn=1000000`);
+  assert.equal(response.status, 200);
+  const quote = await response.json();
+  assert.equal(quote.mode, 'devnet-live-quote');
+  assert.equal(quote.poolId, 'pool-id');
+  assert.equal(quote.transactionSubmitted, false);
+});
