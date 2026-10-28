@@ -39,9 +39,9 @@ function showAuthenticatedDeveloperPanel(){
     <div class="devSection"><h3>Player Data</h3><div class="devSection"><h3>Website</h3><button id="openWebsiteStatsBtn">📊 Website Stats</button></div><p>🪙 Points: <strong id="devPoints"></strong></p><p>⭐ Level: <strong id="devLevel"></strong></p></div>
     <div class="devSection"><h3>Points</h3><button id="add100">+100 SPARK</button><button id="add1000">+1000 SPARK</button><button id="resetPoints">Reset Points</button></div>
     <div class="devSection"><h3>Levels</h3><button class="levelBtn" data-level="1">Level 1</button><button class="levelBtn" data-level="2">Level 2</button><button class="levelBtn" data-level="3">Level 3</button><button class="levelBtn" data-level="4">Level 4</button><button class="levelBtn" data-level="5">Level 5</button></div>
-    <div class="devSection"><h3>Reset Tools</h3><button id="resetMission">Reset Daily Mission</button><button id="resetStarter">Reset Starter Pack</button><button id="fullReset">Full Player Reset</button></div>`;
+    <div class="devSection"><h3>Next Week Contest</h3><p id="contestPauseStatus">Enter your PIN to manage the next contest.</p><button id="pauseNextContest" type="button">⏸ Pause Next Week</button><button id="resumeNextContest" type="button">▶ Resume Next Week</button></div>\n    <div class="devSection"><h3>Reset Tools</h3><button id="resetMission">Reset Daily Mission</button><button id="resetStarter">Reset Starter Pack</button><button id="fullReset">Full Player Reset</button></div>`;
     document.body.appendChild(panel);
-    updateDevPanel();
+    updateDevPanel();\n    setupContestPauseControls(panel);
     document.getElementById("closeDevPanel").onclick=function(){panel.remove();};
     document.getElementById("openWebsiteStatsBtn").onclick=function(){if(window.SPARKD_WEBSITE_STATS_DASHBOARD){window.SPARKD_WEBSITE_STATS_DASHBOARD.open();}else{alert("Website Stats dashboard is not loaded.");}};
 
@@ -59,4 +59,27 @@ function updateDevPanel(){
     const level=document.getElementById("devLevel");
     if(points)points.innerHTML=localStorage.getItem("sparkPoints")||"0";
     if(level)level.innerHTML=localStorage.getItem("creatorLevel")||"1";
+}
+
+async function setupContestPauseControls(panel) {
+    const status=panel.querySelector("#contestPauseStatus");
+    const pause=panel.querySelector("#pauseNextContest");
+    const resume=panel.querySelector("#resumeNextContest");
+    const endpoint="https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/meme-week-pause-control";
+    async function request(action) {
+        const pin=window.prompt("Enter your 6-digit SPARKD developer PIN:");
+        if(pin===null)return;
+        if(!/^\d{6}$/.test(pin.trim())) { status.textContent="Enter a valid 6-digit PIN.";return; }
+        pause.disabled=true;resume.disabled=true;status.textContent="Contacting contest server…";
+        try {
+            const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,pin:pin.trim()}),cache:"no-store"});
+            const data=await response.json().catch(()=>({}));
+            if(!response.ok||!data.success)throw new Error(data.error||"Contest server unavailable");
+            const c=data.contest;
+            status.textContent="Next contest ("+new Date(c.week_start).toLocaleDateString()+"): "+(c.submissions_paused?"PAUSED — no entries accepted":"Not paused");
+        } catch(e) {status.textContent="Unable to change contest: "+e.message;}
+        finally {pause.disabled=false;resume.disabled=false;}
+    }
+    pause.onclick=()=>request("pause");
+    resume.onclick=()=>request("resume");
 }
