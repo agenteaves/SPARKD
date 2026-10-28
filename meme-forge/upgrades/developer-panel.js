@@ -1,25 +1,25 @@
-// The 12-click shortcut is discoverable, so require server-verified admin credentials.
+// The 12-click shortcut is discoverable, so require server-verified PIN.
 // No admin key is persisted in localStorage, sessionStorage, or source code.
 let sparkdDeveloperAuthPending = false;
 async function openDeveloperPanel(){
     if (document.getElementById("sparkdDevPanel") || sparkdDeveloperAuthPending) return;
-    const key = window.prompt("SPARKD admin access key:");
+    const key = window.prompt("Enter your 6-digit SPARKD developer PIN:");
     if (key === null) return;
-    if (!key.trim()) { window.alert("Admin access key required."); return; }
+    if (!/^\\d{6}$/.test(key.trim())) { window.alert("Enter a 6-digit PIN."); return; }
     sparkdDeveloperAuthPending = true;
     try {
-        const response = await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-admin-health", {
+        const response = await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/meme-forge-admin-pin", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "x-sparkd-admin-key": key.trim() },
-            body: JSON.stringify({ action: "health" }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pin: key.trim() }),
             cache: "no-store"
         });
-        if (!response.ok) throw new Error("Admin verification failed.");
+        if (!response.ok) throw new Error("PIN verification failed.");
         const result = await response.json();
         if (result?.success !== true) throw new Error("Admin verification failed.");
         showAuthenticatedDeveloperPanel();
     } catch (error) {
-        window.alert("Access denied. Check your admin key and connection.");
+        window.alert("Access denied. Check your PIN and connection.");
     } finally {
         sparkdDeveloperAuthPending = false;
     }
