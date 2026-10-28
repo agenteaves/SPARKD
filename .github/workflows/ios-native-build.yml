@@ -1,0 +1,30 @@
+name: Build native iPhone app
+
+on:
+  push:
+    branches: [feature/native-ios]
+    paths:
+      - "ios/SPARKDNative/**"
+      - ".github/workflows/ios-native-build.yml"
+  workflow_dispatch:
+
+jobs:
+  simulator-build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: ios/SPARKDNative
+        run: xcodegen generate
+      - name: Compile iPhone Simulator app
+        working-directory: ios/SPARKDNative
+        run: |
+          xcodebuild -project SPARKDNative.xcodeproj -scheme SPARKDNative -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ios-build" CODE_SIGNING_ALLOWED=NO build
+      - name: Save simulator app for build inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: SPARKDNative-Simulator-unsigned
+          path: ${{ runner.temp }}/ios-build/Build/Products/Debug-iphonesimulator/SPARKDNative.app
+          if-no-files-found: error
