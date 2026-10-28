@@ -1,9 +1,36 @@
+// The 12-click shortcut is discoverable, so require server-verified admin credentials.
+// No admin key is persisted in localStorage, sessionStorage, or source code.
+let sparkdDeveloperAuthPending = false;
+async function openDeveloperPanel(){
+    if (document.getElementById("sparkdDevPanel") || sparkdDeveloperAuthPending) return;
+    const key = window.prompt("SPARKD admin access key:");
+    if (key === null) return;
+    if (!key.trim()) { window.alert("Admin access key required."); return; }
+    sparkdDeveloperAuthPending = true;
+    try {
+        const response = await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/contest-admin-health", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-sparkd-admin-key": key.trim() },
+            body: JSON.stringify({ action: "health" }),
+            cache: "no-store"
+        });
+        if (!response.ok) throw new Error("Admin verification failed.");
+        const result = await response.json();
+        if (result?.success !== true) throw new Error("Admin verification failed.");
+        showAuthenticatedDeveloperPanel();
+    } catch (error) {
+        window.alert("Access denied. Check your admin key and connection.");
+    } finally {
+        sparkdDeveloperAuthPending = false;
+    }
+}
+
 ////////////////////////////////////////////////////
 // SPARKD MEME FORGE
 // DEVELOPER PANEL
 ////////////////////////////////////////////////////
 
-function openDeveloperPanel(){
+function showAuthenticatedDeveloperPanel(){
     if(document.getElementById("sparkdDevPanel")) return;
     const panel=document.createElement("div");
     panel.id="sparkdDevPanel";
