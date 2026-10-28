@@ -41,7 +41,8 @@ function showAuthenticatedDeveloperPanel(){
     <div class="devSection"><h3>Levels</h3><button class="levelBtn" data-level="1">Level 1</button><button class="levelBtn" data-level="2">Level 2</button><button class="levelBtn" data-level="3">Level 3</button><button class="levelBtn" data-level="4">Level 4</button><button class="levelBtn" data-level="5">Level 5</button></div>
     <div class="devSection"><h3>Next Week Contest</h3><p id="contestPauseStatus">Enter your PIN to manage the next contest.</p><button id="pauseNextContest" type="button">⏸ Pause Next Week</button><button id="resumeNextContest" type="button">▶ Resume Next Week</button></div>\n    <div class="devSection"><h3>Reset Tools</h3><button id="resetMission">Reset Daily Mission</button><button id="resetStarter">Reset Starter Pack</button><button id="fullReset">Full Player Reset</button></div>`;
     document.body.appendChild(panel);
-    updateDevPanel();\n    setupContestPauseControls(panel);
+    updateDevPanel();
+    setupContestPauseControls(panel);
     document.getElementById("closeDevPanel").onclick=function(){panel.remove();};
     document.getElementById("openWebsiteStatsBtn").onclick=function(){if(window.SPARKD_WEBSITE_STATS_DASHBOARD){window.SPARKD_WEBSITE_STATS_DASHBOARD.open();}else{alert("Website Stats dashboard is not loaded.");}};
 
