@@ -5,7 +5,7 @@ async function openDeveloperPanel(){
     if (document.getElementById("sparkdDevPanel") || sparkdDeveloperAuthPending) return;
     const key = window.prompt("Enter your 6-digit SPARKD developer PIN:");
     if (key === null) return;
-    if (!/^\\d{6}$/.test(key.trim())) { window.alert("Enter a 6-digit PIN."); return; }
+    if (!/^\d{6}$/.test(key.trim())) { window.alert("Enter a 6-digit PIN."); return; }
     sparkdDeveloperAuthPending = true;
     try {
         const response = await fetch("https://uxpbgzksfizkyxubctep.supabase.co/functions/v1/meme-forge-admin-pin", {
