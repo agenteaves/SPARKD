@@ -408,6 +408,13 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                             existingBurnSignature = existingBurn
                             PreparedBurn(contest.id, "existing-burn", ByteArray(0), 0L)
                         } else if (savedBurn != null) {
+                            val savedSignature = savedBurn.transactionSignature
+                            val expiry = savedBurn.lastValidBlockHeight
+                            if (savedSignature != null && expiry != null && api.currentBlockHeight(address) > expiry) {
+                                val chain = api.transactionStatus(address, savedSignature)
+                                if (!chain.found) error("The earlier signed transaction has expired and no confirmed burn was found. Recovery is blocked to avoid repeated failed attempts. No additional burn was requested. Keep your app data and contact SPARKD support with transaction ${savedSignature.take(8)}…${savedSignature.takeLast(8)}.")
+                                if (chain.failed) error("The earlier transaction failed on-chain. Keep the saved recovery information and contact SPARKD support before another burn.")
+                            }
                             PreparedBurn(contest.id, "saved-burn", ByteArray(0), savedBurn.lastValidBlockHeight ?: 0L, savedBurn.quoteToken.orEmpty())
                         } else {
                             status = "Checking SPARKD balance and preparing the burn review…"
