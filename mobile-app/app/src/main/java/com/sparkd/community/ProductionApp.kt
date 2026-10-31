@@ -389,21 +389,29 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         val savedBurn = recovery.pending()
                         if (savedBurn != null) {
                             check(savedBurn.wallet == address && savedBurn.contestId == contest.id) { "A previous signed burn belongs to another wallet or contest. DO NOT BURN AGAIN. Contact SPARKD support." }
-                            error("A previously signed SPARKD burn is saved on this device. DO NOT BURN AGAIN. Verify its transaction receipt or contact SPARKD support before attempting another entry.")
+                            check(!savedBurn.quoteToken.isNullOrBlank()) { "The saved signed burn has no quote token. DO NOT BURN AGAIN. Contact SPARKD support." }
+                            status = "Checking the previous signed burn. No new burn will be prepared…"
+                        } else {
+                            status = "Checking contest eligibility…"
                         }
-                        status = "Checking contest eligibility…"
                         status = "Checking for a previously verified burn…"
                         val existingBurn = contestPreflight("Burn receipt check") { api.getBurnReceipt(address, contest.id) }
                         if (existingBurn != null) {
                             existingBurnSignature = existingBurn
                             PreparedBurn(contest.id, "existing-burn", ByteArray(0), 0L)
+                        } else if (savedBurn != null) {
+                            PreparedBurn(contest.id, "saved-burn", ByteArray(0), savedBurn.lastValidBlockHeight ?: 0L, savedBurn.quoteToken.orEmpty())
                         } else {
                             status = "Checking SPARKD balance and preparing the burn review…"
                             contestPreflight("Burn preparation") { api.prepare(address, contest.id, record.creatorID) }
                         }
                     }.onSuccess { burn ->
                         prepared = burn
-                        status = if (existingBurnSignature != null) "Existing verified contest burn found. No second burn is required." else "Entry checks passed. Review the exact burn details below."
+                        status = when {
+                            existingBurnSignature != null -> "Existing verified contest burn found. No second burn is required."
+                            burn.tokenAccount == "saved-burn" -> "Previous signed burn found. Recovery only: no new transaction will be signed. DO NOT BURN AGAIN."
+                            else -> "Entry checks passed. Review the exact burn details below."
+                        }
                     }.onFailure { error -> status = error.message?.takeIf { it.isNotBlank() } ?: "Unable to prepare secure contest entry. Please try again." }
                 }
             }, Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected && forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
@@ -419,6 +427,17 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         submitting = false
                     }
                 }, modifier = Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && !submitting && !completed) { Text(if (completed) "Contest entry submitted" else "Submit meme — no new burn") } }
+            } else if (burn.tokenAccount == "saved-burn") {
+                item { Text("A signed transaction is saved. Recovery will check its on-chain status and will not request a new wallet signature.", color = Gold) }
+                item { Button(onClick = {
+                    submitting = true
+                    scope.launch {
+                        runCatching { finalizeWithNewBurn(burn, requireNotNull(forge), requireNotNull(bytes)) }
+                            .onSuccess { finishSuccess(it) }
+                            .onFailure { error -> status = "Recovery not completed. DO NOT BURN AGAIN. " + (error.message ?: "Contact SPARKD support with your wallet address and transaction signature.") }
+                        submitting = false
+                    }
+                }, modifier = Modifier.fillMaxWidth(), enabled = !submitting && !completed) { Text(if (submitting) "Checking saved burn…" else "Recover previous burn — no new signature") } }
             } else {
                 val burnAmountLabel = formatSparkdEntryAmount(burn.burnAmount)
                 item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Transaction review", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Burn amount: $burnAmountLabel SPARKD (target $3.00)", fontWeight = FontWeight.Bold, color = Gold); Text("Selection: one equal random chance"); Text("Token account: " + burn.tokenAccount.take(6) + "…" + burn.tokenAccount.takeLast(4)); Text("One signer • one burn instruction • Token-2022 verified"); Text("Your wallet will show the final transaction before signing. The burn is irreversible once confirmed on-chain.", color = androidx.compose.ui.graphics.Color.LightGray) } } }
