@@ -296,9 +296,18 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
         val title = requiredTitle()
         verifiedSelectedPng(record, png)
         val address = wallet.address ?: error("Reconnect your wallet before submitting.")
+        val pending = recovery.pending()
+        // Do not upload the image again when an expired, unconfirmed transaction cannot be recovered.
+        if (pending != null && pending.wallet == address && pending.contestId == burn.contestId) {
+            val savedSignature = pending.transactionSignature
+            val expiry = pending.lastValidBlockHeight
+            if (savedSignature != null && expiry != null && api.currentBlockHeight(address) > expiry) {
+                val chain = api.transactionStatus(address, savedSignature)
+                if (!chain.found) error("The saved transaction expired and was not found on-chain. It cannot be reused as payment. No new burn was attempted. Keep this recovery record and contact SPARKD support with transaction ${savedSignature.take(8)}…${savedSignature.takeLast(8)} before authorizing another burn.")
+            }
+        }
         status = "Uploading the contest meme…"
         val imagePath = api.uploadMeme(address, burn.contestId, png)
-        val pending = recovery.pending()
         val transactionQuoteToken = if (pending != null) pending.quoteToken?.takeIf { it.isNotBlank() } ?: error("The saved burn has no matching server quote. Check for a verified receipt before starting another entry.") else burn.quoteToken
         check(transactionQuoteToken.isNotBlank()) { "The signed $3 SPARKD quote is missing." }
         val signature = if (pending != null) {
@@ -415,7 +424,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                 }
             }, Modifier.fillMaxWidth(), enabled = entryTitle.isNotBlank() && ForgeDraft.freshSourceSelected && ForgeDraft.entryImageSelected && forge != null && bytes != null && prepared == null && !completed) { Text(if (prepared == null) "Review secure entry" else "Entry review ready") }
         }
-        item { Text(status, color = if (prepared != null) Green else Gold) }
+        item { Text(status, color = if (status.startsWith("Recovery not completed") || status.contains("DO NOT BURN AGAIN")) MaterialTheme.colorScheme.error else if (prepared != null) Green else Gold) }
         prepared?.let { burn ->
             if (existingBurnSignature != null) {
                 item { Card { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("Existing burn verified", fontSize = 20.sp, fontWeight = FontWeight.Black); Text("No additional SPARKD burn is required.", fontWeight = FontWeight.Bold, color = Green); Text("This meme will receive one equal chance in the random drawing.") } } }
