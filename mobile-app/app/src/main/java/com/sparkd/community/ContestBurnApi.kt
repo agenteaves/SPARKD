@@ -73,16 +73,16 @@ class ContestBurnApi {
         val memeId=requireMemeId()
         val token=call(JSONObject().put("action","find_token_account").put("wallet",wallet))
         check(token.optBoolean("found")) { "No SPARKD Token-2022 account was found." }
-        check(token.optString("mint")==mint && token.optString("program")==token2022)
+        check(token.optString("mint")==mint && token.optString("program")==token2022) { "SPARKD token account mint or Token-2022 program does not match the expected token. Reconnect your wallet and retry." }
         check(token.optInt("decimals")==6) { "SPARKD token decimal verification failed." }
         val requiredSparkd=token.optDouble("requiredSparkd",Double.NaN)
         val requiredLabel=if(requiredSparkd.isFinite()) String.format(java.util.Locale.US,"%,.6f",requiredSparkd).trimEnd('0').trimEnd('.') else "the server-quoted amount"
         check(token.optBoolean("sufficientBalance")) { "Your wallet needs at least $requiredLabel SPARKD ($3 worth) to enter." }
         val tokenAccount=token.getString("tokenAccount")
         val p=call(JSONObject().put("action","prepare_burn").put("wallet",wallet).put("contestId",contestId).put("memeID",memeId).put("tokenAccount",tokenAccount).put("creatorId",creatorId))
-        check(p.optBoolean("prepared")&&p.optBoolean("transactionBuilt"))
-        check(p.optInt("signerCount")==1&&p.optInt("instructionCount")==1&&!p.optBoolean("durableNonce"))
-        check(p.optString("mint")==mint&&p.optString("tokenProgram")==token2022&&p.optInt("decimals")==6)
+        check(p.optBoolean("prepared")&&p.optBoolean("transactionBuilt")) { "Contest service did not prepare a burn transaction: " + p.optString("error", p.optString("reason", "missing prepared/transactionBuilt confirmation")) }
+        check(p.optInt("signerCount")==1&&p.optInt("instructionCount")==1&&!p.optBoolean("durableNonce")) { "Unsafe burn transaction layout returned by contest service (signers=${p.optInt("signerCount", -1)}, instructions=${p.optInt("instructionCount", -1)}, durableNonce=${p.optBoolean("durableNonce")}). No transaction was signed." }
+        check(p.optString("mint")==mint&&p.optString("tokenProgram")==token2022&&p.optInt("decimals")==6) { "Burn transaction token mint, program, or decimals do not match SPARKD Token-2022. No transaction was signed." }
         val rawBurnAmount=p.optString("rawBurnAmount")
         check(rawBurnAmount.matches(Regex("[1-9][0-9]*"))) { "Server returned an invalid SPARKD burn amount." }
         check(p.optString("quoteToken").isNotBlank()) { "Server did not return a signed $3 SPARKD quote." }
