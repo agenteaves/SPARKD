@@ -386,6 +386,11 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         check(contest.phase == "SUBMISSION" || contest.phase == "OPEN") { "Submissions are not open for the current contest." }
                         check(!contestPreflight("Existing submission check") { api.hasExistingSubmission(address) }) { "This wallet already has a finalized contest submission." }
                         api.selectMeme(record)
+                        val savedBurn = recovery.pending()
+                        if (savedBurn != null) {
+                            check(savedBurn.wallet == address && savedBurn.contestId == contest.id) { "A previous signed burn belongs to another wallet or contest. DO NOT BURN AGAIN. Contact SPARKD support." }
+                            error("A previously signed SPARKD burn is saved on this device. DO NOT BURN AGAIN. Verify its transaction receipt or contact SPARKD support before attempting another entry.")
+                        }
                         status = "Checking contest eligibility…"
                         status = "Checking for a previously verified burn…"
                         val existingBurn = contestPreflight("Burn receipt check") { api.getBurnReceipt(address, contest.id) }
