@@ -310,7 +310,7 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                 val chain = api.transactionStatus(address, savedSignature)
                 when {
                     chain.found && !chain.failed -> savedSignature
-                    chain.found && chain.failed -> { recovery.clear(); error("The previously signed transaction failed on-chain. Review the entry again before starting another burn.") }
+                    chain.found && chain.failed -> error("The saved transaction was reported failed on-chain. Its recovery record is preserved for support review; do not approve another burn until the failure is independently verified.")
                     expiry == null || api.currentBlockHeight(address) > expiry -> error("The saved transaction expired without a verified receipt. Check the contest page or contact SPARKD support before starting another burn.")
                     else -> {
                         val resent = api.resendSignedTransaction(address, burn.contestId, pending.signedTransaction, transactionQuoteToken)
@@ -389,7 +389,6 @@ private suspend fun <T> contestPreflight(stage: String, block: suspend () -> T):
                         val savedBurn = recovery.pending()
                         if (savedBurn != null) {
                             check(savedBurn.wallet == address && savedBurn.contestId == contest.id) { "A previous signed burn belongs to another wallet or contest. DO NOT BURN AGAIN. Contact SPARKD support." }
-                            check(!savedBurn.quoteToken.isNullOrBlank()) { "The saved signed burn has no quote token. DO NOT BURN AGAIN. Contact SPARKD support." }
                             status = "Checking the previous signed burn. No new burn will be prepared…"
                         } else {
                             status = "Checking contest eligibility…"
