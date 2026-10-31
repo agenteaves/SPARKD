@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
  }
  fun prepareEntry():MemeEntryRecord{
   check(ForgeDraft.freshSourceSelected && src!=null){"Choose an image in Meme Forge first."}
-  check(BurnRecoveryStore(ctx).pending()==null){"An earlier signed burn is awaiting verification. Open Submit to recover that transaction without approving another burn. Your current Forge meme is unchanged."}
+  // Editing or exporting an image is safe even with an unresolved burn. Payment stays locked in Submit.
   val address=wallet?.address ?: "NOT_CONNECTED"
   // Render from the current source and layers, even if the preview effect has not run yet.
   val raw=MemeForge.render(requireNotNull(src),"","",layers)
@@ -104,7 +104,7 @@ import androidx.compose.ui.unit.sp
   item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button({textPopup=true},Modifier.weight(1f)){Text("＋ Text")};Button({emojiPopup=true},Modifier.weight(1f)){Text("😀 Emoji")}}}
   selected?.takeIf{it in layers.indices}?.let{i->item{Surface(shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(14.dp)){Text("Selected: "+layers[i].text,fontWeight=FontWeight.Bold);Text("Resize");Slider(value=layers[i].size,onValueChange={v->if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(size=v);layers=n}},valueRange=36f..180f);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton({if(i<layers.size){val n=layers.toMutableList();n[i]=n[i].copy(x=.5f,y=.5f);layers=n}},Modifier.weight(1f)){Text("Center")};OutlinedButton({if(i<layers.size){layers=layers.toMutableList().also{it.removeAt(i)};selected=null}},Modifier.weight(1f)){Text("Delete")}}}}}}
   if(layers.isNotEmpty())item{Text("Tip: drag the text or emoji directly on the image. Tap a layer below to select it.",color=Color.LightGray,fontSize=12.sp);LazyRow(horizontalArrangement=Arrangement.spacedBy(6.dp)){items(layers.size){i->AssistChip(onClick={selected=i},label={Text(layers[i].text)})}}}
-  item{Button({if(BurnRecoveryStore(ctx).pending()!=null){exportStatus="⚠️ Previous signed burn pending. Opening Submit for safe recovery; no new burn will be prepared.";onEntryReady?.invoke()}else runCatching{prepareEntry();onEntryReady?.invoke()}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to transfer the meme.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null&&title.isNotBlank()&&onEntryReady!=null,modifier=Modifier.fillMaxWidth()){Text("Send meme to Submit tab")}}
+  item{Button({runCatching{prepareEntry();exportStatus=if(BurnRecoveryStore(ctx).pending()!=null) "⚠️ New image saved for review. Previous burn is unresolved; no new payment will be requested." else "✅ New image saved for contest review.";onEntryReady?.invoke()}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to transfer the meme.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null&&title.isNotBlank()&&onEntryReady!=null,modifier=Modifier.fillMaxWidth()){Text("Send meme to Submit tab")}}
   item{OutlinedButton({runCatching{val record=prepareEntry();exportPng.launch("SPARKD-"+record.memeID+".png")}.onFailure{exportStatus="🚫 "+(it.message?:"Unable to prepare the meme PNG.")}},enabled=ForgeDraft.freshSourceSelected&&png!=null,modifier=Modifier.fillMaxWidth()){Text("Save Meme PNG")}}
   exportStatus?.let{m->item{Text(m,color=if(m.startsWith("✅"))Green else Gold,fontSize=12.sp)}}
  }
