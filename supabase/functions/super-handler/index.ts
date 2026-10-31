@@ -4942,11 +4942,9 @@ if (
             encodeURIComponent(
                 wallet
             ) +
-            "&meme_id=eq." +
-            encodeURIComponent(
-                memeID.trim()
-            ) +
-            "&limit=1",
+            "&burn_verified=eq.true" +
+            "&submission_id=is.null" +
+            "&order=created_at.desc&limit=1",
             {
                 method:
                     "GET",
@@ -5212,11 +5210,11 @@ if (
             encodeURIComponent(
                 wallet
             ) +
-            "&meme_id=eq." +
+            "&burn_transaction=eq." +
             encodeURIComponent(
-                finalMemeID
+                burnTransaction
             ) +
-            "&limit=1",
+            "&burn_verified=eq.true&limit=1",
             {
                 method:
                     "GET",
@@ -5284,6 +5282,11 @@ if (
 
     }
 
+
+    // A verified payment may cover a different meme, but never a second entry.
+    if (receipt.submission_id) {
+        return jsonResponse({success:false, finalized:false, error:"This burn receipt has already been used for a contest submission."},409);
+    }
 
     ////////////////////////////////////////////////////
     // CHECK FOR EXISTING SUBMISSION
