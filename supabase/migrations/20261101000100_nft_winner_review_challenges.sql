@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS public.nft_winner_review_challenges (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  nonce uuid NOT NULL DEFAULT gen_random_uuid(),
  wallet text NOT NULL,
+ intent text NOT NULL,
  expires_at timestamptz NOT NULL DEFAULT now() + interval '5 minutes',
  used_at timestamptz,
  created_at timestamptz NOT NULL DEFAULT now()
