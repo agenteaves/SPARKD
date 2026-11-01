@@ -28,21 +28,25 @@ Deno.serve(async req=>{
   const body=await req.json();
   const database=db();
   if(body.action==="challenge"){
+   const intent=body.intent==="list"?"list":body.intent==="review"&&uuid.test(body.contestId||"")&&["approved","rejected"].includes(body.decision)?["review",body.contestId,body.decision].join(":"):null;
+   if(!intent)return reply(req,{error:"Invalid review intent"},400);
    if(body.wallet!==OWNER)return reply(req,{error:"Owner wallet required"},403);
-   const {data,error}=await database.from("nft_winner_review_challenges").insert({wallet:OWNER}).select("id,nonce,expires_at").single();
+   const {data,error}=await database.from("nft_winner_review_challenges").insert({wallet:OWNER,intent}).select("id,nonce,expires_at").single();
    if(error)throw error;
-   return reply(req,{challengeId:data.id,message:["SPARKD-NFT-WINNER-REVIEW-v1",data.id,data.nonce,OWNER].join("\n"),expiresAt:data.expires_at});
+   return reply(req,{challengeId:data.id,message:["SPARKD-NFT-WINNER-REVIEW-v1",data.id,data.nonce,OWNER,intent].join("\n"),expiresAt:data.expires_at});
   }
   if(!["list","review"].includes(body.action)||!uuid.test(body.challengeId||"")||typeof body.signature!=="string")
    return reply(req,{error:"Invalid request"},400);
   if(body.action==="review"&&(!uuid.test(body.contestId||"")||!["approved","rejected"].includes(body.decision)))
    return reply(req,{error:"Invalid review"},400);
   const {data:challenge,error:challengeError}=await database.from("nft_winner_review_challenges")
-   .select("id,nonce,wallet,expires_at,used_at").eq("id",body.challengeId).maybeSingle();
+   .select("id,nonce,wallet,intent,expires_at,used_at").eq("id",body.challengeId).maybeSingle();
   if(challengeError)throw challengeError;
   if(!challenge||challenge.wallet!==OWNER||challenge.used_at||Date.parse(challenge.expires_at)<=Date.now())
    return reply(req,{error:"Challenge expired or already used"},401);
-  const message=["SPARKD-NFT-WINNER-REVIEW-v1",challenge.id,challenge.nonce,OWNER].join("\n");
+  const intent=body.action==="list"?"list":["review",body.contestId,body.decision].join(":");
+  if(challenge.intent!==intent)return reply(req,{error:"Signed action mismatch"},403);
+  const message=["SPARKD-NFT-WINNER-REVIEW-v1",challenge.id,challenge.nonce,OWNER,intent].join("\n");
   const signature=Uint8Array.from(atob(body.signature),c=>c.charCodeAt(0));
   if(signature.length!==64||!nacl.sign.detached.verify(new TextEncoder().encode(message),signature,bs58.decode(OWNER)))
    return reply(req,{error:"Invalid owner signature"},401);
