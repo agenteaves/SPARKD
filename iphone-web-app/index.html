@@ -132,7 +132,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
     <div class="card">
       <div id="contestPhase" class="phase">Loading…</div>
       <div id="contestTitle" class="contest-title">Loading the live SPARKD contest…</div>
-      <div id="contestPrize" class="prize">🥇 1st: $12 SOL&nbsp; • &nbsp;🥈 2nd: $10 SOL&nbsp; • &nbsp;🥉 3rd: $8 SOL&nbsp; • &nbsp;🏅 4th: $6 SOL&nbsp; • &nbsp;🏅 5th: $4 SOL</div>
+      <div id="contestPrize" class="prize">$40 total in SOL • 🥇 1st: $12 SOL&nbsp; • &nbsp;🥈 2nd: $10 SOL&nbsp; • &nbsp;🥉 3rd: $8 SOL&nbsp; • &nbsp;🏅 4th: $6 SOL&nbsp; • &nbsp;🏅 5th: $4 SOL</div>
       <div id="contestEntries" class="entries">Checking entries…</div>
     </div>
     <div class="actions">
@@ -352,7 +352,7 @@ function loadWinners(){
  rest("meme_week_contests?select=id,week_start&status=eq.completed&order=week_start.desc&limit=25").then(function(contests){
   if(!contests.length)return {contests:[],winners:[]};
   var ids=contests.map(function(c){return c.id;}).filter(Boolean);
-  return rest("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,payout_verified&contest_id=in.("+ids.join(",")+")").then(function(winners){return {contests:contests,winners:winners};});
+  return rest("meme_week_winners?select=contest_id,submission_id,second_submission_id,third_submission_id,fourth_submission_id,fifth_submission_id,payout_verified&contest_id=in.("+ids.join(",")+")").then(function(winners){return {contests:contests,winners:winners};});
  }).then(function(data){
   if(!data.winners.length){message.textContent="No completed contests with winners yet.";return;}
   var submissionIds=[];
@@ -361,7 +361,7 @@ function loadWinners(){
   return rest("meme_week_submissions?select=id,meme_title,wallet_address,meme_image_url&id=in.("+Array.from(new Set(submissionIds)).join(",")+")").then(function(submissions){
    var byId={},weeks={};submissions.forEach(function(s){byId[s.id]=s;});data.contests.forEach(function(c){weeks[c.id]=String(c.week_start||"").slice(0,10);});
    var items=[];
-   data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id"].forEach(function(field,i){var s=byId[w[field]];if(s)items.push({place:i+1,title:s.meme_title||"SPARKD Winner",creator:s.wallet_address||"SPARKD Creator",week:weeks[w.contest_id]||"",image:s.meme_image_url||""});});});
+   data.winners.forEach(function(w){["submission_id","second_submission_id","third_submission_id","fourth_submission_id","fifth_submission_id"].forEach(function(field,i){var s=byId[w[field]];if(s)items.push({place:i+1,title:s.meme_title||"SPARKD Winner",creator:s.wallet_address||"SPARKD Creator",week:weeks[w.contest_id]||"",image:s.meme_image_url||""});});});
    items.sort(function(a,b){return b.week.localeCompare(a.week)||a.place-b.place;});
    message.textContent="";items.slice(0,24).forEach(function(w){
     var card=document.createElement("article");card.className="winner-card";
