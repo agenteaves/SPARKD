@@ -74,6 +74,18 @@ const goldBelt=new THREE.Mesh(new THREE.TorusGeometry(.38,.065,8,28),goldMetal);
 for(const limb of [leftArm,rightArm]){const gauntlet=new THREE.Mesh(new THREE.CapsuleGeometry(.19,.27,6,12),goldMetal);gauntlet.position.set(0,-.52,.025);limb.add(gauntlet)}
 for(const leg of [leftLeg,rightLeg]){const thigh=new THREE.Mesh(new THREE.CapsuleGeometry(.2,.37,6,14),suitBlack);thigh.position.set(0,-.29,.04);leg.add(thigh)}
 const capeTrim=new THREE.Mesh(new THREE.PlaneGeometry(1.18,1.52),new THREE.MeshBasicMaterial({color:0xd4a63c,side:THREE.DoubleSide}));capeTrim.position.set(0,-.66,-.17);cape.add(capeTrim);
+
+// Retire the original cuboid mannequin. Keep the articulated joints and curved costume meshes.
+hero.traverse(object=>{if(object.isMesh&&object.geometry?.type==='BoxGeometry')object.visible=false});
+const heroBootMaterial=material(0xd9a12b);
+for(const limb of [leftLeg,rightLeg]){const boot=new THREE.Mesh(new THREE.CapsuleGeometry(.205,.3,8,16),heroBootMaterial);boot.position.set(0,-.73,.05);limb.add(boot);const toe=new THREE.Mesh(new THREE.SphereGeometry(.24,16,12),heroBootMaterial);toe.position.set(0,-.97,.18);toe.scale.set(.9,.55,1.4);limb.add(toe)}
+const capeSurface=new THREE.BufferGeometry(),capePositions=[],capeIndices=[],capeColumns=10,capeRows=12;
+for(let row=0;row<=capeRows;row++){const v=row/capeRows;for(let col=0;col<=capeColumns;col++){const u=col/capeColumns-.5;capePositions.push(u*(.92+v*.9),-v*1.6,-.15-v*.12+Math.sin(u*Math.PI*2)*.09*v)}}
+for(let row=0;row<capeRows;row++)for(let col=0;col<capeColumns;col++){const a=row*(capeColumns+1)+col,b=a+capeColumns+1;capeIndices.push(a,b,a+1,b,b+1,a+1)}
+capeSurface.setAttribute('position',new THREE.Float32BufferAttribute(capePositions,3));capeSurface.setIndex(capeIndices);capeSurface.computeVertexNormals();
+const sculptedCape=new THREE.Mesh(capeSurface,new THREE.MeshStandardMaterial({color:0x078344,side:THREE.DoubleSide,roughness:.67}));cape.add(sculptedCape);
+const capeEdge=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array.from({length:17},(_,i)=>{const u=i/16-.5;return new THREE.Vector3(u*1.82,-1.6,-.27+Math.sin(u*Math.PI*2)*.09)})),32,.035,6,false),heroBootMaterial);cape.add(capeEdge);
+cloth.visible=false;capeTrim.visible=false;
 let crouch=0;
 const warningMat=new THREE.MeshBasicMaterial({color:0xffd247,transparent:true,opacity:.22,depthWrite:false}),hazardMat=material(0xffb326),droneMat=material(0xc94459),orbMat=material(0x71ffad,0x267a44);const objects=new Map();
 let snapshot=null,clock=0,last=performance.now(),stopped=false,heroY=0,heroPitch=0;
