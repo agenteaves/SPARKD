@@ -115,6 +115,10 @@ drawHero();drawParticles();ctx.fillStyle='#c8ffdc';ctx.font='bold 15px system-ui
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==runnerFrame.contentWindow||!e.data)return;if(e.data.type==='sparkd-runner-3d-ready'){runner3dReady=true;if(mode==='runner'){runnerFrame.hidden=false;canvas.hidden=true}}if(e.data.type==='sparkd-runner-3d-error'){runner3dReady=false;runnerFrame.hidden=true;if(mode==='runner')canvas.hidden=false;document.getElementById('runDiagnostics').textContent='3D renderer unavailable — using animated 2D backup. '+(e.data.reason||'')}});function frame(ts){const realDt=Math.max(0,(ts-last)/1000||0);last=ts;
 if(state==='playing'){if(realDt>.25){accumulator=0;runInvalid=true;runReason='large frame gap';}else{accumulator+=realDt;let steps=0;while(accumulator>=STEP&&state==='playing'&&steps<MAX_STEPS){update(STEP);accumulator-=STEP;steps++}if(steps===MAX_STEPS&&accumulator>=STEP){accumulator=0;runInvalid=true;runReason='simulation lag — replay unverified'}}}
 else accumulator=0;
-if(runner3dReady&&mode==='runner'&&runnerFrame.contentWindow){runnerFrame.contentWindow.postMessage({type:'sparkd-runner-frame',y:hero.y,duck:duckHeld,invulnerable,speed,stopped:state!=='playing',items:items.map(it=>({id:it.id,type:it.type,x:it.x,y:it.y,h:it.h}))},location.origin)}if(!canvas.hidden)draw(ts/1000);requestAnimationFrame(frame)}requestAnimationFrame(frame);
+if(runner3dReady&&mode==='runner'&&runnerFrame.contentWindow){runnerFrame.contentWindow.postMessage({type:'sparkd-runner-frame',y:hero.y,duck:duckHeld,invulnerable,speed,stopped:state!=='playing',items:items.map(it=>({id:it.id,type:it.type,x:it.x,y:it.y,h:it.h}))},location.origin)}if(!canvas.hidden)draw(ts/1000);requestAnimationFrame(frame)}
+// A browser may restore the previous in-memory game from its back/forward cache.
+// Re-entering the arcade must always be a new attempt, never a resumed level.
+window.addEventListener('pageshow',event=>{if(event.persisted){reset();state='ready';heading.textContent='SPARKD RUNNER';message.textContent='Start a fresh five-level mission.';startBtn.textContent='START GAME';overlay.hidden=false;pauseBtn.textContent='Ⅱ PAUSE';accumulator=0;last=performance.now()}});
+reset();state='ready';overlay.hidden=false;requestAnimationFrame(frame);
 })();
 </script></body></html>
