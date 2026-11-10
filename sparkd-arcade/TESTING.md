@@ -32,3 +32,20 @@ Account login, 24-hour run limits, server-side anti-cheat, public leaderboard, p
 ## Release gate
 
 Do not connect this page to production navigation or announce prize competitions until browser/device QA, secure backend validation, and explicit approval.
+
+## v0.4 verification (2026-11-09)
+
+Static source checks passed for: touch pointer capture, tab visibility pause, reset, score storage, artwork fallback, game-over handler, keyboard input, and nonnegative frame delta clamp.
+
+Source review updates:
+- Duck button captures the initiating pointer so release outside the button stops ducking.
+- Duck state is cleared on pause and game over.
+- Frame time delta is clamped nonnegative.
+
+**Browser QA is still pending.** The test environment could not resolve GitHub's raw-content host to download the page for a local browser run. Static checks are not a substitute for gameplay tests.
+
+### Known limitations
+- SPARKD Man artwork uses a single static image with bounce movement, not frame-by-frame animation.
+- Best score is browser-local and editable; not suitable for prize competitions.
+- No authentication, server-side scoring, leaderboard, or 24-hour quota.
+- A publicly served directory is not access-controlled merely because it is absent from navigation.
