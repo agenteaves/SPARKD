@@ -9,8 +9,11 @@ const STEP=1/60,GROUND=345,W=800,MAX_STEPS=60*60*15,MAX_EVENTS=12000;
 function verify(record){
   if(!record||record.format!=='sparkd-practice-run-v1')return {ok:false,reason:'unsupported format'};
   const {seed,steps,events,score,orbs,lives}=record;
+  // A boss encounter is not represented by runner input events. Report this as
+  // unverified, not a failed integrity check. Never award verified scores.
+  if(record.verification==='boss-stage-unverified'||record.reason==='boss-mode replay not supported by practice verifier'||record.bossOutcome){return {ok:false,unverified:true,flagged:false,reason:'boss encounter cannot be replay-verified with runner-only inputs'};}
   if(!Number.isSafeInteger(seed)||seed<1||seed>0xffffffff||!Number.isSafeInteger(steps)||steps<1||steps>MAX_STEPS)return {ok:false,reason:'invalid seed or duration'};
-  if(!Array.isArray(events)||events.length>MAX_EVENTS||!Number.isSafeInteger(score)||score<0||!Number.isSafeInteger(orbs)||orbs<0||!Number.isSafeInteger(lives)||lives<0||lives>3)return {ok:false,reason:'invalid payload'};
+  if(!Array.isArray(events)||events.length>MAX_EVENTS||!Number.isSafeInteger(score)||score<0||!Number.isSafeInteger(orbs)||orbs<0||!Number.isSafeInteger(lives)||lives<0||lives>5)return {ok:false,reason:'invalid payload'};
   let lastStep=-1;for(const e of events){
     if(!e||!Number.isSafeInteger(e.step)||e.step<0||e.step>=steps||e.step<lastStep||!['jump','duck_down','duck_up'].includes(e.action))return {ok:false,reason:'invalid input sequence'};
     lastStep=e.step;
