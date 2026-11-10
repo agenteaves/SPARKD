@@ -19,7 +19,7 @@ let candidate=null;
 for(let seed=1;seed<=30&&!candidate;seed++){
   const probe=verify({...base,seed,steps:54000});
   // A completed run with an intentionally wrong result returns expected.
-  if(probe.reason==='result mismatch'&&probe.expected&&probe.expected.lives===0)candidate={...base,seed,steps:probe.expected.steps,...probe.expected};
+  if(probe.reason==='run does not end at reported step'&&probe.finishedAt){const result=verify({...base,seed,steps:probe.finishedAt});if(result.expected&&result.expected.lives===0)candidate={...base,seed,steps:probe.finishedAt,...result.expected}}
 }
 assert.ok(candidate,'expected a completed deterministic run');
 const valid=verify(candidate);assert.equal(valid.ok,true,JSON.stringify(valid));
