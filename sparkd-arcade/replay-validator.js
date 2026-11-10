@@ -48,7 +48,7 @@ function verify(record){
     if(finishedAt!==null)break;
   }
   if(eventIndex!==events.length)return {ok:false,reason:'unused inputs'};
-  if(finishedAt!==steps)return {ok:false,reason:'run does not end at reported step'};
+  if(finishedAt!==steps)return {ok:false,reason:'run does not end at reported step',finishedAt};
   const expected={score:Math.floor(points),orbs:orbCount,lives:life,steps};
   return {ok:score===expected.score&&orbs===orbCount&&lives===life,reason:score===expected.score&&orbs===orbCount&&lives===life?'consistent local replay':'result mismatch',expected};
 }
