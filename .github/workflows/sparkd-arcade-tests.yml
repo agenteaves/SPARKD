@@ -1,0 +1,37 @@
+name: SPARKD Arcade replay checks
+on:
+  push:
+    paths:
+      - 'sparkd-arcade/**'
+      - '.github/workflows/sparkd-arcade-tests.yml'
+  pull_request:
+    paths:
+      - 'sparkd-arcade/**'
+      - '.github/workflows/sparkd-arcade-tests.yml'
+permissions:
+  contents: read
+jobs:
+  replay-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check replay validator and regression tests
+        run: |
+          node --check sparkd-arcade/replay-validator.js
+          node --check sparkd-arcade/replay-validator.test.js
+          node sparkd-arcade/replay-validator.test.js
+      - name: Check inline game JavaScript syntax
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const html=fs.readFileSync('sparkd-arcade/index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+          if(!scripts.length)throw new Error('Missing game script');
+          for(const script of scripts)new vm.Script(script[1]);
+          console.log('Inline arcade scripts parse');
+          NODE
