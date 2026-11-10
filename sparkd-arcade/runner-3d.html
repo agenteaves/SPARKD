@@ -52,6 +52,17 @@ const leftLeg=new THREE.Group(),rightLeg=new THREE.Group(),leftArm=new THREE.Gro
 for(const [g,x,y,p] of [[leftLeg,-.23,.95,hero],[rightLeg,.23,.95,hero],[leftArm,-.54,1.8,torso],[rightArm,.54,1.8,torso]]){g.position.set(x,y,0);p.add(g)}
 for(const [leg,knee] of [[leftLeg,leftKnee],[rightLeg,rightKnee]]){block(leg,.26,.49,.31,0x171e1b,0,-.25,0);knee.position.y=-.49;leg.add(knee);block(knee,.26,.46,.32,0x16241c,0,-.23,0);block(knee,.34,.18,.47,0xe0b746,0,-.46,.08)}
 for(const arm of [leftArm,rightArm]){block(arm,.24,.53,.28,0x159b53,0,-.29,0);block(arm,.27,.24,.31,0xe6c04d,0,-.61,0)}
+
+// Rounded superhero anatomy and mask overlays; no flat sprite.
+function heroCurve(parent,geometry,color,x,y,z){const mesh=new THREE.Mesh(geometry,material(color));mesh.position.set(x,y,z);parent.add(mesh);return mesh}
+const armor=heroCurve(torso,new THREE.SphereGeometry(.48,18,12),0x0d7840,0,1.46,.12);armor.scale.set(1.12,.88,.54);
+const emblem=heroCurve(torso,new THREE.OctahedronGeometry(.2),0xffd34c,0,1.49,.43);emblem.rotation.z=.28;
+const face=heroCurve(torso,new THREE.SphereGeometry(.37,20,14),0xe8b58e,0,2.1,.02);face.scale.set(1,1.1,.9);
+const hair=heroCurve(torso,new THREE.SphereGeometry(.4,20,12),0xf8d24c,0,2.39,-.02);hair.scale.set(1,.48,1);
+const mask=heroCurve(torso,new THREE.SphereGeometry(.375,20,12),0x08974b,0,2.17,.05);mask.scale.set(1.03,.25,.98);
+for(const side of [-1,1]){const eye=heroCurve(torso,new THREE.SphereGeometry(.065,12,8),0xfafff2,side*.17,2.18,.365);eye.scale.set(1,.65,.35);heroCurve(torso,new THREE.SphereGeometry(.045,10,8),0x1a3424,side*.17,2.18,.39)}
+for(const arm of [leftArm,rightArm]){heroCurve(arm,new THREE.CapsuleGeometry(.155,.32,6,12),0x149c53,0,-.3,0);heroCurve(arm,new THREE.SphereGeometry(.18,12,10),0xe7bd40,0,-.63,0)}
+for(const leg of [leftLeg,rightLeg]){heroCurve(leg,new THREE.CapsuleGeometry(.16,.28,6,12),0x172820,0,-.28,0);heroCurve(leg,new THREE.SphereGeometry(.18,12,10),0x17a253,0,-.49,.19)}
 let crouch=0;
 const warningMat=new THREE.MeshBasicMaterial({color:0xffd247,transparent:true,opacity:.22,depthWrite:false}),hazardMat=material(0xffb326),droneMat=material(0xc94459),orbMat=material(0x71ffad,0x267a44);const objects=new Map();
 let snapshot=null,clock=0,last=performance.now(),stopped=false,heroY=0,heroPitch=0;
