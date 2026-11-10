@@ -24,7 +24,7 @@ begin
   -- Competing starts may choose the same slot. Unique constraint + ON CONFLICT
   -- makes allocation atomic; loop to attempt another available slot.
   for v_slot in 1..5 loop
-    v_seed := (('x'||encode(gen_random_bytes(4),'hex'))::bit(32)::bigint % 4294967295) + 1;
+    v_seed := (('x'||substr(replace(pg_catalog.gen_random_uuid()::text,'-',''),1,8))::bit(32)::bigint % 4294967295) + 1;
     insert into sparkd_arcade.runs(player_id,utc_day,run_number,seed,expires_at)
     values(p_player_id,v_day,v_slot,v_seed,v_expires)
     on conflict (player_id,utc_day,run_number) do nothing
