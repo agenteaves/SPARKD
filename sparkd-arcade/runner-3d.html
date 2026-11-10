@@ -78,5 +78,5 @@ heroShadow.material.opacity=.28/(1+heroY*.7);heroShadow.scale.setScalar(1+heroY*
 hero.visible=snapshot.invulnerable<=0||Math.floor(clock*12)%2===0;
 for(const stripe of crossing){stripe.position.z+=(stopped?0:dt)*(snapshot.speed||280)/65;if(stripe.position.z>10)stripe.position.z-=68}for(const line of lines){line.position.z+=(stopped?0:dt)*(snapshot.speed||280)/65;if(line.position.z>9)line.position.z-=54}for(const b of buildings){b.position.z+=(stopped?0:dt)*(snapshot.speed||280)/85;if(b.position.z>12)b.position.z-=77}for(const d of streetDetails){d.position.z+=(stopped?0:dt)*(snapshot.speed||280)/85;if(d.position.z>12)d.position.z-=72}}renderer.render(scene,camera)}
 document.getElementById('fallback').remove();parent.postMessage({type:'sparkd-runner-3d-ready'},location.origin);requestAnimationFrame(frame);
-}catch(err){document.getElementById('fallback').textContent='3D unavailable; switching to classic renderer.';parent.postMessage({type:'sparkd-runner-3d-error'},location.origin)}
+}catch(err){document.getElementById('fallback').textContent='3D unavailable; switching to classic renderer.';parent.postMessage({type:'sparkd-runner-3d-error',reason:String(err&&err.message||err)},location.origin)}
 </script></body></html>
