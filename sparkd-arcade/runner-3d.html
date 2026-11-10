@@ -63,6 +63,17 @@ const mask=heroCurve(torso,new THREE.SphereGeometry(.375,20,12),0x08974b,0,2.17,
 for(const side of [-1,1]){const eye=heroCurve(torso,new THREE.SphereGeometry(.065,12,8),0xfafff2,side*.17,2.18,.365);eye.scale.set(1,.65,.35);heroCurve(torso,new THREE.SphereGeometry(.045,10,8),0x1a3424,side*.17,2.18,.39)}
 for(const arm of [leftArm,rightArm]){heroCurve(arm,new THREE.CapsuleGeometry(.155,.32,6,12),0x149c53,0,-.3,0);heroCurve(arm,new THREE.SphereGeometry(.18,12,10),0xe7bd40,0,-.63,0)}
 for(const leg of [leftLeg,rightLeg]){heroCurve(leg,new THREE.CapsuleGeometry(.16,.28,6,12),0x172820,0,-.28,0);heroCurve(leg,new THREE.SphereGeometry(.18,12,10),0x17a253,0,-.49,.19)}
+
+// Costume reference: black muscular bodysuit, green infinity crest, gold armor and trimmed cape.
+const suitBlack=material(0x101719),goldMetal=material(0xe7ae32),crestGreen=material(0x28ef86,0x086b36);
+const pectorals=new THREE.Group();torso.add(pectorals);
+for(const side of [-1,1]){const pec=new THREE.Mesh(new THREE.SphereGeometry(.29,18,12),suitBlack);pec.position.set(side*.245,1.61,.29);pec.scale.set(1.13,.73,.64);pectorals.add(pec);const shoulder=new THREE.Mesh(new THREE.SphereGeometry(.27,16,12),suitBlack);shoulder.position.set(side*.51,1.77,.015);shoulder.scale.set(1,.95,.93);torso.add(shoulder)}
+const abdominal=new THREE.Mesh(new THREE.CapsuleGeometry(.27,.35,6,16),suitBlack);abdominal.position.set(0,1.25,.28);abdominal.scale.set(1.24,1,.65);torso.add(abdominal);
+for(const side of [-1,1]){const loop=new THREE.Mesh(new THREE.TorusGeometry(.18,.047,8,28),crestGreen);loop.position.set(side*.145,1.56,.52);loop.rotation.z=side*.52;torso.add(loop)}
+const goldBelt=new THREE.Mesh(new THREE.TorusGeometry(.38,.065,8,28),goldMetal);goldBelt.position.set(0,1.07,.04);goldBelt.rotation.x=Math.PI/2;goldBelt.scale.y=.7;torso.add(goldBelt);
+for(const limb of [leftArm,rightArm]){const gauntlet=new THREE.Mesh(new THREE.CapsuleGeometry(.19,.27,6,12),goldMetal);gauntlet.position.set(0,-.52,.025);limb.add(gauntlet)}
+for(const leg of [leftLeg,rightLeg]){const thigh=new THREE.Mesh(new THREE.CapsuleGeometry(.2,.37,6,14),suitBlack);thigh.position.set(0,-.29,.04);leg.add(thigh)}
+const capeTrim=new THREE.Mesh(new THREE.PlaneGeometry(1.18,1.52),new THREE.MeshBasicMaterial({color:0xd4a63c,side:THREE.DoubleSide}));capeTrim.position.set(0,-.66,-.17);cape.add(capeTrim);
 let crouch=0;
 const warningMat=new THREE.MeshBasicMaterial({color:0xffd247,transparent:true,opacity:.22,depthWrite:false}),hazardMat=material(0xffb326),droneMat=material(0xc94459),orbMat=material(0x71ffad,0x267a44);const objects=new Map();
 let snapshot=null,clock=0,last=performance.now(),stopped=false,heroY=0,heroPitch=0;
