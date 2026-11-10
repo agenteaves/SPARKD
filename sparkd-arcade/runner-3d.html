@@ -39,7 +39,7 @@ for(const side of [-1,1]){
  }
 }
 function block(parent,w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
-const hero=new THREE.Group();hero.scale.setScalar(.57);scene.add(hero);
+const hero=new THREE.Group();hero.scale.setScalar(.57);hero.rotation.y=Math.PI;scene.add(hero);
 const heroShadow=new THREE.Mesh(new THREE.CircleGeometry(.39,24),new THREE.MeshBasicMaterial({color:0x172d25,transparent:true,opacity:.28,depthWrite:false}));heroShadow.rotation.x=-Math.PI/2;heroShadow.position.y=.035;scene.add(heroShadow);
 const torso=new THREE.Group();hero.add(torso);
 block(torso,.78,.85,.43,0x151d1b,0,1.43,0);block(torso,.8,.17,.46,0x16bc63,0,1.72,.025);block(torso,.76,.12,.48,0xe8bc3f,0,1.08,.02);block(torso,.24,.3,.08,0xf3ca4e,0,1.48,.255);
