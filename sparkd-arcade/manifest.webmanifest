@@ -1,0 +1,19 @@
+{
+  "name": "SPARKD ELITES",
+  "short_name": "SPARKD ELITES",
+  "description": "Five levels. Five monsters. One hero.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#070b09",
+  "theme_color": "#070b09",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
