@@ -262,20 +262,11 @@ window.SPARKD_CONTEST = {
             );
 
 
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-                "SPARKD balance service returned HTTP " +
-                response.status
-            );
-
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(result?.error || "SPARKD balance service is temporarily unavailable. Please retry.");
         }
-
-
-        const result =
-            await response.json();
+        if (!result) throw new Error("SPARKD balance service returned an invalid response.");
 
 
         if (
@@ -312,6 +303,9 @@ window.SPARKD_CONTEST = {
         }
 
 
+        if (result.pricingUnavailable || result.requiredSparkd == null) {
+            throw new Error(result.pricingMessage || "Safe SPARKD pricing is temporarily unavailable. Please retry shortly; no burn was initiated.");
+        }
         const requiredSparkd = Number(result.requiredSparkd);
         if (!Number.isFinite(requiredSparkd) || requiredSparkd <= 0) {
             throw new Error("The current $3 SPARKD entry quote is unavailable.");
