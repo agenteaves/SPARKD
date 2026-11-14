@@ -1684,10 +1684,8 @@ document.addEventListener(
 
                     alert(
                         "❌ SUBMISSION FAILED\n\n" +
-                        (
-                            error?.message ||
-                            error
-                        )
+                        (error?.message || error) +
+                        "\n\nYour meme and title have been preserved. No new submission was confirmed. Check your wallet activity before retrying if Phantom previously approved a transaction."
                     );
 
                 }
