@@ -6577,14 +6577,24 @@ if (
         }
 
 
-        const requiredBurnQuote = await getContestBurnQuote();
-        const requiredSparkd = requiredBurnQuote.amount;
+        // Balance verification must remain available even if the $3 price quote
+        // cannot be safely calculated. Never allow a burn without a valid quote.
+        let requiredBurnQuote = null;
+        let pricingUnavailable = false;
+        try {
+            requiredBurnQuote = await getContestBurnQuote();
+        } catch (quoteError) {
+            pricingUnavailable = true;
+            console.warn("SPARKD entry pricing unavailable during balance check:", quoteError);
+        }
+        const requiredSparkd = requiredBurnQuote?.amount ?? null;
 
         ////////////////////////////////////////////////////
         // FINAL SUBMISSION ELIGIBILITY
         ////////////////////////////////////////////////////
 
         const canSubmit =
+            requiredSparkd !== null &&
             balance >= requiredSparkd &&
             !alreadySubmitted;
 
@@ -6620,13 +6630,19 @@ if (
                 CONTEST_ENTRY_USD,
 
             priceUsd:
-                requiredBurnQuote.priceUsd,
+                requiredBurnQuote?.priceUsd ?? null,
 
             priceSource:
-                requiredBurnQuote.priceSource,
+                requiredBurnQuote?.priceSource ?? null,
 
             estimatedEntryUsd:
-                requiredBurnQuote.estimatedUsd,
+                requiredBurnQuote?.estimatedUsd ?? null,
+
+            pricingUnavailable,
+
+            pricingMessage: pricingUnavailable
+                ? "SPARKD entry pricing is temporarily unavailable. Your balance was checked, but submissions cannot proceed until a safe $3 quote is available."
+                : null,
 
             contestId:
                 balanceContest?.id ||
