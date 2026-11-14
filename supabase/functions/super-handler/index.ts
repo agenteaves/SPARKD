@@ -77,6 +77,30 @@ function jsonResponse(
 }
 
 
+async function getVerifiedDexScreenerQuote(referencePrice: number | null = null) {
+    const response = await fetch(
+        `https://api.dexscreener.com/tokens/v1/solana/${SPARKD_MINT}`,
+        { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8000) }
+    );
+    if (!response.ok) throw new Error("Secondary SPARKD pricing service unavailable.");
+    const data = await response.json();
+    const pairs = Array.isArray(data) ? data : [];
+    const valid = pairs.filter((pair) =>
+        pair?.chainId === "solana" &&
+        pair?.baseToken?.address === SPARKD_MINT &&
+        Number.isFinite(Number(pair?.priceUsd)) && Number(pair.priceUsd) > 0 &&
+        Number.isFinite(Number(pair?.liquidity?.usd)) &&
+        Number(pair.liquidity.usd) >= MIN_PRICE_LIQUIDITY_USD &&
+        (!referencePrice || Math.abs(Number(pair.priceUsd) / referencePrice - 1) <= 0.15)
+    ).sort((a, b) => Number(b.liquidity.usd) - Number(a.liquidity.usd));
+    if (!valid.length) throw new Error("No verified SPARKD liquidity pool meets the $2,500 safety threshold.");
+    return {
+        priceUsd: Number(valid[0].priceUsd),
+        liquidityUsd: Number(valid[0].liquidity.usd),
+        source: "dexscreener-solana-verified-pool"
+    };
+}
+
 async function getContestBurnQuote() {
     const apiKey = Deno.env.get("JUPITER_API_KEY");
     const endpoints = apiKey
@@ -118,9 +142,15 @@ async function getContestBurnQuote() {
         const parsedLiquidity = Number(row?.liquidity);
         if (!Number.isFinite(priceUsd) || priceUsd <= 0) throw new Error("A valid SPARKD/USD price is unavailable.");
         if (!Number.isFinite(parsedLiquidity) || parsedLiquidity < MIN_PRICE_LIQUIDITY_USD) {
-            throw new Error("SPARKD price liquidity is below the $2,500 safety threshold.");
+            // Jupiter can report low/unknown aggregated liquidity while a verified
+            // Solana pool still meets our safeguard. Cross-check price and liquidity.
+            const fallback = await getVerifiedDexScreenerQuote(priceUsd);
+            priceUsd = fallback.priceUsd;
+            liquidityUsd = fallback.liquidityUsd;
+            priceSource = fallback.source;
+        } else {
+            liquidityUsd = parsedLiquidity;
         }
-        liquidityUsd = parsedLiquidity;
     } else {
         const pumpResponse = await fetch(
             `https://frontend-api-v3.pump.fun/coins-v2/${SPARKD_MINT}`,
