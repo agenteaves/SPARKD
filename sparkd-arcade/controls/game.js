@@ -98,6 +98,7 @@ function updateHud(){syncInvincibleButton();scoreEl.textContent=Math.floor(score
 function exitGame(){
  // Call close immediately from the confirmed user gesture, before cleanup.
  // Android Chrome only permits closing certain script-opened windows.
+ try{sessionStorage.setItem('sparkd-confirmed-exit','1')}catch(e){}
  try{window.close()}catch(e){}
  // If Chrome keeps this tab open, stop all game activity and unload its page.
  sendArena('pause');window.SPARKDMusic?.stop();state='ready';
