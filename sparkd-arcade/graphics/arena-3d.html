@@ -207,7 +207,7 @@ const fraction=lengthSq>1e-8?THREE.MathUtils.clamp(center.clone().sub(previous).
 const closest=previous.clone().addScaledVector(segment,fraction);
 const vertical=THREE.MathUtils.clamp(closest.y,.85,2.18);
 const dx=closest.x-x,dy=closest.y-vertical,dz=closest.z-z;
-const hitRadius=.27+s.mesh.geometry.parameters.radius; // Tight body collision: visual near-misses should not damage the player.
+const hitRadius=.27+(s.collisionRadius??s.mesh.geometry.parameters.radius??.23); // Tight body collision: visual near-misses should not damage the player.
 if(dx*dx+dy*dy+dz*dz<hitRadius*hitRadius){if(invuln<=0){hurt();playImpact('hero');impactBurst(x,1.1,z)}s.life=0}
 else if(s.mesh.position.z>z+1.8){s.life=0}
 }enemyTimer+=dt;specialTimer+=dt;
@@ -223,7 +223,7 @@ if(specialTimer>Math.max(10,15-level*.7-phase*.65)){
  status.textContent='⚠ '+monsters[level]+' — '+names[level]+'! DODGE!';
  const launch=(offset,vx,vz,color,radius,kind,y=2)=>{
   projectile(enemyShots,new THREE.Vector3(bx+offset,y,-6),new THREE.Vector3(vx,0,vz),color,radius);
-  const s=enemyShots[enemyShots.length-1];s.kind=kind;s.age=0;s.baseX=s.mesh.position.x;s.baseY=y;s.baseVx=vx;
+  const s=enemyShots[enemyShots.length-1];s.collisionRadius=radius;s.kind=kind;s.age=0;s.baseX=s.mesh.position.x;s.baseY=y;s.baseVx=vx;
   if(kind==='iron'){s.mesh.geometry.dispose();s.mesh.geometry=new THREE.OctahedronGeometry(radius*1.7);s.mesh.rotation.z=.5}
   if(kind==='blood'){s.mesh.geometry.dispose();s.mesh.geometry=new THREE.ConeGeometry(radius*1.3,radius*4,6);s.mesh.rotation.x=Math.PI/2}
   if(kind==='thunder'){s.mesh.geometry.dispose();s.mesh.geometry=new THREE.TetrahedronGeometry(radius*2)}
