@@ -97,7 +97,6 @@ function activateInvincible(){if(state!=='playing'||mode!=='runner'||level===0||
 function updateHud(){syncInvincibleButton();scoreEl.textContent=Math.floor(score);bestEl.textContent=Math.floor(best);livesEl.textContent=lives;document.getElementById('orbProgress').textContent=(orbs%5)+'/5';document.getElementById('levelProgressFill').style.width=(mode==='boss'?100:Math.min(100,elapsed/LEVELS[level].seconds*100))+'%';document.getElementById('levelProgress').setAttribute('aria-valuenow',String(Math.round(mode==='boss'?100:Math.min(100,elapsed/LEVELS[level].seconds*100))));document.getElementById('phaseTimer').textContent=mode==='boss'?(arenaFrame.hidden?'BOSS '+(bossTier+1)+'/3':'3D BOSS')+' · '+Math.ceil(bossClock)+'s':'LEVEL '+(level+1)+'/5 · '+LEVELS[level].name+' · BOSS IN '+Math.max(0,Math.ceil(LEVELS[level].seconds-elapsed))+'s'}
 function exitGame(){
  // Confirmed user gesture: request to close only this game window.
- try{sessionStorage.setItem('sparkd-confirmed-exit','1')}catch(e){}
  try{window.close()}catch(e){}
  // Chrome may refuse to close user-opened tabs. Stop the game in place,
  // without navigating to about:blank or creating another history entry.
