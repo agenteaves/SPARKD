@@ -201,5 +201,23 @@ const dx=closest.x-x,dy=closest.y-vertical,dz=closest.z-z;
 const hitRadius=.27+s.mesh.geometry.parameters.radius; // Tight body collision: visual near-misses should not damage the player.
 if(dx*dx+dy*dy+dz*dz<hitRadius*hitRadius){if(invuln<=0){hurt();playImpact('hero');impactBurst(x,1.1,z)}s.life=0}
 else if(s.mesh.position.z>z+1.8){s.life=0}
-}enemyTimer+=dt;if(enemyTimer>Math.max(1.05,3.3-phase*.35-level*.28)){enemyTimer=0;const bx=boss.position.x;projectile(enemyShots,new THREE.Vector3(bx,2,-6),new THREE.Vector3((x-bx)*.7,-.1,7+phase*2+level*.8),0xff4e63,.24+phase*.06)}for(const arr of [shots,enemyShots]){for(let i=arr.length-1;i>=0;i--)if(arr[i].life<=0){const m=arr[i].mesh;scene.remove(m);m.geometry.dispose();m.material.dispose();arr.splice(i,1)}}hero.visible=invuln<=0||Math.floor(clock*12)%2===0}renderer.render(scene,camera)}requestAnimationFrame(animate);status.textContent='LEVEL '+(level+1)+'/5 · '+monsters[level]+' — hold FIRE to attack!';if(embedded)parent.postMessage({type:'sparkd-3d-ready'},location.origin);
+}enemyTimer+=dt;
+const abilityNames=['IRON SHARD VOLLEY','BLOOD FANG SPREAD','THUNDER BOLTS','VOID SHADOW BURST','ABYSS METEOR STORM'];
+if(enemyTimer>Math.max(1.5,4.1-phase*.3-level*.2)){
+ enemyTimer=0;
+ const bx=boss.position.x,velocity=7+phase*1.4+level*.5;
+ const launch=(offset,vx,vz,color,radius,y=2)=>projectile(enemyShots,new THREE.Vector3(bx+offset,y,-6),new THREE.Vector3(vx,-.1,vz),color,radius);
+ if(level===0){ // Iron Wraith: three armored shards in a fan.
+  for(const spread of [-1,0,1])launch(spread*.35,(x-bx)*.55+spread*1.8,velocity,0xb8d9e5,.22);
+ }else if(level===1){ // Blood Howler: five crimson fangs sweeping outward.
+  for(const spread of [-2,-1,0,1,2])launch(spread*.22,(x-bx)*.48+spread*1.45,velocity*.9,0xff315b,.19);
+ }else if(level===2){ // Thunder Reaper: fast alternating lightning strikes.
+  for(const spread of [-1,0,1])launch(spread*.2,(x-bx)*.8+spread*2.6,velocity*1.65,0x6cddff,.2);
+ }else if(level===3){ // Void Devourer: wide shadow projectiles converge.
+  for(const spread of [-2,-1,1,2])launch(spread*1.15,(x-bx)*.7-spread*.9,velocity*.85,0x9b56ff,.27);
+ }else{ // Abyss Titan: heavy meteor barrage.
+  for(const spread of [-2,-1,0,1,2])launch(spread*.5,(x-bx)*.5+spread*1.1,velocity*.85,0xff863a,.34,2.4);
+ }
+ status.textContent=monsters[level]+' uses '+abilityNames[level]+'! Dodge!';
+}for(const arr of [shots,enemyShots]){for(let i=arr.length-1;i>=0;i--)if(arr[i].life<=0){const m=arr[i].mesh;scene.remove(m);m.geometry.dispose();m.material.dispose();arr.splice(i,1)}}hero.visible=invuln<=0||Math.floor(clock*12)%2===0}renderer.render(scene,camera)}requestAnimationFrame(animate);status.textContent='LEVEL '+(level+1)+'/5 · '+monsters[level]+' — hold FIRE to attack!';if(embedded)parent.postMessage({type:'sparkd-3d-ready'},location.origin);
 </script></body></html>
