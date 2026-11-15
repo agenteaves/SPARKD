@@ -96,11 +96,13 @@ function syncInvincibleButton(){const btn=document.getElementById('invincible');
 function activateInvincible(){if(state!=='playing'||mode!=='runner'||level===0||!invincibleCharge||invincibleTime>0)return;invincibleCharge=false;invincibleTime=6;recordInput('invincible');tone(780,.25,'sine',.08);syncInvincibleButton()}
 function updateHud(){syncInvincibleButton();scoreEl.textContent=Math.floor(score);bestEl.textContent=Math.floor(best);livesEl.textContent=lives;document.getElementById('orbProgress').textContent=(orbs%5)+'/5';document.getElementById('levelProgressFill').style.width=(mode==='boss'?100:Math.min(100,elapsed/LEVELS[level].seconds*100))+'%';document.getElementById('levelProgress').setAttribute('aria-valuenow',String(Math.round(mode==='boss'?100:Math.min(100,elapsed/LEVELS[level].seconds*100))));document.getElementById('phaseTimer').textContent=mode==='boss'?(arenaFrame.hidden?'BOSS '+(bossTier+1)+'/3':'3D BOSS')+' · '+Math.ceil(bossClock)+'s':'LEVEL '+(level+1)+'/5 · '+LEVELS[level].name+' · BOSS IN '+Math.max(0,Math.ceil(LEVELS[level].seconds-elapsed))+'s'}
 function exitGame(){
- // Attempt to close the tab. Browsers usually block this for user-opened tabs.
- sendArena('pause');window.SPARKDMusic?.stop();state='ready';reset();
+ // Call close immediately from the confirmed user gesture, before cleanup.
+ // Android Chrome only permits closing certain script-opened windows.
  try{window.close()}catch(e){}
- // If the browser refuses to close, unload the game instead of showing an exit screen.
- // about:blank leaves no active game or game controls in the tab.
+ // If Chrome keeps this tab open, stop all game activity and unload its page.
+ sendArena('pause');window.SPARKDMusic?.stop();state='ready';
+ clearTimeout(arenaLoadTimer);
+ arenaFrame.removeAttribute('src');runnerFrame.removeAttribute('src');
  try{window.location.replace('about:blank')}catch(e){
   document.open();document.write('<!doctype html><title>Game closed</title><body style="margin:0;background:#000"></body>');document.close();
  }
