@@ -74,3 +74,6 @@ body.boss-controls #gameWrap .game-controls #fire{bottom:calc(max(10px,env(safe-
 #gameWrap .game-controls #exitGame{display:flex!important;align-items:center!important;justify-content:center!important;visibility:visible!important;opacity:1!important;position:absolute!important;right:max(12px,env(safe-area-inset-right))!important;bottom:max(12px,env(safe-area-inset-bottom))!important;left:auto!important;top:auto!important;min-width:100px!important;min-height:52px!important;width:auto!important;height:auto!important;background:#b3293e!important;color:#fff!important;border:3px solid #ffd2d8!important;box-shadow:0 0 18px #ff516b99!important;font-size:.95rem!important;z-index:99!important;pointer-events:auto!important}
 body:not(.boss-controls) #gameWrap .game-controls #invincible{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 65px)!important}
 body.boss-controls #gameWrap .game-controls #fire{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 68px)!important}
+
+/* EXIT is always anchored at the top-left of the game viewport. */
+#gameWrap .game-controls #exitGame{top:max(12px,env(safe-area-inset-top))!important;left:max(12px,env(safe-area-inset-left))!important;right:auto!important;bottom:auto!important}
