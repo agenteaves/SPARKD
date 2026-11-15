@@ -96,18 +96,22 @@ function syncInvincibleButton(){const btn=document.getElementById('invincible');
 function activateInvincible(){if(state!=='playing'||mode!=='runner'||level===0||!invincibleCharge||invincibleTime>0)return;invincibleCharge=false;invincibleTime=6;recordInput('invincible');tone(780,.25,'sine',.08);syncInvincibleButton()}
 function updateHud(){syncInvincibleButton();scoreEl.textContent=Math.floor(score);bestEl.textContent=Math.floor(best);livesEl.textContent=lives;document.getElementById('orbProgress').textContent=(orbs%5)+'/5';document.getElementById('levelProgressFill').style.width=(mode==='boss'?100:Math.min(100,elapsed/LEVELS[level].seconds*100))+'%';document.getElementById('levelProgress').setAttribute('aria-valuenow',String(Math.round(mode==='boss'?100:Math.min(100,elapsed/LEVELS[level].seconds*100))));document.getElementById('phaseTimer').textContent=mode==='boss'?(arenaFrame.hidden?'BOSS '+(bossTier+1)+'/3':'3D BOSS')+' · '+Math.ceil(bossClock)+'s':'LEVEL '+(level+1)+'/5 · '+LEVELS[level].name+' · BOSS IN '+Math.max(0,Math.ceil(LEVELS[level].seconds-elapsed))+'s'}
 function exitGame(){
- // Call close immediately from the confirmed user gesture, before cleanup.
- // Android Chrome only permits closing certain script-opened windows.
+ // Confirmed user gesture: request to close only this game window.
  try{sessionStorage.setItem('sparkd-confirmed-exit','1')}catch(e){}
  try{window.close()}catch(e){}
- // If Chrome keeps this tab open, stop all game activity and unload its page.
+ // Chrome may refuse to close user-opened tabs. Stop the game in place,
+ // without navigating to about:blank or creating another history entry.
  sendArena('pause');window.SPARKDMusic?.stop();state='ready';
  clearTimeout(arenaLoadTimer);
  arenaFrame.removeAttribute('src');runnerFrame.removeAttribute('src');
- try{window.location.replace('about:blank')}catch(e){
-  document.open();document.write('<!doctype html><title>Game closed</title><body style="margin:0;background:#000"></body>');document.close();
- }
+ arenaFrame.hidden=true;runnerFrame.hidden=true;
+ document.body.replaceChildren();
+ document.body.style.cssText='margin:0;background:#000;color:#aaa;min-height:100dvh;display:grid;place-items:center;font:16px system-ui,sans-serif;text-align:center';
+ const notice=document.createElement('div');
+ notice.textContent='SPARKD ELITES closed. Tap Chrome’s X to close this tab.';
+ document.body.appendChild(notice);
 }
+
 function begin(){reset();daily.runs++;saveDaily();renderDaily();state='playing';overlay.hidden=true;pauseBtn.textContent='Ⅱ PAUSE'}
 function finish(){invincibleCharge=false;invincibleTime=0;syncInvincibleButton();document.body.classList.remove('boss-controls');const bossReplay=mode==='boss'||level>0;clearTimeout(arenaLoadTimer);duckHeld=false;fireHeld=false;moveLeft=false;moveRight=false;arenaFrame.hidden=true;arenaFrame.removeAttribute('src');runnerFrame.hidden=!runner3dReady;canvas.hidden=runner3dReady;state='over';lastRun={format:'sparkd-practice-run-v1',seed:runSeed,steps:runSteps,events:runEvents.slice(),score:Math.floor(score),orbs,lives,flagged:runInvalid,reason:runReason,verification:bossReplay?'boss-stage-unverified':'runner-local-only',bossOutcome:bossReplay?(lives>0&&level===4?'victory':'defeat'):null,levelReached:level+1};document.getElementById('exportRun').disabled=false;document.getElementById('runDiagnostics').textContent='Last run: '+lastRun.steps+' steps, '+lastRun.events.length+' input events, '+(runInvalid?'flagged':bossReplay?'boss-stage unverified (not suspicious)':'local only — unverified');if(!runInvalid&&!bossReplay)recordTrainingScore();daily.best=Math.max(daily.best,Math.floor(score));saveDaily();renderDaily();if(!runInvalid&&!bossReplay&&score>best){best=Math.floor(score);try{localStorage.setItem('sparkd-runner-best',String(best))}catch{}}updateHud();heading.textContent=lives>0&&level===4?'ALL FIVE LEVELS COMPLETE':lives>0?'MISSION COMPLETE':'MISSION FAILED';message.textContent='You scored '+Math.floor(score)+' points! Best: '+best+'. '+(runInvalid?'Run not added to practice rankings: '+runReason+'.':'Try again to beat your record.');startBtn.textContent='PLAY AGAIN';overlay.hidden=false}
 function jump(){if(state==='ready'||state==='over'){begin();return}if(state!=='playing')return;if(mode==='boss'){sendArena('fire',true);sendArena('fire',false);return}if(hero.onGround){if(duckHeld)setDuck(false);recordInput('jump');hero.vy=-735;hero.onGround=false}else jumpBuffer=.13}
