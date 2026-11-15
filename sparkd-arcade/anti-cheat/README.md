@@ -1,6 +1,6 @@
 # SPARKD ELITES — authoritative scoring foundation
 
-Status: **NOT DEPLOYED; NO SCORES ARE VERIFIED.**
+Status: **PRIVATE DATABASE FOUNDATION DEPLOYED; NO SCORES ARE VERIFIED.**
 
 The existing browser game and its working EXIT flow are unchanged. Its BEST and
 practice leaderboards are local, editable and **not eligible for prizes**.
@@ -28,8 +28,8 @@ A verified-score service must:
 
 ## Database preparation
 
-`001_verified_scores.sql` is a **non-executed** schema proposal. Apply only
-after confirming which Supabase project belongs to SPARKD and reviewing access.
+`001_verified_scores.sql` and `002_run_sessions.sql` describe private tables
+already created in the existing SPARKD Supabase project.
 The private `sparkd_secure` schema has RLS and no client access grants.
 No public write RPC, endpoint, or client credential is provided.
 
@@ -39,3 +39,11 @@ Build and test the deterministic verifier against golden replays for runner and
 boss gameplay; then implement authenticated run-start/run-submit endpoints.
 Until those tests pass, the backend must not claim to verify any score.
 Keep existing local BEST explicitly unofficial and do not pay prizes from it.
+
+## Current development status (2026-11-15)
+
+- Private `sparkd_secure.verified_runs` and `sparkd_secure.run_sessions` tables deployed with RLS and no client access.
+- `replay-envelope.mjs` validates preliminary input shape and timing, but always rejects score certification.
+- `runner-simulator.mjs` is a standalone runner-only prototype; its replay timing, invincibility, cross-stage transitions, and boss logic are incomplete. It must not be used to certify scores.
+- `*.test.mjs` are exercised by `.github/workflows/sparkd-anti-cheat.yml` when GitHub Actions runs; do not assume a successful CI result without checking the workflow.
+- No trusted session issuance, game submission API, authoritative verifier, or official leaderboard is live.
