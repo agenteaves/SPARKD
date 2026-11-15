@@ -8,7 +8,9 @@ export function inspectReplayEnvelope(payload, session, now = Date.now()) {
   const fail = reason => ({ accepted: false, reason });
   if (!session || typeof session !== 'object' || session.consumed) return fail('invalid-session');
   if (typeof session.runId !== 'string' || !/^[0-9a-f-]{36}$/i.test(session.runId)) return fail('invalid-run-id');
-  if (!Number.isSafeInteger(session.issuedAt) || session.issuedAt > now + 5000 || now - session.issuedAt > MAX_RUN_MS) return fail('expired-session');
+  if (!Number.isSafeInteger(session.issuedAt) || session.issuedAt > now || now - session.issuedAt > MAX_RUN_MS) return fail('expired-session');
+  if (!Number.isSafeInteger(session.seed) || session.seed < 1 || session.seed > 0xffffffff) return fail('invalid-session-seed');
+  if (typeof session.rulesVersion !== 'string' || !/^[a-zA-Z0-9._-]{1,80}$/.test(session.rulesVersion)) return fail('invalid-rules-version');
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return fail('invalid-payload');
   if (payload.runId !== session.runId || payload.seed !== session.seed || payload.rulesVersion !== session.rulesVersion) return fail('session-mismatch');
   if (!Array.isArray(payload.events) || payload.events.length > MAX_EVENTS) return fail('event-limit');
