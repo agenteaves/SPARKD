@@ -23,7 +23,7 @@ test('invalid seed and unsupported action fail closed',()=>{
 });
 test('runner stops at 25 seconds',()=>{
  const s=makeRunner(9);
- for(let i=0;i<1600;i++)runnerStep(s);
+ for(let i=0;i<1600;i++){s.lives=5;runnerStep(s);}
  assert.ok(s.elapsed>=25);
  const count=s.step;
  assert.equal(runnerStep(s).stopped,true);
