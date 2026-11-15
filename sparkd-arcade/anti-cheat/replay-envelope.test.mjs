@@ -18,3 +18,7 @@ test('reject event past claimed step count',()=>assert.equal(inspectReplayEnvelo
 test('reject invalid event objects',()=>assert.equal(inspectReplayEnvelope({...payload,events:[null]},session,now).reason,'invalid-event'));
 test('reject run ID swap',()=>assert.equal(inspectReplayEnvelope({...payload,runId:'22222222-2222-4222-8222-222222222222'},session,now).reason,'session-mismatch'));
 test('reject missing session',()=>assert.equal(inspectReplayEnvelope(payload,null,now).reason,'invalid-session'));
+
+test('reject future-issued session',()=>assert.equal(inspectReplayEnvelope(payload,{...session,issuedAt:now+1},now).reason,'expired-session'));
+test('reject invalid session seed',()=>assert.equal(inspectReplayEnvelope(payload,{...session,seed:0},now).reason,'invalid-session-seed'));
+test('reject malformed rules version',()=>assert.equal(inspectReplayEnvelope(payload,{...session,rulesVersion:'../../v1'},now).reason,'invalid-rules-version'));
