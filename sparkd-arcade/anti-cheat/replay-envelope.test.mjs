@@ -13,3 +13,8 @@ test('reject expired session',()=>assert.equal(inspectReplayEnvelope(payload,{..
 
 test('reject unsupported event',()=>assert.equal(inspectReplayEnvelope({...payload,events:[{action:'fire',step:100}]},session,now).reason,'unknown-event'));
 test('reject step count beyond session time',()=>assert.equal(inspectReplayEnvelope({...payload,steps:100000},session,now).reason,'future-event'));
+
+test('reject event past claimed step count',()=>assert.equal(inspectReplayEnvelope({...payload,events:[{action:'jump',step:301}]},session,now).reason,'event-timing'));
+test('reject invalid event objects',()=>assert.equal(inspectReplayEnvelope({...payload,events:[null]},session,now).reason,'invalid-event'));
+test('reject run ID swap',()=>assert.equal(inspectReplayEnvelope({...payload,runId:'22222222-2222-4222-8222-222222222222'},session,now).reason,'session-mismatch'));
+test('reject missing session',()=>assert.equal(inspectReplayEnvelope(payload,null,now).reason,'invalid-session'));
