@@ -40,6 +40,11 @@ for(const side of [-1,1]){
 }
 function block(parent,w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
 const hero=new THREE.Group();hero.scale.setScalar(.57);hero.rotation.y=Math.PI;scene.add(hero);
+// Glowing emerald protective field for the earned six-second shield.
+const shieldAura=new THREE.Mesh(new THREE.SphereGeometry(1.12,24,16),new THREE.MeshBasicMaterial({color:0x39ff70,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+shieldAura.position.y=1.02;shieldAura.visible=false;hero.add(shieldAura);
+const shieldLight=new THREE.PointLight(0x42ff79,0,5);shieldLight.position.set(0,1.2,.5);hero.add(shieldLight);
+const shieldMaterials=[];hero.traverse(o=>{if(o.isMesh&&o!==shieldAura&&o.material&&'emissive' in o.material)shieldMaterials.push(o.material)});
 const heroShadow=new THREE.Mesh(new THREE.CircleGeometry(.39,24),new THREE.MeshBasicMaterial({color:0x172d25,transparent:true,opacity:.28,depthWrite:false}));heroShadow.rotation.x=-Math.PI/2;heroShadow.position.y=.035;scene.add(heroShadow);
 const torso=new THREE.Group();hero.add(torso);
 block(torso,.78,.85,.43,0x151d1b,0,1.43,0);block(torso,.8,.17,.46,0x16bc63,0,1.72,.025);block(torso,.76,.12,.48,0xe8bc3f,0,1.08,.02);block(torso,.24,.3,.08,0xf3ca4e,0,1.48,.255);
@@ -109,7 +114,11 @@ leftArm.rotation.x=THREE.MathUtils.damp(leftArm.rotation.x,crouch?-.8:targetY>.1
 rightArm.rotation.x=THREE.MathUtils.damp(rightArm.rotation.x,crouch?-.8:targetY>.15?-.6:stride*.8,15,dt);
 cape.rotation.x=-.12+Math.sin(clock*9)*.13+(targetY>.15?.35:0);
 heroShadow.material.opacity=.28/(1+heroY*.7);heroShadow.scale.setScalar(1+heroY*.2);
-hero.visible=snapshot.invulnerable<=0||Math.floor(clock*12)%2===0;
+const shieldActive=Number(snapshot.invincibleTime)>0;
+hero.visible=shieldActive||snapshot.invulnerable<=0||Math.floor(clock*12)%2===0;
+shieldAura.visible=shieldActive;shieldAura.scale.setScalar(1+Math.sin(clock*11)*.055);
+shieldLight.intensity=shieldActive?3.8:0;
+for(const m of shieldMaterials){m.emissive.setHex(shieldActive?0x19ff53:0x000000);m.emissiveIntensity=shieldActive?.75:0}
 for(const stripe of crossing){stripe.position.z+=(stopped?0:dt)*(snapshot.speed||280)/65;if(stripe.position.z>10)stripe.position.z-=68}for(const line of lines){line.position.z+=(stopped?0:dt)*(snapshot.speed||280)/65;if(line.position.z>9)line.position.z-=54}for(const b of buildings){b.position.z+=(stopped?0:dt)*(snapshot.speed||280)/85;if(b.position.z>12)b.position.z-=77}for(const d of streetDetails){d.position.z+=(stopped?0:dt)*(snapshot.speed||280)/85;if(d.position.z>12)d.position.z-=72}}renderer.render(scene,camera)}
 document.getElementById('fallback').remove();parent.postMessage({type:'sparkd-runner-3d-ready'},location.origin);requestAnimationFrame(frame);
 }catch(err){document.getElementById('fallback').textContent='3D unavailable; switching to classic renderer.';parent.postMessage({type:'sparkd-runner-3d-error',reason:String(err&&err.message||err)},location.origin)}
