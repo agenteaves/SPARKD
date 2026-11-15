@@ -119,6 +119,54 @@ if(level===4){ // ABYSS TITAN: huge charcoal/lava quadruped with massive horns a
  for(const s of [-1,1]){cone(customBoss,.5,2.05,0xe2a45c,s*1.08,2.55,.2).rotation.z=-s*.45;orb(customBoss,.22,0xffc05d,s*.4,1.56,1.31);for(const z0 of [-.85,.9]){cub(customBoss,.75,2.1,.8,0x43302b,s*1.3,-1.5,z0);cub(customBoss,1,.45,1.05,0x221b1c,s*1.3,-2.55,z0)}}
  for(let i=0;i<4;i++)cone(customBoss,.28,.9,0xff873e,(i-1.5)*.68,.1,-1.55);
 }
+
+// Organic boss visual pass: replace visible block-out geometry with curved anatomy.
+// Keep the legacy meshes for gameplay references only; none are rendered.
+for(const mesh of [...boss.children])mesh.visible=false;
+const sculpt=new THREE.Group();boss.add(sculpt);
+const skin=(color,glow=0)=>new THREE.MeshStandardMaterial({color,emissive:glow,roughness:.73,metalness:level===0?.55:.08});
+const flesh=(radius,color,x,y,z,sx=1,sy=1,sz=1,parent=sculpt)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(radius,24,16),skin(color));m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m};
+const limb=(a,b,r1,r2,color,parent=sculpt)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),v=B.clone().sub(A);const m=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,v.length(),14,1),skin(color));m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());parent.add(m);flesh(r1,color,...a,1,1,1,parent);flesh(r2,color,...b,1,1,1,parent);return m};
+const curve=(pts,r,color,parent=sculpt)=>{const path=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(path,24,r,8,false),skin(color));parent.add(mesh);return mesh};
+const eye=(x,y,z,color,size=.15)=>{flesh(size,color,x,y,z,1,.65,.45);flesh(size*.35,0x100e17,x,y,z+size*.42)};
+if(level===0){ // IRON WRAITH: steel-plated cyborg with a skull mask, piston arms, emerald reactor.
+ flesh(1,0x526875,0,0,0,1.15,1.28,.67);
+ flesh(.78,0x252d3b,0,1.45,.15,.87,1.05,.82);
+ flesh(.48,0xa6bbc1,0,1.3,.65,1,.83,.36);
+ for(const s of [-1,1]){eye(s*.29,1.62,.78,0x63ffac);limb([s*1.05,.6,0],[s*1.52,-1.1,.25],.36,.28,0x475864);limb([s*.53,-.95,0],[s*.64,-2.35,.15],.42,.29,0x344651);flesh(.48,0x253341,s*1.52,-1.25,.35)}
+ flesh(.42,0x4aff99,0,-.22,.73,1,1,.38);
+ for(let i=0;i<4;i++)limb([(i-1.5)*.29,2.03,-.1],[(i-1.5)*.38,2.42,.12],.13,.06,0x9eb6bb);
+}
+if(level===1){ // BLOOD HOWLER: wolf snout, jaw, ears, digitigrade legs and curved claws.
+ flesh(1.15,0x682a32,0,-.1,0,1.15,1.12,.7);
+ flesh(.82,0x78323a,0,1.42,.3,1.02,1.05,.87);
+ flesh(.48,0xaa6c63,0,1.06,1.03,.8,.48,1.55);
+ flesh(.26,0x25171a,0,1.15,1.45,1,.7,.7);
+ for(const s of [-1,1]){eye(s*.34,1.62,1.03,0xffd273);limb([s*.6,2.02,.2],[s*.91,2.85,.12],.31,.03,0x7e3540);limb([s*1.1,.55,0],[s*1.6,-.9,.4],.42,.24,0x65232e);limb([s*.55,-.8,0],[s*.9,-1.9,-.1],.47,.27,0x6c3139);limb([s*.9,-1.9,-.1],[s*.72,-2.48,.7],.27,.24,0x4c2029);for(let k=0;k<3;k++)curve([[s*1.58+(k-1)*.12,-1.03,.45],[s*1.65+(k-1)*.16,-1.36,.75],[s*1.69+(k-1)*.18,-1.6,.87]],.055,0xe8d6b9)}
+ for(const s of [-1,1])limb([s*.27,.76,1.28],[s*.28,.47,1.39],.09,.015,0xf4ead8);
+}
+if(level===2){ // THUNDER REAPER: robed spectral skeleton, exposed ribs, long curved scythe.
+ flesh(.95,0x203d61,0,-.05,0,.85,1.5,.65);
+ flesh(.63,0x10213d,0,1.48,.24,1,.95,.8);
+ for(const s of [-1,1]){eye(s*.24,1.53,.76,0x9ff8ff);limb([s*.85,.55,0],[s*1.05,-1.3,.3],.24,.12,0x4c91b2);limb([s*.45,-.95,0],[s*.5,-2.45,.1],.29,.13,0x18345d)}
+ for(let i=0;i<4;i++){const y=.55-i*.32;curve([[-.55,y,.65],[0,y-.13,.84],[.55,y,.65]],.075,0x96d5df)}
+ curve([[1.75,-2.2,.6],[1.85,-.1,.6],[1.9,2.1,.6]],.09,0xa1d4d9);
+ curve([[1.9,2.1,.6],[1.3,2.9,.6],[.45,2.7,.6],[.15,2.3,.6]],.15,0x7bdcff);
+}
+if(level===3){ // VOID DEVOURER: huge shadow face, glowing eyes and living tentacles.
+ flesh(1.25,0x30194c,0,.2,0,1.15,1.5,.78);
+ flesh(.95,0x171126,0,1.25,.42,1.03,1.02,.75);
+ for(const s of [-1,1]){eye(s*.37,1.45,1.1,0xff58e6,.25);curve([[s*.9,.45,0],[s*1.65,-.5,.25],[s*1.45,-1.6,.75],[s*2.15,-2.55,.3]],.2,0x7039a0);curve([[s*.55,-.7,0],[s*.75,-1.55,.55],[s*.4,-2.55,.25]],.19,0x462266)}
+ curve([[-.5,.6,1.05],[0,.25,1.22],[.5,.6,1.05]],.13,0xb36bfa);
+ for(let i=0;i<5;i++){const a=i*Math.PI*2/5;curve([[Math.cos(a)*.45,1.9,Math.sin(a)*.3],[Math.cos(a)*.85,2.5,Math.sin(a)*.6],[Math.cos(a)*1.05,2.8,Math.sin(a)*.8]],.13,0x824cbe)}
+}
+if(level===4){ // ABYSS TITAN: gigantic muscular horned beast with lava fissures and four paws.
+ flesh(1.6,0x3b302b,0,-.2,-.35,1.45,.98,1.15);
+ flesh(1.08,0x45342d,0,1.3,.55,1.25,.88,1.1);
+ flesh(.55,0x6c4a36,0,.98,1.55,1.25,.52,1.1);
+ for(const s of [-1,1]){eye(s*.45,1.48,1.37,0xffb548,.23);curve([[s*.75,1.85,.35],[s*1.35,2.6,.3],[s*1.62,3.12,.08],[s*1.32,3.38,-.12]],.24,0xd7a16c);for(const zz of [-1.15,.9]){limb([s*1.35,-.5,zz],[s*1.48,-2.4,zz+.15],.5,.39,0x382b27);flesh(.5,0x221d1c,s*1.5,-2.5,zz+.45,1.15,.43,1.2)}}
+ for(let i=0;i<5;i++)curve([[(i-2)*.38,.52,1.05],[(i-2)*.4,-.15,1.4],[(i-2)*.4,-.75,1.05]],.065,0xff7939);
+}
 const pickupMeshes=[],shots=[],enemyShots=[];const controls={left:false,right:false,up:false,down:false,fire:false};let z=4,paused=false,x=0,phase=0,hp=95,lives=5,weapon=0,fireTimer=0,enemyTimer=0,invuln=0,clock=0,done=false;
 let introRemaining=0;const introLayer=document.getElementById('bossIntro');function showBossIntro(label,duration){document.getElementById('introEyebrow').textContent=label;document.getElementById('introName').textContent=monsters[level];introRemaining=duration;introLayer.classList.add('visible');controls.fire=false}const names=['none','Energy Blaster','Power Cannon','Mega Cannon'];function ui(){document.getElementById('phase').textContent='L'+(level+1)+'/5 · '+monsters[level]+' · Phase '+(phase+1)+'/3';document.getElementById('health').textContent='Boss HP: '+Math.max(0,Math.ceil(hp));const healthPct=Math.max(0,Math.min(100,hp/([220,300,380][Math.min(phase,2)]+level*90)*100));document.getElementById('bossHealthFill').style.width=healthPct+'%';document.getElementById('bossHealthMeter').setAttribute('aria-valuenow',String(Math.round(healthPct)));document.getElementById('lives').textContent='Lives: '+lives;document.getElementById('weapon').textContent='Weapon: '+names[weapon]}
 function clear(arr){for(const s of arr){scene.remove(s.mesh);s.mesh.geometry.dispose();s.mesh.material.dispose()}arr.length=0}
