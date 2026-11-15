@@ -93,7 +93,23 @@ async function getVerifiedDexScreenerQuote(referencePrice: number | null = null)
         Number(pair.liquidity.usd) >= MIN_PRICE_LIQUIDITY_USD &&
         (!referencePrice || Math.abs(Number(pair.priceUsd) / referencePrice - 1) <= 0.15)
     ).sort((a, b) => Number(b.liquidity.usd) - Number(a.liquidity.usd));
-    if (!valid.length) throw new Error("No verified SPARKD liquidity pool meets the $2,500 safety threshold.");
+    if (!valid.length) {
+        // Diagnostic counts only: never log wallet addresses or private data.
+        const matching = pairs.filter((pair) => pair?.chainId === "solana" && pair?.baseToken?.address === SPARKD_MINT);
+        const topLiquidityUsd = matching.reduce((max, pair) => {
+            const value = Number(pair?.liquidity?.usd);
+            return Number.isFinite(value) ? Math.max(max, value) : max;
+        }, 0);
+        console.warn("SPARKD safe quote rejected", {
+            reportedPairs: pairs.length,
+            matchingBasePairs: matching.length,
+            topLiquidityUsd,
+            minimumLiquidityUsd: MIN_PRICE_LIQUIDITY_USD,
+            referencePriceAvailable: referencePrice !== null,
+            liquidityQualifiedPairs: matching.filter((pair) => Number(pair?.liquidity?.usd) >= MIN_PRICE_LIQUIDITY_USD).length
+        });
+        throw new Error("No verified SPARKD liquidity pool meets the $2,500 safety threshold.");
+    }
     return {
         priceUsd: Number(valid[0].priceUsd),
         liquidityUsd: Number(valid[0].liquidity.usd),
