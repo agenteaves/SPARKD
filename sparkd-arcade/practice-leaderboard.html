@@ -21,7 +21,7 @@ async function refresh(){
 }
 async function authStatus(){const {data}=await db.auth.getUser();el('authStatus').textContent=data.user?'Signed in as '+(data.user.email||'player'):'Not signed in';}
 el('refresh').onclick=refresh;
-el('signin').onclick=async()=>{const email=el('email').value.trim();if(!email)return;const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split('#')[0]}});el('authStatus').textContent=error?'Sign-in unavailable: '+error.message:'Check your email for a sign-in link.';};
+el('signin').onclick=async()=>{const email=el('email').value.trim();if(!email)return;const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/sparkd-arcade/practice-leaderboard.html'}});el('authStatus').textContent=error?'Sign-in unavailable: '+error.message:'Check your email for a sign-in link.';};
 el('signout').onclick=async()=>{await db.auth.signOut();authStatus();};
 el('submission').onsubmit=async event=>{
  event.preventDefault();el('submitStatus').textContent='Submitting…';
