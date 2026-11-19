@@ -16,7 +16,7 @@ spawnTimer-=dt;if(spawnTimer<=0){spawn();spawnTimer=Math.max(.33,1.15-time*.006)
 for(const s of stars){s.y+=dt*35*s.z;if(s.y>540){s.y=0;s.x=rnd()*960}}
 for(const b of shots)b.y-=b.v*dt;for(const b of enemyShots)b.y+=b.v*dt;
 for(const e of enemies){e.y+=e.v*dt;e.x+=Math.sin(time*2+e.phase)*30*dt;e.fire-=dt;if(e.fire<=0&&e.y>0&&e.y<410){enemyShots.push({x:e.x,y:e.y+18,v:190+time*.7});e.fire=1.2+rnd()*1.5;}}
-for(const b of shots){for(const e of enemies){if(e.hp>0&&hit(b,e,e.r)){b.y=-100;e.hp--;if(e.hp<=0)kills++;break}}}
+for(const b of shots){for(const e of enemies){if(e.hp>0&&hit(b,e,e.r)){b.y=-100;e.hp--;if(e.hp<=0){kills++;notify('sparkd-space-kill',{count:kills})}break}}}
 for(const b of enemyShots){if(invuln===0&&hit(b,ship,ship.r)){b.y=700;lives--;invuln=1.5;if(lives<=0){lives=0;finish('defeat')}}}
 for(const e of enemies){if(e.hp>0&&invuln===0&&hit(e,ship,e.r+ship.r)){e.hp=0;lives--;invuln=1.5;if(lives<=0){lives=0;finish('defeat')}}}
 shots=shots.filter(b=>b.y>-30);enemyShots=enemyShots.filter(b=>b.y<580);enemies=enemies.filter(e=>e.hp>0&&e.y<580);
