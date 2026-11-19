@@ -8,7 +8,7 @@ function notify(type,extra={}){if(embedded)parent.postMessage({type,...extra},lo
 function finish(outcome){if(ended)return;ended=true;notify('sparkd-space-result',{outcome,lives});hud.textContent=outcome==='victory'?'⚡ INVASION REPELLED — MISSION COMPLETE':'STARFIGHTER DESTROYED';}
 function spawn(){const heavy=kills>9&&rnd()<.25;enemies.push({x:45+rnd()*870,y:-35,hp:heavy?5:2,r:heavy?29:19,v:heavy?80:125+rnd()*65,phase:rnd()*6.28,heavy,fire:1+rnd()*2})}
 const motherTypes=[{name:'VORTEX CROWN',color:'#a56cff',attack:'GRAVITY LANCE'},{name:'EMBER HALO',color:'#ff9a47',attack:'SOLAR SWEEP'},{name:'NULL BLOOM',color:'#4cebdc',attack:'VOID PULSE'}];
-function spawnMother(){const type=motherTypes[motherIndex%motherTypes.length];mothership={...type,x:480,y:90,hp:85+motherIndex*20,maxHp:85+motherIndex*20,clock:0,attackClock:3,warning:0,blast:0,target:480,side:1};motherIndex++;}
+function spawnMother(){const type=motherTypes[motherIndex%motherTypes.length];mothership={...type,x:480,y:90,hp:260+motherIndex*60,maxHp:260+motherIndex*60,clock:0,attackClock:2,warning:0,blast:0,target:480,side:1};motherIndex++;}
 function damageShip(){if(invuln>0||ended)return;lives--;invuln=1.5;if(lives<=0){lives=0;finish('defeat')}}
 function hit(a,b,r){return Math.hypot(a.x-b.x,a.y-b.y)<r}
 function update(dt){if(paused||ended)return;time+=dt;if(time>=nextMotherAt){if(!mothership)spawnMother();nextMotherAt+=120}invuln=Math.max(0,invuln-dt);ship.rollCooldown=Math.max(0,ship.rollCooldown-dt);ship.roll=Math.max(0,ship.roll-dt);if(!controls.roll)ship.rollLatch=false;if(controls.roll&&!ship.rollLatch){ship.rollLatch=true;if(ship.rollCooldown===0){ship.roll=.52;ship.rollCooldown=1.7;ship.rollDirection=controls.left?-1:controls.right?1:ship.x>480?-1:1;invuln=Math.max(invuln,.52)}}
