@@ -81,3 +81,8 @@ body.boss-controls #gameWrap .game-controls #fire{bottom:calc(max(12px,env(safe-
 
 /* Space and boss FIRE: right-side action button, clear of top-left EXIT. */
 body.boss-controls #gameWrap .game-controls #fire{left:auto!important;right:max(12px,env(safe-area-inset-right))!important;top:auto!important;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 68px)!important;min-width:78px;min-height:78px}
+
+/* Space-only dodge button below right-side FIRE. EXIT remains top-left. */
+#roll[hidden],body:not(.boss-controls) #roll{display:none!important}
+body.boss-controls #gameWrap .game-controls #roll:not([hidden]){display:flex!important;align-items:center;justify-content:center;position:absolute!important;left:auto!important;right:max(12px,env(safe-area-inset-right))!important;top:auto!important;bottom:max(8px,env(safe-area-inset-bottom))!important;min-width:78px;min-height:55px;padding:6px 10px;border:2px solid #f1c96b;background:#4b3920ed;z-index:45}
+body.boss-controls:has(#roll:not([hidden])) #gameWrap .game-controls #fire{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 67px)!important}
