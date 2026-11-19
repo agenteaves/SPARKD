@@ -93,3 +93,6 @@ body.boss-controls:has(#roll:not([hidden])) #gameWrap .game-controls #fire{botto
 #runnerLiveHud b{color:#a6ffbd;font-variant-numeric:tabular-nums}
 body.boss-controls #runnerLiveHud{display:none}
 @media(max-width:550px){#runnerLiveHud{top:6px;gap:5px;font-size:12px}#runnerLiveHud span{padding:5px 8px}}
+
+/* Boss arena: lower EXIT to keep the top-left boss instructions readable. Space mode retains its existing position. */
+body.boss-controls:has(#roll[hidden]) #gameWrap .game-controls #exitGame{top:calc(max(12px,env(safe-area-inset-top)) + 36px)!important}
