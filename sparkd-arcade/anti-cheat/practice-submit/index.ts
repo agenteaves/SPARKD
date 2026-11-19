@@ -8,6 +8,8 @@ Deno.serve(async req => {
   if (!origin || !allowedOrigins.has(origin)) return respond(403,{error:'origin-not-allowed'});
   if (req.method === 'OPTIONS') return new Response(null,{status:204,headers});
   if (req.method !== 'POST') return respond(405,{error:'method-not-allowed'});
+  // Disabled until server-authoritative gameplay verification is implemented.
+  return respond(403,{error:'score-verification-required'});
   if (Number(req.headers.get('content-length') || 0) > 2048) return respond(413,{error:'payload-too-large'});
   const authorization = req.headers.get('Authorization') || '';
   if (!/^Bearer\s+\S+$/.test(authorization)) return respond(401,{error:'authentication-required'});
