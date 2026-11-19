@@ -1,0 +1,38 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SPARKD STARFIGHTER — Space War</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#01050d;color:#c8ffdd;font-family:system-ui,sans-serif}canvas{width:100%;height:100%;display:block;touch-action:none}#hud{position:absolute;top:12px;left:16px;font-size:clamp(12px,2vw,19px);font-weight:800;text-shadow:0 2px 5px #000;pointer-events:none}#tip{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:12px;opacity:.85;pointer-events:none}</style></head><body><canvas id="field" width="960" height="540"></canvas><div id="hud">⚡ SPARKD STARFIGHTER · FOUR BLASTERS</div><div id="tip">MOVE: ARROWS / WASD / JOYSTICK · FIRE: SPACE / FIRE BUTTON · SURVIVE THE INVASION</div><script>
+'use strict';
+const canvas=document.getElementById('field'),ctx=canvas.getContext('2d'),hud=document.getElementById('hud'),embedded=new URLSearchParams(location.search).get('embedded')==='1';
+const controls={left:false,right:false,up:false,down:false,fire:false};const ship={x:480,y:438,r:23};let lives=Math.max(1,Math.min(5,Number(new URLSearchParams(location.search).get('lives'))||5)),time=0,fireTimer=0,spawnTimer=0,enemyShots=[],shots=[],enemies=[],kills=0,ended=false,paused=false,invuln=0,previous=performance.now();
+let seed=0x51a7e;function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return(seed>>>0)/4294967296}
+const stars=Array.from({length:120},()=>({x:rnd()*960,y:rnd()*540,z:.4+rnd()*2}));
+function notify(type,extra={}){if(embedded)parent.postMessage({type,...extra},location.origin)}
+function finish(outcome){if(ended)return;ended=true;notify('sparkd-space-result',{outcome,lives});hud.textContent=outcome==='victory'?'⚡ INVASION REPELLED — MISSION COMPLETE':'STARFIGHTER DESTROYED';}
+function spawn(){const heavy=kills>9&&rnd()<.25;enemies.push({x:45+rnd()*870,y:-35,hp:heavy?5:2,r:heavy?29:19,v:heavy?80:125+rnd()*65,phase:rnd()*6.28,heavy,fire:1+rnd()*2})}
+function hit(a,b,r){return Math.hypot(a.x-b.x,a.y-b.y)<r}
+function update(dt){if(paused||ended)return;time+=dt;invuln=Math.max(0,invuln-dt);
+const dx=Number(controls.right)-Number(controls.left),dy=Number(controls.down)-Number(controls.up),norm=Math.hypot(dx,dy)||1;
+ship.x=Math.max(35,Math.min(925,ship.x+dx/norm*360*dt));ship.y=Math.max(100,Math.min(505,ship.y+dy/norm*360*dt));
+fireTimer-=dt;if(controls.fire&&fireTimer<=0){fireTimer=.16;for(const off of [-24,-9,9,24])shots.push({x:ship.x+off,y:ship.y-24,v:650+(Math.abs(off)===24?35:0)});}
+spawnTimer-=dt;if(spawnTimer<=0){spawn();spawnTimer=Math.max(.33,1.15-time*.006);}
+for(const s of stars){s.y+=dt*35*s.z;if(s.y>540){s.y=0;s.x=rnd()*960}}
+for(const b of shots)b.y-=b.v*dt;for(const b of enemyShots)b.y+=b.v*dt;
+for(const e of enemies){e.y+=e.v*dt;e.x+=Math.sin(time*2+e.phase)*30*dt;e.fire-=dt;if(e.fire<=0&&e.y>0&&e.y<410){enemyShots.push({x:e.x,y:e.y+18,v:190+time*.7});e.fire=1.2+rnd()*1.5;}}
+for(const b of shots){for(const e of enemies){if(e.hp>0&&hit(b,e,e.r)){b.y=-100;e.hp--;if(e.hp<=0)kills++;break}}}
+for(const b of enemyShots){if(invuln===0&&hit(b,ship,ship.r)){b.y=700;lives--;invuln=1.5;if(lives<=0){lives=0;finish('defeat')}}}
+for(const e of enemies){if(e.hp>0&&invuln===0&&hit(e,ship,e.r+ship.r)){e.hp=0;lives--;invuln=1.5;if(lives<=0){lives=0;finish('defeat')}}}
+shots=shots.filter(b=>b.y>-30);enemyShots=enemyShots.filter(b=>b.y<580);enemies=enemies.filter(e=>e.hp>0&&e.y<580);
+if(kills>=35)finish('victory');
+hud.textContent='⚡ SPARKD STARFIGHTER · FOUR BLASTERS   ❤️ '+lives+'   ENEMIES '+kills+'/35';
+}
+function draw(){ctx.fillStyle='#010613';ctx.fillRect(0,0,960,540);const nebula=ctx.createRadialGradient(520,150,10,520,150,480);nebula.addColorStop(0,'#163b3c');nebula.addColorStop(1,'#010613');ctx.fillStyle=nebula;ctx.fillRect(0,0,960,540);
+for(const s of stars){ctx.fillStyle='rgba(195,255,226,'+Math.min(1,.25+s.z*.3)+')';ctx.fillRect(s.x,s.y,s.z*1.6,s.z*1.6)}
+for(const e of enemies){ctx.save();ctx.translate(e.x,e.y);ctx.fillStyle=e.heavy?'#9b3755':'#9b245b';ctx.strokeStyle='#ff648e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,24);ctx.lineTo(-e.r,-13);ctx.lineTo(-e.r*.5,-6);ctx.lineTo(0,-19);ctx.lineTo(e.r*.5,-6);ctx.lineTo(e.r,-13);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#ffb3cc';ctx.fillRect(-5,-4,10,9);ctx.restore()}
+ctx.fillStyle='#8effad';for(const b of shots){ctx.fillRect(b.x-3,b.y-14,6,20)}ctx.fillStyle='#ff527e';for(const b of enemyShots){ctx.beginPath();ctx.arc(b.x,b.y,5,0,Math.PI*2);ctx.fill()}
+if(invuln===0||Math.floor(time*12)%2===0){ctx.save();ctx.translate(ship.x,ship.y);ctx.shadowColor='#63ff9b';ctx.shadowBlur=20;ctx.fillStyle='#122e24';ctx.strokeStyle='#e6bb50';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,-39);ctx.lineTo(-15,-13);ctx.lineTo(-43,19);ctx.lineTo(-36,35);ctx.lineTo(-12,23);ctx.lineTo(0,34);ctx.lineTo(12,23);ctx.lineTo(36,35);ctx.lineTo(43,19);ctx.lineTo(15,-13);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#38ff8e';ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-10,4);ctx.lineTo(0,13);ctx.lineTo(10,4);ctx.closePath();ctx.fill();ctx.fillStyle='#f3c960';for(const x of [-24,-9,9,24])ctx.fillRect(x-4,-26,8,16);ctx.fillStyle='#4efdb2';ctx.fillRect(-20,29,10,14);ctx.fillRect(10,29,10,14);ctx.restore()}
+if(ended){ctx.fillStyle='#000b';ctx.fillRect(0,0,960,540);ctx.textAlign='center';ctx.fillStyle='#9bffbb';ctx.font='bold 40px system-ui';ctx.fillText(lives>0?'SPACE WAR WON':'MISSION FAILED',480,265)}
+}
+function loop(now){const dt=Math.min(.04,(now-previous)/1000);previous=now;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==parent||!e.data||e.data.type!=='sparkd-3d-control')return;const {action,pressed}=e.data;if(action==='pause')paused=true;else if(action==='resume')paused=false;else if(action in controls)controls[action]=!!pressed});
+const keymap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',Space:'fire'};for(const type of ['keydown','keyup'])window.addEventListener(type,e=>{const key=keymap[e.code];if(key){e.preventDefault();controls[key]=type==='keydown'}});
+let pointer=false;canvas.addEventListener('pointerdown',e=>{pointer=true;controls.fire=true;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!pointer)return;const r=canvas.getBoundingClientRect();ship.x=Math.max(35,Math.min(925,(e.clientX-r.left)*960/r.width));ship.y=Math.max(100,Math.min(505,(e.clientY-r.top)*540/r.height))});for(const t of ['pointerup','pointercancel'])canvas.addEventListener(t,()=>{pointer=false;controls.fire=false});
+notify('sparkd-space-ready');
+</script></body></html>
