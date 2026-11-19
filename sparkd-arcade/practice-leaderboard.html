@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SPARKD ELITES · Practice Top 10</title>
 <style>body{background:#07130d;color:#edfff3;font:16px system-ui;margin:0}main{max-width:720px;margin:40px auto;padding:20px}h1{color:#71ff9e}section{background:#12271b;padding:18px;margin:18px 0;border-radius:12px}input,button{font:inherit;padding:10px;margin:5px 0}button{background:#64ed91;color:#06200e;border:0;border-radius:8px;cursor:pointer}input{max-width:95%}table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #335342;text-align:left}small{color:#c4d4c9}.warning{color:#ffda85}</style></head>
-<body><main><h1>⚡ SPARKD ELITES</h1><h2>Live Practice Top 10</h2><p class="warning"><strong>UNVERIFIED PRACTICE ONLY — NO PRIZES.</strong> Scores are player-submitted and are not independently verified.</p>
+<body><main><h1>⚡ SPARKD ELITES</h1><h2>Practice Leaderboard (Submissions Paused)</h2><p class="warning"><strong>UNVERIFIED PRACTICE ONLY — NO PRIZES.</strong> Manual score submissions are disabled until gameplay can be verified by the server. Existing practice entries, if any, remain unverified.</p>
 <section><button id="refresh">Refresh rankings</button><p id="rankStatus">Loading…</p><table><thead><tr><th>#</th><th>Player</th><th>Score</th><th>Level</th></tr></thead><tbody id="scores"></tbody></table></section>
-<section><h2>Submit a practice score</h2><p>Sign in using your email. Only registered, non-anonymous accounts can submit. You may submit once every five minutes.</p><input id="email" type="email" placeholder="Email address" autocomplete="email"><button id="signin">Email sign-in link</button><button id="signout">Sign out</button><p id="authStatus"></p><form id="submission"><input id="displayName" placeholder="Player name (2–24 characters)" maxlength="24" required><input id="score" type="number" min="0" max="10000000" step="1" placeholder="Practice score" required><input id="level" type="number" min="1" max="5" step="1" placeholder="Level reached (1–5)" required><button type="submit">Submit unverified score</button></form><p id="submitStatus"></p><small>Practice scores are not eligible for official competitions. The server assigns your player identity; this form cannot submit verified scores.</small></section>
+<section><h2>Score submissions temporarily disabled</h2><p>Players cannot enter scores manually. Future submissions will require game-generated run data and server-side verification.</p></section>
 <p><a style="color:#a6ffc0" href="./">Back to SPARKD ELITES arcade</a></p></main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.0';
@@ -23,14 +23,5 @@ async function authStatus(){const {data}=await db.auth.getUser();el('authStatus'
 el('refresh').onclick=refresh;
 el('signin').onclick=async()=>{const email=el('email').value.trim();if(!email)return;const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/sparkd-arcade/practice-leaderboard.html'}});el('authStatus').textContent=error?'Sign-in unavailable: '+error.message:'Check your email for a sign-in link.';};
 el('signout').onclick=async()=>{await db.auth.signOut();authStatus();};
-el('submission').onsubmit=async event=>{
- event.preventDefault();el('submitStatus').textContent='Submitting…';
- const {data:{session}}=await db.auth.getSession();
- if(!session){el('submitStatus').textContent='Please sign in first.';return;}
- const body={displayName:el('displayName').value.trim(),score:Number(el('score').value),levelReached:Number(el('level').value)};
- try{const response=await fetch(endpoint+'/functions/v1/sparkd-practice-submit',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+session.access_token},body:JSON.stringify(body)});
- const result=await response.json();el('submitStatus').textContent=response.ok?'Practice score submitted (UNVERIFIED).':(result.error||'Submission failed');if(response.ok)refresh();
- }catch{el('submitStatus').textContent='Network error; please retry.';}
-};
 refresh();authStatus();
 </script></body></html>
