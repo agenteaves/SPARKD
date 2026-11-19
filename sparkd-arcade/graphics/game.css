@@ -96,3 +96,6 @@ body.boss-controls #runnerLiveHud{display:none}
 
 /* Boss arena: lower EXIT to keep the top-left boss instructions readable. Space mode retains its existing position. */
 body.boss-controls:has(#roll[hidden]) #gameWrap .game-controls #exitGame{top:120px!important;left:max(12px,env(safe-area-inset-left))!important;right:auto!important;bottom:auto!important}
+
+/* Space battle: keep EXIT below the starfighter HUD, independent of the runner boss placement. */
+body.boss-controls:has(#roll:not([hidden])) #gameWrap .game-controls #exitGame{top:72px!important;left:max(12px,env(safe-area-inset-left))!important;right:auto!important;bottom:auto!important}
