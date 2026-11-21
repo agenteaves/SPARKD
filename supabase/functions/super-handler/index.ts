@@ -117,6 +117,31 @@ async function getVerifiedDexScreenerQuote(referencePrice: number | null = null)
     };
 }
 
+async function getVerifiedPumpQuote(referencePrice: number) {
+    const response = await fetch(
+        `https://frontend-api-v3.pump.fun/coins-v2/${SPARKD_MINT}`,
+        { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8000) }
+    );
+    if (!response.ok) throw new Error("Pump price cross-check unavailable.");
+    const data = await response.json();
+    const coin = Array.isArray(data) ? data[0] : (data?.coin || data);
+    const supplyRaw = Number(coin?.total_supply_str ?? coin?.total_supply);
+    const supplyTokens = supplyRaw / (10 ** SPARKD_DECIMALS);
+    const marketCapUsd = Number(coin?.usd_market_cap ?? coin?.usdMarketCap ?? coin?.market_cap_usd);
+    const realSolReserves = Number(coin?.real_sol_reserves ?? 0);
+    const pumpPrice = marketCapUsd / supplyTokens;
+    if (
+        coin?.mint !== SPARKD_MINT ||
+        (coin?.token_program && coin.token_program !== "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") ||
+        !Number.isFinite(supplyTokens) || supplyTokens <= 0 ||
+        !Number.isFinite(marketCapUsd) || marketCapUsd < MIN_PRICE_LIQUIDITY_USD ||
+        !Number.isFinite(realSolReserves) || realSolReserves < 1000000000 ||
+        !Number.isFinite(pumpPrice) || pumpPrice <= 0 ||
+        Math.abs(pumpPrice / referencePrice - 1) > 0.15
+    ) throw new Error("Pump price/reserves did not pass independent verification.");
+    return { priceUsd: pumpPrice, liquidityUsd: null, source: "jupiter-pump-verified-cross-check" };
+}
+
 async function getContestBurnQuote() {
     const apiKey = Deno.env.get("JUPITER_API_KEY");
     const endpoints = apiKey
@@ -160,7 +185,23 @@ async function getContestBurnQuote() {
         if (!Number.isFinite(parsedLiquidity) || parsedLiquidity < MIN_PRICE_LIQUIDITY_USD) {
             // Jupiter can report low/unknown aggregated liquidity while a verified
             // Solana pool still meets our safeguard. Cross-check price and liquidity.
-            const fallback = await getVerifiedDexScreenerQuote(priceUsd);
+            let fallback;
+            try {
+                fallback = await getVerifiedDexScreenerQuote(priceUsd);
+            } catch (dexError) {
+                // Some Pump bonding curves have no DEX pool liquidity field.
+                // Require independent price agreement and the existing Pump reserve
+                // and market-cap checks instead of treating missing DEX liquidity as zero.
+                try {
+                    fallback = await getVerifiedPumpQuote(priceUsd);
+                } catch (pumpError) {
+                    console.warn("SPARKD independent price cross-check rejected", {
+                        dexError: dexError instanceof Error ? dexError.message : String(dexError),
+                        pumpError: pumpError instanceof Error ? pumpError.message : String(pumpError)
+                    });
+                    throw dexError;
+                }
+            }
             priceUsd = fallback.priceUsd;
             liquidityUsd = fallback.liquidityUsd;
             priceSource = fallback.source;
