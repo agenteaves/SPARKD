@@ -93,6 +93,34 @@ async function getVerifiedDexScreenerQuote(referencePrice: number | null = null)
         Number(pair.liquidity.usd) >= MIN_PRICE_LIQUIDITY_USD &&
         (!referencePrice || Math.abs(Number(pair.priceUsd) / referencePrice - 1) <= 0.15)
     ).sort((a, b) => Number(b.liquidity.usd) - Number(a.liquidity.usd));
+    if (!valid.length && referencePrice && Number.isFinite(referencePrice) && referencePrice > 0) {
+        // A Pump bonding curve may report no DEX liquidity, even when actively traded.
+        // For a token BURN (not a swap), independently corroborate the USD price,
+        // market cap and recent trade activity; never trust a lone stale quote.
+        const corroborated = pairs.filter((pair) => {
+            const price = Number(pair?.priceUsd);
+            const cap = Number(pair?.marketCap);
+            const volume = Number(pair?.volume?.h24);
+            const buys = Number(pair?.txns?.h24?.buys);
+            const sells = Number(pair?.txns?.h24?.sells);
+            return pair?.chainId === "solana" &&
+                pair?.baseToken?.address === SPARKD_MINT &&
+                Number.isFinite(price) && price > 0 &&
+                Math.abs(price / referencePrice - 1) <= 0.05 &&
+                Number.isFinite(cap) && cap >= MIN_PRICE_LIQUIDITY_USD &&
+                Number.isFinite(volume) && volume >= CONTEST_ENTRY_USD &&
+                Number.isFinite(buys) && Number.isFinite(sells) &&
+                buys + sells >= 2;
+        }).sort((a, b) => Number(b.volume?.h24) - Number(a.volume?.h24));
+        if (corroborated.length) {
+            console.info("SPARKD verified low-liquidity burn quote via independent price and trading activity");
+            return {
+                priceUsd: Number(corroborated[0].priceUsd),
+                liquidityUsd: null,
+                source: "jupiter-dexscreener-active-market-cross-check"
+            };
+        }
+    }
     if (!valid.length) {
         // Diagnostic counts only: never log wallet addresses or private data.
         const matching = pairs.filter((pair) => pair?.chainId === "solana" && pair?.baseToken?.address === SPARKD_MINT);
@@ -106,7 +134,17 @@ async function getVerifiedDexScreenerQuote(referencePrice: number | null = null)
             topLiquidityUsd,
             minimumLiquidityUsd: MIN_PRICE_LIQUIDITY_USD,
             referencePriceAvailable: referencePrice !== null,
-            liquidityQualifiedPairs: matching.filter((pair) => Number(pair?.liquidity?.usd) >= MIN_PRICE_LIQUIDITY_USD).length
+            liquidityQualifiedPairs: matching.filter((pair) => Number(pair?.liquidity?.usd) >= MIN_PRICE_LIQUIDITY_USD).length,
+            poolDetails: matching.slice(0, 3).map((pair) => ({
+                dexId: String(pair?.dexId ?? "").slice(0, 32),
+                quoteSymbol: String(pair?.quoteToken?.symbol ?? "").slice(0, 16),
+                priceUsd: Number(pair?.priceUsd) || null,
+                volume24hUsd: Number(pair?.volume?.h24) || 0,
+                buys24h: Number(pair?.txns?.h24?.buys) || 0,
+                sells24h: Number(pair?.txns?.h24?.sells) || 0,
+                liquidityUsdPresent: pair?.liquidity?.usd !== undefined && pair?.liquidity?.usd !== null,
+                pairCreatedAt: Number(pair?.pairCreatedAt) || null
+            }))
         });
         throw new Error("No verified SPARKD liquidity pool meets the $2,500 safety threshold.");
     }
