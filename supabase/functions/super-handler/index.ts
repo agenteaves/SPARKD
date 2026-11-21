@@ -106,7 +106,17 @@ async function getVerifiedDexScreenerQuote(referencePrice: number | null = null)
             topLiquidityUsd,
             minimumLiquidityUsd: MIN_PRICE_LIQUIDITY_USD,
             referencePriceAvailable: referencePrice !== null,
-            liquidityQualifiedPairs: matching.filter((pair) => Number(pair?.liquidity?.usd) >= MIN_PRICE_LIQUIDITY_USD).length
+            liquidityQualifiedPairs: matching.filter((pair) => Number(pair?.liquidity?.usd) >= MIN_PRICE_LIQUIDITY_USD).length,
+            poolDetails: matching.slice(0, 3).map((pair) => ({
+                dexId: String(pair?.dexId ?? "").slice(0, 32),
+                quoteSymbol: String(pair?.quoteToken?.symbol ?? "").slice(0, 16),
+                priceUsd: Number(pair?.priceUsd) || null,
+                volume24hUsd: Number(pair?.volume?.h24) || 0,
+                buys24h: Number(pair?.txns?.h24?.buys) || 0,
+                sells24h: Number(pair?.txns?.h24?.sells) || 0,
+                liquidityUsdPresent: pair?.liquidity?.usd !== undefined && pair?.liquidity?.usd !== null,
+                pairCreatedAt: Number(pair?.pairCreatedAt) || null
+            }))
         });
         throw new Error("No verified SPARKD liquidity pool meets the $2,500 safety threshold.");
     }
