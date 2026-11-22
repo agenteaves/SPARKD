@@ -38,6 +38,8 @@ test('drone hazard geometry matches the live runner',()=>{
  let found=false;
  for(let i=0;i<1000&&!found;i++){
    s.spawn=0;
+   s.elapsed=5;
+   s.items=[];
    runnerStep(s);
    for(const item of s.items){
      if(item.type==='drone'||item.type==='swooper'){
