@@ -22,9 +22,9 @@ function spawnHazard(s) {
   const drone = s.elapsed > 4 && nextRandom(s) < .24 + s.level * .1;
   const moving = s.level > 0 && nextRandom(s) < .16 + s.level * .13;
   const type = moving ? (drone ? 'swooper' : 'roller') : (drone ? 'drone' : 'barrier');
-  s.items.push({ id: ++s.itemSerial, type, x: 830, y: drone ? GROUND-91 : GROUND-41,
+  s.items.push({ id: ++s.itemSerial, type, x: 830, y: drone ? GROUND-76 : GROUND-41,
     w: drone ? 48 : 34, h: drone ? 32 : 41, hit: false,
-    baseY: drone ? GROUND-91 : GROUND-41, osc: nextRandom(s) * Math.PI * 2 });
+    baseY: drone ? GROUND-76 : GROUND-41, osc: nextRandom(s) * Math.PI * 2 });
 }
 function spawnOrb(s) {
   s.items.push({ id: ++s.itemSerial, type: 'orb', x: 825,
@@ -61,10 +61,10 @@ export function runnerStep(s, actions = []) {
   if(s.orbSpawn<=0){spawnOrb(s);s.orbSpawn=rand(s,.85,1.4);}
   for(const it of s.items){
     it.x-=s.speed*STEP;
-    if(it.type==='swooper')it.y=it.baseY+Math.sin(s.elapsed*(3+s.level*.7)+it.osc)*22;
+    if(it.type==='swooper')it.y=it.baseY+Math.sin(s.elapsed*(3+s.level*.7)+it.osc)*5;
     if(it.type==='roller')it.y=it.baseY+Math.sin(s.elapsed*(4+s.level*.8)+it.osc)*12;
     if(!it.hit&&intersects(s.hero,it)){
-      if(it.type==='orb'){it.hit=true;s.orbs++;s.score+=75;if(s.orbs%5===0&&s.lives<5)s.lives++;}
+      if(it.type==='orb'){it.hit=true;s.orbs++;s.score+=75;if(s.orbs%5===0)s.lives++;}
       else if(s.invulnerable<=0){it.hit=true;s.lives--;s.invulnerable=2.6;if(s.lives<=0)break;}
     }
   }
