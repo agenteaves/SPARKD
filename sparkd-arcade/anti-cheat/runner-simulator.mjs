@@ -9,7 +9,7 @@ export function makeRunner(seed, level = 0) {
   return { rng: seed >>> 0, level, step: 0, elapsed: 0, speed: 280,
     score: 0, orbs: 0, lives: 5, spawn: 3.1, orbSpawn: .65,
     hero: { x: 105, y: GROUND - 70, w: 46, h: 70, vy: 0, onGround: true },
-    duck: false, jumpBuffer: 0, invulnerable: 0, items: [], itemSerial: 0 };
+    duck: false, jumpBuffer: 0, invulnerable: 0, shieldCharge: level > 0, shieldTime: 0, items: [], itemSerial: 0 };
 }
 export function nextRandom(s) {
   let x = s.rng;
@@ -44,6 +44,10 @@ export function runnerStep(s, actions = []) {
     } else if (action === 'duck_down' || action === 'duck_up') {
       s.duck=action==='duck_down';
       if(s.hero.onGround){s.hero.y=GROUND-(s.duck?43:70);s.hero.vy=0;}
+    } else if (action === 'invincible') {
+      if (s.level === 0 || !s.shieldCharge || s.shieldTime > 0) throw new RangeError('invalid shield activation');
+      s.shieldCharge = false;
+      s.shieldTime = 6;
     } else throw new RangeError('unsupported runner action');
   }
   s.step++;s.elapsed+=STEP;
@@ -51,6 +55,7 @@ export function runnerStep(s, actions = []) {
   s.speed=Math.min(750,280+s.level*45+s.elapsed*(4+s.level*.7));
   s.score+=STEP*12;
   s.invulnerable=Math.max(0,s.invulnerable-STEP);
+  s.shieldTime=Math.max(0,s.shieldTime-STEP);
   const h=s.duck&&s.hero.onGround?43:70;
   s.hero.vy+=1800*STEP;s.hero.y+=s.hero.vy*STEP;
   if(s.hero.y+h>=GROUND){s.hero.y=GROUND-h;s.hero.vy=0;s.hero.onGround=true;}
@@ -65,7 +70,7 @@ export function runnerStep(s, actions = []) {
     if(it.type==='roller')it.y=it.baseY+Math.sin(s.elapsed*(4+s.level*.8)+it.osc)*12;
     if(!it.hit&&intersects(s.hero,it)){
       if(it.type==='orb'){it.hit=true;s.orbs++;s.score+=75;if(s.orbs%5===0)s.lives++;}
-      else if(s.invulnerable<=0){it.hit=true;s.lives--;s.invulnerable=2.6;if(s.lives<=0)break;}
+      else if(s.invulnerable<=0&&s.shieldTime<=0){it.hit=true;s.lives--;s.invulnerable=2.6;if(s.lives<=0)break;}
     }
   }
   s.items=s.items.filter(it=>it.x+it.w>-30&&!it.hit);
