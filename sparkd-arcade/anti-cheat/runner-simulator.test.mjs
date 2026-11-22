@@ -69,3 +69,25 @@ test('moving swooper oscillation uses the same amplitude as gameplay',()=>{
  runnerStep(s);
  assert.ok(Math.abs(s.items[0].y-(269+Math.sin(s.elapsed*3.7+Math.PI/2)*5))<1e-9);
 });
+
+test('shield cannot be activated in first level or used twice',()=>{
+ assert.throws(()=>runnerStep(makeRunner(1,0),['invincible']),RangeError);
+ const s=makeRunner(1,1);
+ runnerStep(s,['invincible']);
+ assert.equal(s.shieldCharge,false);
+ assert.ok(s.shieldTime>5.9);
+ assert.throws(()=>runnerStep(s,['invincible']),RangeError);
+});
+test('active shield prevents hazard damage and expires on fixed ticks',()=>{
+ const s=makeRunner(2,1);
+ s.spawn=100;s.orbSpawn=100;
+ runnerStep(s,['invincible']);
+ const lives=s.lives;
+ s.items=[{type:'barrier',x:105,y:304,w:34,h:41,hit:false}];
+ runnerStep(s);
+ assert.equal(s.lives,lives);
+ assert.equal(s.items[0].hit,false);
+ s.items=[];s.spawn=100;s.orbSpawn=100;
+ for(let i=0;i<360;i++){s.lives=5;runnerStep(s);}
+ assert.equal(s.shieldTime,0);
+});
