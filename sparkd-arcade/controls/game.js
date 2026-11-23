@@ -66,26 +66,22 @@ const STEP=1/60,MAX_STEPS=12,MAX_EVENTS=12000;let accumulator=0,runSeed=0,rngSta
 function nextRandom(){rngState^=rngState<<13;rngState^=rngState>>>17;rngState^=rngState<<5;return (rngState>>>0)/4294967296}
 function rand(a,b){return a+nextRandom()*(b-a)}
 function seedRun(){runSeed=(typeof crypto!=='undefined'&&crypto.getRandomValues?crypto.getRandomValues(new Uint32Array(1))[0]:(Date.now()>>>0))||1;rngState=runSeed;runSteps=0;accumulator=0}
-const leaderboardKey='sparkd-runner-training-scores-v1',nameKey='sparkd-runner-training-name-v1';
-function utcWeekKey(date=new Date()){const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate()));const day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day);return d.toISOString().slice(0,10)}
-const weekKey='sparkd-runner-week-'+utcWeekKey();const weeklyEntries=document.getElementById('weeklyEntries');
-document.getElementById('weeklyLabel').textContent='This week (UTC) · starting '+utcWeekKey();
-let weeklyScores=[];try{const stored=JSON.parse(localStorage.getItem(weekKey));if(Array.isArray(stored))weeklyScores=stored.filter(e=>e&&typeof e.name==='string'&&Number.isFinite(e.score)&&e.score>=0).slice(0,10)}catch{}
-function renderWeekly(){weeklyEntries.replaceChildren();if(!weeklyScores.length){const li=document.createElement('li');li.textContent='No runs this week yet.';weeklyEntries.append(li);return}for(const entry of weeklyScores){const li=document.createElement('li');li.textContent=entry.name+' — '+entry.score+' pts';weeklyEntries.append(li)}}
-renderWeekly();
-const playerName=document.getElementById('playerName'),leaderboardEntries=document.getElementById('leaderboardEntries');
-let trainingScores=[];try{const stored=JSON.parse(localStorage.getItem(leaderboardKey));if(Array.isArray(stored))trainingScores=stored.filter(e=>e&&typeof e.name==='string'&&Number.isFinite(e.score)&&e.score>=0).slice(0,10)}catch{}
+const nameKey='sparkd-runner-player-name-v1';
+const playerName=document.getElementById('playerName');
 try{playerName.value=(localStorage.getItem(nameKey)||'').slice(0,16)}catch{}
 function cleanName(value){return String(value||'SPARKD Hero').replace(/[^a-zA-Z0-9 _-]/g,'').trim().slice(0,16)||'SPARKD Hero'}
 playerName.addEventListener('change',()=>{playerName.value=cleanName(playerName.value);try{localStorage.setItem(nameKey,playerName.value)}catch{}});
-function renderTrainingScores(){leaderboardEntries.replaceChildren();if(!trainingScores.length){const li=document.createElement('li');li.textContent='No completed runs yet.';leaderboardEntries.append(li);return}for(const entry of trainingScores){const li=document.createElement('li');li.textContent=entry.name+' — '+entry.score+' pts';leaderboardEntries.append(li)}}
 const scoreApi='https://uxpbgzksfizkyxubctep.supabase.co/rest/v1/sparkd_arcade_scores';const scoreKey='sb_publishable_wf4FFwp5uV0ppQ140WE6NA_TzNQzl2J';
 async function refreshOnlineScores(){const status=document.getElementById('onlineScoreStatus');try{const res=await fetch(scoreApi+'?select=name,score&order=score.desc,created_at.asc&limit=5',{headers:{apikey:scoreKey}});if(!res.ok)throw Error('HTTP '+res.status);const rows=await res.json();const list=document.getElementById('onlineEntries');list.replaceChildren();for(const entry of rows){const li=document.createElement('li');li.textContent=entry.name+' — '+Number(entry.score).toLocaleString()+' pts';list.append(li)}if(!rows.length){const li=document.createElement('li');li.textContent='No online scores yet. Be the first!';list.append(li)}status.textContent='Historical rankings · new official scores require server verification'}catch(err){status.textContent='Online scores unavailable. Check connection and retry.'}}
 async function submitOnlineScore(name,value){/* Server-verified scoring is required before online writes are enabled. */document.getElementById('onlineScoreStatus').textContent='Run saved locally. Official online scoring is being secured.';}
 document.getElementById('refreshOnlineScores').addEventListener('click',refreshOnlineScores);refreshOnlineScores();document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshOnlineScores()});setInterval(()=>{if(!document.hidden)refreshOnlineScores()},30000);
-function recordCompletedRun(){const value=Math.floor(score);if(value<=0)return;const name=cleanName(playerName.value);trainingScores.push({name,score:value});weeklyScores.push({name,score:value});weeklyScores.sort((a,b)=>b.score-a.score);weeklyScores=weeklyScores.slice(0,5);try{localStorage.setItem(weekKey,JSON.stringify(weeklyScores))}catch{}renderWeekly();trainingScores.sort((a,b)=>b.score-a.score);trainingScores=trainingScores.slice(0,5);try{localStorage.setItem(leaderboardKey,JSON.stringify(trainingScores));localStorage.setItem(nameKey,name)}catch{}renderTrainingScores();submitOnlineScore(name,value)}
-renderTrainingScores();
-
+function recordCompletedRun(){
+  // Official scores are never accepted from browser-local totals.
+  // Keep the run diagnostics and personal best, but no shadow leaderboards.
+  const name=cleanName(playerName.value);
+  try{localStorage.setItem(nameKey,name)}catch{}
+  submitOnlineScore(name,Math.floor(score));
+}
 const challengeTypes=[{name:'ENERGY COLLECTOR',description:'Collect 5 energy orbs in one run',goal:5,metric:'orbs'},{name:'CITY SURVIVOR',description:'Survive 45 seconds in one run',goal:45,metric:'seconds'},{name:'POINTS PATROL',description:'Earn 500 points in one run',goal:500,metric:'points'}];
 const today=new Date().toISOString().slice(0,10);const dayIndex=Math.floor(Date.parse(today+'T00:00:00Z')/86400000);const challenge=challengeTypes[((dayIndex%challengeTypes.length)+challengeTypes.length)%challengeTypes.length];
 const challengeText=document.getElementById('challengeText'),challengeBar=document.getElementById('challengeBar'),challengeStatus=document.getElementById('challengeStatus'),challengeTitle=document.getElementById('challengeTitle');
