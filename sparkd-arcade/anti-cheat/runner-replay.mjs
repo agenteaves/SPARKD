@@ -27,6 +27,8 @@ export function inspectRunnerReplay(payload, session, now = Date.now()) {
   } catch {
     return {accepted:false,reason:'invalid-runner-action'};
   }
+  if (cursor !== payload.events.length) return {accepted:false,reason:'unconsumed-inputs'};
+  if (state.step !== payload.steps) return {accepted:false,reason:'incomplete-replay'};
   const computedScore = Math.floor(state.score);
   if (computedScore !== payload.claimedScore) {
     return {accepted:false,reason:'score-mismatch',computedScore};
