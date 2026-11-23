@@ -28,3 +28,14 @@ test('final run exports the single combined score, without a second leaderboard'
   assert.equal((page.match(/id="onlineEntries"/g) || []).length, 1);
   assert.doesNotMatch(page, /id="weeklyEntries"|id="practiceEntries"/);
 });
+
+test('all modes are captured in one diagnostic trace without authorizing scores', () => {
+  assert.match(game, /modeTrace:modeTrace\.slice\(\)/);
+  assert.match(game, /traceModeEvent\('transition',\{to:'boss'/);
+  assert.match(game, /traceModeEvent\('transition',\{to:'space'/);
+  assert.match(game, /traceModeEvent\('transition',\{to:'runner'/);
+  assert.match(game, /traceModeEvent\('reported-event'/);
+  assert.match(game, /traceModeEvent\('control'/);
+  const submit = game.slice(game.indexOf('function submitOnlineScore('), game.indexOf("document.getElementById('refreshOnlineScores')"));
+  assert.doesNotMatch(submit, /fetch\s*\(|XMLHttpRequest|sendBeacon/);
+});
