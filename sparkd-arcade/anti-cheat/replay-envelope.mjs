@@ -20,10 +20,13 @@ export function inspectReplayEnvelope(payload, session, now = Date.now()) {
   for (const event of payload.events) {
     if (!event || typeof event !== 'object' || Array.isArray(event)) return fail('invalid-event');
     if (!TYPES.has(event.action)) return fail('unknown-event');
-    if (!Number.isSafeInteger(event.step) || event.step < previous || event.step > payload.steps) return fail('event-timing');
+    if (!Number.isSafeInteger(event.step) || event.step < 0 || event.step < previous || event.step > payload.steps) return fail('event-timing');
+    if (typeof event.action !== 'string') return fail('unknown-event');
     previous = event.step;
   }
   if (payload.steps > Math.ceil((now - session.issuedAt + 5000) * 60 / 1000)) return fail('future-event');
+  // A valid event stream cannot contain input after its final simulation tick.
+  if (payload.events.some(event => event.step === payload.steps)) return fail('post-run-input');
   // Intentionally no success/verified result: the gameplay rules engine is not implemented.
   return { accepted: false, reason: 'gameplay-verifier-not-implemented', envelopeValid: true };
 }
