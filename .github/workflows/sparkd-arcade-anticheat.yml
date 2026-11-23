@@ -24,5 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check browser game JavaScript syntax
+        run: node --check sparkd-arcade/controls/game.js
       - name: Run offline deterministic replay and anti-cheat tests
         run: node --test sparkd-arcade/anti-cheat/*.test.mjs
