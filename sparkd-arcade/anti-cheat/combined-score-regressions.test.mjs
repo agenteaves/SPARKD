@@ -39,3 +39,13 @@ test('all modes are captured in one diagnostic trace without authorizing scores'
   const submit = game.slice(game.indexOf('function submitOnlineScore('), game.indexOf("document.getElementById('refreshOnlineScores')"));
   assert.doesNotMatch(submit, /fetch\s*\(|XMLHttpRequest|sendBeacon/);
 });
+
+test('boss and space modes receive the same run seed and avoid unseeded gameplay randomness', () => {
+  const boss = readFileSync(new URL('../graphics/arena-3d.html', import.meta.url), 'utf8');
+  const space = readFileSync(new URL('../graphics/space-war.html', import.meta.url), 'utf8');
+  assert.match(game, /arenaFrame\.src='graphics\/arena-3d\.html[^\n]*&seed='\+runSeed/);
+  assert.match(game, /arenaFrame\.src='graphics\/space-war\.html[^\n]*&seed='\+runSeed/);
+  assert.match(boss, /function replayRandom\(/);
+  assert.match(space, /requestedSeed/);
+  assert.doesNotMatch(boss, /Math\.random\(\)/);
+});
