@@ -34,3 +34,15 @@ test('reject unsupported rules versions',()=>{
 test('reject malformed event before replay',()=>{
  assert.equal(inspectRunnerReplay({...run(),events:[{step:-1,action:'jump'}]},session,now).reason,'event-timing');
 });
+
+test('reject input at terminal tick even if claimed score matches',()=>{
+ const p=run();
+ const result=inspectRunnerReplay({...p,events:[{step:p.steps,action:'jump'}]},session,now);
+ assert.equal(result.reason,'post-run-input');
+});
+test('reject more claimed ticks than simulator actually completed',()=>{
+ const p=run(300);
+ const result=inspectRunnerReplay({...p,steps:700},session,now);
+ assert.equal(result.accepted,false);
+ assert.notEqual(result.reason,'full-game-verifier-not-implemented');
+});
