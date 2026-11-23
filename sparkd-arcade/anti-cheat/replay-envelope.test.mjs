@@ -22,3 +22,7 @@ test('reject missing session',()=>assert.equal(inspectReplayEnvelope(payload,nul
 test('reject future-issued session',()=>assert.equal(inspectReplayEnvelope(payload,{...session,issuedAt:now+1},now).reason,'expired-session'));
 test('reject invalid session seed',()=>assert.equal(inspectReplayEnvelope(payload,{...session,seed:0},now).reason,'invalid-session-seed'));
 test('reject malformed rules version',()=>assert.equal(inspectReplayEnvelope(payload,{...session,rulesVersion:'../../v1'},now).reason,'invalid-rules-version'));
+
+test('reject negative event step',()=>assert.equal(inspectReplayEnvelope({...payload,events:[{action:'jump',step:-1}]},session,now).reason,'event-timing'));
+test('reject input on the terminal tick',()=>assert.equal(inspectReplayEnvelope({...payload,events:[{action:'jump',step:300}]},session,now).reason,'post-run-input'));
+test('reject non-string event actions',()=>assert.equal(inspectReplayEnvelope({...payload,events:[{action:null,step:100}]},session,now).reason,'unknown-event'));
