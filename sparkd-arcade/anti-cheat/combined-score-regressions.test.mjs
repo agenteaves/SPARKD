@@ -22,7 +22,7 @@ test('boss and space rewards contribute to the same score', () => {
 });
 
 test('final run exports the single combined score, without a second leaderboard', () => {
-  const finish = section('function finish()', 'function begin(');
+  const finish = game.slice(game.indexOf('function finish()'), game.indexOf('function finish()') + 1800);
   assert.match(finish, /score:Math\.floor\(score\)/);
   const page = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.equal((page.match(/id="onlineEntries"/g) || []).length, 1);
