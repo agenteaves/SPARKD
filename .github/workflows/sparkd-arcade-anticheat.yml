@@ -3,10 +3,14 @@ on:
   push:
     paths:
       - 'sparkd-arcade/anti-cheat/**'
+      - 'sparkd-arcade/controls/game.js'
+      - 'sparkd-arcade/index.html'
       - '.github/workflows/sparkd-arcade-anticheat.yml'
   pull_request:
     paths:
       - 'sparkd-arcade/anti-cheat/**'
+      - 'sparkd-arcade/controls/game.js'
+      - 'sparkd-arcade/index.html'
       - '.github/workflows/sparkd-arcade-anticheat.yml'
   workflow_dispatch:
 permissions:
