@@ -49,3 +49,9 @@ test('boss and space modes receive the same run seed and avoid unseeded gameplay
   assert.match(space, /requestedSeed/);
   assert.doesNotMatch(boss, /Math\.random\(\)/);
 });
+
+test('diagnostic mode trace capacity does not invalidate a legitimate run', () => {
+  const trace = game.slice(game.indexOf('function traceModeEvent('), game.indexOf('function sendArena('));
+  assert.match(trace, /if\(modeTrace\.length>=MAX_EVENTS\)\{return\}/);
+  assert.doesNotMatch(trace, /runInvalid\s*=\s*true|runReason\s*=/);
+});
